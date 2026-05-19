@@ -78,7 +78,7 @@
                         <span class="label">The Mission</span>
                         <h2 data-scramble>From idea to shipped.</h2>
                         <p>We turn rough technical goals into clear plans, working systems, and practical guidance. Whether you arrive as an individual or a business, we help decide what matters, build what is needed, and explain the path without noise.</p>
-                        <div style="margin-top:4rem;">
+                        <div class="mission-cta">
                             <a href="who-are-we" data-link class="btn-hud">Who We Are</a>
                         </div>
                     </div>
@@ -101,22 +101,27 @@
                 <div class="health-terminal" aria-live="polite">
                     <div class="terminal-line command-line">
                         <span class="terminal-prompt">$</span>
-                        <span id="diagnostic-command">standby --open-panel</span>
+                        <span id="diagnostic-command">website-probe.sh --example</span>
                     </div>
-                    <div class="terminal-line terminal-output" id="diagnostic-output">Diagnostics idle.</div>
+                    <div class="terminal-line terminal-output" id="diagnostic-output">Open the panel to copy the probe script and see the useful checks.</div>
+                    <div class="probe-actions">
+                        <button class="copy-probe-btn" id="copy-probe-script" type="button">Copy Script</button>
+                        <span class="copy-probe-status" id="copy-probe-status" aria-live="polite"></span>
+                    </div>
+                    <pre class="diagnostic-script" id="diagnostic-script" tabindex="0"></pre>
                     <div class="diagnostic-log" id="diagnostic-log"></div>
                 </div>
                 <div class="health-grid">
                     <div class="health-node">
-                        <span class="node-label">Headers</span>
+                        <span class="node-label">Response</span>
                         <span class="node-status" id="status-http"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
-                        <span class="node-label">Traffic Clues</span>
+                        <span class="node-label">Sitemap</span>
                         <span class="node-status" id="status-traffic"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
-                        <span class="node-label">SEO Map</span>
+                        <span class="node-label">Robots</span>
                         <span class="node-status" id="status-seo"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
@@ -124,7 +129,7 @@
                         <span class="node-status" id="status-shield"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
-                        <span class="node-label">Performance</span>
+                        <span class="node-label">Load</span>
                         <span class="node-status" id="status-assets"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
@@ -132,7 +137,7 @@
                         <span class="node-status" id="status-latency"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
-                        <span class="node-label">Content</span>
+                        <span class="node-label">Routes</span>
                         <span class="node-status" id="status-cache"><span class="status-dot"></span> STANDBY</span>
                     </div>
                     <div class="health-node">
@@ -154,6 +159,54 @@
         </footer>
     </div>
 
+    <script type="text/plain" id="probe-script-template">#!/usr/bin/env bash
+set -euo pipefail
+
+TARGET="${1:-https://theprivilegedcompany.com}"
+TARGET="${TARGET%/}"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+fetch_code() {
+  curl -L -sS -o "$2" -w "%{http_code} %{time_total}" --max-time 15 "$1" 2>/dev/null || printf "000 0"
+}
+
+printf "Website probe: %s\n\n" "$TARGET"
+
+home_stats="$(fetch_code "$TARGET/" "$TMP/home.html")"
+home_code="${home_stats%% *}"
+home_time="${home_stats##* }"
+headers="$(curl -I -L -sS --max-time 15 "$TARGET/" 2>/dev/null || true)"
+content_type="$(printf "%s\n" "$headers" | grep -i "^content-type:" | head -1 | cut -d: -f2- | xargs || true)"
+hsts="$(printf "%s\n" "$headers" | grep -iq "^strict-transport-security:" && echo present || echo missing)"
+title="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<title>\([^<]*\)<\/title>.*/\1/p" | head -1)"
+description="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<meta name=\"description\" content=\"\([^\"]*\)\".*/\1/p" | head -1)"
+
+robots_stats="$(fetch_code "$TARGET/robots.txt" "$TMP/robots.txt")"
+robots_code="${robots_stats%% *}"
+sitemap_stats="$(fetch_code "$TARGET/sitemap.xml" "$TMP/sitemap.xml")"
+sitemap_code="${sitemap_stats%% *}"
+sitemap_urls="$(grep -Eo "<loc>[^<]+" "$TMP/sitemap.xml" | sed "s#<loc>##" || true)"
+url_count="$(printf "%s\n" "$sitemap_urls" | sed "/^$/d" | wc -l | tr -d " ")"
+
+checked=0
+broken=0
+while IFS= read -r url && [ "$checked" -lt 10 ]; do
+  [ -z "$url" ] && continue
+  checked=$((checked + 1))
+  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || printf "000")"
+  case "$code" in 2*|3*) ;; *) broken=$((broken + 1));; esac
+done <<< "$sitemap_urls"
+
+printf "STATUS: %s in %ss\n" "$home_code" "$home_time"
+printf "CONTENT-TYPE: %s\n" "${content_type:-missing}"
+printf "TITLE: %s\n" "${title:-missing}"
+printf "DESCRIPTION: %s\n" "$(if [ -n "$description" ]; then printf "%s chars" "${#description}"; else printf "missing"; fi)"
+printf "HSTS: %s\n" "$hsts"
+printf "ROBOTS: HTTP %s\n" "$robots_code"
+printf "SITEMAP: HTTP %s, %s URLs\n" "$sitemap_code" "$url_count"
+printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"
+printf "\nReview only failures: non-2xx/3xx routes, missing metadata, missing HSTS, empty sitemap, or unreachable robots/sitemap.\n"</script>
     <script type="module" src="script.js"></script>
 </body>
 </html>

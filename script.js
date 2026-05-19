@@ -182,7 +182,11 @@ const initHealthCheck = () => {
     const commandEl = document.getElementById('diagnostic-command');
     const outputEl = document.getElementById('diagnostic-output');
     const logEl = document.getElementById('diagnostic-log');
-    if (!dashboard || !toggleBtn || !commandEl || !outputEl || !logEl) return;
+    const scriptEl = document.getElementById('diagnostic-script');
+    const copyBtn = document.getElementById('copy-probe-script');
+    const copyStatus = document.getElementById('copy-probe-status');
+    const scriptTemplate = document.getElementById('probe-script-template');
+    if (!dashboard || !toggleBtn || !commandEl || !outputEl || !logEl || !scriptEl || !copyBtn || !copyStatus || !scriptTemplate) return;
 
     const statusMap = {
         http: 'status-http',
@@ -196,35 +200,24 @@ const initHealthCheck = () => {
     };
 
     const targetOrigin = window.location.origin;
-    const targetHost = window.location.host;
     const targetPath = path => new URL(path, targetOrigin).href;
     const routeEntries = Object.entries(routes).filter(([key]) => key !== '');
+    const probeScript = scriptTemplate.textContent.trim();
 
     const formatMs = ms => `${Math.max(1, Math.round(ms))}ms`;
 
-    const compact = (value, max = 560) => {
+    const compact = (value, max = 180) => {
         const clean = String(value || '').replace(/\s+/g, ' ').trim();
         return clean.length > max ? `${clean.slice(0, max)}...` : clean;
     };
 
-    const interestingHeaders = [
-        'content-type',
-        'cache-control',
-        'etag',
-        'last-modified',
-        'content-length',
-        'strict-transport-security',
-        'content-security-policy',
-        'x-content-type-options'
-    ];
+    const getHeader = (response, name, fallback = 'n/a') => response.headers.get(name) || fallback;
 
-    const getReadableHeaders = response => {
-        const pairs = interestingHeaders
-            .map(name => [name, response.headers.get(name)])
-            .filter(([, value]) => value);
-        return pairs.length
-            ? pairs.map(([name, value]) => `${name}: ${value}`).join('\n')
-            : 'No readable diagnostic headers exposed.';
+    const byteSize = value => {
+        const bytes = Number(value) || 0;
+        if (!bytes) return 'size n/a';
+        if (bytes < 1024) return `${bytes}B`;
+        return `${Math.round((bytes / 1024) * 10) / 10}KB`;
     };
 
     const request = async (path, options = {}) => {
@@ -243,210 +236,6 @@ const initHealthCheck = () => {
         };
     };
 
-    const getPageSnapshot = () => {
-        const navigation = performance.getEntriesByType('navigation')[0];
-        const resources = performance.getEntriesByType('resource');
-        const byType = resources.reduce((acc, resource) => {
-            const type = resource.initiatorType || 'other';
-            acc[type] = (acc[type] || 0) + 1;
-            return acc;
-        }, {});
-
-        return {
-            assets: resources.length,
-            byType,
-            connectMs: Math.max(0, Math.round((navigation?.connectEnd || 0) - (navigation?.connectStart || 0))),
-            dnsMs: Math.max(0, Math.round((navigation?.domainLookupEnd || 0) - (navigation?.domainLookupStart || 0))),
-            links: document.querySelectorAll('a[href]').length,
-            loadMs: Math.round(navigation?.duration || performance.now()),
-            tlsMs: navigation?.secureConnectionStart
-                ? Math.max(0, Math.round((navigation.connectEnd || 0) - navigation.secureConnectionStart))
-                : 0,
-            transferKb: Math.round((resources.reduce((sum, resource) => sum + (resource.transferSize || 0), 0) / 1024) * 10) / 10,
-            title: document.title,
-            url: window.location.href
-        };
-    };
-
-    const checks = [
-        async () => {
-            const { response, elapsed } = await request('/', { method: 'HEAD' });
-            const serverPolicy = [
-                `status: ${response.status} ${response.statusText || ''}`.trim(),
-                `url: ${response.url}`,
-                `elapsed: ${formatMs(elapsed)}`,
-                getReadableHeaders(response)
-            ].join('\n');
-
-            return {
-                command: `fetch HEAD ${targetPath('/')}`,
-                output: serverPolicy,
-                updates: {
-                    http: `${response.status} ${response.ok ? 'OK' : 'CHECK'}`,
-                    shield: response.headers.get('strict-transport-security') ? 'HSTS' : (window.location.protocol === 'https:' ? 'HTTPS' : 'HTTP')
-                }
-            };
-        },
-        async () => {
-            const { response, elapsed, text } = await request('/robots.txt');
-            const lines = text.split(/\r?\n/).filter(Boolean);
-
-            return {
-                command: `fetch GET ${targetPath('/robots.txt')}`,
-                output: [
-                    `status: ${response.status} ${response.statusText || ''}`.trim(),
-                    `elapsed: ${formatMs(elapsed)}`,
-                    `lines: ${lines.length}`,
-                    compact(lines.slice(0, 8).join(' | '), 420)
-                ].join('\n'),
-                updates: {
-                    seo: response.ok ? 'ROBOTS' : 'ROBOTS?',
-                    cache: `${lines.length} LINES`
-                }
-            };
-        },
-        async () => {
-            const { response, elapsed, text } = await request('/sitemap.xml');
-            const urls = [...text.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
-
-            return {
-                command: `fetch GET ${targetPath('/sitemap.xml')}`,
-                output: [
-                    `status: ${response.status} ${response.statusText || ''}`.trim(),
-                    `elapsed: ${formatMs(elapsed)}`,
-                    `urls: ${urls.length}`,
-                    urls.slice(0, 8).join('\n') || 'No <loc> URLs found.'
-                ].join('\n'),
-                updates: {
-                    seo: response.ok ? 'SITEMAP' : 'MAP?',
-                    cache: `${urls.length} URLS`
-                }
-            };
-        },
-        async () => {
-            const results = await Promise.all(routeEntries.map(async ([key, route]) => {
-                const { response, elapsed, text } = await request(`/views/${route.view}`);
-                const bytes = new Blob([text]).size;
-                return `${key}: ${response.status} ${response.ok ? 'OK' : 'MISS'} /views/${route.view} ${bytes}B ${formatMs(elapsed)}`;
-            }));
-            const misses = results.filter(line => !line.includes(' OK ')).length;
-
-            return {
-                command: 'fetch route view fragments',
-                output: results.join('\n'),
-                updates: {
-                    cache: `${routeEntries.length - misses}/${routeEntries.length}`,
-                    errors: misses ? `${misses} MISS` : 'CLEAR'
-                }
-            };
-        },
-        async () => {
-            const directRoutes = await Promise.all(routeEntries.map(async ([key]) => {
-                const { response, elapsed } = await request(`/${key}`, { method: 'HEAD' });
-                return `/${key}: ${response.status} ${response.ok ? 'OK' : 'HTTP'} ${formatMs(elapsed)}`;
-            }));
-            const nonOk = directRoutes.filter(line => !line.includes(' OK ')).length;
-
-            return {
-                command: 'fetch HEAD deep-link routes',
-                output: [
-                    'Checks whether direct URL entry works without relying on an already-loaded SPA shell.',
-                    ...directRoutes
-                ].join('\n'),
-                updates: {
-                    http: nonOk ? `${nonOk} ROUTES` : 'ROUTES OK',
-                    errors: nonOk ? 'DEEP LINK' : 'CLEAR'
-                }
-            };
-        },
-        async () => {
-            const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
-            const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute('href') || 'none';
-            const headings = [...document.querySelectorAll('h1, h2')].map(heading => `${heading.tagName}:${compact(heading.textContent, 80)}`);
-            const jsonLdCount = document.querySelectorAll('script[type="application/ld+json"]').length;
-
-            return {
-                command: 'inspect live DOM metadata',
-                output: [
-                    `title: ${document.title}`,
-                    `description: ${metaDescription.length} chars - ${compact(metaDescription, 220)}`,
-                    `canonical: ${canonical}`,
-                    `json-ld blocks: ${jsonLdCount}`,
-                    `headings: ${headings.join(' | ')}`
-                ].join('\n'),
-                updates: {
-                    seo: metaDescription ? 'META' : 'META?',
-                    cache: `${document.querySelectorAll('a[href]').length} LINKS`
-                }
-            };
-        },
-        async () => {
-            const snapshot = getPageSnapshot();
-            const typeSummary = Object.entries(snapshot.byType)
-                .map(([type, count]) => `${type}:${count}`)
-                .join(', ') || 'none';
-
-            return {
-                command: 'read PerformanceNavigationTiming',
-                output: [
-                    `url: ${snapshot.url}`,
-                    `load: ${snapshot.loadMs}ms`,
-                    `dns/connect/tls: ${snapshot.dnsMs}ms / ${snapshot.connectMs}ms / ${snapshot.tlsMs}ms`,
-                    `resources: ${snapshot.assets} (${typeSummary})`,
-                    `transfer: ${snapshot.transferKb}KB browser-reported`,
-                    `links: ${snapshot.links}`
-                ].join('\n'),
-                updates: {
-                    assets: `${snapshot.assets} ASSETS`,
-                    latency: `${snapshot.dnsMs}/${snapshot.tlsMs}MS`
-                }
-            };
-        },
-        async () => {
-            const mixedContent = [...document.querySelectorAll('[src], [href]')]
-                .map(el => el.getAttribute('src') || el.getAttribute('href'))
-                .filter(value => value && value.startsWith('http://'));
-            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') || 'none';
-
-            return {
-                command: 'inspect browser-visible security state',
-                output: [
-                    `host: ${targetHost}`,
-                    `protocol: ${window.location.protocol}`,
-                    `secure context: ${window.isSecureContext ? 'yes' : 'no'}`,
-                    `mixed-content URLs in DOM: ${mixedContent.length}`,
-                    `meta CSP: ${compact(cspMeta, 260)}`
-                ].join('\n'),
-                updates: {
-                    shield: window.isSecureContext ? 'SECURE' : 'LOCAL',
-                    errors: mixedContent.length ? 'MIXED' : 'CLEAR'
-                }
-            };
-        },
-        async () => {
-            const links = [...document.querySelectorAll('a[href]')].map(link => link.getAttribute('href'));
-            const internal = links.filter(href => href && !href.startsWith('mailto:') && !href.startsWith('http')).length;
-            const email = links.filter(href => href?.startsWith('mailto:')).length;
-            const external = links.filter(href => href?.startsWith('http')).length;
-
-            return {
-                command: 'audit current-page links',
-                output: [
-                    `internal links: ${internal}`,
-                    `mailto links: ${email}`,
-                    `external links: ${external}`,
-                    `hrefs: ${links.join(' | ')}`
-                ].join('\n'),
-                updates: {
-                    traffic: `${internal} INTERNAL`,
-                    cache: `${links.length} HREFS`
-                }
-            };
-        }
-    ];
-
-    let checkIndex = 0;
-    let diagnosticsTimer;
     let diagnosticsRunning = false;
     let diagnosticsHasRun = false;
 
@@ -463,43 +252,92 @@ const initHealthCheck = () => {
         }, 900);
     };
 
-    const appendLog = (result) => {
+    const appendSummary = ({ label, summary }) => {
         const entry = document.createElement('div');
         entry.className = 'diagnostic-log-entry';
 
         const command = document.createElement('div');
         command.className = 'diagnostic-log-command';
-        command.textContent = `$ ${result.command}`;
+        command.textContent = label;
 
         const output = document.createElement('div');
         output.className = 'diagnostic-log-output';
-        output.textContent = result.output;
+        output.textContent = summary;
 
         entry.append(command, output);
         logEl.append(entry);
-        logEl.scrollTop = logEl.scrollHeight;
     };
 
-    const runDiagnostic = async () => {
-        const check = checks[checkIndex % checks.length];
-        checkIndex += 1;
-
+    const buildProbeSummary = async () => {
         try {
-            const result = await check();
-            commandEl.textContent = result.command;
-            outputEl.textContent = result.output.split('\n')[0];
-            Object.entries(result.updates).forEach(([key, value]) => updateStatus(key, value));
-            appendLog(result);
+            const [home, robots, sitemap, fragments, directRoutes] = await Promise.all([
+                request('/', { method: 'HEAD' }),
+                request('/robots.txt'),
+                request('/sitemap.xml'),
+                Promise.all(routeEntries.map(async ([, route]) => request(`/views/${route.view}`, { method: 'HEAD' }))),
+                Promise.all(routeEntries.map(async ([key]) => ({ key, result: await request(`/${key}`, { method: 'HEAD' }) })))
+            ]);
+
+            const sitemapUrls = [...sitemap.text.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
+            const missingFragments = fragments.filter(({ response }) => !response.ok).length;
+            const directRouteIssues = directRoutes.filter(({ result }) => !result.response.ok).length;
+            const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+            const resources = performance.getEntriesByType('resource');
+            const nav = performance.getEntriesByType('navigation')[0];
+            const transferKb = Math.round((resources.reduce((sum, resource) => sum + (resource.transferSize || 0), 0) / 1024) * 10) / 10;
+            const mixedContent = [...document.querySelectorAll('[src], [href]')]
+                .map(el => el.getAttribute('src') || el.getAttribute('href'))
+                .filter(value => value && value.startsWith('http://'));
+
+            return [
+                {
+                    label: 'Response',
+                    summary: `${home.response.status} ${home.response.ok ? 'OK' : 'check'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`,
+                    updates: { http: `${home.response.status} ${home.response.ok ? 'OK' : 'CHECK'}` }
+                },
+                {
+                    label: 'Crawl Files',
+                    summary: `robots ${robots.response.status}; sitemap ${sitemap.response.status} with ${sitemapUrls.length} URL${sitemapUrls.length === 1 ? '' : 's'}.`,
+                    updates: {
+                        traffic: `${sitemapUrls.length} URLS`,
+                        seo: robots.response.ok ? 'ROBOTS OK' : 'ROBOTS?'
+                    }
+                },
+                {
+                    label: 'Routes',
+                    summary: `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.`,
+                    updates: {
+                        cache: `${routeEntries.length - missingFragments}/${routeEntries.length}`,
+                        errors: directRouteIssues ? 'FALLBACK' : 'CLEAR'
+                    }
+                },
+                {
+                    label: 'Metadata',
+                    summary: `Title present; description ${metaDescription ? `${metaDescription.length} chars` : 'missing'}.`,
+                    updates: { seo: metaDescription ? 'META OK' : 'META?' }
+                },
+                {
+                    label: 'Speed',
+                    summary: `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB transferred.`,
+                    updates: {
+                        assets: `${resources.length} ASSETS`,
+                        latency: `${Math.round((nav?.domainLookupEnd || 0) - (nav?.domainLookupStart || 0))}/${nav?.secureConnectionStart ? Math.round((nav.connectEnd || 0) - nav.secureConnectionStart) : 0}MS`
+                    }
+                },
+                {
+                    label: 'Security',
+                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}.`,
+                    updates: {
+                        shield: window.isSecureContext ? 'SECURE' : 'LOCAL'
+                    }
+                }
+            ];
         } catch (error) {
-            const result = {
-                command: 'diagnostic probe failed',
-                output: error instanceof Error ? error.message : String(error),
+            return [{
+                label: 'Probe Failed',
+                summary: error instanceof Error ? error.message : String(error),
                 updates: { errors: 'FAILED' }
-            };
-            commandEl.textContent = result.command;
-            outputEl.textContent = result.output;
-            updateStatus('errors', 'FAILED');
-            appendLog(result);
+            }];
         }
     };
 
@@ -507,23 +345,52 @@ const initHealthCheck = () => {
         if (diagnosticsRunning || diagnosticsHasRun) return;
 
         diagnosticsRunning = true;
-        checkIndex = 0;
         logEl.replaceChildren();
-        commandEl.textContent = `run diagnostics --target ${targetOrigin}`;
-        outputEl.textContent = 'Running live browser-side probes against this website...';
+        commandEl.textContent = 'copy website-probe.sh';
+        outputEl.textContent = 'One portable script. Run it with: bash website-probe.sh https://example.com';
 
-        while (checkIndex < checks.length) {
-            await runDiagnostic();
-            await new Promise(resolve => {
-                diagnosticsTimer = setTimeout(resolve, 350);
-            });
-        }
+        const summaries = await buildProbeSummary();
+        summaries.forEach(summary => {
+            appendSummary(summary);
+            Object.entries(summary.updates).forEach(([key, value]) => updateStatus(key, value));
+        });
 
-        commandEl.textContent = 'diagnostics complete';
-        outputEl.textContent = 'Live probe output is available in the scrollable log below.';
+        commandEl.textContent = `example target: ${targetOrigin}`;
+        outputEl.textContent = 'The script reports only status, metadata, crawl files, route health, speed, and security signals.';
         diagnosticsRunning = false;
         diagnosticsHasRun = true;
-        diagnosticsTimer = null;
+    };
+
+    const copyProbeScript = async () => {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(probeScript);
+            } else {
+                const fallback = document.createElement('textarea');
+                fallback.value = probeScript;
+                fallback.setAttribute('readonly', '');
+                fallback.style.position = 'fixed';
+                fallback.style.opacity = '0';
+                document.body.append(fallback);
+                fallback.select();
+                document.execCommand('copy');
+                fallback.remove();
+            }
+
+            copyStatus.textContent = 'Copied';
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+                copyStatus.textContent = '';
+                copyBtn.classList.remove('copied');
+            }, 1600);
+        } catch {
+            const range = document.createRange();
+            range.selectNodeContents(scriptEl);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            copyStatus.textContent = 'Script selected';
+        }
     };
 
     const syncExpandedState = () => {
@@ -532,8 +399,10 @@ const initHealthCheck = () => {
         if (isExpanded) startDiagnostics();
     };
 
+    scriptEl.textContent = probeScript;
     syncExpandedState();
 
+    copyBtn.addEventListener('click', copyProbeScript);
     toggleBtn.addEventListener('click', () => {
         dashboard.classList.toggle('minimized');
         syncExpandedState();
@@ -543,18 +412,34 @@ const initHealthCheck = () => {
 /**
  * Custom Cursor Logic
  */
+const canUseEnhancedPointer = () => (
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+);
+
 const initCursor = () => {
+    if (!cursor || !follower || !canUseEnhancedPointer()) return;
+
+    document.body.classList.add('has-custom-cursor');
+
     let mouseX = 0, mouseY = 0;
     let followerX = 0, followerY = 0;
+    let cursorFrame = null;
 
     window.addEventListener('mousemove', e => {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+
+        if (!cursorFrame) {
+            cursorFrame = requestAnimationFrame(() => {
+                cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+                cursorFrame = null;
+            });
+        }
         
         const target = e.target.closest('a, button, [data-magnetic]');
         document.body.classList.toggle('cursor-hover', !!target);
-    });
+    }, { passive: true });
 
     const loop = () => {
         followerX += (mouseX - followerX - 20) * 0.22;
@@ -570,12 +455,18 @@ const initCursor = () => {
  */
 const initMagnetic = () => {
     document.querySelectorAll('[data-magnetic]').forEach(el => {
+        if (el.dataset.magneticBound || !canUseEnhancedPointer()) {
+            if (!canUseEnhancedPointer()) el.style.transform = 'translate3d(0, 0, 0)';
+            return;
+        }
+
+        el.dataset.magneticBound = 'true';
         el.addEventListener('mousemove', e => {
             const rect = el.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
             el.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0)`;
-        });
+        }, { passive: true });
         el.addEventListener('mouseleave', () => {
             el.style.transform = `translate3d(0, 0, 0)`;
         });
@@ -593,9 +484,14 @@ class QuantumWeb {
         this.particles = [];
         this.mouse = { x: null, y: null, vx: 0, vy: 0 };
         this.lastMouse = { x: 0, y: 0 };
+        this.lastFrame = 0;
+        this.resizeTimer = null;
         this.init();
-        this.animate();
-        window.addEventListener('resize', () => this.init());
+        this.animate(0);
+        window.addEventListener('resize', () => {
+            clearTimeout(this.resizeTimer);
+            this.resizeTimer = setTimeout(() => this.init(), 150);
+        });
         window.addEventListener('mousemove', e => {
             this.mouse.vx = e.clientX - this.lastMouse.x;
             this.mouse.vy = e.clientY - this.lastMouse.y;
@@ -603,15 +499,23 @@ class QuantumWeb {
             this.mouse.y = e.clientY;
             this.lastMouse.x = e.clientX;
             this.lastMouse.y = e.clientY;
-        });
+        }, { passive: true });
     }
 
     init() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.particles = [];
-        const count = Math.floor((this.canvas.width * this.canvas.height) / 4000);
-        for (let i = 0; i < Math.min(count, 500); i++) {
+        this.isCompact = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
+        this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.frameInterval = this.isCompact ? 33 : 16;
+        this.connectionDistance = this.isCompact ? 95 : 135;
+
+        const density = this.isCompact ? 11000 : 7000;
+        const maxParticles = this.isReducedMotion ? 45 : (this.isCompact ? 80 : 170);
+        const count = Math.floor((this.canvas.width * this.canvas.height) / density);
+
+        for (let i = 0; i < Math.min(count, maxParticles); i++) {
             this.particles.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
@@ -623,19 +527,26 @@ class QuantumWeb {
         }
     }
 
-    animate() {
+    animate(timestamp = 0) {
+        if (!this.isReducedMotion && timestamp - this.lastFrame < this.frameInterval) {
+            requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
+            return;
+        }
+
+        this.lastFrame = timestamp;
         this.ctx.fillStyle = '#050505';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.particles.forEach(p => {
-            // Apply mouse wake
-            const dx = p.x - this.mouse.x;
-            const dy = p.y - this.mouse.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 200) {
-                const force = (200 - dist) / 200;
-                p.ox += this.mouse.vx * force * 0.18;
-                p.oy += this.mouse.vy * force * 0.18;
+            if (!this.isCompact && this.mouse.x !== null) {
+                const dx = p.x - this.mouse.x;
+                const dy = p.y - this.mouse.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 200) {
+                    const force = (200 - dist) / 200;
+                    p.ox += this.mouse.vx * force * 0.18;
+                    p.oy += this.mouse.vy * force * 0.18;
+                }
             }
 
             // Dampen offset
@@ -658,22 +569,27 @@ class QuantumWeb {
 
         // Web connections
         this.ctx.lineWidth = 0.5;
-        for (let i = 0; i < this.particles.length; i++) {
-            for (let j = i + 1; j < this.particles.length; j++) {
-                const dx = this.particles[i].x - this.particles[j].x;
-                const dy = this.particles[i].y - this.particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 150) {
-                    const alpha = (1 - dist / 150) * 0.2; // Stronger connections
-                    this.ctx.strokeStyle = `rgba(255, 157, 0, ${alpha})`;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
-                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-                    this.ctx.stroke();
+        if (!this.isReducedMotion) {
+            for (let i = 0; i < this.particles.length; i++) {
+                for (let j = i + 1; j < this.particles.length; j++) {
+                    const dx = this.particles[i].x - this.particles[j].x;
+                    const dy = this.particles[i].y - this.particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < this.connectionDistance) {
+                        const alpha = (1 - dist / this.connectionDistance) * 0.16;
+                        this.ctx.strokeStyle = `rgba(255, 157, 0, ${alpha})`;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                        this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                        this.ctx.stroke();
+                    }
                 }
             }
         }
-        requestAnimationFrame(() => this.animate());
+
+        if (!this.isReducedMotion) {
+            requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
+        }
     }
 }
 
