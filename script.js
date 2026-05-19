@@ -182,11 +182,10 @@ const initHealthCheck = () => {
     const commandEl = document.getElementById('diagnostic-command');
     const outputEl = document.getElementById('diagnostic-output');
     const logEl = document.getElementById('diagnostic-log');
-    const scriptEl = document.getElementById('diagnostic-script');
     const copyBtn = document.getElementById('copy-probe-script');
     const copyStatus = document.getElementById('copy-probe-status');
     const scriptTemplate = document.getElementById('probe-script-template');
-    if (!dashboard || !toggleBtn || !commandEl || !outputEl || !logEl || !scriptEl || !copyBtn || !copyStatus || !scriptTemplate) return;
+    if (!dashboard || !toggleBtn || !commandEl || !outputEl || !logEl || !copyBtn || !copyStatus || !scriptTemplate) return;
 
     const statusMap = {
         http: 'status-http',
@@ -205,6 +204,21 @@ const initHealthCheck = () => {
     const probeScript = scriptTemplate.textContent.trim();
 
     const formatMs = ms => `${Math.max(1, Math.round(ms))}ms`;
+    const copyFromHiddenTextarea = value => {
+        const fallback = document.createElement('textarea');
+        fallback.value = value;
+        fallback.setAttribute('readonly', '');
+        fallback.style.position = 'fixed';
+        fallback.style.inset = '0 auto auto 0';
+        fallback.style.width = '1px';
+        fallback.style.height = '1px';
+        fallback.style.opacity = '0';
+        document.body.append(fallback);
+        fallback.select();
+        const copied = document.execCommand('copy');
+        fallback.remove();
+        return copied;
+    };
 
     const compact = (value, max = 180) => {
         const clean = String(value || '').replace(/\s+/g, ' ').trim();
@@ -395,35 +409,31 @@ const initHealthCheck = () => {
     };
 
     const copyProbeScript = async () => {
-        try {
-            if (navigator.clipboard?.writeText) {
-                await navigator.clipboard.writeText(probeScript);
-            } else {
-                const fallback = document.createElement('textarea');
-                fallback.value = probeScript;
-                fallback.setAttribute('readonly', '');
-                fallback.style.position = 'fixed';
-                fallback.style.opacity = '0';
-                document.body.append(fallback);
-                fallback.select();
-                document.execCommand('copy');
-                fallback.remove();
-            }
+        let copied = copyFromHiddenTextarea(probeScript);
 
+        if (!copied && navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(probeScript);
+                copied = true;
+            } catch {
+                copied = false;
+            }
+        }
+
+        if (copied) {
             copyStatus.textContent = 'Copied';
             copyBtn.classList.add('copied');
             setTimeout(() => {
                 copyStatus.textContent = '';
                 copyBtn.classList.remove('copied');
             }, 1600);
-        } catch {
-            const range = document.createRange();
-            range.selectNodeContents(scriptEl);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            copyStatus.textContent = 'Script selected';
+            return;
         }
+
+        copyStatus.textContent = 'Copy blocked';
+        setTimeout(() => {
+            copyStatus.textContent = '';
+        }, 1800);
     };
 
     const syncExpandedState = () => {
@@ -432,7 +442,6 @@ const initHealthCheck = () => {
         if (isExpanded) startDiagnostics();
     };
 
-    scriptEl.textContent = probeScript;
     syncExpandedState();
 
     copyBtn.addEventListener('click', copyProbeScript);
@@ -515,17 +524,18 @@ class QuantumWeb {
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
-        this.mouse = { x: null, y: null, vx: 0, vy: 0 };
+        this.mouse = { x: null, y: null, vx: 0, vy: 0, down: false };
         this.lastMouse = { x: 0, y: 0 };
         this.lastFrame = 0;
         this.resizeTimer = null;
+        this.ripples = [];
         this.init();
         this.animate(0);
         window.addEventListener('resize', () => {
             clearTimeout(this.resizeTimer);
             this.resizeTimer = setTimeout(() => this.init(), 150);
         });
-        window.addEventListener('mousemove', e => {
+        window.addEventListener('pointermove', e => {
             this.mouse.vx = e.clientX - this.lastMouse.x;
             this.mouse.vy = e.clientY - this.lastMouse.y;
             this.mouse.x = e.clientX;
@@ -533,29 +543,55 @@ class QuantumWeb {
             this.lastMouse.x = e.clientX;
             this.lastMouse.y = e.clientY;
         }, { passive: true });
+        window.addEventListener('pointerdown', e => {
+            this.mouse.down = true;
+            if (!this.isCompact && !this.isReducedMotion) {
+                this.ripples.push({ x: e.clientX, y: e.clientY, radius: 0, alpha: 0.9 });
+                if (this.ripples.length > 4) this.ripples.shift();
+            }
+        }, { passive: true });
+        window.addEventListener('pointerup', () => {
+            this.mouse.down = false;
+        }, { passive: true });
+        window.addEventListener('pointerleave', () => {
+            this.mouse.x = null;
+            this.mouse.y = null;
+            this.mouse.down = false;
+        }, { passive: true });
     }
 
     init() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.canvas.width = Math.floor(this.width * this.dpr);
+        this.canvas.height = Math.floor(this.height * this.dpr);
+        this.canvas.style.width = `${this.width}px`;
+        this.canvas.style.height = `${this.height}px`;
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.particles = [];
         this.isCompact = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
         this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         this.frameInterval = this.isCompact ? 33 : 16;
-        this.connectionDistance = this.isCompact ? 95 : 135;
+        this.connectionDistance = this.isCompact ? 86 : 118;
 
-        const density = this.isCompact ? 11000 : 7000;
-        const maxParticles = this.isReducedMotion ? 45 : (this.isCompact ? 80 : 170);
-        const count = Math.floor((this.canvas.width * this.canvas.height) / density);
+        const density = this.isCompact ? 7200 : 3800;
+        const maxParticles = this.isReducedMotion ? 70 : (this.isCompact ? 125 : 360);
+        const count = Math.floor((this.width * this.height) / density);
 
         for (let i = 0; i < Math.min(count, maxParticles); i++) {
+            const depth = Math.random() * 0.75 + 0.25;
             this.particles.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height,
-                ox: 0, oy: 0, // Offset for mouse wake
-                vx: (Math.random() - 0.5) * 0.2,
-                vy: (Math.random() - 0.5) * 0.2,
-                size: Math.random() * 2 + 0.5
+                x: Math.random() * this.width,
+                y: Math.random() * this.height,
+                ox: 0,
+                oy: 0,
+                vx: (Math.random() - 0.5) * (0.12 + depth * 0.22),
+                vy: (Math.random() - 0.5) * (0.12 + depth * 0.22),
+                size: Math.random() * 1.6 + 0.35,
+                depth,
+                heat: 0,
+                phase: Math.random() * Math.PI * 2
             });
         }
     }
@@ -567,56 +603,142 @@ class QuantumWeb {
         }
 
         this.lastFrame = timestamp;
-        this.ctx.fillStyle = '#050505';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#030201';
+        this.ctx.fillRect(0, 0, this.width, this.height);
 
-        this.particles.forEach(p => {
+        if (!this.isCompact && this.mouse.x !== null) {
+            const auraRadius = this.mouse.down ? 360 : 280;
+            const aura = this.ctx.createRadialGradient(this.mouse.x, this.mouse.y, 0, this.mouse.x, this.mouse.y, auraRadius);
+            aura.addColorStop(0, this.mouse.down ? 'rgba(255, 177, 59, 0.18)' : 'rgba(255, 157, 0, 0.1)');
+            aura.addColorStop(0.45, 'rgba(255, 157, 0, 0.035)');
+            aura.addColorStop(1, 'rgba(255, 157, 0, 0)');
+            this.ctx.fillStyle = aura;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        this.ripples = this.ripples
+            .map(ripple => ({ ...ripple, radius: ripple.radius + 9, alpha: ripple.alpha * 0.955 }))
+            .filter(ripple => ripple.alpha > 0.04 && ripple.radius < Math.max(this.width, this.height));
+
+        this.ripples.forEach(ripple => {
+            this.ctx.strokeStyle = `rgba(255, 177, 59, ${ripple.alpha * 0.22})`;
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+            this.ctx.stroke();
+        });
+
+        this.particles.forEach((p, index) => {
+            p.index = index;
+            p.heat *= 0.88;
+
             if (!this.isCompact && this.mouse.x !== null) {
                 const dx = p.x - this.mouse.x;
                 const dy = p.y - this.mouse.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if (dist < 200) {
-                    const force = (200 - dist) / 200;
-                    p.ox += this.mouse.vx * force * 0.18;
-                    p.oy += this.mouse.vy * force * 0.18;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                const wakeRadius = this.mouse.down ? 275 : 220;
+                if (dist < wakeRadius) {
+                    const force = (wakeRadius - dist) / wakeRadius;
+                    const speed = Math.min(18, Math.sqrt(this.mouse.vx * this.mouse.vx + this.mouse.vy * this.mouse.vy));
+                    p.ox += (dx / dist) * force * (0.35 + speed * 0.025);
+                    p.oy += (dy / dist) * force * (0.35 + speed * 0.025);
+                    p.ox += this.mouse.vx * force * 0.045;
+                    p.oy += this.mouse.vy * force * 0.045;
+                    p.heat = Math.max(p.heat, force);
                 }
             }
 
-            // Dampen offset
+            this.ripples.forEach(ripple => {
+                const dx = p.x - ripple.x;
+                const dy = p.y - ripple.y;
+                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                const wave = Math.max(0, 1 - Math.abs(dist - ripple.radius) / 58) * ripple.alpha;
+                if (wave > 0) {
+                    p.ox += (dx / dist) * wave * 2.2;
+                    p.oy += (dy / dist) * wave * 2.2;
+                    p.heat = Math.max(p.heat, wave);
+                }
+            });
+
             p.ox *= 0.9;
             p.oy *= 0.9;
 
             p.x += p.vx + p.ox;
             p.y += p.vy + p.oy;
 
-            if (p.x < 0) p.x = this.canvas.width;
-            if (p.x > this.canvas.width) p.x = 0;
-            if (p.y < 0) p.y = this.canvas.height;
-            if (p.y > this.canvas.height) p.y = 0;
+            if (p.x < 0) p.x = this.width;
+            if (p.x > this.width) p.x = 0;
+            if (p.y < 0) p.y = this.height;
+            if (p.y > this.height) p.y = 0;
 
-            this.ctx.fillStyle = 'rgba(255, 157, 0, 0.6)'; // Increased dot intensity
+            const twinkle = (Math.sin(timestamp * 0.0012 + p.phase) + 1) * 0.07;
+            const alpha = Math.min(0.95, 0.28 + p.depth * 0.26 + p.heat * 0.42 + twinkle);
+            const size = p.size + p.heat * 1.45;
+            if (p.heat > 0.15) {
+                this.ctx.fillStyle = `rgba(255, 177, 59, ${p.heat * 0.16})`;
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, size * 3.2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            this.ctx.fillStyle = `rgba(255, 157, 0, ${alpha})`;
             this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
             this.ctx.fill();
         });
 
-        // Web connections
         this.ctx.lineWidth = 0.5;
         if (!this.isReducedMotion) {
-            for (let i = 0; i < this.particles.length; i++) {
-                for (let j = i + 1; j < this.particles.length; j++) {
-                    const dx = this.particles[i].x - this.particles[j].x;
-                    const dy = this.particles[i].y - this.particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < this.connectionDistance) {
-                        const alpha = (1 - dist / this.connectionDistance) * 0.16;
-                        this.ctx.strokeStyle = `rgba(255, 157, 0, ${alpha})`;
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
-                        this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-                        this.ctx.stroke();
+            const grid = new Map();
+            const cellSize = this.connectionDistance;
+            this.particles.forEach(p => {
+                const cellX = Math.floor(p.x / cellSize);
+                const cellY = Math.floor(p.y / cellSize);
+                const key = `${cellX}:${cellY}`;
+                const bucket = grid.get(key) || [];
+                bucket.push(p);
+                grid.set(key, bucket);
+            });
+
+            this.particles.forEach(particle => {
+                const cellX = Math.floor(particle.x / cellSize);
+                const cellY = Math.floor(particle.y / cellSize);
+                for (let x = cellX - 1; x <= cellX + 1; x++) {
+                    for (let y = cellY - 1; y <= cellY + 1; y++) {
+                        const bucket = grid.get(`${x}:${y}`);
+                        if (!bucket) continue;
+                        bucket.forEach(neighbor => {
+                            if (neighbor.index <= particle.index) return;
+                            const dx = particle.x - neighbor.x;
+                            const dy = particle.y - neighbor.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < this.connectionDistance) {
+                                const heat = Math.max(particle.heat, neighbor.heat);
+                                const alpha = (1 - dist / this.connectionDistance) * (0.1 + heat * 0.18);
+                                this.ctx.strokeStyle = `rgba(255, 157, 0, ${alpha})`;
+                                this.ctx.beginPath();
+                                this.ctx.moveTo(particle.x, particle.y);
+                                this.ctx.lineTo(neighbor.x, neighbor.y);
+                                this.ctx.stroke();
+                            }
+                        });
                     }
                 }
+            });
+
+            if (!this.isCompact && this.mouse.x !== null) {
+                this.particles.forEach(p => {
+                    const dx = p.x - this.mouse.x;
+                    const dy = p.y - this.mouse.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 180) {
+                        const alpha = (1 - dist / 180) * (this.mouse.down ? 0.28 : 0.16);
+                        this.ctx.strokeStyle = `rgba(255, 177, 59, ${alpha})`;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.mouse.x, this.mouse.y);
+                        this.ctx.lineTo(p.x, p.y);
+                        this.ctx.stroke();
+                    }
+                });
             }
         }
 

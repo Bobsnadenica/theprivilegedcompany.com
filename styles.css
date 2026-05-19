@@ -576,22 +576,6 @@ body.has-custom-cursor #cursor-follower {
     text-transform: uppercase;
 }
 
-.diagnostic-script {
-    max-height: 230px;
-    margin-top: 0.8rem;
-    overflow: auto;
-    padding: 0.85rem;
-    border: 1px solid rgba(255, 157, 0, 0.16);
-    background: rgba(255, 157, 0, 0.055);
-    color: #ffc06f;
-    font: inherit;
-    font-size: 0.56rem;
-    line-height: 1.55;
-    white-space: pre;
-    scrollbar-color: var(--c-accent) rgba(255, 157, 0, 0.08);
-    scrollbar-width: thin;
-}
-
 .diagnostic-log {
     display: grid;
     gap: 0.5rem;
@@ -906,10 +890,6 @@ body.has-custom-cursor #cursor-follower {
         bottom: 1rem;
         width: calc(100vw - 2rem);
         max-height: min(72vh, 620px);
-    }
-
-    .diagnostic-script {
-        max-height: 170px;
     }
 
     .diagnostic-log {
