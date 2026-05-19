@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 21: Well-Architected | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-wa: #e3b341;      /* Gold for Standards */
+      --accent-ops: #f778ba;     /* Pink */
+      --accent-sec: #ff7b72;     /* Red */
+      --accent-rel: #79c0ff;     /* Blue */
+      --accent-perf: #d2a8ff;    /* Purple */
+      --accent-cost: #2ea043;    /* Green */
+      --accent-sus: #2dd4bf;     /* Teal */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(227, 179, 65, 0.08), transparent 25%),
+        radial-gradient(circle at 10% 90%, rgba(255, 123, 114, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-wa); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-wa));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-wa);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-wa); transform: translateY(-2px); }
+    .card h3 { color: #fff; margin-bottom: 0.5rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    .pillar-icon { font-size: 1.2rem; }
+
+    /* GAMIFICATION: ARCHITECT SIM */
+    .sim-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
+    }
+    @media (max-width: 900px) { .sim-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: SLIDERS */
+    .control-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .budget-display {
+      background: #161b22; padding: 1rem; border-radius: 8px; border: 1px solid #30363d;
+      text-align: center; margin-bottom: 1rem;
+    }
+    .points-val { font-size: 2rem; font-weight: bold; color: var(--accent-wa); font-family: var(--font-mono); }
+    
+    .pillar-control {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .pc-header { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: bold; }
+    
+    input[type=range] { width: 100%; cursor: pointer; accent-color: #58a6ff; }
+    
+    /* RIGHT: OUTCOME */
+    .outcome-panel {
+      background: #010409; border: 1px solid #30363d; border-radius: 12px;
+      padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    
+    .event-screen {
+      flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; border: 1px dashed #30363d; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;
+    }
+    .event-icon { font-size: 4rem; margin-bottom: 10px; }
+    .event-title { font-size: 1.5rem; font-weight: bold; color: #fff; margin-bottom: 10px; }
+    .event-desc { color: #8b949e; font-size: 0.9rem; }
+
+    .btn-launch {
+      width: 100%; padding: 15px; border-radius: 6px; border: none;
+      font-weight: bold; cursor: pointer; font-size: 1rem; background: var(--accent-wa); color: #000;
+      transition: filter 0.2s;
+    }
+    .btn-launch:hover { filter: brightness(1.1); }
+    .btn-launch:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+    /* CUSTOM RANGE COLORS */
+    .slider-ops { accent-color: var(--accent-ops); }
+    .slider-sec { accent-color: var(--accent-sec); }
+    .slider-rel { accent-color: var(--accent-rel); }
+    .slider-perf { accent-color: var(--accent-perf); }
+    .slider-cost { accent-color: var(--accent-cost); }
+    .slider-sus { accent-color: var(--accent-sus); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Well-Architected Framework</h1>
+      <p class="intro">
+        How do you know if your architecture is "good"? AWS, Azure, and Google all agree on these 
+        <span style="color:var(--accent-wa)">6 Pillars</span> of building secure, high-performing, resilient, and efficient infrastructure.
+      </p>
+    </header>
+
+    <h2 class="section-title">🏛️ The 6 Pillars</h2>
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-ops);">
+        <h3><span class="pillar-icon">⚙️</span> Operational Excellence</h3>
+        <p>Running and monitoring systems. Automation (CI/CD), documentation, and improving processes daily.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-sec);">
+        <h3><span class="pillar-icon">🛡️</span> Security</h3>
+        <p>Protecting data and systems. IAM, Encryption, Firewalls, and Incident Response.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-rel);">
+        <h3><span class="pillar-icon">🚑</span> Reliability</h3>
+        <p>Recovering from failure. Backups, Multi-AZ, Auto-scaling, and Disaster Recovery.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-perf);">
+        <h3><span class="pillar-icon">⚡</span> Performance Efficiency</h3>
+        <p>Using resources efficiently. Choosing the right instance type, using Serverless, caching data.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-cost);">
+        <h3><span class="pillar-icon">💰</span> Cost Optimization</h3>
+        <p>Stopping waste. Turning off idle resources, using Spot Instances, right-sizing servers.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-sus);">
+        <h3><span class="pillar-icon">🌱</span> Sustainability</h3>
+        <p>Minimizing environmental impact. Reducing energy consumption and carbon footprint.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The Architect's Dilemma</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> You are launching a startup. You have limited budget/time (Points).
+      <br>Distribute your points wisely. If you neglect a pillar, you will face consequences when "Black Friday" hits.
+    </p>
+
+    <div class="sim-console">
+      
+      <div class="control-panel">
+        <div class="budget-display">
+          <div style="font-size:0.8rem; color:#8b949e; text-transform:uppercase;">Points Remaining</div>
+          <div class="points-val" id="pointsDisplay">15</div>
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-ops)">Operational Excellence</span> <span id="val-ops">0</span></div>
+          <input type="range" class="slider-ops" id="in-ops" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-sec)">Security</span> <span id="val-sec">0</span></div>
+          <input type="range" class="slider-sec" id="in-sec" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-rel)">Reliability</span> <span id="val-rel">0</span></div>
+          <input type="range" class="slider-rel" id="in-rel" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-perf)">Performance</span> <span id="val-perf">0</span></div>
+          <input type="range" class="slider-perf" id="in-perf" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-cost)">Cost Optimization</span> <span id="val-cost">0</span></div>
+          <input type="range" class="slider-cost" id="in-cost" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+        <div class="pillar-control">
+          <div class="pc-header"><span style="color:var(--accent-sus)">Sustainability</span> <span id="val-sus">0</span></div>
+          <input type="range" class="slider-sus" id="in-sus" min="0" max="10" value="0" oninput="updatePoints()">
+        </div>
+
+      </div>
+
+      <div class="outcome-panel">
+        <div class="event-screen" id="eventScreen">
+          <div class="event-icon">📅</div>
+          <div class="event-title">Production Launch</div>
+          <div class="event-desc">Adjust sliders to allocate your 15 points. Click Launch when ready.</div>
+        </div>
+
+        <button id="btnLaunch" class="btn-launch" onclick="runSimulation()">RUN PRODUCTION 🚀</button>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">⚖️ Common Trade-offs</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Reliability vs Cost</h3>
+        <p>To get 99.999% uptime, you need redundant servers in multiple regions. That costs 2x or 3x more money.</p>
+      </div>
+      <div class="card">
+        <h3>Security vs Performance</h3>
+        <p>Encrypting every single packet and inspecting every request adds latency (slowness). Security adds friction.</p>
+      </div>
+      <div class="card">
+        <h3>Speed vs Operations</h3>
+        <p>Rushing to launch features often means skipping documentation and automation (Tech Debt), hurting Operational Excellence.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const MAX_POINTS = 20;
+    const sliders = ['ops', 'sec', 'rel', 'perf', 'cost', 'sus'];
+    const pointsDisplay = document.getElementById('pointsDisplay');
+    const btnLaunch = document.getElementById('btnLaunch');
+    
+    // Outcome Elements
+    const eventScreen = document.getElementById('eventScreen');
+    const eventIcon = eventScreen.querySelector('.event-icon');
+    const eventTitle = eventScreen.querySelector('.event-title');
+    const eventDesc = eventScreen.querySelector('.event-desc');
+
+    function updatePoints() {
+      let totalUsed = 0;
+      
+      sliders.forEach(s => {
+        totalUsed += parseInt(document.getElementById(`in-${s}`).value);
+      });
+
+      const remaining = MAX_POINTS - totalUsed;
+      pointsDisplay.innerText = remaining;
+
+      if (remaining < 0) {
+        pointsDisplay.style.color = "#ff7b72";
+        btnLaunch.disabled = true;
+        btnLaunch.innerText = "OVER BUDGET";
+      } else {
+        pointsDisplay.style.color = "#e3b341";
+        btnLaunch.disabled = false;
+        btnLaunch.innerText = "RUN PRODUCTION 🚀";
+      }
+
+      // Update number labels
+      sliders.forEach(s => {
+        document.getElementById(`val-${s}`).innerText = document.getElementById(`in-${s}`).value;
+      });
+    }
+
+    function runSimulation() {
+      // Get values
+      const scores = {};
+      sliders.forEach(s => scores[s] = parseInt(document.getElementById(`in-${s}`).value));
+
+      // Reset UI
+      eventScreen.style.borderColor = "#30363d";
+      
+      // LOGIC: Find the weakest link
+      // Threshold for "Good" is roughly 4
+      
+      let outcome = { icon: "✅", title: "Success!", desc: "Your architecture held up under load.", color: "#2ea043" };
+
+      if (scores.sec < 3) {
+        outcome = { icon: "👾", title: "DATA BREACH", desc: "You ignored Security. Hackers stole user data. Regulatory fine: $1M.", color: "#ff7b72" };
+      } else if (scores.rel < 3) {
+        outcome = { icon: "🔥", title: "SYSTEM CRASH", desc: "Traffic spike hit. You had no Auto-Scaling. Site went down for 4 hours.", color: "#ff7b72" };
+      } else if (scores.cost < 3) {
+        outcome = { icon: "💸", title: "BANKRUPTCY", desc: "You over-provisioned expensive servers. The cloud bill wiped out your profits.", color: "#e3b341" };
+      } else if (scores.ops < 3) {
+        outcome = { icon: "🐛", title: "BAD DEPLOY", desc: "A bug broke production. With no CI/CD or Docs, it took 2 days to fix.", color: "#ff7b72" };
+      } else if (scores.perf < 3) {
+        outcome = { icon: "🐌", title: "TOO SLOW", desc: "Site takes 10s to load. Users got bored and went to a competitor.", color: "#d2a8ff" };
+      }
+
+      // Display Result
+      eventIcon.innerText = outcome.icon;
+      eventTitle.innerText = outcome.title;
+      eventTitle.style.color = outcome.color;
+      eventDesc.innerText = outcome.desc;
+      eventScreen.style.borderColor = outcome.color;
+    }
+
+    // Init
+    updatePoints();
+  </script>
+
+</body>
+</html>

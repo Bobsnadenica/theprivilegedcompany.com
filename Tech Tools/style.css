@@ -1,0 +1,207 @@
+:root {
+  --bg-body: #0a0d12;
+  --bg-surface: #161b22;
+  --bg-card: #0d1117;
+  --border-subtle: rgba(240, 246, 252, 0.1);
+  --border-hover: rgba(56, 139, 253, 0.4);
+  
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  
+  --accent-primary: #58a6ff;
+  --accent-glow: rgba(56, 139, 253, 0.15);
+  
+  --badge-net-bg: rgba(56, 139, 253, 0.1);
+  --badge-net-text: #58a6ff;
+  
+  --badge-cloud-bg: rgba(235, 111, 146, 0.1);
+  --badge-cloud-text: #eb6f92;
+  
+  --badge-data-bg: rgba(234, 154, 151, 0.1);
+  --badge-data-text: #ea9a97;
+  
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-body);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(88, 166, 255, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(235, 111, 146, 0.08), transparent 25%);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.hero {
+  padding: 4rem 1rem 2rem;
+  text-align: center;
+}
+
+.hero-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #fff, #a5d6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.search-container {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+#searchInput:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.count-badge {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border-subtle);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.topic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.topic-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-hover);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.badge.net { background: var(--badge-net-bg); color: var(--badge-net-text); }
+.badge.cloud { background: var(--badge-cloud-bg); color: var(--badge-cloud-text); }
+.badge.data, .badge.security { background: var(--badge-data-bg); color: var(--badge-data-text); }
+
+.topic-card h3 {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.topic-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#no-results {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-top: 4rem;
+  font-size: 1.1rem;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-body);
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 3rem 1rem 1rem; }
+  h1 { font-size: 2rem; }
+  .grid { grid-template-columns: 1fr; }
+}

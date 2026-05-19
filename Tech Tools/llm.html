@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 27: LLM | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-ai: #a371f7;      /* AI Purple */
+      --accent-token: #0db7ed;   /* Token Blue */
+      --accent-prob: #2ea043;    /* Probability Green */
+      --accent-warn: #d29922;    /* Warning/Temp */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(163, 113, 247, 0.1), transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(13, 183, 237, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-ai); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-ai));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-ai);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: AUTOCOMPLETE SIMULATOR */
+    .llm-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
+    }
+    @media (max-width: 900px) { .llm-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: TEXT OUTPUT */
+    .text-window {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 2rem; font-size: 1.2rem; min-height: 200px;
+      display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px;
+    }
+    
+    .token {
+      padding: 2px 6px; border-radius: 4px; transition: all 0.3s;
+      border: 1px solid transparent; animation: fadeIn 0.3s ease-out;
+    }
+    .token:hover { background: rgba(255,255,255,0.1); border-color: #30363d; }
+    .token.new { background: rgba(163, 113, 247, 0.2); color: #fff; border-color: var(--accent-ai); }
+
+    /* RIGHT: PROBABILITY ENGINE */
+    .engine-panel {
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+
+    .prob-chart {
+      background: #010409; border: 1px solid #30363d; border-radius: 8px; padding: 1rem;
+    }
+    .chart-header { font-size: 0.8rem; font-weight: bold; color: #8b949e; margin-bottom: 10px; text-transform: uppercase; }
+    
+    .prob-row {
+      display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;
+      padding: 5px; border-radius: 4px; transition: background 0.2s;
+    }
+    .prob-row:hover { background: rgba(255,255,255,0.05); }
+    .prob-word { width: 80px; font-family: var(--font-mono); color: #fff; }
+    .prob-bar-bg { flex-grow: 1; height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; margin: 0 10px; }
+    .prob-bar-fill { height: 100%; background: var(--accent-prob); width: 0%; transition: width 0.3s ease; }
+    .prob-val { width: 40px; text-align: right; font-size: 0.8rem; color: #8b949e; }
+
+    /* CONTROLS */
+    .controls {
+      background: #161b22; padding: 1rem; border-radius: 8px; border: 1px solid #30363d;
+    }
+    .slider-group { margin-bottom: 1rem; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
+    input[type=range] { width: 100%; accent-color: var(--accent-warn); cursor: pointer; }
+    
+    .btn-generate {
+      width: 100%; padding: 12px; background: var(--accent-ai); color: #fff; border: none;
+      border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: filter 0.2s;
+    }
+    .btn-generate:hover { filter: brightness(1.1); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Large Language Models (LLM)</h1>
+      <p class="intro">
+        It's not magic. It's math. An LLM is a <span style="color:var(--accent-ai)">Next-Token Prediction Engine</span>. 
+        It reads the text you wrote and calculates the statistical probability of what comes next.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-token);">
+        <h3>🧩 The Token</h3>
+        <p>LLMs don't read words; they read "Tokens". A token is about 0.75 of a word (e.g., "ing", "the", "apple"). GPT-4 knows about 100,000 unique tokens.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-prob);">
+        <h3>🎲 Probabilistic</h3>
+        <p>It doesn't "know" facts. It knows patterns. It knows that after "The capital of France is", the token "Paris" appears 99% of the time in its training data.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-warn);">
+        <h3>🌡️ Temperature</h3>
+        <p>The "Creativity" setting. <br><strong>Temp 0:</strong> Always picks the most likely word (Robotic). <br><strong>Temp 1:</strong> Sometimes picks unlikely words (Creative/Hallucinations).</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The Autocompleter 3000</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> You are the GPU. Based on the current sentence, choose the next word.
+      <br>Adjust <strong>Temperature</strong> to see how it changes the "Dice Roll".
+    </p>
+
+    <div class="llm-console">
+      
+      <div class="text-window" id="textOutput">
+        <span class="token">The</span>
+        <span class="token">quick</span>
+        <span class="token">brown</span>
+      </div>
+
+      <div class="engine-panel">
+        
+        <div class="prob-chart">
+          <div class="chart-header">Next Token Probability</div>
+          <div id="probList">
+            </div>
+        </div>
+
+        <div class="controls">
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Temperature</span>
+              <span id="tempVal" style="color:var(--accent-warn);">0.1</span>
+            </div>
+            <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.1" oninput="updateTemp()">
+            <div style="font-size:0.75rem; color:#8b949e; margin-top:5px;">
+              Low = Predictable. High = Creative/Crazy.
+            </div>
+          </div>
+
+          <button class="btn-generate" id="btnGen" onclick="generateToken()">Generate Next Token 🎲</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">👻 What is a Hallucination?</h2>
+    <div style="background:#161b22; padding:1.5rem; border-radius:12px; border:1px solid #30363d;">
+      <p>
+        Imagine the model is predicting: <em>"The first person on Mars was..."</em>
+      </p>
+      <ul style="color:var(--text-secondary); margin-top:1rem;">
+        <li>Training data doesn't have this answer (because it hasn't happened).</li>
+        <li>The model sees "Elon" has a 15% probability and "Neil" has a 10% probability in similar sci-fi contexts.</li>
+        <li>If Temperature is high, it might pick "Elon Musk".</li>
+        <li><strong>It states it as fact</strong> because it's just completing the sentence pattern. That is a hallucination.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script>
+    const textOutput = document.getElementById('textOutput');
+    const probList = document.getElementById('probList');
+    const tempSlider = document.getElementById('tempSlider');
+    const tempVal = document.getElementById('tempVal');
+    
+    // Simple state machine for the sentence
+    // This is a "Mock LLM" logic tree
+    const logicTree = {
+      "brown": [
+        { word: "fox", prob: 0.90 },
+        { word: "bear", prob: 0.05 },
+        { word: "shoe", prob: 0.05 }
+      ],
+      "fox": [
+        { word: "jumps", prob: 0.85 },
+        { word: "runs", prob: 0.10 },
+        { word: "sleeps", prob: 0.05 }
+      ],
+      "jumps": [
+        { word: "over", prob: 0.95 },
+        { word: "up", prob: 0.03 },
+        { word: "high", prob: 0.02 }
+      ],
+      "over": [
+        { word: "the", prob: 0.98 },
+        { word: "a", prob: 0.01 },
+        { word: "my", prob: 0.01 }
+      ],
+      "the": [
+        { word: "lazy", prob: 0.80 },
+        { word: "moon", prob: 0.15 },
+        { word: "fence", prob: 0.05 }
+      ],
+      "lazy": [
+        { word: "dog", prob: 0.95 },
+        { word: "cat", prob: 0.04 },
+        { word: "chef", prob: 0.01 }
+      ],
+      "default": [
+        { word: ".", prob: 0.99 },
+        { word: "and", prob: 0.01 }
+      ]
+    };
+
+    let lastWord = "brown";
+    let isFinished = false;
+
+    function updateTemp() {
+      tempVal.innerText = tempSlider.value;
+      // Re-render probabilities based on temp visual (fake visual effect)
+      renderProbs(); 
+    }
+
+    function renderProbs() {
+      probList.innerHTML = '';
+      const options = logicTree[lastWord] || logicTree["default"];
+      
+      // Visual only: If temp is high, we make bars look more "even" to imply randomness
+      // In reality, temp adjusts the softmax function.
+      
+      options.forEach(opt => {
+        const row = document.createElement('div');
+        row.className = 'prob-row';
+        
+        row.innerHTML = `
+          <div class="prob-word">"${opt.word}"</div>
+          <div class="prob-bar-bg">
+            <div class="prob-bar-fill" style="width: ${opt.prob * 100}%"></div>
+          </div>
+          <div class="prob-val">${(opt.prob * 100).toFixed(0)}%</div>
+        `;
+        probList.appendChild(row);
+      });
+    }
+
+    function generateToken() {
+      if(isFinished) {
+        // Reset
+        textOutput.innerHTML = '<span class="token">The</span> <span class="token">quick</span> <span class="token">brown</span>';
+        lastWord = "brown";
+        isFinished = false;
+        document.getElementById('btnGen').innerText = "Generate Next Token 🎲";
+        renderProbs();
+        return;
+      }
+
+      const temp = parseFloat(tempSlider.value);
+      const options = logicTree[lastWord] || logicTree["default"];
+      
+      let chosenWord = "";
+
+      // SIMULATE SAMPLING
+      if (temp < 0.3) {
+        // Greedy: Always pick top
+        chosenWord = options[0].word;
+      } else {
+        // Random Sample
+        const r = Math.random();
+        let cumulative = 0;
+        for (let opt of options) {
+          cumulative += opt.prob;
+          // As temp increases, we artificially flatten probabilities (simplified logic for demo)
+          let threshold = cumulative; 
+          // High temp makes rare words more likely in this simple logic
+          if (r < threshold) {
+            chosenWord = opt.word;
+            break;
+          }
+        }
+        if(!chosenWord) chosenWord = options[options.length-1].word;
+      }
+
+      // 1. Add visual token
+      const span = document.createElement('span');
+      span.className = 'token new';
+      span.innerText = chosenWord;
+      textOutput.appendChild(span);
+
+      // 2. Update Logic
+      lastWord = chosenWord;
+      
+      // 3. Check finish
+      if (lastWord === "dog" || lastWord === "cat" || lastWord === "." || lastWord === "chef") {
+        isFinished = true;
+        document.getElementById('btnGen').innerText = "Reset Sentence ↺";
+        probList.innerHTML = '<div style="color:#8b949e; text-align:center; padding:20px;">End of Sequence token [EOS] reached.</div>';
+      } else {
+        renderProbs();
+      }
+    }
+
+    // Init
+    renderProbs();
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Atlas | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --surface: #10151d;
+      --card: #0d1117;
+      --border: rgba(240, 246, 252, 0.12);
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-soft: rgba(88, 166, 255, 0.14);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(88, 166, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, #08101a 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 1.5rem 2rem;
+    }
+
+    header {
+      padding: 3rem 0 2rem;
+    }
+
+    .breadcrumb {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .breadcrumb a:hover {
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 4vw, 3.6rem);
+      letter-spacing: -0.04em;
+      margin-bottom: 0.6rem;
+      background: linear-gradient(90deg, #fff, #9cd3ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .tech-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .search-wrap {
+      margin: 0 0 1.25rem;
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: rgba(240, 246, 252, 0.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .search-input:focus {
+      border-color: rgba(88, 166, 255, 0.45);
+      box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.12);
+    }
+
+    .tech-tab {
+      border: 1px solid var(--border);
+      background: rgba(240, 246, 252, 0.04);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 0.6rem 0.95rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .tech-tab:hover {
+      transform: translateY(-1px);
+      border-color: rgba(88, 166, 255, 0.4);
+      color: var(--text);
+    }
+
+    .tech-tab.active {
+      background: var(--accent-soft);
+      border-color: rgba(88, 166, 255, 0.5);
+      color: #d8ebff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 420px minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(13, 17, 23, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 0.95rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .panel-head h2 {
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .command-list {
+      max-height: 72vh;
+      overflow-y: auto;
+    }
+
+    .phase-heading {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 0.7rem 1rem;
+      background: #111823;
+      border-top: 1px solid rgba(240, 246, 252, 0.05);
+      border-bottom: 1px solid rgba(240, 246, 252, 0.08);
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .empty-state {
+      padding: 1rem;
+      color: var(--muted);
+    }
+
+    .command-item {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid rgba(240, 246, 252, 0.06);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 1rem;
+      transition: background 0.18s ease;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .command-item:hover {
+      background: rgba(240, 246, 252, 0.03);
+    }
+
+    .command-item.active {
+      background: rgba(88, 166, 255, 0.08);
+    }
+
+    .command-title {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .step-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      border: 1px solid rgba(88, 166, 255, 0.22);
+      background: rgba(88, 166, 255, 0.1);
+      color: #a9d5ff;
+      border-radius: 999px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+    }
+
+    .command-code {
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      color: #9cd3ff;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .output-wrap {
+      padding: 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .selected-title {
+      font-size: 1.05rem;
+    }
+
+    .terminal {
+      border: 1px solid rgba(240, 246, 252, 0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #05080d;
+    }
+
+    .terminal-bar {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid rgba(240, 246, 252, 0.08);
+      background: rgba(240, 246, 252, 0.03);
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .command-preview {
+      color: #9cd3ff;
+    }
+
+    .output-preview {
+      color: #c9d1d9;
+      min-height: 420px;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .command-list {
+        max-height: 42vh;
+      }
+
+      .output-preview {
+        min-height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">&larr; Back to Hub</a> / Guides</div>
+      <h1>Command Atlas</h1>
+      <p class="subtitle">Choose a technology, follow the steps from first checks to deeper troubleshooting, then click a command to see a simulated output.</p>
+    </header>
+
+    <div class="tech-tabs" id="techTabs"></div>
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" type="text" placeholder="Search commands, titles, or output text" />
+    </div>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="listTitle">Commands</h2>
+          <span class="count" id="listCount"></span>
+        </div>
+        <div class="command-list" id="commandList"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Simulated Output</h2>
+        </div>
+        <div class="output-wrap">
+          <div class="selected-title" id="selectedTitle"></div>
+          <div class="terminal">
+            <div class="terminal-bar">Command</div>
+            <pre class="command-preview" id="selectedCommand"></pre>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar">Output</div>
+            <pre class="output-preview" id="selectedOutput"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const commands = [
+      {
+        "stack": "macOS",
+        "title": "Map network adapters",
+        "command": "networksetup -listallhardwareports",
+        "output": "Hardware Port: Wi-Fi\nDevice: en0\nEthernet Address: ac:de:48:00:11:22"
+      },
+      {
+        "stack": "macOS",
+        "title": "Dump the active DNS resolver chain",
+        "command": "scutil --dns",
+        "output": "resolver #1\n  search domain[0] : corp.example.com\n  nameserver[0] : 10.0.0.2\n  if_index : 14 (en0)"
+      },
+      {
+        "stack": "macOS",
+        "title": "See which process owns a listening TCP port",
+        "command": "lsof -iTCP -sTCP:LISTEN -n -P",
+        "output": "COMMAND   PID USER   FD   TYPE             NAME\nnode    48211 bob   22u  IPv6             TCP *:3000 (LISTEN)\nnginx    1245 root   6u  IPv4             TCP *:80 (LISTEN)"
+      },
+      {
+        "stack": "macOS",
+        "title": "Sort hot processes by CPU",
+        "command": "top -o cpu -stats pid,command,cpu,mem,time",
+        "output": "PID   COMMAND      CPU%   MEM     TIME\n611   Google Chrome  79.3  1824M  01:42:15\n48211 node           54.1   612M  00:18:04"
+      },
+      {
+        "stack": "macOS",
+        "title": "Inspect recent sshd log lines",
+        "command": "log show --style compact --last 15m --predicate 'process == \"sshd\"'",
+        "output": "Timestamp               Ty Process EventMessage\n2026-03-29 09:15:42.211 sshd   Accepted publickey for bob from 10.0.3.7 port 53314\n2026-03-29 09:17:01.992 sshd   Failed password for invalid user admin from 10.0.3.9"
+      },
+      {
+        "stack": "macOS",
+        "title": "Verify Apple Command Line Tools",
+        "command": "xcode-select -p",
+        "output": "/Library/Developer/CommandLineTools"
+      },
+      {
+        "stack": "macOS",
+        "title": "Audit Homebrew health",
+        "command": "brew doctor",
+        "output": "Your system is ready to brew.\nWarning: Unbrewed header files were found in /usr/local/include."
+      },
+      {
+        "stack": "macOS",
+        "title": "Resolve a hostname through the local cache",
+        "command": "dscacheutil -q host -a name github.com",
+        "output": "name: github.com\nip_address: 140.82.114.4"
+      },
+      {
+        "stack": "macOS",
+        "title": "Show the local host name",
+        "command": "scutil --get LocalHostName",
+        "output": "macbook-pro-14"
+      },
+      {
+        "stack": "macOS",
+        "title": "List Homebrew managed services",
+        "command": "brew services list",
+        "output": "Name        Status  User File\npostgresql  started bob  ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist\nredis       none"
+      },
+      {
+        "stack": "macOS",
+        "title": "Inspect the routing table",
+        "command": "netstat -rn | head",
+        "output": "Routing tables\nInternet:\ndefault            192.168.1.1        UGSc           en0\n192.168.1/24       link#4             UCS            en0"
+      },
+      {
+        "stack": "macOS",
+        "title": "Ping a remote host",
+        "command": "ping -c 4 github.com",
+        "output": "PING github.com (140.82.114.4): 56 data bytes\n64 bytes from 140.82.114.4: icmp_seq=0 ttl=54 time=21.1 ms\n--- github.com ping statistics ---\n4 packets transmitted, 4 packets received, 0.0% packet loss"
+      },
+      {
+        "stack": "Linux",
+        "title": "Fingerprint the running kernel and OS",
+        "command": "uname -a",
+        "output": "Linux web-01 5.15.0-102-generic #112-Ubuntu SMP x86_64 GNU/Linux"
+      },
+      {
+        "stack": "Linux",
+        "title": "Check uptime and load averages",
+        "command": "uptime",
+        "output": "10:24:09 up 18 days,  3:11,  2 users,  load average: 7.42, 6.90, 4.11"
+      },
+      {
+        "stack": "Linux",
+        "title": "See memory pressure and swap usage",
+        "command": "free -h",
+        "output": "               total   used   free  shared  buff/cache  available\nMem:            31Gi   28Gi  1.1Gi   512Mi       2.3Gi       1.8Gi\nSwap:            8Gi  3.2Gi   4.8Gi"
+      },
+      {
+        "stack": "Linux",
+        "title": "Check filesystem usage",
+        "command": "df -h",
+        "output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/nvme0n1p1   80G   76G  1.2G  99% /"
+      },
+      {
+        "stack": "Linux",
+        "title": "Find large directories under /var",
+        "command": "du -xh /var --max-depth=1 | sort -h | tail",
+        "output": "1.1G  /var/cache\n12G   /var/lib\n18G   /var/log"
+      },
+      {
+        "stack": "Linux",
+        "title": "Show top CPU consumers with process details",
+        "command": "ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%cpu | head",
+        "output": "  PID  PPID CMD                         %MEM %CPU\n18277 18210 java -jar api.jar             28.4 312\n  921     1 /usr/bin/containerd           11.2  48"
+      },
+      {
+        "stack": "Linux",
+        "title": "Show listening sockets and owning processes",
+        "command": "ss -tulpn",
+        "output": "Netid State  Local Address:Port  Process\ntcp   LISTEN 127.0.0.1:8080      users:((\"java\",pid=18277,fd=123))\ntcp   LISTEN   0.0.0.0:22        users:((\"sshd\",pid=812,fd=3))"
+      },
+      {
+        "stack": "Linux",
+        "title": "Read recent service logs",
+        "command": "journalctl -u nginx -n 100 --no-pager",
+        "output": "Mar 29 10:18:07 web-01 nginx[1442]: connect() failed (111: Connection refused) while connecting to upstream\nMar 29 10:18:07 web-01 systemd[1]: nginx.service: Succeeded."
+      },
+      {
+        "stack": "Linux",
+        "title": "Check systemd service state",
+        "command": "systemctl status nginx",
+        "output": "● nginx.service - A high performance web server\n   Active: failed (Result: exit-code) since Sat 2026-03-29 10:18:07 UTC\n   Main PID: 1442 (code=exited, status=1/FAILURE)"
+      },
+      {
+        "stack": "Linux",
+        "title": "Inspect recent kernel messages",
+        "command": "dmesg --ctime | tail -n 50",
+        "output": "[Sat Mar 29 10:19:22 2026] Out of memory: Killed process 18277 (java) total-vm:8052668kB\n[Sat Mar 29 10:20:11 2026] nvme0n1: I/O 981 QID 3 timeout, reset controller"
+      },
+      {
+        "stack": "Linux",
+        "title": "Probe a local TLS health endpoint",
+        "command": "curl -vk https://127.0.0.1/health",
+        "output": "* Connected to 127.0.0.1 (127.0.0.1) port 443\n> GET /health HTTP/1.1\n< HTTP/1.1 503 Service Unavailable"
+      },
+      {
+        "stack": "Linux",
+        "title": "Capture a short packet sample on port 443",
+        "command": "tcpdump -ni eth0 port 443 -c 20",
+        "output": "10:22:15.112233 IP 10.1.4.15.52544 > 10.1.2.20.443: Flags [S], seq 1742\n10:22:15.112260 IP 10.1.2.20.443 > 10.1.4.15.52544: Flags [S.], ack 1743"
+      },
+      {
+        "stack": "Linux",
+        "title": "List block devices and filesystems",
+        "command": "lsblk -f",
+        "output": "NAME        FSTYPE FSVER LABEL UUID                                 MOUNTPOINTS\nnvme0n1\n└─nvme0n1p1 ext4   1.0         1234-5678                            /"
+      },
+      {
+        "stack": "Linux",
+        "title": "Inspect interface addresses",
+        "command": "ip addr show",
+        "output": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001\n    inet 10.1.2.20/24 brd 10.1.2.255 scope global eth0"
+      },
+      {
+        "stack": "Linux",
+        "title": "Show the routing table",
+        "command": "ip route",
+        "output": "default via 10.1.2.1 dev eth0 proto dhcp\n10.1.2.0/24 dev eth0 proto kernel scope link src 10.1.2.20"
+      },
+      {
+        "stack": "Linux",
+        "title": "Sample CPU wait and run queue",
+        "command": "vmstat 1 5",
+        "output": "procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st\n 2  1 327680 112640  40960 240000    0    0   120   440  987 1201 38 12 41  9  0"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Confirm the active kube context",
+        "command": "kubectl config current-context",
+        "output": "prod-eks-eu-central-1"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Get a cluster-wide pod view",
+        "command": "kubectl get pods -A -o wide",
+        "output": "NAMESPACE   NAME                         READY STATUS             NODE\nprod        api-7d8b9f69b6-j22ds         0/1   CrashLoopBackOff   ip-10-0-14-21\ningress     nginx-ingress-5d9488d4b6     1/1   Running            ip-10-0-10-11"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Describe a single troubled pod",
+        "command": "kubectl describe pod api-7d8b9f69b6-j22ds -n prod",
+        "output": "Events:\n  Warning  BackOff    2m12s  kubelet  Back-off restarting failed container\n  Warning  Unhealthy  48s    kubelet  Readiness probe failed: HTTP probe failed with statuscode: 500"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Tail deployment logs",
+        "command": "kubectl logs deploy/api -n prod --tail=100",
+        "output": "2026-03-29T10:14:08Z ERROR database connection failed: dial tcp 10.2.4.19:5432: i/o timeout\n2026-03-29T10:14:09Z INFO retrying in 5s"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Sort recent cluster events",
+        "command": "kubectl get events -A --sort-by=.metadata.creationTimestamp",
+        "output": "prod     Warning  FailedScheduling  pod/api-7d8b9f69b6-j22ds  0/6 nodes available: insufficient memory\nprod     Warning  BackOff           pod/api-7d8b9f69b6-j22ds  Back-off restarting failed container"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Check pod and container resource pressure",
+        "command": "kubectl top pod -A --containers",
+        "output": "NAMESPACE POD                    CONTAINER CPU(cores) MEMORY(bytes)\nprod      api-7d8b9f69b6-j22ds   api       920m       768Mi"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Map Services to endpoints",
+        "command": "kubectl get svc,endpoints -n prod",
+        "output": "NAME           TYPE        CLUSTER-IP    PORT(S)\nservice/api    ClusterIP   10.100.7.12   80/TCP\nendpoints/api  <none>"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Wait on rollout status",
+        "command": "kubectl rollout status deployment/api -n prod",
+        "output": "Waiting for deployment \"api\" rollout to finish: 1 out of 4 new replicas have been updated...\ndeployment \"api\" exceeded its progress deadline"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Test RBAC before blaming the API",
+        "command": "kubectl auth can-i get secrets -n prod",
+        "output": "no"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Open a shell in the running workload",
+        "command": "kubectl exec -it deploy/api -n prod -- sh",
+        "output": "/app # env | grep DATABASE_URL\nDATABASE_URL=postgres://api@db.prod.internal:5432/app"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Diff manifests before apply",
+        "command": "kubectl diff -f manifest.yaml",
+        "output": "@@ Deployment api @@\n- image: registry.example.com/api:1.9.4\n+ image: registry.example.com/api:1.9.5"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Restart a deployment rollout",
+        "command": "kubectl rollout restart deployment/api -n prod",
+        "output": "deployment.apps/api restarted"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "List cluster nodes",
+        "command": "kubectl get nodes -o wide",
+        "output": "NAME            STATUS   ROLES    VERSION   INTERNAL-IP\nip-10-0-14-21   Ready    <none>   v1.30.1   10.0.14.21"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Describe one node",
+        "command": "kubectl describe node ip-10-0-14-21",
+        "output": "Allocated resources:\n  cpu    3850m (96%)\n  memory 15360Mi (93%)\nEvents:\n  Warning  NodeHasMemoryPressure"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "List ingress objects",
+        "command": "kubectl get ingress -A",
+        "output": "NAMESPACE NAME        CLASS   HOSTS             ADDRESS\nprod      api-public  alb     api.example.com   internal-alb-123.amazonaws.com"
+      },
+      {
+        "stack": "Kubernetes",
+        "title": "Show persistent volume claims",
+        "command": "kubectl get pvc -A",
+        "output": "NAMESPACE NAME        STATUS   VOLUME        CAPACITY\nprod      data-api-0  Bound    pvc-0ab123    50Gi"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Enforce formatting before review",
+        "command": "terraform fmt -check -recursive",
+        "output": "modules/vpc/main.tf\nenvironments/prod/ecs.tf"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Initialize providers and modules",
+        "command": "terraform init -upgrade",
+        "output": "Initializing provider plugins...\n- Finding hashicorp/aws versions matching \"~> 5.0\"...\n- Installed hashicorp/aws v5.47.0"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Validate configuration shape",
+        "command": "terraform validate",
+        "output": "Success! The configuration is valid."
+      },
+      {
+        "stack": "Terraform",
+        "title": "Create a saved execution plan",
+        "command": "terraform plan -out=tfplan",
+        "output": "Plan: 2 to add, 1 to change, 0 to destroy.\nSaved the plan to: tfplan"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Read the saved plan in plain text",
+        "command": "terraform show tfplan",
+        "output": "# aws_db_instance.app must be replaced\n-/+ resource \"aws_db_instance\" \"app\" {\n    allocated_storage = 100 -> 200"
+      },
+      {
+        "stack": "Terraform",
+        "title": "List everything tracked in state",
+        "command": "terraform state list",
+        "output": "aws_vpc.main\naws_subnet.private[0]\nmodule.ecs.aws_ecs_service.api"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Inspect one resource exactly as state knows it",
+        "command": "terraform state show aws_instance.web",
+        "output": "# aws_instance.web:\nresource \"aws_instance\" \"web\" {\n  id = \"i-0a12bc34def567890\"\n  private_ip = \"10.0.12.44\"\n}"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Confirm provider dependency tree",
+        "command": "terraform providers",
+        "output": "Providers required by configuration:\n.\n├── provider[registry.terraform.io/hashicorp/aws] ~> 5.0\n└── module.eks\n    └── provider[registry.terraform.io/hashicorp/kubernetes] >= 2.25.0"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Evaluate expressions in terraform console",
+        "command": "terraform console",
+        "output": "> cidrsubnet(\"10.0.0.0/16\", 4, 3)\n\"10.0.48.0/20\""
+      },
+      {
+        "stack": "Terraform",
+        "title": "Clear a stuck remote state lock",
+        "command": "terraform force-unlock LOCK_ID",
+        "output": "Terraform state has been successfully unlocked!"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Apply the reviewed plan file",
+        "command": "terraform apply tfplan",
+        "output": "aws_security_group.api: Modifying... [id=sg-0ab123]\nApply complete! Resources: 0 added, 1 changed, 0 destroyed."
+      },
+      {
+        "stack": "Terraform",
+        "title": "List available workspaces",
+        "command": "terraform workspace list",
+        "output": "default\n* prod\n  staging"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Show the active workspace",
+        "command": "terraform workspace show",
+        "output": "prod"
+      },
+      {
+        "stack": "Terraform",
+        "title": "Print Terraform outputs",
+        "command": "terraform output",
+        "output": "alb_dns_name = \"api-prod-123.eu-central-1.elb.amazonaws.com\"\nvpc_id = \"vpc-0ab123456789\""
+      },
+      {
+        "stack": "Terraform",
+        "title": "Create a refresh-only plan",
+        "command": "terraform plan -refresh-only",
+        "output": "Note: Objects have changed outside of Terraform\nPlan: 0 to add, 2 to change, 0 to destroy."
+      },
+      {
+        "stack": "Ansible",
+        "title": "Visualize inventory layout",
+        "command": "ansible-inventory -i inventory.ini --graph",
+        "output": "@all:\n  |--@web:\n  |  |--web-01\n  |  |--web-02"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Test basic host reachability",
+        "command": "ansible all -i inventory.ini -m ping",
+        "output": "web-01 | SUCCESS => { \"ping\": \"pong\" }\ndb-01  | UNREACHABLE! => Failed to connect to the host via ssh"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Run a quick ad-hoc uptime command",
+        "command": "ansible all -i inventory.ini -a \"uptime\"",
+        "output": "web-01 | CHANGED | rc=0 >>\n 10:42:11 up 3 days,  4:12,  1 user,  load average: 0.51, 0.38, 0.27"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Syntax-check a playbook",
+        "command": "ansible-playbook site.yml --syntax-check",
+        "output": "playbook: site.yml"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Dry-run with check mode and diff",
+        "command": "ansible-playbook site.yml --check --diff",
+        "output": "TASK [nginx : template nginx.conf]\n--- before\n+++ after\n@@ server_name api.old.example.com -> api.example.com"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Run only the web tag on web hosts",
+        "command": "ansible-playbook site.yml --limit web --tags nginx",
+        "output": "PLAY [web]\nTASK [nginx : restart nginx] changed: [web-01]\nPLAY RECAP web-01 : ok=8 changed=1 failed=0"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Inspect a service with privilege escalation",
+        "command": "ansible all -i inventory.ini -b -m shell -a \"systemctl status nginx --no-pager\"",
+        "output": "web-02 | CHANGED | rc=3 >>\nActive: failed (Result: exit-code) since Sat 2026-03-29 10:14:02 UTC"
+      },
+      {
+        "stack": "Ansible",
+        "title": "View vaulted secrets intentionally",
+        "command": "ansible-vault view group_vars/prod/vault.yml",
+        "output": "db_password: s3cr3t-redacted\nslack_webhook_url: https://hooks.slack.com/services/..."
+      },
+      {
+        "stack": "Ansible",
+        "title": "Dump inventory as JSON",
+        "command": "ansible-inventory -i inventory.ini --list",
+        "output": "{\n  \"_meta\": { \"hostvars\": { \"web-01\": { \"ansible_host\": \"10.0.1.14\" } } },\n  \"web\": { \"hosts\": [\"web-01\", \"web-02\"] }\n}"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Preview targeted hosts",
+        "command": "ansible-playbook site.yml --list-hosts",
+        "output": "playbook: site.yml\n\n  play #1 (web): web\n    hosts (2):\n      web-01\n      web-02"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Preview playbook task names",
+        "command": "ansible-playbook site.yml --list-tasks",
+        "output": "playbook: site.yml\n\n  play #1 (web): web\n    tasks:\n      nginx : install packages\n      nginx : template nginx.conf"
+      },
+      {
+        "stack": "Ansible",
+        "title": "Gather default IPv4 facts",
+        "command": "ansible all -i inventory.ini -m setup -a \"filter=ansible_default_ipv4\"",
+        "output": "web-01 | SUCCESS => {\n  \"ansible_facts\": {\n    \"ansible_default_ipv4\": { \"address\": \"10.0.1.14\", \"interface\": \"eth0\" }\n  }\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "See who AWS thinks you are",
+        "command": "aws sts get-caller-identity",
+        "output": "{\n  \"UserId\": \"AROA123EXAMPLE:bob\",\n  \"Account\": \"123456789012\",\n  \"Arn\": \"arn:aws:sts::123456789012:assumed-role/Admin/bob\"\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Show active CLI config sources",
+        "command": "aws configure list",
+        "output": "      Name                    Value             Type    Location\n   profile                prod-admin           manual  --profile\n    region              eu-central-1      config-file  ~/.aws/config"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Query EC2 instances as a compact table",
+        "command": "aws ec2 describe-instances --filters Name=tag:Role,Values=web --query 'Reservations[].Instances[].[InstanceId,State.Name,PrivateIpAddress,Placement.AvailabilityZone]' --output table",
+        "output": "---------------------------------------------\n|         DescribeInstances                |\n+----------------------+---------+----------+\n| i-0ab123456789cdef0 | running | 10.0.1.14 | eu-central-1a |"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Open an SSM shell to an instance",
+        "command": "aws ssm start-session --target i-0ab123456789cdef0",
+        "output": "Starting session with SessionId: bob-0f9e7d6c5b4a3210\nsh-4.2$"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Tail CloudWatch log groups live",
+        "command": "aws logs tail /aws/ecs/prod-api --since 15m --follow",
+        "output": "2026-03-29T10:28:42 START RequestId=8f7f...\n2026-03-29T10:28:42 ERROR upstream timeout contacting db.prod.internal"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Read CloudFormation stack event history",
+        "command": "aws cloudformation describe-stack-events --stack-name prod-network",
+        "output": "2026-03-29T10:31:11Z  AWS::EC2::NatGateway      nat-a   CREATE_FAILED  Elastic IP address not found\n2026-03-29T10:31:12Z  AWS::CloudFormation::Stack prod-network UPDATE_ROLLBACK_IN_PROGRESS"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Check ALB target health",
+        "command": "aws elbv2 describe-target-health --target-group-arn arn:aws:elasticloadbalancing:eu-central-1:123456789012:targetgroup/prod-api/abc123",
+        "output": "{\n  \"TargetHealthDescriptions\": [\n    { \"Target\": { \"Id\": \"i-0ab123\" }, \"TargetHealth\": { \"State\": \"unhealthy\", \"Reason\": \"Target.ResponseCodeMismatch\" } }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Check ECS service rollout state",
+        "command": "aws ecs describe-services --cluster prod --services api",
+        "output": "{\n  \"services\": [\n    { \"status\": \"ACTIVE\", \"desiredCount\": 4, \"runningCount\": 2, \"deployments\": [{ \"rolloutState\": \"FAILED\" }] }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Refresh kubeconfig from EKS",
+        "command": "aws eks update-kubeconfig --name prod-eks --region eu-central-1",
+        "output": "Added new context arn:aws:eks:eu-central-1:123456789012:cluster/prod-eks to /Users/bob/.kube/config"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Simulate IAM policy decisions",
+        "command": "aws iam simulate-principal-policy --policy-source-arn arn:aws:iam::123456789012:role/AppRole --action-names s3:GetObject --resource-arns arn:aws:s3:::prod-bucket/*",
+        "output": "{\n  \"EvaluationResults\": [\n    { \"EvalActionName\": \"s3:GetObject\", \"EvalDecision\": \"explicitDeny\" }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Inspect Auto Scaling desired versus current capacity",
+        "command": "aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names prod-web",
+        "output": "{\n  \"AutoScalingGroups\": [\n    { \"AutoScalingGroupName\": \"prod-web\", \"MinSize\": 4, \"DesiredCapacity\": 6, \"Instances\": [{ \"InstanceId\": \"i-0ab123\", \"LifecycleState\": \"InService\" }] }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Summarize S3 objects and total size",
+        "command": "aws s3 ls s3://prod-logs --human-readable --summarize",
+        "output": "2026-03-29 10:18:12   14.2 MiB app-2026-03-29.log.gz\nTotal Objects: 34\n   Total Size: 1.7 GiB"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Describe security group rules",
+        "command": "aws ec2 describe-security-groups --group-ids sg-0ab123456789cdef0",
+        "output": "{\n  \"SecurityGroups\": [\n    { \"GroupId\": \"sg-0ab123456789cdef0\", \"IpPermissions\": [{ \"FromPort\": 443, \"IpProtocol\": \"tcp\" }] }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "List Route 53 records",
+        "command": "aws route53 list-resource-record-sets --hosted-zone-id Z123456789 --max-items 5",
+        "output": "{\n  \"ResourceRecordSets\": [\n    { \"Name\": \"api.example.com.\", \"Type\": \"A\", \"AliasTarget\": { \"DNSName\": \"dualstack.alb-123.eu-central-1.elb.amazonaws.com.\" } }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Inspect recent ECR images",
+        "command": "aws ecr describe-images --repository-name prod-api --max-items 3",
+        "output": "{\n  \"imageDetails\": [\n    { \"imageTags\": [\"1.9.5\"], \"imagePushedAt\": \"2026-03-29T09:48:00Z\" },\n    { \"imageTags\": [\"1.9.4\"], \"imagePushedAt\": \"2026-03-28T18:11:00Z\" }\n  ]\n}"
+      },
+      {
+        "stack": "AWS CLI",
+        "title": "Check RDS instance status",
+        "command": "aws rds describe-db-instances --db-instance-identifier prod-db",
+        "output": "{\n  \"DBInstances\": [\n    { \"DBInstanceIdentifier\": \"prod-db\", \"DBInstanceStatus\": \"available\", \"Endpoint\": { \"Address\": \"prod-db.abc123.eu-central-1.rds.amazonaws.com\" } }\n  ]\n}"
+      },
+      {
+        "stack": "Docker",
+        "title": "List running and exited containers",
+        "command": "docker ps -a",
+        "output": "CONTAINER ID   IMAGE        STATUS                     NAMES\nf9b1c2d3e4f5   api:1.9.4    Exited (1) 14 seconds ago   api\n7a6b5c4d3e2f   redis:7      Up 3 hours                 cache"
+      },
+      {
+        "stack": "Docker",
+        "title": "Read recent container logs",
+        "command": "docker logs api --tail 100",
+        "output": "2026-03-29T10:33:18Z ERROR failed to load config: missing REDIS_URL\n2026-03-29T10:33:18Z FATAL exiting"
+      },
+      {
+        "stack": "Docker",
+        "title": "Inspect full container metadata",
+        "command": "docker inspect api",
+        "output": "[\n  {\n    \"Name\": \"/api\",\n    \"RestartCount\": 5,\n    \"HostConfig\": { \"RestartPolicy\": { \"Name\": \"always\" } }\n  }\n]"
+      },
+      {
+        "stack": "Docker",
+        "title": "Open a shell inside a running container",
+        "command": "docker exec -it api sh",
+        "output": "/app # printenv | grep REDIS_URL\nREDIS_URL=redis://cache:6379/0"
+      },
+      {
+        "stack": "Docker",
+        "title": "Watch live container CPU and memory",
+        "command": "docker stats",
+        "output": "CONTAINER ID   NAME   CPU %   MEM USAGE / LIMIT\nf9b1c2d3e4f5   api    182.3%  1.4GiB / 2GiB"
+      },
+      {
+        "stack": "Docker",
+        "title": "Check where Docker disk is going",
+        "command": "docker system df",
+        "output": "TYPE            TOTAL   ACTIVE   SIZE      RECLAIMABLE\nImages          24      6        13.1GB    9.4GB (71%)\nLocal Volumes   8       5        5.2GB     1.1GB (21%)"
+      },
+      {
+        "stack": "Docker",
+        "title": "Inspect Docker network wiring",
+        "command": "docker network inspect bridge",
+        "output": "[\n  {\n    \"Name\": \"bridge\",\n    \"IPAM\": { \"Config\": [{ \"Subnet\": \"172.17.0.0/16\", \"Gateway\": \"172.17.0.1\" }] }\n  }\n]"
+      },
+      {
+        "stack": "Docker",
+        "title": "See compose service state at a glance",
+        "command": "docker compose ps",
+        "output": "NAME          IMAGE       COMMAND       SERVICE   STATUS         PORTS\nproject-api   api:1.9.4   \"./start.sh\"   api       Exit 1\nproject-db    postgres:16 \"docker-entry\" db        Up 3 hours"
+      },
+      {
+        "stack": "Docker",
+        "title": "Tail one compose service log stream",
+        "command": "docker compose logs api --tail 100",
+        "output": "api  | INFO starting migrations\napi  | ERROR dial tcp db:5432: connect: connection refused"
+      },
+      {
+        "stack": "Docker",
+        "title": "Restart one container deliberately",
+        "command": "docker restart api",
+        "output": "api"
+      }
+      ,
+      {
+        "stack": "Docker",
+        "title": "List local images",
+        "command": "docker images",
+        "output": "REPOSITORY   TAG     IMAGE ID       CREATED       SIZE\napi          1.9.5   9f8e7d6c5b4a   2 hours ago   418MB"
+      },
+      {
+        "stack": "Docker",
+        "title": "List Docker volumes",
+        "command": "docker volume ls",
+        "output": "DRIVER    VOLUME NAME\nlocal     project_db-data\nlocal     project_redis-data"
+      },
+      {
+        "stack": "Docker",
+        "title": "Show published container ports",
+        "command": "docker port api",
+        "output": "80/tcp -> 0.0.0.0:8080\n443/tcp -> 0.0.0.0:8443"
+      },
+      {
+        "stack": "Docker",
+        "title": "Render compose service names",
+        "command": "docker compose config --services",
+        "output": "api\ndb\nredis"
+      }
+    ];
+
+    const troubleshootingFlow = {
+      "macOS": [
+        { label: "1. Host and tools", titles: ["Show the local host name", "Verify Apple Command Line Tools", "Audit Homebrew health", "List Homebrew managed services"] },
+        { label: "2. Basic network path", titles: ["Map network adapters", "Inspect the routing table", "Ping a remote host"] },
+        { label: "3. DNS and resolution", titles: ["Dump the active DNS resolver chain", "Resolve a hostname through the local cache"] },
+        { label: "4. Ports and process load", titles: ["See which process owns a listening TCP port", "Sort hot processes by CPU"] },
+        { label: "5. Service logs", titles: ["Inspect recent sshd log lines"] }
+      ],
+      "Linux": [
+        { label: "1. System identity", titles: ["Fingerprint the running kernel and OS", "Check uptime and load averages"] },
+        { label: "2. CPU and memory pressure", titles: ["Sample CPU wait and run queue", "See memory pressure and swap usage", "Show top CPU consumers with process details"] },
+        { label: "3. Disk and filesystems", titles: ["Check filesystem usage", "List block devices and filesystems", "Find large directories under /var"] },
+        { label: "4. Services and logs", titles: ["Check systemd service state", "Read recent service logs", "Probe a local TLS health endpoint"] },
+        { label: "5. Network path", titles: ["Inspect interface addresses", "Show the routing table", "Show listening sockets and owning processes", "Capture a short packet sample on port 443"] },
+        { label: "6. Kernel deep dive", titles: ["Inspect recent kernel messages"] }
+      ],
+      "Kubernetes": [
+        { label: "1. Cluster and access", titles: ["Confirm the active kube context", "Test RBAC before blaming the API", "List cluster nodes"] },
+        { label: "2. Broad health check", titles: ["Get a cluster-wide pod view", "Sort recent cluster events", "Check pod and container resource pressure", "Describe one node"] },
+        { label: "3. Workload rollout", titles: ["Wait on rollout status", "Describe a single troubled pod", "Tail deployment logs"] },
+        { label: "4. Networking and traffic", titles: ["Map Services to endpoints", "List ingress objects"] },
+        { label: "5. Storage and runtime", titles: ["Show persistent volume claims", "Open a shell in the running workload"] },
+        { label: "6. Review or change", titles: ["Diff manifests before apply", "Restart a deployment rollout"] }
+      ],
+      "Terraform": [
+        { label: "1. Workspace and context", titles: ["List available workspaces", "Show the active workspace", "Print Terraform outputs"] },
+        { label: "2. Local sanity checks", titles: ["Enforce formatting before review", "Initialize providers and modules", "Validate configuration shape", "Confirm provider dependency tree"] },
+        { label: "3. State inspection", titles: ["List everything tracked in state", "Inspect one resource exactly as state knows it", "Evaluate expressions in terraform console"] },
+        { label: "4. Drift and plan review", titles: ["Create a refresh-only plan", "Create a saved execution plan", "Read the saved plan in plain text"] },
+        { label: "5. Recovery and apply", titles: ["Clear a stuck remote state lock", "Apply the reviewed plan file"] }
+      ],
+      "Ansible": [
+        { label: "1. Inventory and targeting", titles: ["Visualize inventory layout", "Dump inventory as JSON", "Preview targeted hosts", "Preview playbook task names"] },
+        { label: "2. Reachability and facts", titles: ["Test basic host reachability", "Gather default IPv4 facts", "Run a quick ad-hoc uptime command"] },
+        { label: "3. Safe playbook checks", titles: ["Syntax-check a playbook", "Dry-run with check mode and diff"] },
+        { label: "4. Live inspection", titles: ["Inspect a service with privilege escalation", "View vaulted secrets intentionally"] },
+        { label: "5. Targeted execution", titles: ["Run only the web tag on web hosts"] }
+      ],
+      "AWS CLI": [
+        { label: "1. Identity and config", titles: ["See who AWS thinks you are", "Show active CLI config sources"] },
+        { label: "2. Compute and service inventory", titles: ["Query EC2 instances as a compact table", "Inspect Auto Scaling desired versus current capacity", "Check ECS service rollout state", "Check RDS instance status", "Inspect recent ECR images"] },
+        { label: "3. Network and edge", titles: ["Check ALB target health", "Describe security group rules", "List Route 53 records"] },
+        { label: "4. Logs and event history", titles: ["Tail CloudWatch log groups live", "Read CloudFormation stack event history", "Summarize S3 objects and total size"] },
+        { label: "5. Access and sessions", titles: ["Simulate IAM policy decisions", "Open an SSM shell to an instance", "Refresh kubeconfig from EKS"] }
+      ],
+      "Docker": [
+        { label: "1. Container and compose overview", titles: ["List running and exited containers", "See compose service state at a glance", "Render compose service names", "List local images", "List Docker volumes"] },
+        { label: "2. Logs and state", titles: ["Read recent container logs", "Tail one compose service log stream", "Inspect full container metadata"] },
+        { label: "3. Ports and networking", titles: ["Show published container ports", "Inspect Docker network wiring"] },
+        { label: "4. Resource and disk usage", titles: ["Watch live container CPU and memory", "Check where Docker disk is going"] },
+        { label: "5. Interactive and restart", titles: ["Open a shell inside a running container", "Restart one container deliberately"] }
+      ]
+    };
+
+    function keyFor(item) {
+      return `${item.stack}::${item.title}`;
+    }
+
+    const commandMeta = new Map();
+    Object.entries(troubleshootingFlow).forEach(([stack, phases]) => {
+      let rank = 0;
+      phases.forEach((phase, phaseIndex) => {
+        phase.titles.forEach((title, titleIndex) => {
+          commandMeta.set(`${stack}::${title}`, {
+            phaseLabel: phase.label,
+            stepLabel: `${phaseIndex + 1}.${titleIndex + 1}`,
+            rank: rank++
+          });
+        });
+      });
+    });
+
+    commands.forEach((item, index) => {
+      const key = keyFor(item);
+      if (!commandMeta.has(key)) {
+        commandMeta.set(key, {
+          phaseLabel: "Other",
+          stepLabel: "",
+          rank: 1000 + index
+        });
+      }
+    });
+
+    const stacks = [...new Set(commands.map((item) => item.stack))];
+    let activeStack = stacks[0];
+    let searchTerm = "";
+    let activeCommandKey = commands.find((item) => item.stack === activeStack)?.command || "";
+
+    function getMeta(item) {
+      return commandMeta.get(keyFor(item));
+    }
+
+    function getVisibleCommands() {
+      const query = searchTerm.trim().toLowerCase();
+      return commands
+        .filter((item) => {
+          if (item.stack !== activeStack) {
+            return false;
+          }
+
+          if (!query) {
+            return true;
+          }
+
+          return `${item.title} ${item.command} ${item.output}`.toLowerCase().includes(query);
+        })
+        .sort((a, b) => getMeta(a).rank - getMeta(b).rank);
+    }
+
+    function getSelectedCommand(visible) {
+      if (!visible.length) {
+        return null;
+      }
+
+      const selected = visible.find((item) => item.command === activeCommandKey);
+      if (selected) {
+        return selected;
+      }
+
+      activeCommandKey = visible[0].command;
+      return visible[0];
+    }
+
+    function renderTabs() {
+      document.getElementById("techTabs").innerHTML = stacks
+        .map((stack) => `
+          <button class="tech-tab ${stack === activeStack ? "active" : ""}" type="button" data-stack="${stack}">
+            ${stack}
+          </button>
+        `)
+        .join("");
+    }
+
+    function renderCommandList() {
+      const visible = getVisibleCommands();
+      document.getElementById("listTitle").textContent = activeStack;
+      document.getElementById("listCount").textContent = `${visible.length} commands`;
+      if (!visible.length) {
+        document.getElementById("commandList").innerHTML = `<div class="empty-state">No commands found.</div>`;
+        return;
+      }
+
+      const selected = getSelectedCommand(visible);
+      let currentPhase = "";
+      const html = [];
+
+      visible.forEach((item) => {
+        const meta = getMeta(item);
+        if (meta.phaseLabel !== currentPhase) {
+          currentPhase = meta.phaseLabel;
+          html.push(`<div class="phase-heading">${meta.phaseLabel}</div>`);
+        }
+
+        html.push(`
+          <button class="command-item ${selected && item.command === selected.command ? "active" : ""}" type="button" data-command="${encodeURIComponent(item.command)}">
+            <span class="step-pill">${meta.stepLabel}</span>
+            <span class="command-title">${item.title}</span>
+            <span class="command-code">${item.command}</span>
+          </button>
+        `);
+      });
+
+      document.getElementById("commandList").innerHTML = html.join("");
+    }
+
+    function renderOutput() {
+      const selected = getSelectedCommand(getVisibleCommands());
+      if (!selected) {
+        document.getElementById("selectedTitle").textContent = "No results";
+        document.getElementById("selectedCommand").textContent = "";
+        document.getElementById("selectedOutput").textContent = "Try a different search term.";
+        return;
+      }
+
+      const meta = getMeta(selected);
+      document.getElementById("selectedTitle").textContent = `${meta.stepLabel} ${selected.title}`;
+      document.getElementById("selectedCommand").textContent = selected.command;
+      document.getElementById("selectedOutput").textContent = selected.output;
+    }
+
+    function renderAll() {
+      renderTabs();
+      renderCommandList();
+      renderOutput();
+    }
+
+    document.addEventListener("click", (event) => {
+      const tab = event.target.closest(".tech-tab");
+      if (tab) {
+        activeStack = tab.dataset.stack;
+        activeCommandKey = commands.find((item) => item.stack === activeStack)?.command || "";
+        renderAll();
+        return;
+      }
+
+      const commandItem = event.target.closest(".command-item");
+      if (commandItem) {
+        activeCommandKey = decodeURIComponent(commandItem.dataset.command);
+        renderCommandList();
+        renderOutput();
+      }
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      searchTerm = event.target.value;
+      renderCommandList();
+      renderOutput();
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>

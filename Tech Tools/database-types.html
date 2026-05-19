@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 10: Databases | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-sql: #00618a;     /* Azure/SQL Blue */
+      --accent-nosql: #4db33d;   /* Mongo Green */
+      --accent-fail: #ff7b72;
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 97, 138, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(77, 179, 61, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: #fff; }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, #a5d6ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-sql);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: #8b949e; transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: SCHEMA SIMULATOR */
+    .sim-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      overflow: hidden; margin: 2rem 0;
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 800px) { .sim-console { grid-template-columns: 1fr; } }
+
+    .sim-half { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; position: relative; }
+    .sim-half.sql { border-right: 1px solid #30363d; background: linear-gradient(180deg, rgba(0,97,138,0.05), transparent); }
+    .sim-half.nosql { background: linear-gradient(180deg, rgba(77,179,61,0.05), transparent); }
+
+    .sim-title { font-weight: bold; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+    .badge-sql { background: var(--accent-sql); color: #fff; }
+    .badge-nosql { background: var(--accent-nosql); color: #000; }
+
+    /* DATA BLOCK (Draggable-ish look) */
+    .data-block {
+      background: #000; padding: 1rem; border-radius: 6px; border: 1px solid #30363d;
+      font-family: var(--font-mono); font-size: 0.8rem; color: #a5d6ff;
+      position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .db-label { 
+      position: absolute; top: -10px; right: 10px; background: #21262d; 
+      padding: 0 6px; font-size: 0.7rem; color: #8b949e; border-radius: 4px; 
+    }
+    .data-key { color: #79c0ff; }
+    .data-val { color: #ff7b72; }
+
+    /* DB VISUALS */
+    .db-container {
+      flex-grow: 1; border: 2px dashed #30363d; border-radius: 8px;
+      min-height: 200px; display: flex; flex-direction: column; align-items: center;
+      padding: 1rem; transition: all 0.3s; position: relative;
+    }
+    
+    /* SQL TABLE LOOK */
+    .sql-table { 
+      width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: var(--font-mono); 
+      display: none; /* Hidden until success */
+    }
+    .sql-table th { border-bottom: 1px solid #30363d; text-align: left; padding: 5px; color: #8b949e; }
+    .sql-table td { padding: 5px; border-bottom: 1px solid #21262d; color: #fff; }
+
+    /* NOSQL BUCKET LOOK */
+    .nosql-docs { 
+      width: 100%; display: flex; flex-direction: column; gap: 5px; 
+      display: none; /* Hidden until success */
+    }
+    .doc-item { background: #161b22; padding: 5px; border-radius: 4px; font-size: 0.7rem; font-family: var(--font-mono); color: #8b949e; }
+
+    .status-msg {
+      font-family: var(--font-mono); font-size: 0.8rem; margin-top: 10px; min-height: 20px;
+    }
+
+    .btn {
+      padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
+      font-size: 0.9rem; transition: all 0.2s; width: 100%;
+    }
+    .btn-sql { background: #21262d; color: var(--accent-sql); border: 1px solid var(--accent-sql); }
+    .btn-sql:hover { background: var(--accent-sql); color: #fff; }
+    
+    .btn-nosql { background: #21262d; color: var(--accent-nosql); border: 1px solid var(--accent-nosql); }
+    .btn-nosql:hover { background: var(--accent-nosql); color: #000; }
+
+    /* ANIMATIONS */
+    .shake { animation: shake 0.4s; border-color: var(--accent-fail) !important; background: rgba(255, 123, 114, 0.05); }
+    .success-border { border-color: var(--accent-nosql) !important; background: rgba(77, 179, 61, 0.05); }
+
+    @keyframes shake {
+      0% { transform: translateX(0); } 25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Data & Storage</div>
+      <h1>Databases: SQL vs NoSQL</h1>
+      <p class="intro">
+        Choosing a database is the most critical decision in system design. Do you want 
+        <span style="color:var(--accent-sql)">strict order</span> or 
+        <span style="color:var(--accent-nosql)">total flexibility</span>?
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-sql);">
+        <h3>🏛️ Relational (SQL)</h3>
+        <p><strong>Think: Excel Sheets.</strong> Data is stored in strict tables with Rows and Columns. Tables are linked (Joined) by IDs.</p>
+        <div style="margin-top:1rem; font-size:0.85rem; color:#8b949e;">
+          Examples: PostgreSQL, MySQL, SQL Server
+        </div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-nosql);">
+        <h3>📑 Document (NoSQL)</h3>
+        <p><strong>Think: JSON Files.</strong> Data is stored as flexible documents. One user can have 3 fields, the next can have 50. No rules.</p>
+        <div style="margin-top:1rem; font-size:0.85rem; color:#8b949e;">
+          Examples: MongoDB, DynamoDB, Firestore
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="border-color: #fff;">🕹️ The "Schema Enforcer" Game</h2>
+    <p style="margin-bottom:1rem; color:var(--text-secondary);">
+      <strong>Mission:</strong> Try to save a "User" object that has an unexpected new field: <code>"hobby": "Chess"</code>.
+    </p>
+
+    <div class="sim-console">
+      
+      <div class="sim-half sql">
+        <div class="sim-title">
+          <span class="badge badge-sql">SQL DB</span>
+          <span>Strict Schema</span>
+        </div>
+
+        <div class="data-block">
+          <div class="db-label">Incoming Data</div>
+          {<br>
+          &nbsp;&nbsp;<span class="data-key">"id"</span>: 1,<br>
+          &nbsp;&nbsp;<span class="data-key">"name"</span>: "Alice",<br>
+          &nbsp;&nbsp;<span class="data-key">"hobby"</span>: <span class="data-val">"Chess"</span> <span style="color:#666">// Unexpected!</span><br>
+          }
+        </div>
+
+        <button class="btn btn-sql" onclick="tryInsertSQL()">INSERT INTO Users</button>
+
+        <div class="db-container" id="sqlContainer">
+          <div style="color:#666; font-size:0.8rem; margin-top:40%;">
+            Schema: id (INT), name (VARCHAR)
+          </div>
+          <table class="sql-table" id="sqlTable">
+            <thead><tr><th>id</th><th>name</th></tr></thead>
+            <tbody><tr><td>1</td><td>Alice</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="status-msg" id="sqlStatus" style="color:#8b949e;">Waiting...</div>
+      </div>
+
+      <div class="sim-half nosql">
+        <div class="sim-title">
+          <span class="badge badge-nosql">NoSQL DB</span>
+          <span>Flexible Schema</span>
+        </div>
+
+        <div class="data-block">
+          <div class="db-label">Incoming Data</div>
+          {<br>
+          &nbsp;&nbsp;<span class="data-key">"id"</span>: 2,<br>
+          &nbsp;&nbsp;<span class="data-key">"name"</span>: "Bob",<br>
+          &nbsp;&nbsp;<span class="data-key">"hobby"</span>: <span class="data-val">"Gaming"</span> <span style="color:#666">// New field? OK!</span><br>
+          }
+        </div>
+
+        <button class="btn btn-nosql" onclick="tryInsertNoSQL()">db.users.insertOne()</button>
+
+        <div class="db-container" id="nosqlContainer">
+           <div style="color:#666; font-size:0.8rem; margin-top:40%; text-align:center;">
+            Collection: Users<br>(Accepts Anything)
+          </div>
+          <div class="nosql-docs" id="nosqlDocs">
+            <div class="doc-item">{ "id": 2, "name": "Bob", "hobby": "Gaming" }</div>
+          </div>
+        </div>
+
+        <div class="status-msg" id="nosqlStatus" style="color:#8b949e;">Waiting...</div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title" style="border-color: var(--accent-warn);">⚖️ When to use which?</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+      <div>
+        <h3 style="color:var(--accent-sql); margin-bottom:1rem;">✅ Choose SQL if...</h3>
+        <ul style="color:var(--text-secondary); line-height: 1.8;">
+          <li>Structure rarely changes (e.g., Accounting systems).</li>
+          <li>Data integrity is #1 priority (Banks).</li>
+          <li>You need complex queries (JOINing 5 tables).</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 style="color:var(--accent-nosql); margin-bottom:1rem;">✅ Choose NoSQL if...</h3>
+        <ul style="color:var(--text-secondary); line-height: 1.8;">
+          <li>Data structure changes constantly (e.g., Game Analytics).</li>
+          <li>Speed & Scale > Strict Consistency (Social Feeds).</li>
+          <li>You are a startup and don't know your schema yet.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function tryInsertSQL() {
+      const container = document.getElementById('sqlContainer');
+      const status = document.getElementById('sqlStatus');
+      
+      // SQL fails because of the extra field
+      container.classList.add('shake');
+      status.innerText = "❌ Error: Column 'hobby' does not exist in table 'Users'.";
+      status.style.color = "#ff7b72";
+
+      setTimeout(() => {
+        container.classList.remove('shake');
+      }, 500);
+    }
+
+    function tryInsertNoSQL() {
+      const container = document.getElementById('nosqlContainer');
+      const status = document.getElementById('nosqlStatus');
+      const docs = document.getElementById('nosqlDocs');
+      const placeholder = container.querySelector('div'); // The placeholder text
+
+      // NoSQL Succeeds
+      container.classList.add('success-border');
+      if(placeholder) placeholder.style.display = 'none';
+      docs.style.display = 'flex';
+      
+      status.innerText = "✅ Success: Document inserted (Schema updated automatically).";
+      status.style.color = "#4db33d";
+
+      setTimeout(() => {
+        container.classList.remove('success-border');
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>

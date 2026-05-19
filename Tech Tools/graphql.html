@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Level 30: GraphQL | Tech Knowledge Hub</title>
+  <style>
+    :root { --bg-body: #0a0d12; --text-primary: #f0f6fc; --accent-ql: #e535ab; --font-mono: monospace; }
+    body { background: var(--bg-body); color: var(--text-primary); font-family: sans-serif; padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    .playground { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+    
+    .editor { background: #161b22; border: 1px solid #333; padding: 1rem; border-radius: 8px; font-family: var(--font-mono); }
+    .json-out { color: #a5d6ff; white-space: pre; }
+    .keyword { color: var(--accent-ql); font-weight: bold; }
+    
+    .btn { background: var(--accent-ql); border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="margin-bottom:1rem;"><a href="index.html" style="color:#8b949e; text-decoration:none;">← Back</a></div>
+    <h1 style="color:var(--accent-ql)">GraphQL Playground</h1>
+    <p>Unlike REST where you get the whole object, in GraphQL you ask for exactly what you want.</p>
+
+    <div class="playground">
+      <div>
+        <h3>Query</h3>
+        <div class="editor" contenteditable="true" id="queryInput">
+<span class="keyword">query</span> {
+  user(id: 1) {
+    name
+    email
+  }
+}
+        </div>
+        <button class="btn" onclick="fetchData()">Run Query ▶</button>
+      </div>
+
+      <div>
+        <h3>Response (JSON)</h3>
+        <div class="editor json-out" id="output">...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function fetchData() {
+      const q = document.getElementById('queryInput').innerText;
+      let data = {};
+      
+      if (q.includes('name')) data.name = "Alice";
+      if (q.includes('email')) data.email = "alice@example.com";
+      if (q.includes('age')) data.age = 29;
+      if (q.includes('posts')) data.posts = [{title: "Hello World"}];
+
+      document.getElementById('output').innerText = JSON.stringify({ data: { user: data } }, null, 2);
+    }
+  </script>
+</body>
+</html>

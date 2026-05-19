@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 8: Containers &amp; Docker 0 to Hero | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #041019;
+      --bg-deep: #02080d;
+      --panel: rgba(7, 18, 28, 0.84);
+      --line: rgba(69, 202, 255, 0.16);
+      --line-strong: rgba(69, 202, 255, 0.34);
+      --text: #f1fbff;
+      --muted: #9cb6c7;
+      --accent: #26c6ff;
+      --accent-strong: #0db7ed;
+      --accent-soft: rgba(38, 198, 255, 0.12);
+      --success: #5ad7a0;
+      --warning: #ffcb74;
+      --danger: #ff8f8f;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 8rem;
+    }
+
+    body {
+      min-height: 100vh;
+      position: relative;
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(13, 183, 237, 0.18), transparent 28%),
+        radial-gradient(circle at 86% 20%, rgba(38, 198, 255, 0.14), transparent 24%),
+        radial-gradient(circle at 72% 80%, rgba(16, 67, 84, 0.24), transparent 30%),
+        linear-gradient(180deg, #07131d 0%, #040a11 45%, #03070d 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    summary {
+      font: inherit;
+    }
+
+    code,
+    pre {
+      font-family: var(--font-mono);
+    }
+
+    .shell {
+      width: min(1380px, calc(100% - 2.5rem));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      padding: 1.5rem 0 4.4rem;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      width: 20rem;
+      height: 20rem;
+      top: -4rem;
+      left: -5rem;
+      background: rgba(13, 183, 237, 0.18);
+    }
+
+    .hero::after {
+      width: 18rem;
+      height: 18rem;
+      top: 2rem;
+      right: -5rem;
+      background: rgba(90, 215, 160, 0.12);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+      gap: 3rem;
+      align-items: end;
+      min-height: min(84vh, 840px);
+    }
+
+    .hero-copy {
+      max-width: 45rem;
+      padding: 2rem 0 1rem;
+    }
+
+    .breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: rgba(7, 15, 28, 0.72);
+      margin-bottom: 1.35rem;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.3rem rgba(38, 198, 255, 0.14);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 8vw, 6.5rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      max-width: 11ch;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-summary {
+      max-width: 43rem;
+      font-size: clamp(1.04rem, 1.8vw, 1.28rem);
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.45rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent-strong), #88ecff);
+      color: #051018;
+      font-weight: 700;
+      box-shadow: 0 18px 36px rgba(13, 183, 237, 0.24);
+    }
+
+    .button.secondary {
+      border-color: var(--line-strong);
+      background: rgba(8, 17, 31, 0.74);
+    }
+
+    .hero-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      list-style: none;
+      max-width: 48rem;
+    }
+
+    .hero-notes li {
+      padding: 0.95rem 1rem;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 19, 35, 0.62), rgba(10, 19, 35, 0));
+    }
+
+    .hero-notes strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      padding-top: 2rem;
+    }
+
+    .poster {
+      position: relative;
+      min-height: 37rem;
+      padding: 1.4rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.8rem;
+      background:
+        linear-gradient(180deg, rgba(8, 19, 31, 0.95), rgba(4, 10, 17, 0.94)),
+        radial-gradient(circle at 20% 20%, rgba(38, 198, 255, 0.1), transparent 28%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(38, 198, 255, 0.08) calc(100% - 1px)),
+        linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(38, 198, 255, 0.08) calc(100% - 1px));
+      background-size: 2.5rem 2.5rem;
+      opacity: 0.24;
+      pointer-events: none;
+    }
+
+    .poster-top,
+    .route-strip,
+    .guide-grid,
+    .checklist,
+    .lab-list,
+    .stack-list,
+    .notes-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .poster-top {
+      position: relative;
+      z-index: 1;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.1rem;
+    }
+
+    .poster-tag,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(38, 198, 255, 0.18);
+      background: rgba(38, 198, 255, 0.06);
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .poster-core {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .poster-panel,
+    .rail-block,
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column,
+    .lab,
+    .option,
+    .route-link,
+    .code-block,
+    .note-block,
+    .sim-panel,
+    .compare-box {
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+    }
+
+    .poster-panel {
+      padding: 1rem;
+      background: rgba(10, 18, 32, 0.78);
+    }
+
+    .poster-panel h2,
+    .poster-panel h3,
+    .panel h3,
+    .panel-plain h3,
+    .flow-block h3,
+    .symptoms h3,
+    .cleanup-column h3,
+    .option h3,
+    .lab-side h4,
+    .note-block h3,
+    .compare-box h3 {
+      font-size: 1.02rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .poster-panel p,
+    .poster-panel span,
+    .panel p,
+    .panel-plain p,
+    .flow-block p,
+    .symptoms p,
+    .cleanup-column p,
+    .option p,
+    .lab-side p,
+    .note-block p,
+    .compare-box p {
+      color: var(--muted);
+    }
+
+    .pipeline-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.85rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      background: rgba(38, 198, 255, 0.06);
+      border: 1px solid rgba(38, 198, 255, 0.12);
+    }
+
+    .pipeline-row strong,
+    .poster-stats strong,
+    .route-link strong,
+    .chapter-state strong,
+    .flow-step strong,
+    .compare-box strong {
+      color: var(--text);
+    }
+
+    .pipeline-row code {
+      color: var(--accent);
+    }
+
+    .layer-stack {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.85rem;
+    }
+
+    .layer {
+      padding: 0.7rem 0.85rem;
+      border-radius: 0.85rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .layer.app { background: rgba(90, 215, 160, 0.14); color: #dfffee; }
+    .layer.libs { background: rgba(255, 203, 116, 0.14); color: #fff2cc; }
+    .layer.engine { background: rgba(38, 198, 255, 0.18); color: #dff8ff; }
+    .layer.guest { background: rgba(255, 143, 143, 0.14); color: #ffe0e0; }
+    .layer.host { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+
+    .poster-footer {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .poster-stats {
+      padding: 0.8rem 0.85rem;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(6, 14, 25, 0.08), rgba(6, 14, 25, 0.62));
+    }
+
+    .guide-layer {
+      position: relative;
+      z-index: 30;
+      margin-top: -2rem;
+      padding-bottom: 1rem;
+    }
+
+    .route-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .route-link {
+      display: block;
+      padding: 1rem 1rem 1.05rem;
+      border-top: 2px solid rgba(38, 198, 255, 0.34);
+      background: rgba(7, 16, 29, 0.84);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .route-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(38, 198, 255, 0.34);
+      background: rgba(10, 21, 39, 0.92);
+    }
+
+    .route-link span,
+    .section-label,
+    .lab-kicker,
+    .chapter-state span,
+    .option span,
+    .note-block span,
+    .flow-step span,
+    .box-label {
+      display: inline-block;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .route-link span {
+      margin-bottom: 0.45rem;
+    }
+
+    .chapter-bar {
+      position: sticky;
+      top: 0.75rem;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      padding: 0.8rem 0.95rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.25rem;
+      background: rgba(6, 14, 25, 0.92);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .chapter-state {
+      min-width: 11rem;
+      padding-right: 1rem;
+      border-right: 1px solid rgba(38, 198, 255, 0.12);
+    }
+
+    .chapter-track {
+      display: flex;
+      gap: 0.55rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 0.1rem;
+    }
+
+    .chapter-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chapter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      padding: 0.68rem 0.92rem;
+      border-radius: 999px;
+      border: 1px solid rgba(38, 198, 255, 0.14);
+      background: rgba(38, 198, 255, 0.04);
+      color: var(--muted);
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .chapter-link:hover,
+    .chapter-link.active,
+    .chip.active,
+    .chip:hover {
+      color: var(--text);
+      border-color: rgba(38, 198, 255, 0.34);
+      background: rgba(38, 198, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 18.5rem minmax(0, 1fr);
+      gap: 2.5rem;
+      padding: 1.3rem 0 6rem;
+      align-items: start;
+    }
+
+    .rail {
+      position: sticky;
+      top: 6.5rem;
+      align-self: start;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .rail-block {
+      padding: 1rem;
+    }
+
+    .rail-block h2 {
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    .rail-links {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .rail-links a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: var(--muted);
+      padding: 0.55rem 0.75rem;
+      border: 1px solid transparent;
+      border-radius: 0.9rem;
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+
+    .rail-links a::after {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: inset 0 0 0 1px rgba(38, 198, 255, 0.25);
+      flex: 0 0 auto;
+    }
+
+    .rail-links a:hover,
+    .rail-links a.active {
+      color: var(--text);
+      background: rgba(38, 198, 255, 0.07);
+      border-color: rgba(38, 198, 255, 0.14);
+    }
+
+    .rail-links a.active::after {
+      background: var(--accent);
+      box-shadow: 0 0 0 0.24rem rgba(38, 198, 255, 0.14);
+    }
+
+    .checklist {
+      gap: 0.7rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .check-item input {
+      margin-top: 0.2rem;
+      accent-color: var(--accent);
+      transform: scale(1.15);
+    }
+
+    .progress-bar {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-top: 0.8rem;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-strong), #84f2ff);
+      transition: width 0.18s ease;
+    }
+
+    .progress-copy {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.55rem;
+    }
+
+    .content {
+      min-width: 0;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .section {
+      position: relative;
+      padding: 2.15rem 0 3rem;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 8rem;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      left: -1.2rem;
+      top: 2.3rem;
+      bottom: 0.5rem;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(38, 198, 255, 0.2), rgba(38, 198, 255, 0));
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 0.85rem;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(38, 198, 255, 0.16);
+      background: rgba(38, 198, 255, 0.06);
+    }
+
+    .section-label::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.22rem rgba(38, 198, 255, 0.12);
+    }
+
+    .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      max-width: 13ch;
+      margin-bottom: 1rem;
+    }
+
+    .section-intro {
+      max-width: 62ch;
+      color: var(--muted);
+      margin-bottom: 1.95rem;
+      font-size: 1.08rem;
+    }
+
+    .stage-grid,
+    .flow-strip,
+    .command-grid,
+    .cleanup-grid,
+    .finish-grid,
+    .atlas-toolbar,
+    .search-row,
+    .sim-shell,
+    .sim-buttons,
+    .sim-stats,
+    .comparison-grid,
+    .notes-grid,
+    .option-grid,
+    .lab-body,
+    .flow-grid,
+    .dockerfile-layout {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .stage-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.6rem;
+    }
+
+    .stage,
+    .option {
+      padding: 1rem 0.95rem 0;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 22, 39, 0.58), rgba(10, 22, 39, 0));
+      min-height: 12rem;
+    }
+
+    .stage-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.2rem;
+      min-height: 2.2rem;
+      border-radius: 999px;
+      background: rgba(38, 198, 255, 0.12);
+      border: 1px solid rgba(38, 198, 255, 0.28);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      margin-bottom: 0.9rem;
+    }
+
+    .stage p,
+    .panel ul,
+    .cleanup-column li,
+    .lab-side li,
+    .option p {
+      color: var(--muted);
+    }
+
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column {
+      padding: 1.15rem;
+    }
+
+    .panel-plain {
+      background: rgba(6, 14, 25, 0.72);
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(18rem, 0.76fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .statement {
+      font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+      line-height: 1.28;
+      max-width: 24ch;
+      margin-bottom: 1rem;
+    }
+
+    .flow-strip {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .flow-step {
+      position: relative;
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(38, 198, 255, 0.14);
+      background: rgba(38, 198, 255, 0.05);
+      min-height: 8rem;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "->";
+      position: absolute;
+      top: calc(50% - 0.6rem);
+      right: -0.7rem;
+      color: rgba(38, 198, 255, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+    }
+
+    .flow-step span {
+      margin-bottom: 0.4rem;
+    }
+
+    .comparison-grid,
+    .notes-grid,
+    .dockerfile-layout,
+    .cleanup-grid,
+    .finish-grid,
+    .flow-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .compare-box {
+      padding: 1.15rem;
+      background: rgba(8, 16, 30, 0.86);
+    }
+
+    .box-label {
+      margin-bottom: 0.7rem;
+    }
+
+    .code-block {
+      overflow: hidden;
+      background: rgba(4, 8, 16, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(38, 198, 255, 0.1);
+      color: var(--muted);
+      font-size: 0.84rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(8, 18, 33, 0.84);
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 1.15rem 1rem 1.2rem;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #dff8ff;
+    }
+
+    .note-block {
+      padding: 1rem;
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .note-block span {
+      margin-bottom: 0.35rem;
+    }
+
+    .atlas-toolbar {
+      margin-bottom: 1rem;
+    }
+
+    .search-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .search-row input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(8, 18, 33, 0.78);
+      color: var(--text);
+      padding: 0.9rem 1rem;
+      outline: none;
+    }
+
+    .search-row input:focus {
+      border-color: rgba(38, 198, 255, 0.6);
+      box-shadow: 0 0 0 0.25rem rgba(38, 198, 255, 0.12);
+    }
+
+    .result-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 6rem;
+      padding: 0.9rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .chip {
+      cursor: pointer;
+      transition: border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: rgba(5, 11, 20, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .command-table,
+    .symptom-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .command-table th,
+    .command-table td,
+    .symptom-table th,
+    .symptom-table td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.95rem 1rem;
+      border-bottom: 1px solid rgba(38, 198, 255, 0.1);
+    }
+
+    .command-table th,
+    .symptom-table th {
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: rgba(11, 23, 43, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .command-table td,
+    .symptom-table td {
+      color: var(--muted);
+    }
+
+    .command-table td:first-child,
+    .symptom-table td:first-child {
+      color: var(--text);
+    }
+
+    .command-table tbody tr:nth-child(even),
+    .symptom-table tbody tr:nth-child(even) {
+      background: rgba(38, 198, 255, 0.025);
+    }
+
+    .command-table tbody tr:hover,
+    .symptom-table tbody tr:hover {
+      background: rgba(38, 198, 255, 0.06);
+    }
+
+    .muted-mini {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.7rem;
+    }
+
+    .option-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 1.2rem;
+    }
+
+    .option span {
+      margin-bottom: 0.75rem;
+    }
+
+    .lab {
+      overflow: hidden;
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .lab[open] {
+      border-color: rgba(38, 198, 255, 0.26);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+    }
+
+    .lab summary {
+      list-style: none;
+      cursor: pointer;
+      position: relative;
+      padding: 1rem 4rem 1rem 1.1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      background: rgba(9, 18, 34, 0.92);
+    }
+
+    .lab summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .lab summary:hover {
+      background: rgba(11, 23, 43, 0.96);
+    }
+
+    .lab summary::after {
+      content: "+";
+      position: absolute;
+      right: 1.1rem;
+      top: calc(50% - 0.8rem);
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(38, 198, 255, 0.18);
+      background: rgba(38, 198, 255, 0.06);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .lab[open] summary::after {
+      content: "-";
+      background: rgba(38, 198, 255, 0.12);
+      border-color: rgba(38, 198, 255, 0.3);
+    }
+
+    .lab-kicker {
+      margin-bottom: 0.35rem;
+    }
+
+    .lab-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      align-self: start;
+      padding-top: 0.25rem;
+    }
+
+    .lab-body {
+      grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+      padding: 1rem 1.1rem 1.2rem;
+      border-top: 1px solid rgba(38, 198, 255, 0.1);
+      background: linear-gradient(180deg, rgba(7, 14, 25, 0.28), rgba(7, 14, 25, 0));
+    }
+
+    .lab-side {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+    }
+
+    .lab-box {
+      border: 1px solid rgba(38, 198, 255, 0.14);
+      border-radius: 1rem;
+      padding: 0.9rem;
+      background: rgba(6, 14, 25, 0.64);
+    }
+
+    .sim-shell {
+      grid-template-columns: 22rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .sim-panel {
+      overflow: hidden;
+      background: rgba(7, 16, 29, 0.84);
+    }
+
+    .sim-controls,
+    .sim-view {
+      padding: 1.1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .sim-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-stat {
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(38, 198, 255, 0.12);
+      background: rgba(38, 198, 255, 0.05);
+    }
+
+    .sim-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .sim-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-button {
+      min-height: 2.9rem;
+      border: 1px solid rgba(38, 198, 255, 0.18);
+      border-radius: 0.95rem;
+      background: rgba(38, 198, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .sim-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(38, 198, 255, 0.38);
+    }
+
+    .sim-button.success {
+      background: rgba(90, 215, 160, 0.08);
+      border-color: rgba(90, 215, 160, 0.24);
+    }
+
+    .sim-button.warning {
+      background: rgba(255, 143, 143, 0.08);
+      border-color: rgba(255, 143, 143, 0.24);
+    }
+
+    .sim-log {
+      border: 1px solid rgba(38, 198, 255, 0.1);
+      border-radius: 1rem;
+      background: rgba(3, 8, 15, 0.84);
+      padding: 0.85rem;
+      min-height: 12rem;
+      max-height: 16rem;
+      overflow-y: auto;
+      display: grid;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .sim-log div {
+      border-bottom: 1px dashed rgba(38, 198, 255, 0.08);
+      padding-bottom: 0.35rem;
+    }
+
+    .env-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .env-box {
+      min-height: 18rem;
+      padding: 1rem;
+      border-radius: 1.2rem;
+      border: 1px solid rgba(38, 198, 255, 0.14);
+      background: rgba(5, 11, 20, 0.9);
+      display: grid;
+      align-content: start;
+      gap: 0.9rem;
+    }
+
+    .env-box.good {
+      border-color: rgba(90, 215, 160, 0.36);
+    }
+
+    .env-box.bad {
+      border-color: rgba(255, 143, 143, 0.36);
+    }
+
+    .env-box h3 {
+      font-size: 1rem;
+    }
+
+    .config-list {
+      display: grid;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+
+    .config-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(38, 198, 255, 0.08);
+    }
+
+    .app-chip {
+      width: 5.3rem;
+      height: 5.3rem;
+      border-radius: 1.2rem;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.06);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1rem auto 0;
+      font-size: 2rem;
+      transition: transform 0.4s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .app-chip.containerized {
+      border-color: var(--accent);
+      background: rgba(38, 198, 255, 0.12);
+      box-shadow: 0 0 20px rgba(38, 198, 255, 0.25);
+    }
+
+    .app-chip.crashed {
+      border-color: var(--danger);
+      background: rgba(255, 143, 143, 0.12);
+      box-shadow: 0 0 20px rgba(255, 143, 143, 0.18);
+    }
+
+    .app-chip.running {
+      border-color: var(--success);
+      background: rgba(90, 215, 160, 0.12);
+      box-shadow: 0 0 20px rgba(90, 215, 160, 0.18);
+    }
+
+    .pipeline {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .pipeline-step {
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(38, 198, 255, 0.12);
+      background: rgba(38, 198, 255, 0.05);
+      color: var(--muted);
+    }
+
+    .pipeline-step.active {
+      color: var(--text);
+      border-color: rgba(38, 198, 255, 0.36);
+      background: rgba(38, 198, 255, 0.12);
+    }
+
+    footer {
+      padding: 2rem 0 4rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer a {
+      color: var(--text);
+      border-bottom: 1px solid rgba(38, 198, 255, 0.22);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .guide-layer {
+        margin-top: 0;
+        padding-top: 1rem;
+      }
+
+      .route-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .chapter-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-state {
+        min-width: 0;
+        padding-right: 0;
+        padding-bottom: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(38, 198, 255, 0.12);
+      }
+
+      .hero-grid,
+      .page-grid,
+      .two-up,
+      .comparison-grid,
+      .notes-grid,
+      .dockerfile-layout,
+      .flow-grid,
+      .cleanup-grid,
+      .finish-grid,
+      .lab-body,
+      .sim-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        order: 2;
+      }
+
+      .content {
+        order: 1;
+      }
+
+      .section::before {
+        display: none;
+      }
+
+      .hero-grid {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .stage-grid,
+      .route-strip,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .option-grid,
+      .sim-stats,
+      .env-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100% - 1.25rem, 1380px);
+      }
+
+      .chapter-bar,
+      .route-strip,
+      .hero-notes,
+      .stage-grid,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .option-grid,
+      .sim-stats,
+      .sim-buttons,
+      .search-row,
+      .env-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        max-width: 8ch;
+      }
+
+      .lab summary::after {
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Cloud &amp; Infrastructure</div>
+        <div class="eyebrow">Level 8 / Packaging runtime</div>
+        <h1>Containers &amp; Docker 0 to Hero</h1>
+        <p class="hero-summary">
+          Learn Docker and containers from first principles: image versus container, Dockerfile,
+          layers, ports, volumes, logs, debugging, cleanup, and the exact reason containers fix
+          the classic “works on my machine” problem.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#roadmap">Start the roadmap</a>
+          <a class="button secondary" href="#command-atlas">Open the command atlas</a>
+        </div>
+        <ul class="hero-notes">
+          <li>
+            <strong>Why containers matter</strong>
+            Package app code together with the runtime, dependencies, and startup behavior.
+          </li>
+          <li>
+            <strong>What you will practice</strong>
+            Building images, running containers, reading logs, mounting volumes, and cleaning up safely.
+          </li>
+          <li>
+            <strong>How this page helps</strong>
+            Use it as both a learning path and a practical Docker reference while you work locally.
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <div class="poster">
+          <div class="poster-top">
+            <div class="poster-tag">Dockerfile</div>
+            <div class="poster-tag">Image</div>
+            <div class="poster-tag">Registry</div>
+            <div class="poster-tag">Container</div>
+            <div class="poster-tag">Cleanup</div>
+          </div>
+
+          <div class="poster-core">
+            <section class="poster-panel">
+              <h2>Container stack</h2>
+              <div class="stack-list">
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Dockerfile</strong>
+                    <span>The recipe that explains how to build a reusable image.</span>
+                  </div>
+                  <code>build instructions</code>
+                </div>
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Image layers</strong>
+                    <span>A frozen blueprint of the app plus dependencies and defaults.</span>
+                  </div>
+                  <code>read only</code>
+                </div>
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Container</strong>
+                    <span>A running process created from the image with a small writable layer on top.</span>
+                  </div>
+                  <code>runtime</code>
+                </div>
+              </div>
+            </section>
+
+            <section class="poster-panel">
+              <h3>VM versus container</h3>
+              <div class="comparison-grid">
+                <div class="compare-box">
+                  <span class="box-label">VM</span>
+                  <div class="layer-stack">
+                    <div class="layer app">app</div>
+                    <div class="layer libs">libs</div>
+                    <div class="layer guest">guest OS</div>
+                    <div class="layer host">hypervisor + host</div>
+                  </div>
+                </div>
+                <div class="compare-box">
+                  <span class="box-label">container</span>
+                  <div class="layer-stack">
+                    <div class="layer app">app</div>
+                    <div class="layer libs">libs</div>
+                    <div class="layer engine">container engine</div>
+                    <div class="layer host">host OS kernel</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="poster-footer">
+            <div class="poster-stats">
+              <strong>Fast start</strong>
+              <span>Containers reuse the host kernel, so they start faster than full VMs.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Consistent runtime</strong>
+              <span>The same image can run on laptops, CI servers, and production hosts.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Disposable by design</strong>
+              <span>Containers are easiest to trust when you know how to inspect and remove them cleanly.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="guide-layer">
+    <div class="shell guide-grid">
+      <nav class="route-strip" aria-label="Quick study routes">
+        <a class="route-link" href="#roadmap">
+          <span>Start here</span>
+          <strong>Learn the model</strong>
+          <p>Use the roadmap if you want Docker to click as a packaging and runtime story, not just a CLI.</p>
+        </a>
+        <a class="route-link" href="#command-atlas">
+          <span>Use it fast</span>
+          <strong>Jump to commands</strong>
+          <p>Search build, run, inspect, logs, volumes, networks, and cleanup commands quickly.</p>
+        </a>
+        <a class="route-link" href="#labs">
+          <span>Get hands-on</span>
+          <strong>Run local labs</strong>
+          <p>Practice building images, exposing ports, mounting data, and cleaning up your machine after.</p>
+        </a>
+        <a class="route-link" href="#troubleshooting">
+          <span>Fix stuff</span>
+          <strong>Debug containers</strong>
+          <p>Use the troubleshooting flow when an image builds fine but the container still misbehaves.</p>
+        </a>
+      </nav>
+
+      <div class="chapter-bar" aria-label="Chapter navigation">
+        <div class="chapter-state">
+          <span>Now reading</span>
+          <strong id="chapterState">Roadmap</strong>
+        </div>
+        <nav class="chapter-track">
+          <a class="chapter-link active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a class="chapter-link" data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a class="chapter-link" data-nav-target="comparison" href="#comparison">VM vs container</a>
+          <a class="chapter-link" data-nav-target="dockerfile" href="#dockerfile">Dockerfile</a>
+          <a class="chapter-link" data-nav-target="command-atlas" href="#command-atlas">Commands</a>
+          <a class="chapter-link" data-nav-target="labs" href="#labs">Labs</a>
+          <a class="chapter-link" data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a class="chapter-link" data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a class="chapter-link" data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a class="chapter-link" data-nav-target="finish" href="#finish">Finish</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell page-grid">
+    <aside class="rail" aria-label="Page navigation">
+      <div class="rail-block">
+        <h2>On this page</h2>
+        <nav class="rail-links">
+          <a class="active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a data-nav-target="comparison" href="#comparison">VM vs container</a>
+          <a data-nav-target="dockerfile" href="#dockerfile">Dockerfile</a>
+          <a data-nav-target="command-atlas" href="#command-atlas">Command atlas</a>
+          <a data-nav-target="labs" href="#labs">Laptop labs</a>
+          <a data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a data-nav-target="finish" href="#finish">Next steps</a>
+        </nav>
+      </div>
+
+      <div class="rail-block">
+        <h2>Study checklist</h2>
+        <div class="checklist">
+          <label class="check-item"><input type="checkbox" data-checkpoint="image" /> I understand the difference between a Dockerfile, an image, and a container.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="build" /> I can build an image and run it with ports or environment variables.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="inspect" /> I know how to inspect logs, exec into a container, and debug startup failures.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="data" /> I understand bind mounts, named volumes, and why data can disappear after restarts.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="labs" /> I have run at least two Docker labs on my machine.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="cleanup" /> I know how to stop, remove, and prune containers, images, and volumes safely.</label>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-copy" id="progressCopy">0 / 6 complete</p>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="section" id="roadmap">
+        <div class="section-label">Roadmap</div>
+        <h2>Learn Docker in the order that makes local practice easy</h2>
+        <p class="section-intro">
+          Docker gets much easier when you learn the runtime story first, then the Dockerfile, then
+          the day-to-day commands. The goal is to build confidence without filling your machine with mystery containers.
+        </p>
+
+        <div class="stage-grid">
+          <article class="stage">
+            <div class="stage-index">01</div>
+            <h3>Understand the nouns</h3>
+            <p>Dockerfile, image, registry, container, port mapping, bind mount, and volume should all feel distinct.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">02</div>
+            <h3>Build one image</h3>
+            <p>Write a tiny Dockerfile, build the image, and inspect the result before running it.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">03</div>
+            <h3>Run and inspect</h3>
+            <p>Learn <code>docker run</code>, <code>ps</code>, <code>logs</code>, and <code>exec</code> until they feel normal.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">04</div>
+            <h3>Handle data and config</h3>
+            <p>Use ports, environment variables, bind mounts, and named volumes without guessing.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">05</div>
+            <h3>Clean up on purpose</h3>
+            <p>Stop and remove containers, prune safely, and leave your machine in a known-good state.</p>
+          </article>
+        </div>
+
+        <div class="two-up">
+          <div class="panel">
+            <p class="statement">The shortest useful definition of a container is: a running process packaged with the filesystem and defaults it needs, isolated from other processes by the host OS.</p>
+            <p>That is why Docker is so practical. You stop depending on the host machine being set up “just right” and instead ship the runtime with the app.</p>
+          </div>
+          <div class="panel-plain">
+            <h3>When Docker helps most</h3>
+            <p>Use Docker when you need consistent runtimes across machines, fast onboarding, reproducible builds, or a clean way to package an app for CI and production.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="mental-model">
+        <div class="section-label">Mental model</div>
+        <h2>See the Docker flow before you memorize flags</h2>
+        <p class="section-intro">
+          Most Docker confusion disappears once you can picture the full lifecycle from source code to running container. That flow is what the CLI is helping you control.
+        </p>
+
+        <div class="flow-strip">
+          <div class="flow-step">
+            <span>1</span>
+            <strong>Write a Dockerfile</strong>
+            <p>Describe the base image, dependencies, files, environment variables, and startup command.</p>
+          </div>
+          <div class="flow-step">
+            <span>2</span>
+            <strong>Build an image</strong>
+            <p>Docker executes the steps and creates reusable image layers.</p>
+          </div>
+          <div class="flow-step">
+            <span>3</span>
+            <strong>Tag and store</strong>
+            <p>Optionally tag the image and push it to a registry for reuse elsewhere.</p>
+          </div>
+          <div class="flow-step">
+            <span>4</span>
+            <strong>Run a container</strong>
+            <p>Docker launches a process from the image and adds a small writable runtime layer.</p>
+          </div>
+          <div class="flow-step">
+            <span>5</span>
+            <strong>Inspect behavior</strong>
+            <p>Use logs, exec, inspect, and port mapping to understand what the container is doing.</p>
+          </div>
+          <div class="flow-step">
+            <span>6</span>
+            <strong>Stop and clean up</strong>
+            <p>Remove containers, images, and unused resources when you are finished.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="comparison">
+        <div class="section-label">VM vs container</div>
+        <h2>Know why containers feel lighter than virtual machines</h2>
+        <p class="section-intro">
+          A VM includes a whole guest operating system. A container shares the host kernel and packages only the app, dependencies, and runtime surface it needs.
+        </p>
+
+        <div class="comparison-grid">
+          <article class="compare-box">
+            <span class="box-label">Virtual machine</span>
+            <h3>Heavier but full OS isolated</h3>
+            <div class="layer-stack">
+              <div class="layer app">application</div>
+              <div class="layer libs">libraries</div>
+              <div class="layer guest">guest operating system</div>
+              <div class="layer host">hypervisor + host infrastructure</div>
+            </div>
+            <p style="margin-top: 0.9rem;">Great when you need a full guest OS, but slower to boot and heavier on resources.</p>
+          </article>
+          <article class="compare-box">
+            <span class="box-label">Container</span>
+            <h3>Lighter and faster to start</h3>
+            <div class="layer-stack">
+              <div class="layer app">application</div>
+              <div class="layer libs">libraries</div>
+              <div class="layer engine">container engine</div>
+              <div class="layer host">host OS kernel</div>
+            </div>
+            <p style="margin-top: 0.9rem;">Excellent for consistent app packaging because you avoid shipping a full guest OS every time.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="dockerfile">
+        <div class="section-label">Dockerfile</div>
+        <h2>Read a Dockerfile like a build pipeline, not just a text file</h2>
+        <p class="section-intro">
+          A Dockerfile is the recipe that becomes an image. Each instruction adds a layer or changes
+          how the image will behave at runtime.
+        </p>
+
+        <div class="dockerfile-layout">
+          <div class="code-block">
+            <div class="code-header"><span>Starter Dockerfile</span><span>Python example</span></div>
+            <pre><code>FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENV PORT=8000
+EXPOSE 8000
+
+CMD ["python", "app.py"]</code></pre>
+          </div>
+          <div class="notes-grid">
+            <div class="note-block">
+              <span><code>FROM</code></span>
+              <p>Picks the base image you are building on top of. This is the runtime starting point.</p>
+            </div>
+            <div class="note-block">
+              <span><code>WORKDIR</code></span>
+              <p>Sets the working directory for later instructions and the default runtime location.</p>
+            </div>
+            <div class="note-block">
+              <span><code>COPY</code> + <code>RUN</code></span>
+              <p>Bring files into the image and install dependencies during the build.</p>
+            </div>
+            <div class="note-block">
+              <span><code>ENV</code> / <code>EXPOSE</code> / <code>CMD</code></span>
+              <p>Define runtime defaults, document network intent, and set the default startup command.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="command-atlas">
+        <div class="section-label">Command atlas</div>
+        <h2>The Docker commands you will use over and over</h2>
+        <p class="section-intro">
+          Search or filter the command atlas below. The goal is not only to list commands, but to
+          make it obvious which one to reach for during build, run, inspect, data handling, or cleanup.
+        </p>
+
+        <div class="atlas-toolbar">
+          <div class="search-row">
+            <input id="commandSearch" type="search" placeholder="Search Docker commands, runtime actions, or cleanup tasks" />
+            <div class="result-counter" id="commandCounter">24 rows</div>
+          </div>
+          <div class="chip-row">
+            <button class="chip active" data-command-filter="all">All</button>
+            <button class="chip" data-command-filter="setup">Setup</button>
+            <button class="chip" data-command-filter="build">Build</button>
+            <button class="chip" data-command-filter="run">Run</button>
+            <button class="chip" data-command-filter="inspect">Inspect</button>
+            <button class="chip" data-command-filter="data">Data</button>
+            <button class="chip" data-command-filter="cleanup">Cleanup</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="command-table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>What it does</th>
+                <th>When to use it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="command-row" data-category="setup" data-search="docker version daemon client check">
+                <td><code>docker version</code></td>
+                <td>Shows Docker client and server version details.</td>
+                <td>Run it first when you want to confirm Docker is installed and reachable.</td>
+              </tr>
+              <tr class="command-row" data-category="setup run" data-search="hello world test runtime">
+                <td><code>docker run --rm hello-world</code></td>
+                <td>Runs a tiny test container and removes it afterward.</td>
+                <td>Great quick proof that your Docker runtime works.</td>
+              </tr>
+              <tr class="command-row" data-category="build" data-search="build image tag current directory">
+                <td><code>docker build -t my-app:dev .</code></td>
+                <td>Builds an image from the Dockerfile in the current directory and tags it.</td>
+                <td>Use it after changing app code or Dockerfile instructions.</td>
+              </tr>
+              <tr class="command-row" data-category="build" data-search="list images local">
+                <td><code>docker images</code></td>
+                <td>Lists local images.</td>
+                <td>Use it to confirm the image exists and to inspect tags and sizes.</td>
+              </tr>
+              <tr class="command-row" data-category="build" data-search="pull base image registry">
+                <td><code>docker pull nginx:alpine</code></td>
+                <td>Downloads an image from a registry.</td>
+                <td>Use it when you want to run or inspect an image without building one yourself.</td>
+              </tr>
+              <tr class="command-row" data-category="run" data-search="run detached name port mapping">
+                <td><code>docker run -d --name web -p 8080:80 nginx</code></td>
+                <td>Runs the nginx image in detached mode and maps container port 80 to local port 8080.</td>
+                <td>Use it for services you want to keep running in the background.</td>
+              </tr>
+              <tr class="command-row" data-category="run inspect" data-search="ps running containers">
+                <td><code>docker ps</code></td>
+                <td>Lists running containers.</td>
+                <td>Use it to verify that a container is still up and what ports are exposed.</td>
+              </tr>
+              <tr class="command-row" data-category="run inspect" data-search="ps all exited containers">
+                <td><code>docker ps -a</code></td>
+                <td>Lists all containers, including stopped ones.</td>
+                <td>Useful when a container exits too quickly and disappears from normal <code>ps</code>.</td>
+              </tr>
+              <tr class="command-row" data-category="inspect" data-search="logs follow container">
+                <td><code>docker logs -f web</code></td>
+                <td>Streams logs from the <code>web</code> container.</td>
+                <td>Use it when the app starts but you need runtime clues.</td>
+              </tr>
+              <tr class="command-row" data-category="inspect" data-search="exec shell container">
+                <td><code>docker exec -it web sh</code></td>
+                <td>Starts an interactive shell inside the running container.</td>
+                <td>Helpful for checking files, environment variables, and in-container behavior.</td>
+              </tr>
+              <tr class="command-row" data-category="inspect" data-search="inspect container metadata json">
+                <td><code>docker inspect web</code></td>
+                <td>Shows detailed JSON metadata for the container.</td>
+                <td>Use it when you need exact mounts, env vars, IPs, or port bindings.</td>
+              </tr>
+              <tr class="command-row" data-category="run" data-search="stop container">
+                <td><code>docker stop web</code></td>
+                <td>Stops a running container.</td>
+                <td>Use it when you want the container shut down cleanly.</td>
+              </tr>
+              <tr class="command-row" data-category="run" data-search="start stopped container">
+                <td><code>docker start web</code></td>
+                <td>Starts a previously stopped container.</td>
+                <td>Useful when you want to reuse an existing container instead of creating a new one.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="remove container rm">
+                <td><code>docker rm web</code></td>
+                <td>Removes a stopped container.</td>
+                <td>Use it after stopping a container that you no longer need.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup build" data-search="remove image rmi">
+                <td><code>docker rmi my-app:dev</code></td>
+                <td>Deletes a local image by tag.</td>
+                <td>Use it when you want to reclaim space or reset a local image build.</td>
+              </tr>
+              <tr class="command-row" data-category="build" data-search="tag image registry push">
+                <td><code>docker tag my-app:dev myrepo/my-app:dev</code></td>
+                <td>Creates another tag pointing to the same image.</td>
+                <td>Common before pushing to a remote registry.</td>
+              </tr>
+              <tr class="command-row" data-category="build" data-search="push image registry">
+                <td><code>docker push myrepo/my-app:dev</code></td>
+                <td>Uploads an image tag to a registry.</td>
+                <td>Use it when you want other machines or CI systems to pull the image.</td>
+              </tr>
+              <tr class="command-row" data-category="run" data-search="environment variable run">
+                <td><code>docker run --rm -e APP_MODE=demo my-app:dev</code></td>
+                <td>Runs a container with an environment variable override.</td>
+                <td>Use it for runtime config that should not be baked into the image.</td>
+              </tr>
+              <tr class="command-row" data-category="data" data-search="bind mount source code">
+                <td><code>docker run --rm -v "$PWD":/app -w /app node:20 npm test</code></td>
+                <td>Mounts the current directory into the container and runs a command there.</td>
+                <td>Useful for ad hoc tooling or local dev workflows.</td>
+              </tr>
+              <tr class="command-row" data-category="data" data-search="create volume persistent data">
+                <td><code>docker volume create app-data</code></td>
+                <td>Creates a named volume for persistent container data.</td>
+                <td>Use it when data should survive container replacement.</td>
+              </tr>
+              <tr class="command-row" data-category="data" data-search="list volumes">
+                <td><code>docker volume ls</code></td>
+                <td>Lists named volumes.</td>
+                <td>Use it to see what persistent local data Docker is managing.</td>
+              </tr>
+              <tr class="command-row" data-category="data run" data-search="run postgres volume persistent">
+                <td><code>docker run -d --name db -v app-data:/var/lib/postgresql/data postgres:16</code></td>
+                <td>Runs a database container with its data stored in a named volume.</td>
+                <td>Good basic example of durable data outside the container filesystem.</td>
+              </tr>
+              <tr class="command-row" data-category="inspect data" data-search="network ls docker networks">
+                <td><code>docker network ls</code></td>
+                <td>Lists Docker networks on the host.</td>
+                <td>Helpful when you are debugging connectivity between containers.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup inspect" data-search="system df space usage">
+                <td><code>docker system df</code></td>
+                <td>Shows disk usage for images, containers, and volumes.</td>
+                <td>Use it before cleanup if Docker is consuming more space than expected.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="container prune remove stopped">
+                <td><code>docker container prune -f</code></td>
+                <td>Deletes all stopped containers.</td>
+                <td>Fast cleanup for old lab containers you forgot to remove individually.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="image prune dangling">
+                <td><code>docker image prune -f</code></td>
+                <td>Deletes dangling images.</td>
+                <td>Useful after repeated rebuilds that leave untagged layers behind.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="system prune remove unused">
+                <td><code>docker system prune -f</code></td>
+                <td>Removes unused containers, networks, and dangling images.</td>
+                <td>Use it carefully when you want an aggressive cleanup of unused Docker state.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted-mini">Tip: pair <code>docker ps -a</code>, <code>docker logs</code>, and <code>docker inspect</code> before rebuilding. Many container problems are runtime configuration issues, not build issues.</p>
+      </section>
+
+      <section class="section" id="labs">
+        <div class="section-label">Laptop labs</div>
+        <h2>Safe Docker drills you can run on your own machine</h2>
+        <p class="section-intro">
+          These labs are intentionally simple and local. The point is to make images, containers,
+          ports, logs, mounts, and cleanup feel normal rather than mysterious.
+        </p>
+
+        <div class="option-grid">
+          <article class="option">
+            <span>Best first step</span>
+            <h3>Hello world</h3>
+            <p>Confirm the runtime works before you do anything more complicated.</p>
+          </article>
+          <article class="option">
+            <span>Best web demo</span>
+            <h3>Nginx</h3>
+            <p>Practice detached containers, port mapping, logs, and browser testing.</p>
+          </article>
+          <article class="option">
+            <span>Best build drill</span>
+            <h3>Custom image</h3>
+            <p>Write a tiny Dockerfile and turn code into a repeatable runnable package.</p>
+          </article>
+          <article class="option">
+            <span>Best cleanup habit</span>
+            <h3>Remove what you create</h3>
+            <p>Stop, remove, prune, and leave your machine predictable for the next lab.</p>
+          </article>
+        </div>
+
+        <div class="lab-list">
+          <details class="lab" open>
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 0</span>
+                <h3>Verify Docker is working</h3>
+                <p>Confirm the Docker client can talk to the runtime and run a disposable test container.</p>
+              </div>
+              <div class="lab-meta">5 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Runtime check</span></div>
+                <pre><code>docker version
+docker run --rm hello-world</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>This proves Docker is installed and can launch a real container end to end.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <p>The container removes itself because of <code>--rm</code>, so nothing extra is needed.</p>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 1</span>
+                <h3>Run a web server and expose it on your laptop</h3>
+                <p>Practice detached mode, naming, port mapping, and container logs with a tiny nginx container.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Web server</span></div>
+                <pre><code>docker run -d --name web -p 8080:80 nginx
+docker ps
+docker logs web</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Visit <code>http://localhost:8080</code> in your browser and connect the container port to the host port mapping.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>docker stop web
+docker rm web</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 2</span>
+                <h3>Build your own image from a Dockerfile</h3>
+                <p>Take a tiny app or static site and turn it into a reusable image.</p>
+              </div>
+              <div class="lab-meta">15 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Build + run</span></div>
+                <pre><code>docker build -t my-app:dev .
+docker images
+docker run --rm my-app:dev</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You connect the Dockerfile to a built image and then to a real container process.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>docker rmi my-app:dev</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 3</span>
+                <h3>Run with environment variables and inspect logs</h3>
+                <p>See how runtime configuration changes behavior without rebuilding the image.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Config + logs</span></div>
+                <pre><code>docker run --rm -e APP_MODE=demo my-app:dev
+docker logs -f &lt;container-name&gt;</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Environment variables shape runtime behavior, and logs are usually your fastest window into what the app is actually doing.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <p>If you used <code>--rm</code>, cleanup is automatic when the container exits.</p>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 4</span>
+                <h3>Use a bind mount for local development</h3>
+                <p>Mount your local project into a container so the container sees live files from your machine.</p>
+              </div>
+              <div class="lab-meta">12 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Bind mount</span></div>
+                <pre><code>docker run --rm -v "$PWD":/app -w /app node:20 npm test</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Bind mounts connect host files to the container. Great for development, but remember the files still live on your machine.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <p>No container remains because <code>--rm</code> removes it automatically.</p>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 5</span>
+                <h3>Persist data with a named volume</h3>
+                <p>See how data survives container replacement when it lives in a Docker volume instead of the container filesystem.</p>
+              </div>
+              <div class="lab-meta">15 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Named volume</span></div>
+                <pre><code>docker volume create app-data
+docker run -d --name db -v app-data:/var/lib/postgresql/data postgres:16
+docker volume ls</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Named volumes outlive containers. That is why deleting a container does not necessarily delete its data.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>docker stop db
+docker rm db
+docker volume rm app-data</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="section" id="troubleshooting">
+        <div class="section-label">Troubleshooting</div>
+        <h2>Debug container problems in the right order</h2>
+        <p class="section-intro">
+          With Docker, the fastest path is usually: check whether the container is still running,
+          read the logs, inspect the config, and only then rebuild if you truly need to.
+        </p>
+
+        <div class="flow-grid">
+          <div class="flow-block">
+            <h3>Fast debug sequence</h3>
+            <div class="stack-list">
+              <div class="pipeline-row">
+                <div>
+                  <strong>Check running state</strong>
+                  <p>Use <code>docker ps</code> or <code>docker ps -a</code> first.</p>
+                </div>
+                <code>state</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Read the logs</strong>
+                  <p>Use <code>docker logs</code> before rebuilding. Startup errors often explain themselves.</p>
+                </div>
+                <code>logs</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Inspect the container</strong>
+                  <p>Use <code>docker inspect</code> for ports, mounts, env vars, and entrypoint details.</p>
+                </div>
+                <code>inspect</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Enter the container</strong>
+                  <p>Use <code>docker exec</code> when you need to inspect files or runtime environment from inside.</p>
+                </div>
+                <code>exec</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="symptoms">
+            <h3>Common signals and what they usually mean</h3>
+            <div class="table-wrap">
+              <table class="symptom-table">
+                <thead>
+                  <tr>
+                    <th>Signal</th>
+                    <th>Likely meaning</th>
+                    <th>First move</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Container exits immediately</td>
+                    <td>The main process finished, crashed, or the startup command is wrong.</td>
+                    <td><code>docker ps -a</code> then <code>docker logs</code></td>
+                  </tr>
+                  <tr>
+                    <td>Port already allocated</td>
+                    <td>Something else on your host is already using that port.</td>
+                    <td>Pick another host port or stop the conflicting process</td>
+                  </tr>
+                  <tr>
+                    <td>Image builds but app still fails</td>
+                    <td>The problem is likely runtime config, startup logic, or environment, not the build itself.</td>
+                    <td><code>docker logs</code> and <code>docker inspect</code></td>
+                  </tr>
+                  <tr>
+                    <td>Data disappeared after restart</td>
+                    <td>The data lived inside the container filesystem, not a named volume.</td>
+                    <td>Move state into a volume</td>
+                  </tr>
+                  <tr>
+                    <td>App cannot reach localhost</td>
+                    <td>Inside a container, <code>localhost</code> means the container itself, not your laptop.</td>
+                    <td>Recheck networking assumptions and host mapping</td>
+                  </tr>
+                  <tr>
+                    <td>Permission denied</td>
+                    <td>File permissions, user IDs, or mount ownership may not match what the container expects.</td>
+                    <td>Inspect mounts and the container user</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="simulator">
+        <div class="section-label">Interactive simulator</div>
+        <h2>See why containers solve “works on my machine”</h2>
+        <p class="section-intro">
+          This simulator keeps the core idea simple: raw code fails on a mismatched production host,
+          while a container succeeds because it brings the runtime with it.
+        </p>
+
+        <div class="sim-shell">
+          <section class="sim-panel">
+            <div class="sim-controls">
+              <div class="sim-stats">
+                <div class="sim-stat"><span>Laptop Python</span><strong>3.9</strong></div>
+                <div class="sim-stat"><span>Server Python</span><strong>3.6</strong></div>
+                <div class="sim-stat"><span>Package mode</span><strong id="simMode">raw code</strong></div>
+                <div class="sim-stat"><span>Result</span><strong id="simResult">waiting</strong></div>
+              </div>
+
+              <div class="pipeline" id="simPipeline">
+                <div class="pipeline-step">Write app locally with Python 3.9 features.</div>
+                <div class="pipeline-step">Package it either as raw files or as a container image.</div>
+                <div class="pipeline-step">Ship it to a production server with older runtime defaults.</div>
+                <div class="pipeline-step">Observe the crash or success path.</div>
+              </div>
+
+              <div class="sim-buttons">
+                <button class="sim-button warning" id="simRawBtn">Ship raw files</button>
+                <button class="sim-button success" id="simDockerBtn">Ship container</button>
+                <button class="sim-button" id="simResetBtn">Reset</button>
+              </div>
+
+              <div>
+                <h3>Event log</h3>
+                <div class="sim-log" id="simLog"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="sim-panel">
+            <div class="sim-view">
+              <h3>Environment view</h3>
+              <div class="env-grid">
+                <article class="env-box" id="devBox">
+                  <div>
+                    <span class="box-label">Dev machine</span>
+                    <h3>My laptop</h3>
+                  </div>
+                  <div class="config-list">
+                    <div class="config-row"><span>OS</span><span>macOS</span></div>
+                    <div class="config-row"><span>Python</span><span>3.9</span></div>
+                    <div class="config-row"><span>Dependencies</span><span>installed</span></div>
+                  </div>
+                  <div class="app-chip" id="appChip">🐍</div>
+                </article>
+                <article class="env-box" id="prodBox">
+                  <div>
+                    <span class="box-label">Prod host</span>
+                    <h3>Old server</h3>
+                  </div>
+                  <div class="config-list">
+                    <div class="config-row"><span>OS</span><span>Linux</span></div>
+                    <div class="config-row"><span>Python</span><span>3.6</span></div>
+                    <div class="config-row"><span>Dependencies</span><span>missing</span></div>
+                  </div>
+                  <div style="color: var(--muted); font-family: var(--font-mono);" id="prodStatus">Deployment zone waiting for package...</div>
+                </article>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="section" id="cleanup">
+        <div class="section-label">Cleanup</div>
+        <h2>Keep your Docker machine clean and predictable</h2>
+        <p class="section-intro">
+          Docker is easiest to trust when you know exactly how to stop, remove, and prune what you created. Cleanup is part of the skill, not an afterthought.
+        </p>
+
+        <div class="cleanup-grid">
+          <article class="cleanup-column">
+            <h3>Fast cleanup checklist</h3>
+            <ul>
+              <li>Stop running containers you no longer need: <code>docker stop ...</code>.</li>
+              <li>Remove stopped containers: <code>docker rm ...</code> or <code>docker container prune -f</code>.</li>
+              <li>Delete local images when you want a clean rebuild: <code>docker rmi ...</code>.</li>
+              <li>Remove named volumes explicitly if you no longer want the data.</li>
+            </ul>
+          </article>
+          <article class="cleanup-column">
+            <h3>What to be careful with</h3>
+            <ul>
+              <li><code>docker system prune -f</code> is aggressive. Use it only when you understand what is considered unused.</li>
+              <li>Named volumes can outlive containers on purpose. That is a feature, not a bug.</li>
+              <li>Stopping a container is not the same as removing it. Removed containers free mental space.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="finish">
+        <div class="section-label">Finish line</div>
+        <h2>Your next step after Docker starts feeling easy</h2>
+        <p class="section-intro">
+          Once Docker feels predictable, the natural progression is learning how to manage many
+          containers at once and how to package those deployments cleanly.
+        </p>
+
+        <div class="finish-grid">
+          <article class="panel">
+            <h3>Practice next</h3>
+            <ul>
+              <li>Build one app image and one database container with a named volume.</li>
+              <li>Use logs and exec to diagnose a failing startup without rebuilding immediately.</li>
+              <li>Tag and push an image to a registry, then pull it on another machine.</li>
+              <li>Compare bind mounts and named volumes until the difference feels obvious.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Related pages in this hub</h3>
+            <p>Containers are the foundation layer. The pages below show what comes next.</p>
+            <ul>
+              <li><a href="kubernetes.html">Kubernetes</a> for orchestrating many containers at once.</li>
+              <li><a href="helm.html">Helm</a> for packaging Kubernetes installs into reusable releases.</li>
+              <li><a href="cicd.html">CI/CD</a> for automating image builds and deployments.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        Docker gets dramatically less intimidating once you see images, containers, ports, volumes, and cleanup as one connected lifecycle instead of unrelated commands.
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    const progressKey = "docker-zero-to-hero-progress";
+    const checkpoints = document.querySelectorAll("[data-checkpoint]");
+    const progressFill = document.getElementById("progressFill");
+    const progressCopy = document.getElementById("progressCopy");
+
+    function loadChecklist() {
+      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
+      checkpoints.forEach((checkbox) => {
+        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+      });
+      updateChecklist();
+    }
+
+    function updateChecklist() {
+      const saved = {};
+      let checkedCount = 0;
+
+      checkpoints.forEach((checkbox) => {
+        saved[checkbox.dataset.checkpoint] = checkbox.checked;
+        if (checkbox.checked) checkedCount += 1;
+      });
+
+      localStorage.setItem(progressKey, JSON.stringify(saved));
+      const pct = (checkedCount / checkpoints.length) * 100;
+      progressFill.style.width = pct + "%";
+      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
+    }
+
+    checkpoints.forEach((checkbox) => {
+      checkbox.addEventListener("change", updateChecklist);
+    });
+
+    const chapterState = document.getElementById("chapterState");
+    const syncedNavLinks = Array.from(document.querySelectorAll("[data-nav-target]"));
+    const observedSections = Array.from(document.querySelectorAll(".section[id]"));
+    const navTargetState = new Map();
+
+    function setActiveNav(targetId) {
+      if (!targetId) return;
+
+      syncedNavLinks.forEach((link) => {
+        const isActive = link.dataset.navTarget === targetId;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      const labelSource = syncedNavLinks.find((link) => link.dataset.navTarget === targetId);
+      if (labelSource && chapterState) {
+        chapterState.textContent = labelSource.textContent.trim();
+      }
+    }
+
+    function resolveVisibleSection() {
+      const rankedSections = observedSections
+        .map((section) => {
+          const rect = section.getBoundingClientRect();
+          return {
+            id: section.id,
+            ratio: navTargetState.get(section.id) || 0,
+            distance: Math.abs(rect.top - 180),
+            top: rect.top
+          };
+        })
+        .filter((section) => section.ratio > 0 || section.top < window.innerHeight * 0.55)
+        .sort((left, right) => {
+          if (right.ratio !== left.ratio) return right.ratio - left.ratio;
+          return left.distance - right.distance;
+        });
+
+      return rankedSections[0]?.id || observedSections[0]?.id || null;
+    }
+
+    if (observedSections.length > 0 && syncedNavLinks.length > 0) {
+      const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          navTargetState.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        });
+
+        const activeId = resolveVisibleSection();
+        if (activeId) setActiveNav(activeId);
+      }, {
+        rootMargin: "-18% 0px -62% 0px",
+        threshold: [0, 0.15, 0.35, 0.6, 0.9]
+      });
+
+      observedSections.forEach((section) => navObserver.observe(section));
+      syncedNavLinks.forEach((link) => {
+        link.addEventListener("click", () => setActiveNav(link.dataset.navTarget));
+      });
+
+      const hashId = window.location.hash.replace("#", "");
+      const initialId = observedSections.some((section) => section.id === hashId)
+        ? hashId
+        : observedSections[0].id;
+      setActiveNav(initialId);
+    }
+
+    const commandSearch = document.getElementById("commandSearch");
+    const commandCounter = document.getElementById("commandCounter");
+    const commandRows = Array.from(document.querySelectorAll(".command-row"));
+    const chips = Array.from(document.querySelectorAll("[data-command-filter]"));
+    let activeFilter = "all";
+
+    function filterCommands() {
+      const term = commandSearch.value.trim().toLowerCase();
+      let visible = 0;
+
+      commandRows.forEach((row) => {
+        const categories = row.dataset.category.split(" ");
+        const matchesFilter = activeFilter === "all" || categories.includes(activeFilter);
+        const text = row.textContent.toLowerCase() + " " + row.dataset.search.toLowerCase();
+        const matchesSearch = term === "" || text.includes(term);
+        const show = matchesFilter && matchesSearch;
+        row.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      commandCounter.textContent = visible + " row" + (visible === 1 ? "" : "s");
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.commandFilter;
+        chips.forEach((btn) => btn.classList.toggle("active", btn === chip));
+        filterCommands();
+      });
+    });
+
+    commandSearch.addEventListener("input", filterCommands);
+
+    const simMode = document.getElementById("simMode");
+    const simResult = document.getElementById("simResult");
+    const simRawBtn = document.getElementById("simRawBtn");
+    const simDockerBtn = document.getElementById("simDockerBtn");
+    const simResetBtn = document.getElementById("simResetBtn");
+    const simLog = document.getElementById("simLog");
+    const simPipeline = Array.from(document.querySelectorAll("#simPipeline .pipeline-step"));
+    const appChip = document.getElementById("appChip");
+    const prodBox = document.getElementById("prodBox");
+    const prodStatus = document.getElementById("prodStatus");
+
+    function logSim(message) {
+      const line = document.createElement("div");
+      line.textContent = "[docker] " + message;
+      simLog.prepend(line);
+      while (simLog.children.length > 12) {
+        simLog.removeChild(simLog.lastChild);
+      }
+    }
+
+    function clearPipeline() {
+      simPipeline.forEach((step) => step.classList.remove("active"));
+    }
+
+    function resetSimulator() {
+      clearPipeline();
+      appChip.className = "app-chip";
+      appChip.textContent = "🐍";
+      prodBox.classList.remove("good", "bad");
+      prodStatus.textContent = "Deployment zone waiting for package...";
+      simMode.textContent = "raw code";
+      simResult.textContent = "waiting";
+      simLog.innerHTML = "";
+      logSim("simulator reset");
+    }
+
+    function setPipelineProgress(count) {
+      clearPipeline();
+      simPipeline.slice(0, count).forEach((step) => step.classList.add("active"));
+    }
+
+    function runRaw() {
+      resetSimulator();
+      simMode.textContent = "raw code";
+      setPipelineProgress(3);
+      logSim("copied source code directly to the server");
+      appChip.classList.add("crashed");
+      prodBox.classList.add("bad");
+      prodStatus.textContent = "Crash: host only has Python 3.6 and missing libraries.";
+      simResult.textContent = "crashed";
+      logSim("startup failed because production runtime does not match the laptop");
+    }
+
+    function runContainer() {
+      resetSimulator();
+      simMode.textContent = "container image";
+      setPipelineProgress(4);
+      appChip.classList.add("containerized");
+      appChip.textContent = "🐳";
+      logSim("built image with app code, Python 3.9, and dependencies included");
+      appChip.classList.add("running");
+      prodBox.classList.add("good");
+      prodStatus.textContent = "Running: container carries the runtime it needs.";
+      simResult.textContent = "success";
+      logSim("container started successfully because the image packaged the runtime with the app");
+    }
+
+    simRawBtn.addEventListener("click", runRaw);
+    simDockerBtn.addEventListener("click", runContainer);
+    simResetBtn.addEventListener("click", resetSimulator);
+
+    loadChecklist();
+    filterCommands();
+    resetSimulator();
+  </script>
+</body>
+</html>

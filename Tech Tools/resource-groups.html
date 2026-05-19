@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 20: Resource Groups | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-rg: #0078d4;      /* Azure Blue for Resource Groups */
+      --accent-tag: #e3b341;     /* Gold for Tags */
+      --accent-prod: #ff7b72;    /* Red for Prod */
+      --accent-dev: #2ea043;     /* Green for Dev */
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 120, 212, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(227, 179, 65, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-rg); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-rg));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-rg);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-rg); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-rg); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* HIERARCHY TREE */
+    .hierarchy-tree {
+      background: #161b22; padding: 2rem; border-radius: 8px; border: 1px dashed #30363d;
+      text-align: center;
+    }
+    .tree-node {
+      display: inline-block; padding: 10px 20px; border-radius: 6px; border: 1px solid;
+      margin-bottom: 10px; font-weight: bold;
+    }
+    .tree-line { width: 2px; height: 20px; background: #30363d; margin: 0 auto 10px; }
+
+    /* GAMIFICATION: ORGANIZER SIMULATOR */
+    .org-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 250px 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .org-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: UNORGANIZED PILE */
+    .inventory {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem;
+      display: flex; flex-direction: column; gap: 1rem; min-height: 300px;
+    }
+    .inv-title { font-weight: bold; color: #8b949e; text-transform: uppercase; font-size: 0.8rem; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+    
+    .resource-item {
+      background: #21262d; border: 1px solid #30363d; padding: 10px; border-radius: 6px;
+      cursor: grab; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .resource-item:hover { transform: scale(1.02); border-color: #fff; }
+    .resource-item:active { cursor: grabbing; }
+    
+    .res-icon { font-size: 1.5rem; }
+    .res-name { font-weight: bold; font-size: 0.85rem; }
+    .res-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: #0d1117; color: #8b949e; font-family: var(--font-mono); }
+
+    /* RIGHT: RESOURCE GROUPS */
+    .workspace {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    
+    .group-box {
+      border: 2px dashed #30363d; border-radius: 12px; padding: 3rem 1rem 1rem;
+      position: relative; transition: all 0.3s; background: #010409;
+      display: flex; flex-direction: column; gap: 10px; min-height: 250px;
+    }
+    .group-box.drag-over { background: rgba(255,255,255,0.05); border-color: #fff; }
+    
+    .group-header {
+      position: absolute; top: 0; left: 0; right: 0; padding: 10px;
+      background: #21262d; border-bottom: 1px solid #30363d;
+      font-weight: bold; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
+      border-top-left-radius: 10px; border-top-right-radius: 10px;
+    }
+    
+    .prod-group { border-color: var(--accent-prod); }
+    .prod-group .group-header { background: rgba(255, 123, 114, 0.1); color: var(--accent-prod); border-color: var(--accent-prod); }
+    
+    .dev-group { border-color: var(--accent-dev); }
+    .dev-group .group-header { background: rgba(46, 160, 67, 0.1); color: var(--accent-dev); border-color: var(--accent-dev); }
+
+    .btn-delete {
+      background: transparent; border: 1px solid currentColor; color: inherit;
+      padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover { background: currentColor; color: #000; }
+
+    /* ANIMATIONS */
+    .vanish { animation: implode 0.5s forwards; }
+    @keyframes implode { to { transform: scale(0); opacity: 0; } }
+
+    .status-msg {
+      grid-column: span 2; text-align: center; margin-top: 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #8b949e;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Resource Groups & Tagging</h1>
+      <p class="intro">
+        In the cloud, you don't create "Servers". You create "Resources". 
+        Resource Groups act as <span style="color:var(--accent-rg)">logical containers</span> to manage lifecycle, billing, and access control for related items.
+      </p>
+    </header>
+
+    <h2 class="section-title">🏢 The Hierarchy (Azure Model)</h2>
+    <div class="hierarchy-tree">
+      <div class="tree-node" style="border-color:#d29922; color:#d29922;">Management Group</div>
+      <div class="tree-line"></div>
+      <div class="tree-node" style="border-color:#a371f7; color:#a371f7;">Subscription</div>
+      <div style="color:#8b949e; font-size:0.8rem; margin-bottom:10px;">(Billing & Quota Boundary)</div>
+      <div class="tree-line"></div>
+      <div class="tree-node" style="border-color:var(--accent-rg); color:var(--accent-rg);">Resource Group</div>
+      <div style="color:#8b949e; font-size:0.8rem; margin-bottom:10px;">(Lifecycle Boundary)</div>
+      <div class="tree-line"></div>
+      <div class="tree-node" style="border-color:#fff; color:#fff;">Resource (VM, DB, etc.)</div>
+    </div>
+
+    <h2 class="section-title">🗂️ Why organize?</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Lifecycle Management</h3>
+        <p>If you delete a Resource Group, <strong>everything inside it is deleted</strong>. This is perfect for temporary environments. "Delete the Dev Project" becomes one click.</p>
+      </div>
+      <div class="card">
+        <h3>Cost Allocation</h3>
+        <p>You can generate a bill filtered by "Tag: CostCenter=Marketing". This tells you exactly how much the Marketing team is spending, separate from Engineering.</p>
+      </div>
+      <div class="card">
+        <h3>Access Control (RBAC)</h3>
+        <p>Grant permission to the <strong>Group</strong>, not the individual items. "John is an Admin of the <em>Website Group</em>" automatically gives him access to the VM, Load Balancer, and DB inside.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Cloud Organizer Simulator</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> The account is a mess. Drag resources into their correct Project Groups.
+      <br><strong>Bonus:</strong> Once a group is full, try the "Delete Group" button to see the power of lifecycle management.
+    </p>
+
+    <div class="org-console">
+      
+      <div class="inventory" id="inventory">
+        <div class="inv-title">Unsorted Resources</div>
+        
+        <div class="resource-item" draggable="true" data-env="prod">
+          <div class="res-icon">🗄️</div>
+          <div>
+            <div class="res-name">prod-db-01</div>
+            <div class="res-tag">Tag: Env=Prod</div>
+          </div>
+        </div>
+
+        <div class="resource-item" draggable="true" data-env="dev">
+          <div class="res-icon">🧪</div>
+          <div>
+            <div class="res-name">dev-test-vm</div>
+            <div class="res-tag">Tag: Env=Dev</div>
+          </div>
+        </div>
+
+        <div class="resource-item" draggable="true" data-env="prod">
+          <div class="res-icon">⚖️</div>
+          <div>
+            <div class="res-name">prod-lb-main</div>
+            <div class="res-tag">Tag: Env=Prod</div>
+          </div>
+        </div>
+
+        <div class="resource-item" draggable="true" data-env="dev">
+          <div class="res-icon">🗑️</div>
+          <div>
+            <div class="res-name">dev-temp-storage</div>
+            <div class="res-tag">Tag: Env=Dev</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="workspace">
+        
+        <div class="group-box prod-group" id="prodZone" data-type="prod">
+          <div class="group-header">
+            <span>rg-production</span>
+            <button class="btn-delete" onclick="deleteGroup('prodZone')">DELETE GROUP</button>
+          </div>
+          </div>
+
+        <div class="group-box dev-group" id="devZone" data-type="dev">
+          <div class="group-header">
+            <span>rg-development</span>
+            <button class="btn-delete" onclick="deleteGroup('devZone')">DELETE GROUP</button>
+          </div>
+          </div>
+
+        <div class="status-msg" id="statusLog">Drag items to organize them.</div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">⚔️ Platform Differences</h2>
+    <div style="background:#161b22; border:1px solid #30363d; border-radius:8px; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse; color:var(--text-secondary);">
+        <thead>
+          <tr style="background:#21262d; color:#fff; text-align:left;">
+            <th style="padding:1rem;">Feature</th>
+            <th style="padding:1rem;">Azure (Resource Groups)</th>
+            <th style="padding:1rem;">AWS (Resource Groups / Tags)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Structure</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Mandatory.</strong> Every resource MUST be in exactly one RG.</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Optional.</strong> Resources are loose but can be grouped by Tags.</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem;"><strong>Lifecycle</strong></td>
+            <td style="padding:1rem;">Deleting the RG deletes everything inside. (Strong coupling)</td>
+            <td style="padding:1rem;">Deleting a "Resource Group" usually just deletes the view, not the resources (unless using Stacks).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const draggables = document.querySelectorAll('.resource-item');
+    const zones = document.querySelectorAll('.group-box');
+    const statusLog = document.getElementById('statusLog');
+    
+    let draggedItem = null;
+
+    draggables.forEach(item => {
+      item.addEventListener('dragstart', () => {
+        draggedItem = item;
+        item.style.opacity = '0.5';
+      });
+      item.addEventListener('dragend', () => {
+        draggedItem = null;
+        item.style.opacity = '1';
+      });
+    });
+
+    zones.forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('drag-over');
+      });
+
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        
+        if (draggedItem) {
+          validateDrop(draggedItem, zone);
+        }
+      });
+    });
+
+    function validateDrop(item, zone) {
+      const itemEnv = item.getAttribute('data-env');
+      const zoneEnv = zone.getAttribute('data-type');
+      
+      if (itemEnv === zoneEnv) {
+        zone.appendChild(item);
+        statusLog.innerText = "✅ Moved to correct group.";
+        statusLog.style.color = "#2ea043";
+      } else {
+        statusLog.innerText = "❌ Warning: You are mixing Prod and Dev!";
+        statusLog.style.color = "#ff7b72";
+      }
+    }
+
+    function deleteGroup(zoneId) {
+      const zone = document.getElementById(zoneId);
+      const items = zone.querySelectorAll('.resource-item');
+      
+      if (items.length === 0) {
+        statusLog.innerText = "Group is empty. Nothing to delete.";
+        statusLog.style.color = "#8b949e";
+        return;
+      }
+
+      if (confirm(`⚠ WARNING: Deleting ${zoneId} will destroy ${items.length} resources inside it. Continue?`)) {
+        items.forEach(item => {
+          item.classList.add('vanish');
+          setTimeout(() => item.remove(), 500);
+        });
+        
+        statusLog.innerText = `💥 BOOM! Group ${zoneId} and all resources destroyed.`;
+        statusLog.style.color = "#ff7b72";
+      }
+    }
+  </script>
+
+</body>
+</html>

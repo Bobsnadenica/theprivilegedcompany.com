@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 99: The Script Vault | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --text-primary: #f0f6fc;
+      --accent-script: #e3b341;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding-bottom: 4rem;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent-script)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* FILTERS */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 5px; }
+    .filter-btn {
+      background: #21262d; border: 1px solid var(--border-subtle); color: #8b949e;
+      padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; white-space: nowrap;
+    }
+    .filter-btn.active { background: var(--accent-script); color: #000; border-color: var(--accent-script); }
+
+    /* SCRIPTS */
+    .script-grid { display: grid; gap: 2rem; }
+    
+    .script-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 1rem 1.5rem; background: #161b22; border-bottom: 1px solid var(--border-subtle);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .script-title { font-weight: bold; }
+    .lang-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #30363d; font-family: var(--font-mono); }
+    
+    .code-area {
+      padding: 1.5rem; font-family: var(--font-mono); font-size: 0.9rem; color: #a5d6ff;
+      background: #000; overflow-x: auto; position: relative;
+    }
+    
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div style="font-size:0.9rem; margin-bottom:1rem;"><a href="index.html" style="color:#8b949e; text-decoration:none;">← Back to Hub</a></div>
+      <h1>The Script Vault</h1>
+      <p style="color:#8b949e;">Production-ready snippets. Don't write it if you can steal it.</p>
+    </header>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filter('all')">All</button>
+      <button class="filter-btn" onclick="filter('bash')">Bash / Shell</button>
+      <button class="filter-btn" onclick="filter('python')">Python</button>
+      <button class="filter-btn" onclick="filter('sql')">SQL</button>
+      <button class="filter-btn" onclick="filter('aws')">AWS CLI</button>
+    </div>
+
+    <div class="script-grid">
+
+      <div class="script-card" data-cat="bash">
+        <div class="card-header">
+          <span class="script-title">Find Large Files (>100MB)</span>
+          <span class="lang-badge">BASH</span>
+        </div>
+        <div class="code-area">
+          <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <pre>find / -type f -size +100M -exec ls -lh {} \; | awk '{ print $9 ": " $5 }'</pre>
+        </div>
+      </div>
+
+      <div class="script-card" data-cat="python">
+        <div class="card-header">
+          <span class="script-title">Simple HTTP Server</span>
+          <span class="lang-badge">PYTHON</span>
+        </div>
+        <div class="code-area">
+          <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <pre># Run in any directory to serve files
+python3 -m http.server 8000</pre>
+        </div>
+      </div>
+
+      <div class="script-card" data-cat="aws">
+        <div class="card-header">
+          <span class="script-title">List all S3 Buckets and Sizes</span>
+          <span class="lang-badge">AWS CLI</span>
+        </div>
+        <div class="code-area">
+          <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <pre>aws s3 ls | awk '{print $3}' | xargs -I {} sh -c 'echo {}; aws s3 ls --summarize --human-readable --recursive s3://{} | grep "Total Size"'</pre>
+        </div>
+      </div>
+
+      <div class="script-card" data-cat="sql">
+        <div class="card-header">
+          <span class="script-title">Find Duplicate Rows</span>
+          <span class="lang-badge">SQL</span>
+        </div>
+        <div class="code-area">
+          <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <pre>SELECT email, COUNT(*)
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;</pre>
+        </div>
+      </div>
+
+      <div class="script-card" data-cat="bash">
+        <div class="card-header">
+          <span class="script-title">Monitor Log File (Real-time with Search)</span>
+          <span class="lang-badge">BASH</span>
+        </div>
+        <div class="code-area">
+          <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <pre># Watch log and highlight "ERROR"
+tail -f /var/log/syslog | grep --line-buffered --color=auto "ERROR"</pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function copy(btn) {
+      const code = btn.nextElementSibling.innerText;
+      navigator.clipboard.writeText(code);
+      const original = btn.innerText;
+      btn.innerText = "Copied!";
+      btn.style.background = "#2ea043";
+      setTimeout(() => {
+        btn.innerText = original;
+        btn.style.background = "";
+      }, 2000);
+    }
+
+    function filter(cat) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      const cards = document.querySelectorAll('.script-card');
+      cards.forEach(c => {
+        if (cat === 'all' || c.dataset.cat === cat) {
+          c.style.display = 'block';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

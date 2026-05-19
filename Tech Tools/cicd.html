@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 28: CI/CD & DevOps | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-ops: #d29922;     /* DevOps Orange */
+      --accent-build: #58a6ff;   /* Blue */
+      --accent-test: #a371f7;    /* Purple */
+      --accent-deploy: #2ea043;  /* Green */
+      --accent-fail: #ff7b72;    /* Red */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(210, 153, 34, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(88, 166, 255, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    h1 { font-size: 3rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(90deg, #fff, var(--accent-ops)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CONCEPTS */
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.5rem; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-2px); border-color: var(--accent-ops); }
+    .card h3 { color: var(--accent-ops); margin-bottom: 0.5rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* SIMULATOR */
+    .pipeline-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden; display: grid; grid-template-columns: 200px 1fr; gap: 2rem;
+    }
+    @media (max-width: 800px) { .pipeline-console { grid-template-columns: 1fr; } }
+
+    /* TOOLBOX */
+    .toolbox { display: flex; flex-direction: column; gap: 10px; }
+    .tool-item {
+      background: #21262d; padding: 15px; border-radius: 6px; cursor: pointer; border: 1px solid #30363d;
+      display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+    }
+    .tool-item:hover { border-color: #fff; }
+    .tool-item.disabled { opacity: 0.5; pointer-events: none; }
+
+    /* CANVAS */
+    .canvas {
+      background: #010409; border: 2px dashed #30363d; border-radius: 8px; min-height: 300px;
+      display: flex; align-items: center; padding: 2rem; gap: 10px; overflow-x: auto;
+    }
+    
+    .node {
+      min-width: 120px; height: 80px; background: #161b22; border: 2px solid var(--accent-build);
+      border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; animation: popIn 0.3s;
+    }
+    .node-test { border-color: var(--accent-test); }
+    .node-deploy { border-color: var(--accent-deploy); }
+    .node-source { border-color: #fff; }
+    
+    .connector { flex-grow: 1; height: 4px; background: #30363d; min-width: 20px; position: relative; }
+    .connector.active { background: var(--accent-deploy); transition: width 1s; }
+    
+    .status-log {
+      grid-column: span 2; background: #000; padding: 10px; font-family: var(--font-mono); font-size: 0.8rem;
+      border-radius: 6px; border: 1px solid #30363d; margin-top: 1rem;
+    }
+
+    .btn-run {
+      grid-column: span 2; padding: 15px; background: var(--accent-ops); color: #000; border: none;
+      border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;
+    }
+    .btn-run:hover { filter: brightness(1.1); }
+
+    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / DevOps</div>
+      <h1>CI/CD Pipelines</h1>
+      <p class="intro">
+        Continuous Integration & Deployment. The art of automating the journey from <span style="color:#fff">Code Commit</span> to <span style="color:var(--accent-deploy)">Production</span>.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3>CI (Integration)</h3>
+        <p>Developers merge code to `main`. The server automatically <strong>Builds</strong> and <strong>Tests</strong> it. Goal: Catch bugs early.</p>
+      </div>
+      <div class="card">
+        <h3>CD (Deployment)</h3>
+        <p>If CI passes, the code is automatically <strong>Deployed</strong> to servers. Goal: Ship features fast.</p>
+      </div>
+      <div class="card">
+        <h3>Tools</h3>
+        <p><strong>Jenkins:</strong> The classic. Flexible but complex.<br><strong>GitHub Actions:</strong> Modern, integrated into git.<br><strong>GitLab CI:</strong> All-in-one platform.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-bottom:1rem; border-left:4px solid var(--accent-ops); padding-left:1rem;">🕹️ Pipeline Builder</h2>
+    <div class="pipeline-console">
+      
+      <div class="toolbox">
+        <div style="font-size:0.8rem; color:#8b949e; margin-bottom:5px;">ADD STAGES:</div>
+        <div class="tool-item" onclick="addNode('build')">🔨 Build</div>
+        <div class="tool-item" onclick="addNode('test')">🧪 Test</div>
+        <div class="tool-item" onclick="addNode('deploy')">🚀 Deploy</div>
+        <div class="tool-item" style="margin-top:auto; border-color:var(--accent-fail); color:var(--accent-fail);" onclick="reset()">Reset</div>
+      </div>
+
+      <div class="canvas" id="canvas">
+        <div class="node node-source">
+          <div style="font-weight:bold;">Code Commit</div>
+          <div style="font-size:0.7rem; color:#8b949e;">GitHub</div>
+        </div>
+      </div>
+
+      <button class="btn-run" onclick="runPipeline()">Run Pipeline ▶</button>
+      <div class="status-log" id="log">> Ready to build pipeline...</div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const log = document.getElementById('log');
+    let stages = [];
+
+    function addNode(type) {
+      if (stages.length >= 4) {
+        log.innerText = "> Pipeline full! Keep it simple.";
+        return;
+      }
+      
+      // Add connector
+      const conn = document.createElement('div');
+      conn.className = 'connector';
+      canvas.appendChild(conn);
+
+      // Add Node
+      const node = document.createElement('div');
+      node.className = `node node-${type}`;
+      node.innerHTML = `<div>${type.toUpperCase()}</div>`;
+      canvas.appendChild(node);
+      
+      stages.push(type);
+    }
+
+    function runPipeline() {
+      if (stages.length === 0) {
+        log.innerText = "> Error: Pipeline is empty!";
+        return;
+      }
+
+      log.innerText = "> Starting Pipeline...";
+      
+      // LOGIC CHECK
+      // Must have Build -> Test -> Deploy
+      let hasBuild = false;
+      let hasTest = false;
+      let failed = false;
+
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= stages.length) {
+          clearInterval(interval);
+          if (!failed) {
+            log.innerText = "> ✅ SUCCESS: Code deployed to Production!";
+            log.style.color = "#2ea043";
+          }
+          return;
+        }
+
+        const stage = stages[i];
+        
+        if (stage === 'build') hasBuild = true;
+        if (stage === 'test') hasTest = true;
+
+        // Rules
+        if (stage === 'test' && !hasBuild) {
+          log.innerText = "> ❌ FAILED: Cannot Test before Building!";
+          log.style.color = "#ff7b72";
+          failed = true;
+          clearInterval(interval);
+          return;
+        }
+        if (stage === 'deploy' && !hasTest) {
+          log.innerText = "> ⚠️ DANGER: You deployed without Testing! Production is broken.";
+          log.style.color = "#ff7b72";
+          failed = true;
+          clearInterval(interval);
+          return;
+        }
+
+        log.innerText = `> Running ${stage.toUpperCase()}... OK`;
+        i++;
+      }, 800);
+    }
+
+    function reset() {
+      canvas.innerHTML = `
+        <div class="node node-source">
+          <div style="font-weight:bold;">Code Commit</div>
+          <div style="font-size:0.7rem; color:#8b949e;">GitHub</div>
+        </div>
+      `;
+      stages = [];
+      log.innerText = "> Pipeline reset.";
+      log.style.color = "#8b949e";
+    }
+  </script>
+
+</body>
+</html>

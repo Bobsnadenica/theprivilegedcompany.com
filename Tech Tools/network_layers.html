@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 4: Network Layers | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      /* Layer Colors */
+      --l7: #ff7b72; /* App */
+      --l6: #ffa657; /* Pres */
+      --l5: #d29922; /* Sess */
+      --l4: #e3b341; /* Trans */
+      --l3: #2ea043; /* Net */
+      --l2: #3fb950; /* Data */
+      --l1: #58a6ff; /* Phys */
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: linear-gradient(180deg, rgba(13,17,23,0) 0%, rgba(88, 166, 255, 0.05) 100%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--l1); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--l1));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* GAMIFICATION: ENCAPSULATION LAB */
+    .game-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; font-family: var(--font-mono); margin: 2rem 0;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+
+    .lab-interface {
+      display: flex; gap: 2rem; margin-top: 2rem;
+      flex-direction: column-reverse; 
+    }
+    
+    @media (min-width: 800px) {
+      .lab-interface { flex-direction: row; }
+    }
+
+    /* THE STACK VISUALIZER */
+    .stack-container {
+      flex: 1;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+
+    .layer-row {
+      background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+      padding: 10px 15px; display: flex; align-items: center; justify-content: space-between;
+      opacity: 0.3; transition: all 0.3s;
+      cursor: pointer;
+    }
+    .layer-row.active { opacity: 1; transform: scale(1.02); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+    
+    .layer-num { font-weight: bold; color: #666; width: 30px; }
+    .layer-name { font-weight: bold; flex-grow: 1; }
+    .layer-pdu { font-size: 0.75rem; background: #21262d; padding: 2px 6px; border-radius: 4px; color: var(--text-secondary); }
+
+    /* SPECIFIC LAYER COLORS WHEN ACTIVE */
+    .layer-row[data-layer="7"].active { border-left: 4px solid var(--l7); }
+    .layer-row[data-layer="6"].active { border-left: 4px solid var(--l6); }
+    .layer-row[data-layer="5"].active { border-left: 4px solid var(--l5); }
+    .layer-row[data-layer="4"].active { border-left: 4px solid var(--l4); }
+    .layer-row[data-layer="3"].active { border-left: 4px solid var(--l3); }
+    .layer-row[data-layer="2"].active { border-left: 4px solid var(--l2); }
+    .layer-row[data-layer="1"].active { border-left: 4px solid var(--l1); }
+
+    /* THE DATA PACKET VISUALIZER */
+    .packet-stage {
+      flex: 1;
+      background: #090c10; border-radius: 8px; border: 1px dashed #30363d;
+      padding: 2rem; display: flex; align-items: center; justify-content: center;
+      position: relative; min-height: 300px;
+    }
+
+    /* NESTED BOXES (The Encapsulation) */
+    .data-box {
+      background: #fff; color: #000; padding: 10px; border-radius: 4px;
+      font-weight: bold; text-align: center; min-width: 80px;
+      transition: all 0.5s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      position: relative;
+    }
+    
+    .header-wrap {
+      padding: 10px; border-radius: 6px; display: inline-block;
+      transition: all 0.5s; margin: 2px;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    
+    .header-label {
+      font-size: 0.6rem; text-transform: uppercase; margin-bottom: 4px; 
+      color: rgba(0,0,0,0.6); font-weight: bold; display: block; text-align: left;
+    }
+
+    /* CONTROLS */
+    .controls { text-align: center; margin-bottom: 2rem; }
+    .input-group { display: inline-flex; gap: 10px; }
+    
+    input[type="text"] {
+      background: #161b22; border: 1px solid #30363d; color: #fff;
+      padding: 10px; border-radius: 6px; font-family: var(--font-mono);
+    }
+
+    .btn {
+      background: var(--l3); color: #fff; border: none; padding: 10px 20px;
+      border-radius: 6px; cursor: pointer; font-weight: bold; font-family: var(--font-mono);
+      transition: all 0.2s;
+    }
+    .btn:hover { filter: brightness(1.2); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+    /* INFO PANEL */
+    .info-panel {
+      margin-top: 1rem; background: #161b22; padding: 1rem; border-radius: 8px;
+      border-left: 4px solid #30363d; min-height: 60px;
+    }
+    .info-title { font-weight: bold; color: var(--text-primary); margin-bottom: 5px; }
+    .info-desc { color: var(--text-secondary); font-size: 0.9rem; }
+
+    /* REFERENCE CARDS */
+    .grid-7 {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem; margin-top: 3rem;
+    }
+    .layer-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 8px; padding: 1.5rem; position: relative; overflow: hidden;
+    }
+    .layer-card::before {
+      content: attr(data-num);
+      position: absolute; top: -10px; right: -10px; font-size: 5rem;
+      opacity: 0.05; font-weight: 800; color: #fff;
+    }
+    .layer-card h3 { margin-bottom: 0.5rem; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; background: #21262d; margin-right: 5px; }
+
+    /* VLAN CARD */
+    .vlan-box {
+      grid-column: span 1; 
+      background: rgba(63, 185, 80, 0.1); border: 1px dashed var(--l2);
+      padding: 1rem; border-radius: 8px; margin-top: 10px;
+    }
+    .vlan-title { color: var(--l2); font-weight: bold; font-size: 0.9rem; margin-bottom: 5px; }
+    .vlan-text { font-size: 0.85rem; color: #c9d1d9; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>OSI Model Layers</h1>
+      <p class="intro">
+        The <strong>Open Systems Interconnection</strong> model describes how data moves from an app on your screen down to the electrical signals in the wire.
+      </p>
+    </header>
+
+    <h2 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+      🧪 Encapsulation Lab <span style="font-size: 0.8rem; background: #238636; padding: 2px 8px; border-radius: 12px; color: #fff;">Interactive</span>
+    </h2>
+    
+    <div class="game-console">
+      <div class="controls">
+        <div class="input-group">
+          <input type="text" id="userMsg" value="Hello World" placeholder="Enter message..." />
+          <button id="startBtn" class="btn" onclick="startEncapsulation()">Send Message</button>
+        </div>
+      </div>
+
+      <div class="lab-interface">
+        
+        <div class="stack-container">
+          <div class="layer-row" id="row-7" data-layer="7">
+            <span class="layer-num">7</span>
+            <span class="layer-name" style="color: var(--l7)">Application</span>
+            <span class="layer-pdu">Data</span>
+          </div>
+          <div class="layer-row" id="row-6" data-layer="6">
+            <span class="layer-num">6</span>
+            <span class="layer-name" style="color: var(--l6)">Presentation</span>
+            <span class="layer-pdu">Data</span>
+          </div>
+          <div class="layer-row" id="row-5" data-layer="5">
+            <span class="layer-num">5</span>
+            <span class="layer-name" style="color: var(--l5)">Session</span>
+            <span class="layer-pdu">Data</span>
+          </div>
+          <div class="layer-row" id="row-4" data-layer="4">
+            <span class="layer-num">4</span>
+            <span class="layer-name" style="color: var(--l4)">Transport</span>
+            <span class="layer-pdu">Segment</span>
+          </div>
+          <div class="layer-row" id="row-3" data-layer="3">
+            <span class="layer-num">3</span>
+            <span class="layer-name" style="color: var(--l3)">Network</span>
+            <span class="layer-pdu">Packet</span>
+          </div>
+          <div class="layer-row" id="row-2" data-layer="2">
+            <span class="layer-num">2</span>
+            <span class="layer-name" style="color: var(--l2)">Data Link</span>
+            <span class="layer-pdu">Frame</span>
+          </div>
+          <div class="layer-row" id="row-1" data-layer="1">
+            <span class="layer-num">1</span>
+            <span class="layer-name" style="color: var(--l1)">Physical</span>
+            <span class="layer-pdu">Bits</span>
+          </div>
+        </div>
+
+        <div class="packet-stage" id="packetStage">
+          <div style="color: #666; font-style: italic;">Waiting for input...</div>
+        </div>
+
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <div class="info-title">System Ready</div>
+        <div class="info-desc">Enter a message above to see how it gets packaged for travel.</div>
+      </div>
+    </div>
+
+    <div class="grid-7">
+      
+      <div class="layer-card" data-num="7" style="border-top: 4px solid var(--l7)">
+        <h3>Layer 7: Application</h3>
+        <p><strong>What it does:</strong> This is what you see. It creates the data and talks to the user.</p>
+        <div style="margin-top:1rem">
+          <span class="badge">HTTP</span> <span class="badge">SMTP</span> <span class="badge">SSH</span>
+        </div>
+      </div>
+
+      <div class="layer-card" data-num="6" style="border-top: 4px solid var(--l6)">
+        <h3>Layer 6: Presentation</h3>
+        <p><strong>What it does:</strong> Formatting, encryption, and compression. It translates data into a readable format.</p>
+        <div style="margin-top:1rem">
+          <span class="badge">SSL/TLS</span> <span class="badge">JPEG</span> <span class="badge">ASCII</span>
+        </div>
+      </div>
+
+      <div class="layer-card" data-num="5" style="border-top: 4px solid var(--l5)">
+        <h3>Layer 5: Session</h3>
+        <p><strong>What it does:</strong> Starts, keeps, and ends the conversation between devices.</p>
+        <div style="margin-top:1rem">
+          <span class="badge">API Sockets</span> <span class="badge">WinSock</span>
+        </div>
+      </div>
+
+      <div class="layer-card" data-num="4" style="border-top: 4px solid var(--l4)">
+        <h3>Layer 4: Transport</h3>
+        <p><strong>What it does:</strong> Reliability and error checking. Chops data into "Segments".</p>
+        <div style="margin-top:1rem">
+          <span class="badge">TCP</span> <span class="badge">UDP</span> <span class="badge">Ports</span>
+        </div>
+      </div>
+
+      <div class="layer-card" data-num="3" style="border-top: 4px solid var(--l3)">
+        <h3>Layer 3: Network</h3>
+        <p><strong>What it does:</strong> Addressing and Routing. Moves "Packets" between different networks.</p>
+        <div style="margin-top:1rem">
+          <span class="badge">IP Address</span> <span class="badge">Routers</span> <span class="badge">ICMP</span>
+        </div>
+      </div>
+
+      <div class="layer-card" data-num="2" style="border-top: 4px solid var(--l2)">
+        <h3>Layer 2: Data Link</h3>
+        <p><strong>What it does:</strong> Physical addressing. Moves "Frames" between devices on the SAME network (Switching).</p>
+        <div style="margin-top:1rem; margin-bottom:1rem;">
+          <span class="badge">MAC Address</span> <span class="badge">Switch</span>
+        </div>
+        
+        <div class="vlan-box">
+          <div class="vlan-title">🔍 What is a VLAN?</div>
+          <div class="vlan-text">
+            <strong>Virtual LAN.</strong> It logically separates network segments within the same physical switch. 
+            It improves <strong>Security</strong> (HR can't see Engineering traffic) and reduces <strong>Broadcast Domains</strong>.
+          </div>
+        </div>
+        </div>
+
+      <div class="layer-card" data-num="1" style="border-top: 4px solid var(--l1)">
+        <h3>Layer 1: Physical</h3>
+        <p><strong>What it does:</strong> Sending raw bits (1s and 0s) over a physical medium.</p>
+        <div style="margin-top:1rem">
+          <span class="badge">Cables</span> <span class="badge">Wifi</span> <span class="badge">Hubs</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const stage = document.getElementById('packetStage');
+    const input = document.getElementById('userMsg');
+    const btn = document.getElementById('startBtn');
+    const infoTitle = document.querySelector('.info-title');
+    const infoDesc = document.querySelector('.info-desc');
+    const infoPanel = document.getElementById('infoPanel');
+
+    const layerInfo = {
+      7: { name: "Application Header", color: "#ff7b72", desc: "User creates data. App adds HTTP headers." },
+      6: { name: "Presentation Header", color: "#ffa657", desc: "Data is encrypted (SSL) and formatted." },
+      5: { name: "Session Header", color: "#d29922", desc: "Session ID added to track this specific conversation." },
+      4: { name: "TCP Header", color: "#e3b341", desc: "Source/Dest Ports added. Data chopped into Segments." },
+      3: { name: "IP Header", color: "#2ea043", desc: "Source/Dest IP addresses added for routing." },
+      2: { name: "MAC Header & Footer", color: "#3fb950", desc: "Source/Dest MAC addresses added for local switch delivery." },
+      1: { name: "Physical Transmission", color: "#58a6ff", desc: "Everything is converted to binary (101101) for the wire." }
+    };
+
+    function updateInfo(layer) {
+      document.querySelectorAll('.layer-row').forEach(r => r.classList.remove('active'));
+      const row = document.getElementById(`row-${layer}`);
+      if(row) row.classList.add('active');
+
+      infoPanel.style.borderColor = layerInfo[layer].color;
+      infoTitle.textContent = `Layer ${layer}: ${layerInfo[layer].name}`;
+      infoTitle.style.color = layerInfo[layer].color;
+      infoDesc.textContent = layerInfo[layer].desc;
+    }
+
+    function wrapContent(contentHTML, layer) {
+      if (layer === 1) {
+        return `<div style="font-family:monospace; word-break:break-all; color:#58a6ff; font-weight:bold; font-size:1.2rem;">
+                  10110 01101 00110 11010...<br>
+                  <span style="font-size:0.7rem; color:#888;">(Sent via Cable)</span>
+                </div>`;
+      }
+
+      const color = layerInfo[layer].color;
+      return `
+        <div class="header-wrap" style="background: ${color}; box-shadow: 0 0 10px ${color}40;">
+          <span class="header-label" style="color:#000;">L${layer} HDR</span>
+          ${contentHTML}
+          ${layer === 2 ? `<span class="header-label" style="color:#000; margin-top:4px;">TRLR</span>` : ''} 
+        </div>
+      `;
+    }
+
+    function startEncapsulation() {
+      const msg = input.value || "DATA";
+      btn.disabled = true;
+      
+      stage.innerHTML = `<div class="data-box">${msg}</div>`;
+      updateInfo(7);
+      
+      let currentLayer = 7;
+      let currentHTML = `<div class="data-box">${msg}</div>`;
+
+      function step() {
+        if (currentLayer > 1) {
+          setTimeout(() => {
+            currentLayer--;
+            updateInfo(currentLayer);
+            currentHTML = wrapContent(currentHTML, currentLayer + 1); 
+            
+            if(currentLayer === 1) {
+              stage.innerHTML = wrapContent(null, 1);
+              setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = "Send Another";
+                infoTitle.textContent = "Transmission Complete";
+                infoDesc.textContent = "The receiving computer will now reverse this process (Decapsulation).";
+                infoPanel.style.borderColor = "#30363d";
+                infoTitle.style.color = "#fff";
+              }, 1500);
+            } else {
+              const prevContent = stage.innerHTML;
+              const color = layerInfo[currentLayer].color;
+              
+              const newWrapper = document.createElement('div');
+              newWrapper.className = 'header-wrap';
+              newWrapper.style.background = color;
+              newWrapper.style.boxShadow = `0 0 10px ${color}40`;
+              
+              const label = document.createElement('span');
+              label.className = 'header-label';
+              label.style.color = '#000';
+              label.textContent = `L${currentLayer} HDR`;
+              
+              newWrapper.appendChild(label);
+              newWrapper.innerHTML += prevContent; 
+              
+              if(currentLayer === 2) {
+                newWrapper.innerHTML += `<span class="header-label" style="color:#000; margin-top:4px;">TRLR</span>`;
+              }
+
+              stage.innerHTML = '';
+              stage.appendChild(newWrapper);
+              
+              step();
+            }
+          }, 1200); 
+        } 
+      }
+      step();
+    }
+  </script>
+
+</body>
+</html>

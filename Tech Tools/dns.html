@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 2: DNS | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #58a6ff;
+      --accent-secondary: #a371f7; /* Purple for DNS Magic */
+      --accent-success: #2ea043;
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(163, 113, 247, 0.08), transparent 25%),
+        radial-gradient(circle at 80% 80%, rgba(88, 166, 255, 0.08), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, #a371f7);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* SECTIONS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-secondary);
+      padding-left: 1rem;
+    }
+    
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s;
+    }
+    .card:hover { border-color: var(--accent-secondary); transform: translateY(-2px); }
+    
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card h3 .role-icon { margin-right: 8px; font-size: 1.2rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+    .card .analogy { 
+      margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);
+      font-size: 0.85rem; color: var(--accent-secondary); font-style: italic;
+    }
+
+    /* GAMIFICATION: DNS MAP */
+    .game-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; font-family: var(--font-mono); margin: 2rem 0;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+
+    .dns-map {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr); /* 5 Columns now */
+      gap: 12px;
+      text-align: center;
+      margin-top: 3rem;
+      position: relative;
+      height: 140px;
+    }
+
+    .server-node {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1rem 0.5rem; z-index: 2; position: relative;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .server-node.active { 
+      border-color: var(--accent-secondary); 
+      background: rgba(163, 113, 247, 0.1);
+      box-shadow: 0 0 15px rgba(163, 113, 247, 0.3); 
+    }
+
+    .node-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .node-label { font-size: 0.7rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .node-name { font-weight: bold; color: var(--text-primary); font-size: 0.85rem; }
+
+    /* THE FLYING PACKET */
+    .packet {
+      position: absolute; width: 14px; height: 14px;
+      background: var(--accent-success); border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-success);
+      top: 60px; left: 10%; /* Start at User */
+      z-index: 10; opacity: 0;
+      transition: all 0.6s ease-in-out; /* Speed of travel */
+    }
+
+    .controls { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+    
+    .btn {
+      background: var(--bg-surface); color: var(--text-primary);
+      border: 1px solid var(--border-subtle); padding: 12px 28px;
+      border-radius: 6px; cursor: pointer; font-family: var(--font-mono);
+      font-size: 0.95rem; transition: all 0.2s; font-weight: bold;
+    }
+    .btn:hover { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .terminal-output {
+      background: #000; color: #0f0; padding: 1.5rem;
+      border-radius: 8px; margin-top: 2rem; height: 160px;
+      overflow-y: auto; font-size: 0.85rem; border: 1px solid #333;
+      font-family: var(--font-mono);
+    }
+    .log-line { margin-bottom: 6px; border-bottom: 1px dashed #222; padding-bottom: 4px; }
+    .log-line span { color: var(--accent-secondary); font-weight: bold; margin-right: 10px; display: inline-block; width: 80px; }
+
+    /* RECORD TABLE */
+    .record-table {
+      width: 100%; border-collapse: collapse; font-size: 0.95rem;
+    }
+    .record-table th { text-align: left; color: var(--text-secondary); padding: 12px; border-bottom: 1px solid var(--border-subtle); }
+    .record-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-primary); }
+    .type-badge {
+      display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;
+      background: rgba(255,255,255,0.1); color: #fff; min-width: 50px; text-align: center;
+    }
+    
+    @media (max-width: 800px) {
+      .dns-map { grid-template-columns: 1fr; height: auto; gap: 20px; }
+      .packet { display: none; /* Hide animation on mobile, rely on logs */ }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>DNS Explained</h1>
+      <p class="intro">
+        The <strong>Domain Name System</strong> is the hierarchy of servers that translates human domains 
+        (<span style="color:var(--accent-secondary)">google.com</span>) 
+        into machine IP addresses 
+        (<span style="color:var(--accent-success)">142.250.190.46</span>).
+      </p>
+    </header>
+
+    <h2 class="section-title">🎭 Meet the Players (The Hierarchy)</h2>
+    <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
+      DNS isn't one server; it's a team effort. Here is who handles your request.
+    </p>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3><span class="role-icon">🔍</span> Recursive Resolver</h3>
+        <p>
+          Usually your ISP or Google (8.8.8.8). This is your personal assistant. You ask it once, 
+          and it does all the running around to find the answer for you.
+        </p>
+        <div class="analogy">Analogy: The Librarian who knows where to look.</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="role-icon">🌍</span> Root Server</h3>
+        <p>
+          The top of the pyramid. It doesn't know the IP, but it knows who manages the 
+          <strong>.com</strong>, <strong>.org</strong>, or <strong>.net</strong> registries.
+        </p>
+        <div class="analogy">Analogy: The Directory in the library lobby.</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="role-icon">📂</span> TLD Server</h3>
+        <p>
+          Top-Level Domain Server. It manages specific extensions (like .com). It knows which specific company manages the domain you want.
+        </p>
+        <div class="analogy">Analogy: The Section Manager for "Fiction".</div>
+      </div>
+
+      <div class="card">
+        <h3><span class="role-icon">✅</span> Authoritative Server</h3>
+        <p>
+          The final destination (e.g., Route53, Cloudflare). It holds the actual "Zone File" 
+          with the IP address. It is the Source of Truth.
+        </p>
+        <div class="analogy">Analogy: The specific Book containing the answer.</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Simulator: The Recursive Hunt</h2>
+    <div class="game-console">
+      <div style="text-align:center; color:#8b949e; font-size:0.9rem; margin-bottom:1rem;">
+        Mission: Find IP for <strong style="color: #fff">blog.example.com</strong>
+      </div>
+
+      <div class="packet" id="packet"></div>
+
+      <div class="dns-map">
+        <div class="server-node" id="node-user">
+          <span class="node-icon">💻</span>
+          <div class="node-label">Client</div>
+          <div class="node-name">You</div>
+        </div>
+
+        <div class="server-node" id="node-resolver">
+          <span class="node-icon">🔍</span>
+          <div class="node-label">Resolver</div>
+          <div class="node-name">ISP / 8.8.8.8</div>
+        </div>
+
+        <div class="server-node" id="node-root">
+          <span class="node-icon">🌍</span>
+          <div class="node-label">Root</div>
+          <div class="node-name">Root Hint</div>
+        </div>
+
+        <div class="server-node" id="node-tld">
+          <span class="node-icon">📂</span>
+          <div class="node-label">TLD</div>
+          <div class="node-name">.com Reg</div>
+        </div>
+
+        <div class="server-node" id="node-auth">
+          <span class="node-icon">✅</span>
+          <div class="node-label">Auth</div>
+          <div class="node-name">Route53</div>
+        </div>
+      </div>
+
+      <div class="terminal-output" id="terminal">
+        <div class="log-line"><span>SYSTEM</span> Ready. Click 'Start Lookup' to trace the packet.</div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn" onclick="startDNSLookup()">Start Lookup</button>
+      </div>
+    </div>
+
+    <h2 class="section-title">📝 The "Phonebook" Records</h2>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="record-table">
+        <thead>
+          <tr>
+            <th width="80">Type</th>
+            <th>What it does</th>
+            <th>Example Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="type-badge" style="background:#238636;">A</span></td>
+            <td><strong>Address.</strong> Maps a name to an IPv4 address.</td>
+            <td>142.250.190.46</td>
+          </tr>
+          <tr>
+            <td><span class="type-badge" style="background:#1f6feb;">AAAA</span></td>
+            <td><strong>Quad-A.</strong> Maps a name to an IPv6 address.</td>
+            <td>2001:0db8:85a3::8a2e:0370</td>
+          </tr>
+          <tr>
+            <td><span class="type-badge" style="background:#d29922;">CNAME</span></td>
+            <td><strong>Alias.</strong> Forwards one domain to another domain.</td>
+            <td>www.example.com → example.com</td>
+          </tr>
+          <tr>
+            <td><span class="type-badge" style="background:#8b949e;">NS</span></td>
+            <td><strong>Name Server.</strong> Points to the Authoritative server.</td>
+            <td>ns-123.awsdns.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+      <p>💡 <strong>Pro Tip:</strong> This whole process takes milliseconds because servers <strong>Cache (TTL)</strong> the results.<br>The Resolver remembers "google.com = 1.2.3.4" for 5 minutes so it doesn't have to ask the Root every time.</p>
+    </div>
+
+  </div>
+
+  <script>
+    const packet = document.getElementById('packet');
+    const terminal = document.getElementById('terminal');
+    const btn = document.getElementById('startBtn');
+    
+    // Positions relative to the dns-map container (approx percentages)
+    // 5 Columns: 10%, 30%, 50%, 70%, 90%
+    const pos = {
+      user:     { left: '10%', top: '60px' },
+      resolver: { left: '30%', top: '60px' },
+      root:     { left: '50%', top: '60px' },
+      tld:      { left: '70%', top: '60px' },
+      auth:     { left: '90%', top: '60px' }
+    };
+
+    function log(actor, msg) {
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span>${actor}</span> ${msg}`;
+      terminal.prepend(line); // Add to top
+    }
+
+    function movePacket(target, callback) {
+      packet.style.opacity = '1';
+      packet.style.left = target.left;
+      setTimeout(callback, 800); // Wait for transition time
+    }
+
+    function highlight(id) {
+      document.querySelectorAll('.server-node').forEach(n => n.classList.remove('active'));
+      if(id) document.getElementById(id).classList.add('active');
+    }
+
+    function startDNSLookup() {
+      btn.disabled = true;
+      terminal.innerHTML = ''; // Clear log
+      
+      // Step 0: User Start
+      log("CLIENT", "I need IP for 'blog.example.com'.");
+      highlight('node-user');
+      packet.style.left = pos.user.left; 
+      packet.style.opacity = '1';
+
+      setTimeout(() => {
+        // Step 1: User -> Resolver
+        log("CLIENT", "Asking Resolver (ISP)...");
+        movePacket(pos.resolver, () => {
+          highlight('node-resolver');
+          log("RESOLVER", "Checking Cache... Miss. Asking Root.");
+          
+          // Step 2: Resolver -> Root
+          movePacket(pos.root, () => {
+            highlight('node-root');
+            log("ROOT", "I don't know 'blog.example.com'. Ask .com TLD.");
+            
+            // Step 3: Root -> Resolver (Return)
+            movePacket(pos.resolver, () => {
+              highlight('node-resolver');
+              log("RESOLVER", "Got it. Asking TLD Server...");
+              
+              // Step 4: Resolver -> TLD
+              movePacket(pos.tld, () => {
+                highlight('node-tld');
+                log("TLD", "I see 'example.com' is managed by Route53.");
+                
+                // Step 5: TLD -> Resolver (Return)
+                movePacket(pos.resolver, () => {
+                  highlight('node-resolver');
+                  log("RESOLVER", "Okay, asking Authoritative (Route53)...");
+                  
+                  // Step 6: Resolver -> Auth
+                  movePacket(pos.auth, () => {
+                    highlight('node-auth');
+                    log("AUTH", "Found A-Record! IP is 93.184.216.34");
+                    
+                    // Step 7: Auth -> Resolver (Return)
+                    movePacket(pos.resolver, () => {
+                      highlight('node-resolver');
+                      log("RESOLVER", "Caching result. Sending to Client.");
+                      
+                      // Step 8: Resolver -> Client
+                      movePacket(pos.user, () => {
+                        highlight('node-user');
+                        log("CLIENT", "Received IP: 93.184.216.34. Connecting...");
+                        packet.style.opacity = '0'; // Hide packet
+                        btn.disabled = false;
+                        btn.textContent = "Replay Lookup";
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      }, 500);
+    }
+  </script>
+
+</body>
+</html>

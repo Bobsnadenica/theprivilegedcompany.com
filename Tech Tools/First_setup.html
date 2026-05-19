@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mac First Setup | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --surface: #161b22;
+      --card: #0d1117;
+      --text: #f0f6fc;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --border: rgba(240, 246, 252, 0.1);
+      --font-display: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-display);
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header { margin-bottom: 3rem; text-align: center; }
+    h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #fff; }
+    .subtitle { color: var(--muted); font-size: 1.1rem; }
+
+    .nav-back { margin-bottom: 2rem; display: block; color: var(--accent); text-decoration: none; font-weight: 600; }
+
+    section { margin-bottom: 4rem; }
+    h2 { font-size: 1.8rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--accent); }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+
+    .setup-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: transform 0.2s ease;
+    }
+    .setup-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+    .item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .item-title { font-weight: 700; font-size: 1.1rem; }
+    .item-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+
+    .code-block {
+      background: #010409;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      position: relative;
+      cursor: pointer;
+      overflow-x: auto;
+    }
+    .code-block:hover { background: #0d1117; }
+    .code-block::after {
+      content: "Copy";
+      position: absolute;
+      right: 1rem;
+      top: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .code-block:hover::after { opacity: 1; }
+
+    footer { text-align: center; margin-top: 4rem; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 2rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <a href="index.html" class="nav-back">← Back to Hub</a>
+
+    <header>
+      <h1>Mac First Setup</h1>
+      <p class="subtitle">Minimalist checklist for a new machine. 10 Checks, 10 Automations, 10 Installs.</p>
+    </header>
+
+    <section>
+      <h2>01. Things to Check</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Battery Health & Cycles</div>
+          <div class="item-desc">Check if the battery is new and healthy.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">system_profiler SPPowerDataType | grep "Cycle Count"</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Hardware Specs</div>
+          <div class="item-desc">Verify CPU, RAM, and Serial Number.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">system_profiler SPHardwareDataType</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">SSD Wear (S.M.A.R.T)</div>
+          <div class="item-desc">Check disk health (requires smartmontools later).</div>
+          <div class="code-block" onclick="copyToClipboard(this)">diskutil info / | grep "Device Identifier"</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">System Integrity Protection (SIP)</div>
+          <div class="item-desc">Ensure SIP is enabled for security.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">csrutil status</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Firewall Status</div>
+          <div class="item-desc">Check if the built-in firewall is active.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">FileVault Encryption</div>
+          <div class="item-desc">Verify if disk encryption is on.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">fdesetup status</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">MDM / Enrollment Status</div>
+          <div class="item-desc">Check if the device is managed by your company.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">profiles status -type enrollment</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">macOS Version</div>
+          <div class="item-desc">Current build and version.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sw_vers</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Network Services</div>
+          <div class="item-desc">List all available network interfaces.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">networksetup -listallnetworkservices</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Recent System Logs</div>
+          <div class="item-desc">Check for any immediate errors in the last minute.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">log show --last 1m</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>02. Things to Automate</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Show Hidden Files</div>
+          <div class="item-desc">Always show dotfiles in Finder.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.finder AppleShowAllFiles YES && killall Finder</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Show Full Path in Finder</div>
+          <div class="item-desc">See exactly where you are in the title bar.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.finder _FXShowPosixPathInTitle -bool true && killall Finder</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Ultra-Fast Key Repeat</div>
+          <div class="item-desc">Make the cursor move faster when holding keys.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write NSGlobalDomain KeyRepeat -int 1 && defaults write NSGlobalDomain InitialKeyRepeat -int 10</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Disable Auto-Correct</div>
+          <div class="item-desc">Prevent macOS from "fixing" your code/words.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Screenshot Location</div>
+          <div class="item-desc">Keep your desktop clean. Save to ~/Screenshots.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">mkdir -p ~/Screenshots && defaults write com.apple.screencapture location ~/Screenshots && killall SystemUIServer</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Avoid .DS_Store on Network</div>
+          <div class="item-desc">Don't litter network drives with hidden files.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Expand Save Panel</div>
+          <div class="item-desc">Always show the full file browser when saving.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true && defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Folders First in Finder</div>
+          <div class="item-desc">Sort folders above files.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.finder _FXSortFoldersFirst -bool true && killall Finder</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Faster Dock Animation</div>
+          <div class="item-desc">Reduce the autohide delay for a snappier feel.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.dock autohide-time-modifier -float 0.15 && killall Dock</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Hide Desktop Icons</div>
+          <div class="item-desc">Keep a clean workspace.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">defaults write com.apple.finder CreateDesktop -bool false && killall Finder</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>03. Things to Install</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Homebrew</div>
+          <div class="item-desc">The missing package manager for macOS.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Visual Studio Code</div>
+          <div class="item-desc">Code editor.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask visual-studio-code</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">iTerm2</div>
+          <div class="item-desc">Better terminal emulator.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask iterm2</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Docker</div>
+          <div class="item-desc">Container management.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask docker</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Slack</div>
+          <div class="item-desc">Communication tool.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask slack</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Google Chrome</div>
+          <div class="item-desc">Web browser.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask google-chrome</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Rectangle</div>
+          <div class="item-desc">Window management (snapping).</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask rectangle</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Raycast</div>
+          <div class="item-desc">Superior productivity tool and Spotlight replacement.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask raycast</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Postman</div>
+          <div class="item-desc">API testing tool.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install --cask postman</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Git</div>
+          <div class="item-desc">Version control.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">brew install git</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>04. Productivity Hacks</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Touch ID for Sudo</div>
+          <div class="item-desc">Use your fingerprint for terminal commands.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sudo sed -i '' '2i\'$'\n''auth sufficient pam_tid.so' /etc/pam.d/sudo</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Magic Clipboard (Copy)</div>
+          <div class="item-desc">Pipe any output directly to your clipboard.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">ls -la | pbcopy</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Magic Clipboard (Paste)</div>
+          <div class="item-desc">Paste clipboard content into a file.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">pbpaste > my_clipboard.txt</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Keep Mac Awake</div>
+          <div class="item-desc">Prevent sleep during long tasks (1 hour).</div>
+          <div class="code-block" onclick="copyToClipboard(this)">caffeinate -u -t 3600</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Instant Web Server</div>
+          <div class="item-desc">Serve current folder over local network.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">python3 -m http.server 8000</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Quick Look from CLI</div>
+          <div class="item-desc">Open a preview window for any file.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">qlmanage -p filename.pdf</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Open current folder in Finder</div>
+          <div class="item-desc">Quick jump from terminal to GUI.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">open .</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>05. Everyday Scripts</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Flush DNS Cache</div>
+          <div class="item-desc">Fix internet/domain resolution issues.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Clear Inactive RAM</div>
+          <div class="item-desc">Force macOS to free up memory.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sudo purge</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Find Top 10 Large Files</div>
+          <div class="item-desc">Identify what is eating your disk space.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">du -ah . | sort -rh | head -n 10</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Clean DS_Store Files</div>
+          <div class="item-desc">Recursively delete hidden metadata files.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">find . -name ".DS_Store" -depth -exec rm {} \;</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Check Public IP</div>
+          <div class="item-desc">Get your external IP address.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">curl -s ifconfig.me</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Battery Health (CLI)</div>
+          <div class="item-desc">Get a detailed battery report.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">pmset -g batt</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Say Completion</div>
+          <div class="item-desc">Make your Mac notify you when a task finishes.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sleep 10; say "Task is done"</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>06. Essential Keyboard Shortcuts</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Spotlight Search</div>
+          <div class="item-desc">The fastest way to open apps and files.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Cmd + Space</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Force Quit Menu</div>
+          <div class="item-desc">Kill unresponsive applications.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Cmd + Option + Esc</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Screenshot Selection</div>
+          <div class="item-desc">Select an area to capture.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Cmd + Shift + 4</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Emoji & Symbols</div>
+          <div class="item-desc">Quickly insert emojis anywhere.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Control + Cmd + Space</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Switch App Windows</div>
+          <div class="item-desc">Cycle through windows of the SAME app.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Cmd + `</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Hide Current App</div>
+          <div class="item-desc">Instantly clear the app from view.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Cmd + H</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Lock Screen</div>
+          <div class="item-desc">Instantly lock your Mac.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">Control + Cmd + Q</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>07. Developer Automations</h2>
+      <div class="grid">
+        <div class="setup-item">
+          <div class="item-title">Configure Git Identity</div>
+          <div class="item-desc">Set your global name and email.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">git config --global user.name "Your Name" && git config --global user.email "mail@example.com"</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Generate SSH Key</div>
+          <div class="item-desc">Modern Ed25519 key for GitHub/GitLab.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">ssh-keygen -t ed25519 -C "mail@example.com"</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Copy SSH Key</div>
+          <div class="item-desc">Quickly copy your public key for pasting.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">pbcopy < ~/.ssh/id_ed25519.pub</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">List Open Ports</div>
+          <div class="item-desc">See which processes are listening on which ports.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">sudo lsof -i -P -n | grep LISTEN</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Kill Process on Port</div>
+          <div class="item-desc">Force stop whatever is using port 8080.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">lsof -ti:8080 | xargs kill -9</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Check CPU Architecture</div>
+          <div class="item-desc">Verify if you are on Intel or Apple Silicon (arm64).</div>
+          <div class="code-block" onclick="copyToClipboard(this)">uname -m</div>
+        </div>
+        <div class="setup-item">
+          <div class="item-title">Xcode Select Install</div>
+          <div class="item-desc">Install Command Line Tools for dev work.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">xcode-select --install</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; 2026 Tech Knowledge Hub. Minimalist Setup Guide.</p>
+    </footer>
+  </div>
+
+  <script>
+    function copyToClipboard(element) {
+      const text = element.innerText;
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      
+      const originalText = element.getAttribute('data-original-text') || element.innerHTML;
+      element.style.borderColor = "#58a6ff";
+      element.innerText = "Copied!";
+      setTimeout(() => {
+        element.style.borderColor = "rgba(240, 246, 252, 0.1)";
+        element.innerText = text;
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

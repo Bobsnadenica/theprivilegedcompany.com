@@ -1,0 +1,48 @@
+<section class="monolith-view">
+    <header class="view-header reveal-mask">
+        <span class="label">System Visualization</span>
+        <h1 class="display-huge" data-scramble>The Canvas.</h1>
+        <p class="view-lead">Interactive planning for high-scale environments. We architect across the four critical layers of the modern IT stack.</p>
+    </header>
+
+    <div class="architecture-canvas-v2">
+        <div class="canvas-layers">
+            <div class="canvas-layer" data-layer="edge" data-magnetic>
+                <span class="layer-idx">01</span>
+                <h3>Edge Layer</h3>
+                <p>Global delivery and perimeter hardening. High-performance CDN nodes, Integrated WAF, and automated DDoS mitigation.</p>
+            </div>
+            <div class="canvas-layer" data-layer="compute" data-magnetic>
+                <span class="layer-idx">02</span>
+                <h3>Compute Layer</h3>
+                <p>Dynamic orchestration of containerized workloads and serverless functions. Designed for linear, infinite scale.</p>
+            </div>
+            <div class="canvas-layer" data-layer="data" data-magnetic>
+                <span class="layer-idx">03</span>
+                <h3>Data Layer</h3>
+                <p>Highly available database systems with automated failover and regional replication. Absolute data integrity.</p>
+            </div>
+            <div class="canvas-layer" data-layer="security" data-magnetic>
+                <span class="layer-idx">04</span>
+                <h3>Security Layer</h3>
+                <p>Zero-trust architecture. Granular IAM policies, end-to-end encryption, and continuous monitoring.</p>
+            </div>
+        </div>
+        
+        <div id="layer-details-v2" class="reveal-mask">
+            <div class="details-placeholder">Select a layer to initiate deep architectural analysis.</div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .architecture-canvas-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 4rem; min-height: 60vh; }
+    .canvas-layers { display: flex; flex-direction: column; gap: 1rem; }
+    .canvas-layer { padding: 2rem; border: 1px solid var(--c-dim); transition: all 0.3s; cursor: pointer; position: relative; }
+    .canvas-layer:hover { border-color: var(--c-accent); background: rgba(255, 157, 0, 0.05); }
+    .layer-idx { font-size: 0.6rem; color: var(--c-accent); position: absolute; top: 1rem; left: 1rem; }
+    .canvas-layer h3 { font-family: var(--f-display); margin-bottom: 0.5rem; font-size: 1.5rem; }
+    .canvas-layer p { font-size: 0.8rem; color: var(--c-muted); }
+    #layer-details-v2 { border-left: 1px solid var(--c-dim); padding-left: 4rem; display: flex; align-items: center; }
+    .details-placeholder { font-family: var(--f-display); font-size: 2rem; color: var(--c-dim); }
+</style>

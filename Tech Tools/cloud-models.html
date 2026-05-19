@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 22: Cloud Models | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-onprem: #8b949e;  /* Grey */
+      --accent-iaas: #d29922;    /* Orange */
+      --accent-paas: #a371f7;    /* Purple */
+      --accent-saas: #2ea043;    /* Green */
+      
+      --user-color: #58a6ff;     /* Blue (You) */
+      --provider-color: #238636; /* Green (AWS/Azure) */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 80% 20%, rgba(46, 160, 67, 0.05), transparent 25%),
+        radial-gradient(circle at 20% 80%, rgba(163, 113, 247, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: #fff; }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-paas));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-paas);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* PIZZA ANALOGY BOX */
+    .analogy-container {
+      background: #161b22; border: 1px dashed #30363d; border-radius: 12px;
+      padding: 1.5rem; margin-top: 2rem; display: flex; gap: 2rem;
+      align-items: center; justify-content: space-around; flex-wrap: wrap;
+    }
+    .pizza-step { text-align: center; max-width: 200px; }
+    .pizza-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+    .pizza-title { font-weight: bold; color: #fff; margin-bottom: 5px; }
+    .pizza-desc { font-size: 0.8rem; color: #8b949e; }
+
+    /* GAMIFICATION: RESPONSIBILITY SIMULATOR */
+    .model-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 300px 1fr; gap: 3rem;
+    }
+    @media (max-width: 900px) { .model-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: CONTROLS */
+    .controls { display: flex; flex-direction: column; gap: 2rem; justify-content: center; }
+    
+    .model-selector {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .model-btn {
+      padding: 15px; border: 1px solid #30363d; background: #161b22; color: #8b949e;
+      border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .model-btn:hover { background: #21262d; }
+    .model-btn.active { border-color: currentColor; color: #fff; background: rgba(255,255,255,0.05); font-weight: bold; }
+    
+    .btn-onprem.active { border-color: var(--accent-onprem); box-shadow: 0 0 15px rgba(139, 148, 158, 0.1); }
+    .btn-iaas.active { border-color: var(--accent-iaas); box-shadow: 0 0 15px rgba(210, 153, 34, 0.1); }
+    .btn-paas.active { border-color: var(--accent-paas); box-shadow: 0 0 15px rgba(163, 113, 247, 0.1); }
+    .btn-saas.active { border-color: var(--accent-saas); box-shadow: 0 0 15px rgba(46, 160, 67, 0.1); }
+
+    .desc-box {
+      font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);
+      border-top: 1px solid #30363d; padding-top: 1rem;
+    }
+
+    /* RIGHT: THE STACK */
+    .stack-visual {
+      display: flex; flex-direction: column-reverse; /* Bottom to Top */
+      gap: 4px; position: relative;
+    }
+    
+    .stack-layer {
+      padding: 10px; text-align: center; font-size: 0.8rem; font-weight: bold;
+      border-radius: 4px; transition: all 0.4s ease; color: #000;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    
+    /* Layer States */
+    .managed-by-user { 
+      background: var(--user-color); color: #fff; 
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    }
+    .managed-by-provider { 
+      background: var(--provider-color); color: #fff; opacity: 0.9;
+    }
+
+    .legend {
+      display: flex; gap: 20px; justify-content: center; margin-bottom: 1rem; font-size: 0.8rem;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Cloud Service Models</h1>
+      <p class="intro">
+        The "Shared Responsibility Model". Moving to the cloud is about trade-offs: 
+        How much control do you want to keep vs. how much work do you want to offload?
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-iaas);">
+        <h3>IaaS</h3>
+        <p><strong>Infrastructure as a Service.</strong> You rent the raw hardware (Virtual Machines). You install the OS, patch it, and run your app. Maximum flexibility, maximum work.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-iaas);">Ex: AWS EC2, Google Compute Engine</div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-paas);">
+        <h3>PaaS</h3>
+        <p><strong>Platform as a Service.</strong> You bring the code; they run it. They handle the OS, patching, and scaling. You just focus on the app logic.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-paas);">Ex: AWS Lambda, Heroku, Google App Engine</div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-saas);">
+        <h3>SaaS</h3>
+        <p><strong>Software as a Service.</strong> You just use the software. You don't care about servers, code, or updates. It just works in your browser.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-saas);">Ex: Gmail, Dropbox, Salesforce</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🍕 The "Pizza as a Service" Analogy</h2>
+    <div class="analogy-container">
+      <div class="pizza-step">
+        <span class="pizza-icon">🏠</span>
+        <div class="pizza-title">On-Premises</div>
+        <div class="pizza-desc">Made at Home.<br>You buy dough, cheese, oven, gas, and soda. You cook and clean.</div>
+      </div>
+      <div class="pizza-step">
+        <span class="pizza-icon">🛒</span>
+        <div class="pizza-title">IaaS</div>
+        <div class="pizza-desc">Take-and-Bake.<br>You buy a pre-made pizza (VM), but you still need your own oven (OS) to cook it.</div>
+      </div>
+      <div class="pizza-step">
+        <span class="pizza-icon">🛵</span>
+        <div class="pizza-title">PaaS</div>
+        <div class="pizza-desc">Pizza Delivery.<br>They cook it and bring it to your door. You just need a table (Data) to eat.</div>
+      </div>
+      <div class="pizza-step">
+        <span class="pizza-icon">🍽️</span>
+        <div class="pizza-title">SaaS</div>
+        <div class="pizza-desc">Dining Out.<br>You go to a restaurant. They do everything. You just show up and eat.</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Responsibility Simulator</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Visualizing the Stack:</strong> Click the buttons to see which layers turn Green (Provider Managed) vs Blue (You Managed).
+    </p>
+
+    <div class="model-console">
+      
+      <div class="controls">
+        <div class="model-selector">
+          <button class="model-btn btn-onprem active" onclick="setModel('onprem')">
+            <span>🏠 On-Premises</span>
+          </button>
+          <button class="model-btn btn-iaas" onclick="setModel('iaas')">
+            <span>🏗️ IaaS (Infrastructure)</span>
+          </button>
+          <button class="model-btn btn-paas" onclick="setModel('paas')">
+            <span>🛠️ PaaS (Platform)</span>
+          </button>
+          <button class="model-btn btn-saas" onclick="setModel('saas')">
+            <span>☁️ SaaS (Software)</span>
+          </button>
+        </div>
+
+        <div class="desc-box" id="descText">
+          <strong>On-Premises:</strong> You own the data center. You replace failed hard drives. You patch the OS. You are responsible for everything from the concrete floor up to the application code.
+        </div>
+      </div>
+
+      <div>
+        <div class="legend">
+          <div class="legend-item"><div class="dot" style="background:var(--user-color)"></div> You Manage</div>
+          <div class="legend-item"><div class="dot" style="background:var(--provider-color)"></div> Provider Manages</div>
+        </div>
+
+        <div class="stack-visual">
+          <div class="stack-layer" id="l-data">Data & Access</div>
+          <div class="stack-layer" id="l-app">Applications</div>
+          <div class="stack-layer" id="l-runtime">Runtime</div>
+          <div class="stack-layer" id="l-mw">Middleware</div>
+          <div class="stack-layer" id="l-os">Operating System</div>
+          <div class="stack-layer" id="l-virt">Virtualization</div>
+          <div class="stack-layer" id="l-servers">Servers</div>
+          <div class="stack-layer" id="l-storage">Storage</div>
+          <div class="stack-layer" id="l-net">Networking</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const layers = [
+      'l-net', 'l-storage', 'l-servers', 'l-virt', // Infra
+      'l-os', 'l-mw', 'l-runtime',                 // Platform
+      'l-app', 'l-data'                            // App
+    ];
+
+    const descriptions = {
+      onprem: "<strong>On-Premises:</strong> You own the data center. You replace failed hard drives. You patch the OS. You are responsible for everything from the concrete floor up to the application code.",
+      iaas: "<strong>IaaS:</strong> AWS gives you the 'Virtual Hardware'. They ensure the power is on and the hard drives work. YOU must install Windows/Linux, patch it, install Java/Python, and run your app.",
+      paas: "<strong>PaaS:</strong> AWS gives you a 'Runtime Environment' (e.g., Python 3.9). They patch Linux and update Python. YOU just upload your script. If the OS crashes, it's their problem.",
+      saas: "<strong>SaaS:</strong> You just login. Google manages the servers, the code, the database, and the security. You just configure your user settings."
+    };
+
+    // Configuration: How many layers from BOTTOM are Provider Managed?
+    const configs = {
+      onprem: 0,
+      iaas: 4,  // Net, Storage, Servers, Virt
+      paas: 7,  // + OS, MW, Runtime
+      saas: 9   // All
+    };
+
+    function setModel(type) {
+      // 1. Update Buttons
+      document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.btn-${type}`).classList.add('active');
+
+      // 2. Update Text
+      document.getElementById('descText').innerHTML = descriptions[type];
+
+      // 3. Update Stack Visuals
+      const providerCount = configs[type];
+      
+      // Layers are listed in array from Bottom to Top
+      layers.forEach((id, index) => {
+        const el = document.getElementById(id);
+        if (index < providerCount) {
+          el.className = 'stack-layer managed-by-provider';
+          el.innerText = el.innerText.split(' (')[0] + ' (Provider)';
+        } else {
+          el.className = 'stack-layer managed-by-user';
+          el.innerText = el.innerText.split(' (')[0] + ' (You)';
+        }
+        
+        // Clean up text for clearer visual
+        el.innerText = el.innerText.replace(' (Provider)', '').replace(' (You)', ''); 
+      });
+    }
+
+    // Init
+    setModel('onprem');
+  </script>
+
+</body>
+</html>

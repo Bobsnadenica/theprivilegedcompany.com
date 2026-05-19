@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 17: VPC | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-vpc: #8a2be2;     /* Violet for VPC */
+      --accent-flow: #2ea043;    /* Green for Flow */
+      --accent-block: #ff7b72;   /* Red for Block */
+      --accent-route: #e3b341;   /* Gold for Route Tables */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(138, 43, 226, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 90%, rgba(46, 160, 67, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-vpc); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-vpc));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-vpc);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-vpc); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-vpc); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: NETWORK PLUMBER */
+    .vpc-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 300px 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .vpc-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: ROUTE TABLE EDITOR */
+    .router-panel {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .panel-header { font-weight: bold; color: #8b949e; text-transform: uppercase; font-size: 0.8rem; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+    
+    .route-entry {
+      background: #0d1117; padding: 10px; border-radius: 6px; border: 1px solid #30363d;
+      font-family: var(--font-mono); font-size: 0.85rem;
+    }
+    .dest { color: var(--accent-flow); }
+    .target { color: var(--accent-route); font-weight: bold; }
+
+    .control-group { display: flex; flex-direction: column; gap: 10px; }
+    .btn {
+      padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
+      font-family: var(--font-mono); font-size: 0.9rem; transition: all 0.2s; color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn:hover { filter: brightness(1.2); }
+    .btn-igw { background: #21262d; border: 1px solid var(--accent-vpc); color: var(--accent-vpc); }
+    .btn-nat { background: #21262d; border: 1px solid var(--accent-route); color: var(--accent-route); }
+    .btn.selected { background: var(--accent-flow); border-color: var(--accent-flow); color: #000; }
+
+    .btn-test { background: var(--accent-vpc); width: 100%; justify-content: center; margin-top: auto; }
+
+    /* RIGHT: VISUAL DIAGRAM */
+    .network-map {
+      background: #010409; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; position: relative; min-height: 400px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    
+    /* ZONES */
+    .internet-cloud {
+      text-align: center; font-size: 2rem; border-bottom: 2px dashed #30363d; padding-bottom: 1rem; margin-bottom: 1rem;
+    }
+    
+    .vpc-box {
+      border: 2px solid var(--accent-vpc); border-radius: 8px; padding: 1rem;
+      position: relative; background: rgba(138, 43, 226, 0.05); flex-grow: 1;
+      display: flex; flex-direction: column; justify-content: flex-end;
+    }
+    .vpc-label { 
+      position: absolute; top: -12px; left: 1rem; background: #010409; padding: 0 10px; 
+      font-weight: bold; color: var(--accent-vpc); 
+    }
+
+    .subnet-box {
+      border: 1px dashed #8b949e; border-radius: 6px; padding: 1rem; margin-top: auto;
+      background: #0d1117; position: relative;
+    }
+    .subnet-label {
+      font-size: 0.75rem; color: #8b949e; font-weight: bold; text-transform: uppercase; margin-bottom: 1rem;
+    }
+
+    .server-icon { font-size: 2rem; text-align: center; }
+
+    /* GATEWAYS */
+    .gateway-zone {
+      display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem;
+    }
+    .gw-icon {
+      width: 60px; height: 60px; border-radius: 8px; background: #21262d; border: 2px solid #30363d;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 1.5rem; transition: all 0.3s; opacity: 0.3;
+    }
+    .gw-icon.active { opacity: 1; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+    .gw-label { font-size: 0.6rem; font-weight: bold; margin-top: 4px; color: #fff; }
+
+    /* PACKET ANIMATION */
+    .packet {
+      width: 12px; height: 12px; background: #fff; border-radius: 50%;
+      position: absolute; box-shadow: 0 0 10px #fff; opacity: 0; z-index: 10;
+      transition: all 0.5s linear;
+    }
+
+    .status-msg {
+      margin-top: 1rem; text-align: center; font-family: var(--font-mono); font-size: 0.9rem; min-height: 24px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Virtual Private Cloud (VPC)</h1>
+      <p class="intro">
+        Your own private slice of the cloud. A VPC is an isolated network where you define the IP ranges, 
+        subnets, route tables, and gateways. It's the <span style="color:var(--accent-vpc)">foundation</span> of cloud security.
+      </p>
+    </header>
+
+    <h2 class="section-title">🏗️ The Building Blocks</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>1. The House (VPC)</h3>
+        <p>The outer boundary. Usually defined by a large CIDR block like <code>10.0.0.0/16</code>. Nothing gets in or out without a door.</p>
+      </div>
+      <div class="card">
+        <h3>2. The Rooms (Subnets)</h3>
+        <p>Smaller slices of the VPC (e.g., <code>10.0.1.0/24</code>). You group resources here based on security needs (Public vs Private).</p>
+      </div>
+      <div class="card">
+        <h3>3. The Map (Route Table)</h3>
+        <p>The logic. It tells traffic where to go. <br><em>"Traffic for 10.0.0.0/16 goes local. Traffic for 0.0.0.0/0 goes to the Internet Gateway."</em></p>
+      </div>
+      <div class="card">
+        <h3>4. The Doors (Gateways)</h3>
+        <p><strong>IGW (Internet Gateway):</strong> The front door. Two-way traffic.<br><strong>NAT Gateway:</strong> The one-way valve. Lets internal systems talk out, but blocks outsiders coming in.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The "Packet Plumber" Game</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Scenario:</strong> You have a Database in a <strong>Private Subnet</strong>. It needs to download updates from the internet.
+      <br><strong>Mission:</strong> Configure the Route Table to let it connect safely.
+    </p>
+
+    <div class="vpc-console">
+      
+      <div class="router-panel">
+        <div class="panel-header">Private Subnet Route Table</div>
+        
+        <div class="route-entry">
+          10.0.0.0/16 ➔ <span class="target">local</span>
+        </div>
+        
+        <div class="route-entry" style="border-style:dashed; color:#8b949e;">
+          0.0.0.0/0 (Internet) ➔ <span id="targetVal" class="target">?</span>
+        </div>
+
+        <div class="control-group">
+          <label style="font-size:0.8rem; color:#8b949e;">Choose a Target:</label>
+          <button class="btn btn-igw" onclick="selectRoute('igw')">
+            <span>Internet Gateway (IGW)</span> <span>🌐</span>
+          </button>
+          <button class="btn btn-nat" onclick="selectRoute('nat')">
+            <span>NAT Gateway</span> <span>🛡️</span>
+          </button>
+        </div>
+
+        <button class="btn btn-test" onclick="sendPacket()">Test Connection 🚀</button>
+      </div>
+
+      <div class="network-map">
+        
+        <div class="internet-cloud">☁️ Internet</div>
+
+        <div class="gateway-zone">
+          <div class="gw-icon" id="vis-igw" style="border-color:var(--accent-vpc); color:var(--accent-vpc);">
+            🚪<div class="gw-label">IGW</div>
+          </div>
+          <div class="gw-icon" id="vis-nat" style="border-color:var(--accent-route); color:var(--accent-route);">
+            🛡️<div class="gw-label">NAT GW</div>
+          </div>
+        </div>
+
+        <div class="vpc-box">
+          <div class="vpc-label">VPC</div>
+          
+          <div class="subnet-box">
+            <div class="subnet-label">🔒 Private Subnet</div>
+            <div class="server-icon" id="serverNode">🗄️</div>
+          </div>
+        </div>
+
+        <div class="packet" id="packet"></div>
+
+        <div class="status-msg" id="statusLog">Waiting for configuration...</div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">⚔️ Firewalls: The Double Layer</h2>
+    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden;">
+      <table style="width:100%; border-collapse:collapse; color:var(--text-secondary); font-size:0.9rem;">
+        <thead>
+          <tr style="background:#21262d; color:#fff;">
+            <th style="padding:1rem; text-align:left;">Feature</th>
+            <th style="padding:1rem; text-align:left;">Security Group (SG)</th>
+            <th style="padding:1rem; text-align:left;">Network ACL (NACL)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Protects</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d; color:var(--accent-flow);">The Instance (Server)</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d; color:var(--accent-vpc);">The Subnet (Neighborhood)</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>State</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Stateful</strong> (Return traffic auto-allowed)</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Stateless</strong> (Must explicitly allow return)</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem;"><strong>Rules</strong></td>
+            <td style="padding:1rem;">Allow rules only</td>
+            <td style="padding:1rem;">Allow AND Deny rules</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const targetVal = document.getElementById('targetVal');
+    const visIgw = document.getElementById('vis-igw');
+    const visNat = document.getElementById('vis-nat');
+    const packet = document.getElementById('packet');
+    const statusLog = document.getElementById('statusLog');
+    const serverNode = document.getElementById('serverNode');
+    
+    let selectedGw = null;
+
+    function selectRoute(type) {
+      selectedGw = type;
+      
+      // Update UI
+      document.querySelectorAll('.control-group .btn').forEach(b => b.classList.remove('selected'));
+      if(type === 'igw') document.querySelector('.btn-igw').classList.add('selected');
+      if(type === 'nat') document.querySelector('.btn-nat').classList.add('selected');
+
+      // Update Text
+      targetVal.innerText = type === 'igw' ? 'igw-id' : 'nat-gw-id';
+      
+      // Update Visuals
+      visIgw.classList.remove('active');
+      visNat.classList.remove('active');
+      if(type === 'igw') visIgw.classList.add('active');
+      if(type === 'nat') visNat.classList.add('active');
+      
+      statusLog.innerText = `Route Updated: 0.0.0.0/0 ➔ ${type.toUpperCase()}`;
+      statusLog.style.color = "#8b949e";
+    }
+
+    function sendPacket() {
+      if (!selectedGw) {
+        statusLog.innerText = "❌ Please select a Route Target first!";
+        statusLog.style.color = "#ff7b72";
+        return;
+      }
+
+      // Reset Packet
+      packet.style.transition = 'none';
+      packet.style.opacity = '1';
+      
+      // Find server position
+      const serverRect = serverNode.getBoundingClientRect();
+      const mapRect = document.querySelector('.network-map').getBoundingClientRect();
+      
+      // Start at Server
+      const startX = serverRect.left - mapRect.left + 20;
+      const startY = serverRect.top - mapRect.top + 20;
+      
+      packet.style.left = startX + 'px';
+      packet.style.top = startY + 'px';
+
+      setTimeout(() => {
+        packet.style.transition = 'all 1s ease-in-out';
+        
+        if (selectedGw === 'igw') {
+          // Move to IGW
+          packet.style.top = '100px';
+          packet.style.left = '20%'; // Align with IGW visual
+          packet.style.backgroundColor = '#ff7b72'; // Red warning color
+          
+          setTimeout(() => {
+            statusLog.innerText = "⚠️ UNSAFE! Direct IGW route exposes private DB to public internet.";
+            statusLog.style.color = "#ff7b72";
+            packet.style.opacity = '0';
+          }, 1000);
+        } 
+        else if (selectedGw === 'nat') {
+          // Move to NAT
+          packet.style.top = '100px';
+          packet.style.left = '60%'; // Align with NAT visual
+          packet.style.backgroundColor = '#2ea043'; // Green success color
+          
+          setTimeout(() => {
+            // Move from NAT to Internet
+            packet.style.top = '20px';
+            packet.style.left = '50%';
+            
+            setTimeout(() => {
+              statusLog.innerText = "✅ SUCCESS! Traffic routed securely via NAT Gateway.";
+              statusLog.style.color = "#2ea043";
+              packet.style.opacity = '0';
+            }, 1000);
+          }, 1000);
+        }
+      }, 100);
+    }
+  </script>
+
+</body>
+</html>

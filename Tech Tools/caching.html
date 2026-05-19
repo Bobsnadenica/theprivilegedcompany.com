@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 11: Caching | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #d29922; /* Redis/Orange vibes */
+      --accent-hit: #2ea043;     /* Green for Hit */
+      --accent-miss: #ff7b72;    /* Red for Miss */
+      --accent-db: #0db7ed;      /* Blue for DB */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(210, 153, 34, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 80%, rgba(13, 183, 237, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* ANALOGY */
+    .analogy-block {
+      background: #161b22; padding: 1.5rem; border-radius: 8px; border: 1px dashed #30363d;
+      margin-top: 1rem; display: flex; align-items: center; gap: 1rem;
+    }
+    .analogy-icon { font-size: 2rem; }
+
+    /* GAMIFICATION: LATENCY RACE */
+    .sim-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 300px; gap: 2rem;
+    }
+    @media (max-width: 800px) { .sim-console { grid-template-columns: 1fr; } }
+
+    /* RACE TRACK (Left) */
+    .race-track {
+      position: relative; border: 1px solid #30363d; border-radius: 8px;
+      background: #010409; min-height: 300px; padding: 2rem;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    
+    .node {
+      display: flex; align-items: center; gap: 1rem; z-index: 2; position: relative;
+    }
+    .node-icon { 
+      width: 50px; height: 50px; background: #21262d; border-radius: 8px; 
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+      border: 1px solid #30363d;
+    }
+    .node-label { font-weight: bold; color: #8b949e; font-size: 0.9rem; }
+
+    /* THE CACHE LAYER */
+    .cache-layer {
+      position: absolute; top: 110px; left: 2rem; right: 2rem; height: 60px;
+      border: 2px dashed var(--accent-primary); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(210, 153, 34, 0.05); color: var(--accent-primary); font-weight: bold;
+    }
+    .cache-content { font-family: var(--font-mono); font-size: 0.8rem; }
+
+    /* TRAVELING PACKET */
+    .packet {
+      width: 14px; height: 14px; background: #fff; border-radius: 50%;
+      position: absolute; left: 45px; top: 45px; /* Start at User */
+      box-shadow: 0 0 10px #fff; opacity: 0; z-index: 10;
+    }
+
+    /* CONTROLS (Right) */
+    .control-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .status-display {
+      background: #000; padding: 1.5rem; border-radius: 8px; border: 1px solid #30363d;
+      text-align: center;
+    }
+    .timer { font-family: var(--font-mono); font-size: 2.5rem; color: #fff; font-weight: bold; }
+    .result-badge { 
+      display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; 
+      font-weight: bold; margin-top: 5px; text-transform: uppercase;
+    }
+    .hit { background: var(--accent-hit); color: #000; }
+    .miss { background: var(--accent-miss); color: #000; }
+
+    .btn {
+      padding: 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
+      font-size: 1rem; transition: all 0.2s; background: var(--accent-primary); color: #000;
+      width: 100%; display: flex; flex-direction: column; align-items: center;
+    }
+    .btn:hover { filter: brightness(1.1); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .log-list { font-family: var(--font-mono); font-size: 0.8rem; color: #8b949e; margin-top: 1rem; }
+    .log-item { display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding: 5px 0; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Data & Reliability</div>
+      <h1>Caching</h1>
+      <p class="intro">
+        Caching is the art of <span style="color:var(--accent-primary)">remembering things</span> so you don't have to go look them up again.
+        It trades memory (RAM) for speed (Latency).
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3>The Problem</h3>
+        <p>Databases store data on disks (Hard Drives). Reading from a disk is slow. Network travel is even slower. A typical DB query takes <strong>50ms - 200ms</strong>.</p>
+      </div>
+
+      <div class="card">
+        <h3>The Solution</h3>
+        <p>We put a "Cache" (like Redis or Memcached) in front of the DB. Caches store data in <strong>RAM (Memory)</strong>. Reading from RAM takes <strong>< 1ms</strong>.</p>
+      </div>
+    </div>
+
+    <div class="analogy-block">
+      <div class="analogy-icon">🎒</div>
+      <div>
+        <strong>The Backpack Analogy:</strong><br>
+        Imagine your <strong>Math Book</strong> is at the library (The Database). It takes 30 minutes to go get it.<br>
+        If you put the book in your <strong>Backpack</strong> (The Cache), it takes 3 seconds to grab it. <br>
+        But your backpack is small... you can't fit every book in the world in it.
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Latency Race: RAM vs Disk</h2>
+    <p style="margin-bottom:1rem; color:var(--text-secondary);">
+      <strong>Experiment:</strong> Request "User Profile ID: 101".
+      <br>1st time: The Cache is empty (Miss). 2nd time: The Cache has it (Hit).
+    </p>
+
+    <div class="sim-console">
+      
+      <div class="race-track">
+        <div style="position:absolute; left:48px; top:50px; bottom:50px; width:2px; background:#30363d; z-index:1;"></div>
+
+        <div class="node">
+          <div class="node-icon">👤</div>
+          <div class="node-label">You (Client)</div>
+        </div>
+
+        <div class="cache-layer">
+          <span style="margin-right:10px;">⚡ Redis Cache</span>
+          <span id="cacheText" class="cache-content">[ Empty ]</span>
+        </div>
+
+        <div class="node" style="margin-top:auto;">
+          <div class="node-icon" style="background:#0db7ed; color:#000;">🗄️</div>
+          <div class="node-label">Main Database (Disk)</div>
+        </div>
+
+        <div class="packet" id="packet"></div>
+      </div>
+
+      <div class="control-panel">
+        <div class="status-display">
+          <div style="font-size:0.8rem; color:#8b949e; text-transform:uppercase;">Time Taken</div>
+          <div class="timer" id="timerDisplay">0 ms</div>
+          <div class="result-badge" id="badge" style="opacity:0;">Ready</div>
+        </div>
+
+        <button id="fetchBtn" class="btn" onclick="fetchData()">
+          <span>Fetch Data (ID: 101)</span>
+          <span style="font-size:0.7rem; font-weight:normal; opacity:0.8;">Click twice to see the difference</span>
+        </button>
+
+        <div class="log-list" id="logList">
+          </div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">🗑️ Eviction Policies (Taking out the trash)</h2>
+    <p style="color:var(--text-secondary); margin-bottom:1.5rem;">
+      Your cache has limited space (RAM is expensive). What do you delete when it gets full?
+    </p>
+    
+    <div class="concept-grid">
+      <div class="card">
+        <h3>LRU (Least Recently Used)</h3>
+        <p>Delete the item that hasn't been used for the longest time. <br><em>"Nobody asked for 'Page 5' in a week? Throw it out."</em></p>
+      </div>
+      <div class="card">
+        <h3>TTL (Time To Live)</h3>
+        <p>Give every item an expiration date (e.g., 5 minutes). When the time is up, it self-destructs. Ensures data doesn't get too stale.</p>
+      </div>
+      <div class="card">
+        <h3>LFU (Least Frequently Used)</h3>
+        <p>Delete the item that is used the least often overall, even if it was used recently.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const packet = document.getElementById('packet');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const badge = document.getElementById('badge');
+    const cacheText = document.getElementById('cacheText');
+    const btn = document.getElementById('fetchBtn');
+    const logList = document.getElementById('logList');
+
+    let cache = {}; // Simple JS object acting as Redis
+    let isFetching = false;
+
+    function addLog(type, ms) {
+      const div = document.createElement('div');
+      div.className = 'log-item';
+      div.innerHTML = `<span>${type}</span><span style="color:${type === 'CACHE HIT' ? '#2ea043' : '#ff7b72'}">${ms}ms</span>`;
+      logList.prepend(div);
+    }
+
+    function fetchData() {
+      if(isFetching) return;
+      isFetching = true;
+      btn.disabled = true;
+      
+      const key = "user:101";
+      
+      // Reset animations
+      packet.style.transition = 'none';
+      packet.style.top = '45px';
+      packet.style.opacity = '1';
+      badge.style.opacity = '0';
+      timerDisplay.innerText = "0 ms";
+
+      // 1. Travel to Cache Layer (Fast)
+      setTimeout(() => {
+        packet.style.transition = 'top 0.5s linear';
+        packet.style.top = '130px'; // Cache position
+      }, 50);
+
+      // Check Cache
+      setTimeout(() => {
+        if(cache[key]) {
+          // --- CACHE HIT ---
+          timerDisplay.innerText = "5 ms";
+          badge.innerText = "CACHE HIT";
+          badge.className = "result-badge hit";
+          badge.style.opacity = '1';
+          addLog("CACHE HIT", 5);
+          
+          // Return immediately
+          packet.style.transition = 'top 0.2s linear';
+          packet.style.top = '45px'; // Back to user
+          
+          setTimeout(() => {
+            packet.style.opacity = '0';
+            btn.disabled = false;
+            isFetching = false;
+          }, 200);
+
+        } else {
+          // --- CACHE MISS ---
+          badge.innerText = "MISS";
+          badge.className = "result-badge miss";
+          badge.style.opacity = '1';
+          
+          // Continue to DB (Slow)
+          packet.style.top = '250px'; // DB position
+          packet.style.transition = 'top 1.5s ease-out'; // Slow travel
+          
+          // Counter effect
+          let ms = 10;
+          const counter = setInterval(() => {
+            ms += 15;
+            timerDisplay.innerText = ms + " ms";
+            if(ms > 250) clearInterval(counter);
+          }, 100);
+
+          setTimeout(() => {
+            // Reached DB
+            clearInterval(counter);
+            timerDisplay.innerText = "320 ms";
+            
+            // Return Trip
+            packet.style.transition = 'top 0.2s linear';
+            packet.style.top = '130px'; // Stop at cache to save
+            
+            setTimeout(() => {
+              // Populate Cache
+              cache[key] = true;
+              cacheText.innerText = `[ Key: ${key} ]`;
+              cacheText.style.color = "#2ea043";
+              
+              addLog("CACHE MISS", 320);
+
+              // Back to User
+              packet.style.top = '45px';
+              setTimeout(() => {
+                packet.style.opacity = '0';
+                btn.disabled = false;
+                isFetching = false;
+              }, 200);
+            }, 300);
+
+          }, 1500); // 1.5s latency simulation
+        }
+      }, 550); // Initial travel time to cache
+    }
+  </script>
+
+</body>
+</html>

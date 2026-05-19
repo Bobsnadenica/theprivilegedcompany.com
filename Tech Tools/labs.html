@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Labs | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #04101d;
+      --bg-deep: #02070d;
+      --panel: rgba(8, 18, 33, 0.82);
+      --panel-strong: #0c1830;
+      --line: rgba(124, 177, 255, 0.16);
+      --line-strong: rgba(124, 177, 255, 0.34);
+      --text: #f2f7ff;
+      --muted: #9cb0cb;
+      --blue: #6ea8ff;
+      --success: #5ad7a0;
+      --warning: #ffc86f;
+      --danger: #ff8f8f;
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      background: linear-gradient(180deg, #071120 0%, #040a12 45%, #03070d 100%);
+    }
+
+    .shell { width: min(1200px, calc(100% - 2.5rem)); margin: 0 auto; padding: 4rem 0; }
+
+    .breadcrumb { margin-bottom: 1rem; font-size: 0.9rem; color: var(--muted); }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+
+    h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 1rem; }
+    .intro { max-width: 800px; color: var(--muted); font-size: 1.2rem; margin-bottom: 3rem; }
+
+    .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; }
+    .lab-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .lab-card:hover { transform: translateY(-4px); border-color: var(--line-strong); }
+
+    .lab-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+      background: rgba(110, 168, 255, 0.1);
+      color: var(--blue);
+    }
+
+    h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+    p { color: var(--muted); margin-bottom: 1.5rem; flex-grow: 1; }
+
+    .code-box {
+      background: #05080d;
+      border: 1px solid var(--line);
+      border-radius: 0.8rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .code-box pre { font-family: var(--font-mono); font-size: 0.9rem; overflow-x: auto; color: var(--success); }
+    .copy-hint { position: absolute; top: 0.5rem; right: 0.8rem; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.8rem 1.5rem;
+      background: var(--blue);
+      color: #04101d;
+      text-decoration: none;
+      border-radius: 999px;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .download-btn:hover { background: #9ec1ff; }
+
+    .os-badges { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .os-badge { font-size: 0.7rem; color: var(--muted); border: 1px solid var(--line); padding: 2px 6px; border-radius: 4px; }
+
+    footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Hands-on Learning</div>
+    <h1>Interactive Labs</h1>
+    <p class="intro">
+      Real-world scenarios with built-in problems. Download the scripts, execute them on your machine, 
+      and try to solve the challenge. All labs use <code>kind</code> to ensure they are safe and disposable.
+    </p>
+
+    <div class="lab-grid">
+      <!-- LAB 1 -->
+      <article class="lab-card">
+        <span class="lab-badge">Kubernetes Scheduling</span>
+        <h3>The Impossible Schedule</h3>
+        <p>A pod is stuck in Pending because of an unsatisfiable node affinity. Learn how to debug scheduling constraints.</p>
+        <div class="code-box">
+          <span class="copy-hint">Terminal</span>
+          <pre><code>curl -O labs/k8s_affinity_lab.sh
+chmod +x k8s_affinity_lab.sh
+./k8s_affinity_lab.sh</code></pre>
+        </div>
+        <a href="labs/k8s_affinity_lab.sh" download class="download-btn">Download Script</a>
+        <div class="os-badges">
+          <span class="os-badge">Linux</span>
+          <span class="os-badge">macOS</span>
+          <span class="os-badge">WSL2</span>
+        </div>
+      </article>
+
+      <!-- LAB 2 -->
+      <article class="lab-card">
+        <span class="lab-badge">Networking</span>
+        <h3>The Silent Service</h3>
+        <p>A service is live but has no endpoints. Find the selector mismatch that is breaking the traffic flow.</p>
+        <div class="code-box">
+          <span class="copy-hint">Terminal</span>
+          <pre><code>curl -O labs/k8s_service_lab.sh
+chmod +x k8s_service_lab.sh
+./k8s_service_lab.sh</code></pre>
+        </div>
+        <a href="labs/k8s_service_lab.sh" download class="download-btn">Download Script</a>
+        <div class="os-badges">
+          <span class="os-badge">Linux</span>
+          <span class="os-badge">macOS</span>
+          <span class="os-badge">WSL2</span>
+        </div>
+      </article>
+
+      <!-- ENVIRONMENT AUDIT -->
+      <article class="lab-card" style="border-color: var(--warning);">
+        <span class="lab-badge" style="background: rgba(255, 200, 111, 0.1); color: var(--warning);">Prerequisite</span>
+        <h3>Environment Audit</h3>
+        <p>Run this first to ensure you have Docker, kubectl, and Kind installed and ready to go.</p>
+        <div class="code-box">
+          <span class="copy-hint">Terminal</span>
+          <pre><code>./setup_k8s.sh</code></pre>
+        </div>
+        <a href="setup_k8s.sh" download class="download-btn" style="background: var(--warning);">Run Auditor</a>
+      </article>
+    </div>
+
+    <footer>
+      Note: Windows users should run these scripts inside <strong>WSL2</strong> or <strong>Git Bash</strong>. Always remember to run the <code>cleanup</code> command provided by the script when you're finished.
+    </footer>
+  </div>
+</body>
+</html>

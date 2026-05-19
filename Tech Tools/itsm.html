@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 90: ITIL & Change Management | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent-risk: #ff7b72;
+      --accent-safe: #2ea043;
+      --accent-itsm: #79c0ff;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(90deg, #fff, var(--accent-itsm)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+
+    /* COMPARISON */
+    .compare-table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem; background: #161b22;
+      border: 1px solid #30363d; border-radius: 8px; overflow: hidden;
+    }
+    .compare-table th { background: #21262d; text-align: left; padding: 1rem; color: #fff; }
+    .compare-table td { padding: 1rem; border-top: 1px solid #30363d; color: var(--text-secondary); }
+    
+    .badge {
+      display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;
+      color: #fff;
+    }
+    .badge-std { background: var(--accent-safe); }
+    .badge-norm { background: var(--accent-risk); }
+
+    /* INTERACTIVE */
+    .approval-box {
+      background: #0d1117; padding: 2rem; border-radius: 12px; border: 1px solid #30363d;
+      text-align: center; margin-top: 2rem;
+    }
+    .btn {
+      padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; margin: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Process</div>
+      <h1>Change Management</h1>
+      <p style="color:#8b949e; font-size:1.2rem;">Before you run `terraform apply`, you usually need a ticket. This is how big companies avoid breaking things.</p>
+    </header>
+
+    <h2 style="margin-bottom:1rem;">⚖️ Standard vs Normal Change</h2>
+    <div class="compare-table-wrapper">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="color:var(--accent-safe);">Standard Change</th>
+            <th style="color:var(--accent-risk);">Normal Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Risk Level</strong></td>
+            <td>Low Risk (Routine)</td>
+            <td>Medium/High Risk</td>
+          </tr>
+          <tr>
+            <td><strong>Approval</strong></td>
+            <td><span class="badge badge-std">Pre-Approved</span></td>
+            <td><span class="badge badge-norm">CAB Approval Required</span></td>
+          </tr>
+          <tr>
+            <td><strong>Example</strong></td>
+            <td>Patching OS, Rebooting Dev Server, Password Reset</td>
+            <td>Upgrading Database, Changing Firewall Rules, New App Release</td>
+          </tr>
+          <tr>
+            <td><strong>Frequency</strong></td>
+            <td>Daily / Frequent</td>
+            <td>Weekly / Monthly</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="approval-box">
+      <h3>👮 CAB Simulator</h3>
+      <p style="color:#8b949e; margin-bottom:1rem;">Request: <strong>"Update Production Database Version"</strong></p>
+      
+      <div id="cab-result" style="margin-bottom:1rem; font-weight:bold; height:20px;"></div>
+      
+      <button class="btn" style="background:#21262d; color:#fff;" onclick="decide('std')">Mark as Standard</button>
+      <button class="btn" style="background:var(--accent-risk); color:#000;" onclick="decide('norm')">Mark as Normal</button>
+    </div>
+
+  </div>
+
+  <script>
+    function decide(type) {
+      const res = document.getElementById('cab-result');
+      if(type === 'std') {
+        res.innerHTML = "<span style='color:#ff7b72'>❌ DENIED. Database updates are high risk! Needs CAB.</span>";
+      } else {
+        res.innerHTML = "<span style='color:#2ea043'>✅ CORRECT. This goes to the Change Advisory Board (CAB) on Tuesday.</span>";
+      }
+    }
+  </script>
+
+</body>
+</html>

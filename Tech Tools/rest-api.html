@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 24: REST API | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-api: #a371f7;     /* Purple for API */
+      --accent-get: #0db7ed;     /* Blue */
+      --accent-post: #2ea043;    /* Green */
+      --accent-put: #d29922;     /* Orange */
+      --accent-delete: #ff7b72;  /* Red */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(163, 113, 247, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(13, 183, 237, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-api); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-api));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-api);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* ANALOGY */
+    .analogy-box {
+      background: #161b22; padding: 1.5rem; border-radius: 8px; border: 1px dashed #30363d;
+      display: flex; gap: 1rem; align-items: center; margin-top: 1rem;
+    }
+    .waiter-icon { font-size: 2.5rem; }
+
+    /* GAMIFICATION: API LAB */
+    .api-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .api-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: REQUEST BUILDER */
+    .request-pane { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .url-bar {
+      display: flex; background: #161b22; border: 1px solid #30363d; border-radius: 6px; overflow: hidden;
+    }
+    .method-select {
+      background: #21262d; color: #fff; border: none; padding: 10px 15px; font-weight: bold;
+      cursor: pointer; border-right: 1px solid #30363d; font-family: var(--font-mono);
+    }
+    .url-input {
+      background: transparent; border: none; color: #fff; padding: 10px; flex-grow: 1;
+      font-family: var(--font-mono); font-size: 0.9rem; outline: none;
+    }
+    
+    .json-editor {
+      background: #000; border: 1px solid #30363d; border-radius: 6px; padding: 1rem;
+      font-family: var(--font-mono); color: #e6edf3; min-height: 150px; font-size: 0.9rem;
+      white-space: pre; outline: none;
+    }
+    .editor-label { font-size: 0.8rem; color: #8b949e; margin-bottom: 5px; font-weight: bold; }
+
+    .btn-send {
+      background: var(--accent-api); color: #fff; border: none; padding: 12px; border-radius: 6px;
+      font-weight: bold; cursor: pointer; transition: filter 0.2s; font-size: 1rem;
+    }
+    .btn-send:hover { filter: brightness(1.1); }
+
+    /* RIGHT: RESPONSE & DB */
+    .response-pane { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .status-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
+      margin-bottom: 5px; background: #30363d; color: #8b949e;
+    }
+    .status-200 { background: rgba(46, 160, 67, 0.2); color: #2ea043; }
+    .status-404 { background: rgba(255, 123, 114, 0.2); color: #ff7b72; }
+    .status-201 { background: rgba(46, 160, 67, 0.2); color: #2ea043; }
+
+    .db-view {
+      border: 1px dashed #30363d; border-radius: 6px; padding: 1rem; background: #010409;
+    }
+    .db-title { font-size: 0.8rem; color: #8b949e; margin-bottom: 10px; font-weight: bold; text-transform: uppercase; }
+    
+    .json-block {
+      font-family: var(--font-mono); font-size: 0.85rem; color: #8b949e;
+    }
+    .key { color: #79c0ff; }
+    .str { color: #a5d6ff; }
+    .num { color: #d2a8ff; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Development & OS</div>
+      <h1>REST API</h1>
+      <p class="intro">
+        Representational State Transfer. It's a set of rules for how computers talk to each other over the web.
+        It treats everything as a <span style="color:var(--accent-api)">Resource</span> (a noun) that you can act upon using <span style="color:#fff">Verbs</span>.
+      </p>
+    </header>
+
+    <h2 class="section-title">🍽️ The Waiter Analogy</h2>
+    <div class="analogy-box">
+      <div class="waiter-icon">💁</div>
+      <div>
+        <p><strong>You (Client):</strong> You are hungry. You look at the <strong>Menu (Documentation)</strong>.</p>
+        <p><strong>Waiter (API):</strong> Takes your order to the kitchen. You don't know how the kitchen works; you just talk to the waiter.</p>
+        <p><strong>Kitchen (Server/DB):</strong> Cooks the food (Data) and gives it back to the waiter.</p>
+      </div>
+    </div>
+
+    <div class="concept-grid" style="margin-top:2rem;">
+      <div class="card" style="border-top: 4px solid var(--accent-get);">
+        <h3>GET</h3>
+        <p><strong>Retrieve data.</strong><br>Like reading a blog post or viewing a profile. Safe to run multiple times (Idempotent).</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-post);">
+        <h3>POST</h3>
+        <p><strong>Create data.</strong><br>Like submitting a signup form. Adds a new entry to the database.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-put);">
+        <h3>PUT / PATCH</h3>
+        <p><strong>Update data.</strong><br>PUT replaces the whole object. PATCH just updates one field (like changing your password).</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--accent-delete);">
+        <h3>DELETE</h3>
+        <p><strong>Remove data.</strong><br>Like deleting a photo. It's gone forever.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ API Laboratory</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> You are the Client. Interact with the "Users" database.
+      <br>Try: <strong>GET</strong> to see all, <strong>POST</strong> to add yourself, or <strong>DELETE</strong> user #1.
+    </p>
+
+    <div class="api-console">
+      
+      <div class="request-pane">
+        <div style="font-weight:bold; color:#fff;">Request Builder</div>
+        
+        <div class="url-bar">
+          <select class="method-select" id="reqMethod" onchange="updateUI()">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+          <div style="display:flex; align-items:center; padding:0 10px; background:#161b22; color:#8b949e; font-family:var(--font-mono); font-size:0.9rem;">
+            https://api.app.com
+          </div>
+          <input type="text" class="url-input" id="reqPath" value="/users">
+        </div>
+
+        <div id="bodyInputGroup" style="display:none;">
+          <div class="editor-label">Request Body (JSON)</div>
+          <textarea class="json-editor" id="reqBody">{
+  "name": "New User",
+  "role": "Developer"
+}</textarea>
+        </div>
+
+        <button class="btn-send" onclick="sendRequest()">Send Request 🚀</button>
+      </div>
+
+      <div class="response-pane">
+        <div style="font-weight:bold; color:#fff;">Server Response</div>
+        
+        <div class="json-editor" style="background:#0d1117; border-color:#30363d; min-height:100px;">
+          <div id="resStatus" class="status-badge">Ready</div>
+          <div id="resOutput" style="color:#a5d6ff;">...</div>
+        </div>
+
+        <div class="db-view">
+          <div class="db-title">Database State (users_table)</div>
+          <div id="dbVisual" class="json-block">
+            </div>
+        </div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">🚥 Status Codes</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+      <div class="card">
+        <h3 style="color:#2ea043">2xx Success</h3>
+        <ul style="padding-left:1rem; color:var(--text-secondary); font-size:0.9rem;">
+          <li><strong>200 OK:</strong> It worked.</li>
+          <li><strong>201 Created:</strong> New thing made (POST).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:#d29922">4xx Client Error</h3>
+        <ul style="padding-left:1rem; color:var(--text-secondary); font-size:0.9rem;">
+          <li><strong>400 Bad Request:</strong> You sent garbage.</li>
+          <li><strong>401 Unauthorized:</strong> Who are you?</li>
+          <li><strong>404 Not Found:</strong> It's not here.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="color:#ff7b72">5xx Server Error</h3>
+        <ul style="padding-left:1rem; color:var(--text-secondary); font-size:0.9rem;">
+          <li><strong>500 Internal Error:</strong> The kitchen is on fire.</li>
+          <li><strong>503 Unavailable:</strong> Server is overloaded.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Initial Database
+    let db = [
+      { id: 1, name: "Alice", role: "Admin" },
+      { id: 2, name: "Bob", role: "User" }
+    ];
+
+    const reqMethod = document.getElementById('reqMethod');
+    const reqPath = document.getElementById('reqPath');
+    const reqBody = document.getElementById('reqBody');
+    const resStatus = document.getElementById('resStatus');
+    const resOutput = document.getElementById('resOutput');
+    const dbVisual = document.getElementById('dbVisual');
+    const bodyGroup = document.getElementById('bodyInputGroup');
+
+    function updateUI() {
+      const method = reqMethod.value;
+      const colorMap = { GET: '#0db7ed', POST: '#2ea043', DELETE: '#ff7b72' };
+      reqMethod.style.color = colorMap[method];
+
+      // Show Body input only for POST
+      if (method === 'POST') {
+        bodyGroup.style.display = 'block';
+      } else {
+        bodyGroup.style.display = 'none';
+      }
+    }
+
+    function renderDB() {
+      // Simple JSON syntax highlighting
+      let html = '[\n';
+      db.forEach((item, index) => {
+        html += '  {\n';
+        Object.keys(item).forEach(k => {
+          let val = item[k];
+          let valClass = typeof val === 'number' ? 'num' : 'str';
+          if (typeof val === 'string') val = `"${val}"`;
+          html += `    <span class="key">"${k}"</span>: <span class="${valClass}">${val}</span>,\n`;
+        });
+        html = html.replace(/,\n$/, '\n'); // remove last comma
+        html += `  }${index < db.length - 1 ? ',' : ''}\n`;
+      });
+      html += ']';
+      dbVisual.innerHTML = html;
+    }
+
+    function sendRequest() {
+      const method = reqMethod.value;
+      const path = reqPath.value.trim();
+      
+      resStatus.className = 'status-badge';
+      resOutput.innerText = 'Processing...';
+
+      setTimeout(() => {
+        // --- ROUTING LOGIC ---
+        
+        // 1. GET /users
+        if (method === 'GET' && path === '/users') {
+          respond(200, db);
+        }
+        
+        // 2. GET /users/:id
+        else if (method === 'GET' && path.startsWith('/users/')) {
+          const id = parseInt(path.split('/')[2]);
+          const user = db.find(u => u.id === id);
+          if (user) {
+            respond(200, user);
+          } else {
+            respond(404, { error: "User not found" });
+          }
+        }
+
+        // 3. POST /users
+        else if (method === 'POST' && path === '/users') {
+          try {
+            const payload = JSON.parse(reqBody.value);
+            const newUser = {
+              id: db.length > 0 ? db[db.length - 1].id + 1 : 1,
+              name: payload.name || "Anon",
+              role: payload.role || "Guest"
+            };
+            db.push(newUser);
+            renderDB();
+            respond(201, newUser);
+          } catch (e) {
+            respond(400, { error: "Invalid JSON body" });
+          }
+        }
+
+        // 4. DELETE /users/:id
+        else if (method === 'DELETE' && path.startsWith('/users/')) {
+          const id = parseInt(path.split('/')[2]);
+          const initialLen = db.length;
+          db = db.filter(u => u.id !== id);
+          
+          if (db.length < initialLen) {
+            renderDB();
+            respond(200, { message: `User ${id} deleted` });
+          } else {
+            respond(404, { error: "User not found" });
+          }
+        }
+
+        // 404 Catch All
+        else {
+          respond(404, { error: `Cannot ${method} ${path}` });
+        }
+
+      }, 300); // Fake latency
+    }
+
+    function respond(code, data) {
+      resStatus.innerText = code + (code === 200 ? ' OK' : code === 201 ? ' Created' : code === 404 ? ' Not Found' : ' Error');
+      
+      if (code >= 200 && code < 300) resStatus.className = 'status-badge status-200';
+      else resStatus.className = 'status-badge status-404';
+
+      resOutput.innerText = JSON.stringify(data, null, 2);
+    }
+
+    // Init
+    updateUI();
+    renderDB();
+
+  </script>
+
+</body>
+</html>

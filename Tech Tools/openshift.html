@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 16: OpenShift | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-redhat: #ee0000;  /* Red Hat Red */
+      --accent-os: #e61b23;      /* OpenShift Red */
+      --accent-build: #e3b341;   /* Gold (Building) */
+      --accent-success: #2ea043; /* Green (Running) */
+      --accent-route: #0db7ed;   /* Blue (Networking) */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 85% 15%, rgba(238, 0, 0, 0.08), transparent 25%),
+        radial-gradient(circle at 15% 85%, rgba(46, 160, 67, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-os); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-os));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-os);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-os); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-os); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* COMPARISON TABLE */
+    .comp-table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem; background: #161b22;
+      border: 1px solid #30363d; border-radius: 8px; overflow: hidden;
+    }
+    .comp-table th { background: #21262d; text-align: left; padding: 1rem; color: #fff; font-size: 0.9rem; }
+    .comp-table td { padding: 1rem; border-top: 1px solid #30363d; color: var(--text-secondary); font-size: 0.9rem; }
+    .comp-highlight { color: var(--accent-os); font-weight: bold; }
+
+    /* GAMIFICATION: S2I LAB */
+    .lab-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 250px 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .lab-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: SOURCE CODE */
+    .source-pane {
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .code-repo {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem;
+      cursor: grab; transition: all 0.2s; position: relative;
+    }
+    .code-repo:hover { border-color: #fff; transform: scale(1.02); }
+    .code-repo:active { cursor: grabbing; }
+    .repo-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .repo-lang { 
+      position: absolute; top: 10px; right: 10px; font-size: 0.7rem; 
+      background: #30363d; padding: 2px 6px; border-radius: 4px; 
+    }
+
+    /* RIGHT: PIPELINE VISUALIZER */
+    .pipeline-stage {
+      background: #010409; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; display: flex; align-items: center; justify-content: space-between;
+      position: relative; min-height: 250px;
+    }
+    
+    .pipe-step {
+      width: 100px; height: 100px; border-radius: 50%; border: 2px dashed #30363d;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: #8b949e; position: relative;
+      transition: all 0.5s;
+    }
+    .pipe-step.active { border-color: var(--accent-build); color: #fff; box-shadow: 0 0 15px rgba(227, 179, 65, 0.2); }
+    .pipe-step.done { border-color: var(--accent-success); border-style: solid; background: rgba(46, 160, 67, 0.1); }
+    
+    .connector {
+      flex-grow: 1; height: 4px; background: #30363d; margin: 0 10px; position: relative;
+    }
+    .connector-fill {
+      height: 100%; width: 0%; background: var(--accent-success); transition: width 0.5s;
+    }
+
+    /* DROPPABLE ZONE */
+    .drop-zone {
+      position: absolute; inset: 10px; border: 2px dashed var(--accent-os); border-radius: 8px;
+      background: rgba(238, 0, 0, 0.05); display: flex; align-items: center; justify-content: center;
+      font-weight: bold; color: var(--accent-os); z-index: 10; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .drop-zone.visible { opacity: 1; pointer-events: all; }
+
+    /* RESULT CARD */
+    .route-card {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #161b22; padding: 10px 20px; border-radius: 6px; border: 1px solid var(--accent-route);
+      color: var(--accent-route); font-family: var(--font-mono); font-size: 0.9rem;
+      opacity: 0; transition: all 0.5s; display: flex; align-items: center; gap: 10px;
+    }
+    .route-card.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .btn-reset {
+      margin-top: 1rem; width: 100%; padding: 10px; background: #21262d; border: 1px solid #30363d;
+      color: #8b949e; cursor: pointer; border-radius: 6px;
+    }
+    .btn-reset:hover { background: #30363d; color: #fff; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>OpenShift</h1>
+      <p class="intro">
+        Enterprise Kubernetes. If Kubernetes is the engine, <span style="color:var(--accent-os)">OpenShift</span> is the luxury car built around it. 
+        It adds developer tools, security, and a console out of the box.
+      </p>
+    </header>
+
+    <h2 class="section-title">⚖️ Vanilla K8s vs. OpenShift</h2>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="comp-table" style="margin:0; border:none;">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Kubernetes (Vanilla)</th>
+            <th>OpenShift (Red Hat)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Interface</strong></td>
+            <td>Basic Dashboard (often installed manually)</td>
+            <td><span class="comp-highlight">Developer Console</span> (Top-tier UI)</td>
+          </tr>
+          <tr>
+            <td><strong>Security</strong></td>
+            <td>Open by default (Root allowed)</td>
+            <td><span class="comp-highlight">Locked down</span> (No Root allowed)</td>
+          </tr>
+          <tr>
+            <td><strong>Building Images</strong></td>
+            <td>You write Dockerfiles & build manually</td>
+            <td><span class="comp-highlight">Source-to-Image (S2I)</span> (Automated)</td>
+          </tr>
+          <tr>
+            <td><strong>Ingress</strong></td>
+            <td>Ingress Controller</td>
+            <td><span class="comp-highlight">Routes</span> (Easier to configure)</td>
+          </tr>
+          <tr>
+            <td><strong>Updates</strong></td>
+            <td>Manual Cluster Upgrades</td>
+            <td><span class="comp-highlight">Over-the-Air Updates</span> (One click)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title">🕹️ The "Magic" of Source-to-Image (S2I)</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      In standard K8s, you need a Dockerfile. In OpenShift, you just provide the <strong>Source Code</strong>.
+      <br>Drag the repository on the left into the OpenShift Pipeline to see it happen.
+    </p>
+
+    <div class="lab-console">
+      
+      <div class="source-pane">
+        <div style="font-weight:bold; color:#8b949e; margin-bottom:5px;">YOUR REPOSITORIES</div>
+        
+        <div class="code-repo" id="dragItem" draggable="true" ondragstart="drag(event)">
+          <div class="repo-lang">Node.js</div>
+          <div class="repo-icon">📦</div>
+          <div style="font-weight:bold;">my-web-app</div>
+          <div style="font-size:0.8rem; color:#8b949e;">https://github.com/me/app</div>
+        </div>
+
+        <button class="btn-reset" onclick="resetSim()">Reset Simulator</button>
+      </div>
+
+      <div class="pipeline-stage" ondrop="drop(event)" ondragover="allowDrop(event)">
+        
+        <div class="drop-zone" id="dropZone">DRAG CODE HERE</div>
+
+        <div class="pipe-step" id="step1">
+          <div style="font-size:1.5rem;">🔍</div>
+          <div>Detect</div>
+        </div>
+
+        <div class="connector"><div class="connector-fill" id="conn1"></div></div>
+
+        <div class="pipe-step" id="step2">
+          <div style="font-size:1.5rem;">🏗️</div>
+          <div>Build</div>
+        </div>
+
+        <div class="connector"><div class="connector-fill" id="conn2"></div></div>
+
+        <div class="pipe-step" id="step3">
+          <div style="font-size:1.5rem;">🚀</div>
+          <div>Deploy</div>
+        </div>
+
+        <div class="route-card" id="routeResult">
+          <span>🔗</span>
+          <span>my-web-app.openshift.com</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">🧠 Key OpenShift Objects</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>📂 Project</h3>
+        <p>It's just a Kubernetes <strong>Namespace</strong>, but with extra features like user quotas and self-service creation for developers.</p>
+      </div>
+      <div class="card">
+        <h3>🛣️ Route</h3>
+        <p>The OpenShift version of Ingress. It exposes a Service to the internet with a public URL (e.g., app.cluster.com) automatically.</p>
+      </div>
+      <div class="card">
+        <h3>🏗️ BuildConfig</h3>
+        <p>Defines how to turn source code into an image. It watches your Git repo and triggers a new build whenever you push code.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const dragItem = document.getElementById('dragItem');
+    const routeCard = document.getElementById('routeResult');
+    
+    const steps = [
+      document.getElementById('step1'),
+      document.getElementById('step2'),
+      document.getElementById('step3')
+    ];
+    const conns = [
+      document.getElementById('conn1'),
+      document.getElementById('conn2')
+    ];
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+      dropZone.classList.add('visible');
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      dropZone.classList.remove('visible');
+      const data = ev.dataTransfer.getData("text");
+      
+      if(data === "dragItem") {
+        dragItem.style.display = "none"; // Hide dragged item
+        startPipeline();
+      }
+    }
+
+    function startPipeline() {
+      // Step 1: Detect
+      setActive(0, "Detecting Language...");
+      
+      setTimeout(() => {
+        setDone(0);
+        conns[0].style.width = "100%";
+        
+        // Step 2: Build
+        setTimeout(() => {
+          setActive(1, "S2I Building...");
+          
+          setTimeout(() => {
+            setDone(1);
+            conns[1].style.width = "100%";
+            
+            // Step 3: Deploy
+            setTimeout(() => {
+              setActive(2, "Scaling Pods...");
+              
+              setTimeout(() => {
+                setDone(2);
+                routeCard.classList.add('show');
+              }, 1000);
+            }, 800);
+          }, 1500); // Build takes longer
+        }, 800);
+      }, 800);
+    }
+
+    function setActive(idx, text) {
+      steps[idx].classList.add('active');
+      // steps[idx].querySelector('div:last-child').innerText = text;
+    }
+
+    function setDone(idx) {
+      steps[idx].classList.remove('active');
+      steps[idx].classList.add('done');
+    }
+
+    function resetSim() {
+      dragItem.style.display = "block";
+      routeCard.classList.remove('show');
+      
+      steps.forEach(s => s.classList.remove('active', 'done'));
+      conns.forEach(c => c.style.width = "0%");
+    }
+  </script>
+
+</body>
+</html>

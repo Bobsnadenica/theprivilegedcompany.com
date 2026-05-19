@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 9: IAM | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #e3b341; /* Gold for Keys/Auth */
+      --accent-allow: #2ea043;   /* Green for Allow */
+      --accent-deny: #ff7b72;    /* Red for Deny */
+      --accent-admin: #a371f7;   /* Purple for Roles */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(227, 179, 65, 0.08), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(163, 113, 247, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: PERMISSION GATE */
+    .gate-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 300px 1fr 200px; gap: 2rem;
+    }
+    @media (max-width: 900px) { .gate-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: The Policy Editor */
+    .policy-editor {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1rem; display: flex; flex-direction: column; height: 100%;
+    }
+    .editor-title { font-weight: bold; color: #8b949e; margin-bottom: 1rem; display: flex; justify-content: space-between; }
+    
+    .json-block {
+      font-family: var(--font-mono); font-size: 0.85rem; color: #e6edf3;
+      flex-grow: 1; display: flex; flex-direction: column; gap: 5px;
+    }
+    .json-key { color: #79c0ff; }
+    .json-val { color: #a5d6ff; }
+    
+    .checkbox-group {
+      margin-left: 1rem; padding: 5px 0; border-left: 1px dashed #30363d; padding-left: 10px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .perm-option {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      font-size: 0.85rem; color: var(--text-secondary); transition: color 0.2s;
+    }
+    .perm-option:hover { color: #fff; }
+    .perm-option input { accent-color: var(--accent-primary); }
+
+    /* MIDDLE: The Visual Gate */
+    .gate-stage {
+      position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #010409; border: 1px solid #30363d; border-radius: 8px; min-height: 300px;
+    }
+
+    .user-avatar {
+      width: 60px; height: 60px; background: #21262d; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
+      border: 2px solid #30363d; margin-bottom: 2rem; position: relative; z-index: 2;
+      transition: all 0.3s;
+    }
+    .user-avatar.denied { border-color: var(--accent-deny); background: rgba(255, 123, 114, 0.1); animation: shake 0.4s; }
+    .user-avatar.allowed { border-color: var(--accent-allow); background: rgba(46, 160, 67, 0.1); }
+
+    .laser-gate {
+      width: 100%; height: 4px; background: var(--accent-deny);
+      box-shadow: 0 0 15px var(--accent-deny); margin: 2rem 0;
+      position: relative; transition: all 0.5s; opacity: 1;
+    }
+    .laser-gate.open { background: var(--accent-allow); box-shadow: 0 0 15px var(--accent-allow); opacity: 0.2; }
+
+    .resource-box {
+      width: 80px; height: 80px; background: #21262d; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2px solid #30363d; position: relative;
+    }
+    .res-icon { font-size: 2rem; margin-bottom: 5px; }
+    .res-label { font-size: 0.7rem; font-weight: bold; color: #8b949e; }
+    
+    .status-msg {
+      position: absolute; bottom: 10px; font-family: var(--font-mono);
+      font-size: 0.8rem; font-weight: bold;
+    }
+
+    /* RIGHT: Actions */
+    .action-panel {
+      display: flex; flex-direction: column; gap: 1rem; justify-content: center;
+    }
+    .btn {
+      padding: 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
+      font-size: 0.9rem; transition: all 0.2s; font-family: var(--font-sans); width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-test { background: var(--accent-primary); color: #000; }
+    .btn-test:hover { filter: brightness(1.1); }
+    
+    .log-box {
+      background: #000; padding: 10px; border-radius: 6px; border: 1px solid #30363d;
+      font-family: var(--font-mono); font-size: 0.75rem; color: #8b949e; height: 150px; overflow-y: auto;
+    }
+    .log-entry { margin-bottom: 5px; border-bottom: 1px dashed #21262d; padding-bottom: 2px; }
+    .log-allow { color: var(--accent-allow); }
+    .log-deny { color: var(--accent-deny); }
+
+    @keyframes shake {
+      0% { transform: translateX(0); } 25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); }
+    }
+
+    /* BEST PRACTICES SECTION */
+    .practice-list {
+      list-style: none; padding: 0;
+    }
+    .practice-item {
+      display: flex; gap: 1rem; margin-bottom: 1.5rem; background: #161b22; 
+      padding: 1rem; border-radius: 8px; border: 1px solid #30363d;
+    }
+    .practice-icon { font-size: 1.5rem; min-width: 40px; text-align: center; }
+    .practice-content h4 { margin-bottom: 0.25rem; color: var(--text-primary); }
+    .practice-content p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Security</div>
+      <h1>IAM: Identity & Access Management</h1>
+      <p class="intro">
+        If the cloud is a building, IAM is the <span style="color:var(--accent-primary)">receptionist and security guard</span>. 
+        It decides <strong>WHO</strong> you are (Authentication) and <strong>WHAT</strong> you can do (Authorization).
+      </p>
+    </header>
+
+    <h2 class="section-title">🔑 The "Who" and the "What"</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>👤 Users</h3>
+        <p>Permanent credentials. Like a <strong>Physical Badge</strong>. Used for actual humans (employees, developers). Should represent one person.</p>
+      </div>
+      <div class="card">
+        <h3>🎭 Roles</h3>
+        <p>Temporary credentials. Like a <strong>Visitor Hat</strong>. You put it on to do a specific job (e.g., "Admin Hat" or "Server Hat"), then take it off.</p>
+      </div>
+      <div class="card">
+        <h3>📜 Policies</h3>
+        <p>The rules. A <strong>JSON Document</strong> attached to a User or Role that explicitly says "Allow Access to Bucket X" or "Deny Access to Database Y".</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Simulator: The Permission Gate</h2>
+    <p style="margin-bottom:1rem; color:var(--text-secondary);">
+      <strong>Mission:</strong> The User needs to <strong>Read</strong> the data, but MUST NOT be allowed to <strong>Delete</strong> it.
+      Configure the JSON Policy correctly.
+    </p>
+
+    <div class="gate-console">
+      
+      <div class="policy-editor">
+        <div class="editor-title">
+          <span>policy.json</span>
+          <span style="font-size:0.8rem; background:#21262d; padding:2px 6px; border-radius:4px;">Draft</span>
+        </div>
+        
+        <div class="json-block">
+          <div>{</div>
+          <div style="margin-left:10px"><span class="json-key">"Effect"</span>: <span class="json-val">"Allow"</span>,</div>
+          <div style="margin-left:10px"><span class="json-key">"Action"</span>: [</div>
+          
+          <div class="checkbox-group">
+            <label class="perm-option">
+              <input type="checkbox" id="permRead"> "s3:GetObject" (Read)
+            </label>
+            <label class="perm-option">
+              <input type="checkbox" id="permWrite"> "s3:PutObject" (Write)
+            </label>
+            <label class="perm-option">
+              <input type="checkbox" id="permDelete"> "s3:DeleteObject" (Delete)
+            </label>
+            <label class="perm-option">
+              <input type="checkbox" id="permAdmin" style="accent-color:var(--accent-deny)"> "s3:*" (Full Admin)
+            </label>
+          </div>
+
+          <div style="margin-left:10px">],</div>
+          <div style="margin-left:10px"><span class="json-key">"Resource"</span>: <span class="json-val">"arn:aws:s3:::top-secret"</span></div>
+          <div>}</div>
+        </div>
+      </div>
+
+      <div class="gate-stage">
+        <div class="user-avatar" id="userAvatar">👤</div>
+        
+        <div class="laser-gate" id="laserGate"></div>
+        
+        <div class="resource-box">
+          <div class="res-icon">📁</div>
+          <div class="res-label">Top Secret</div>
+        </div>
+        
+        <div class="status-msg" id="statusMsg" style="color:var(--text-secondary)">Waiting...</div>
+      </div>
+
+      <div class="action-panel">
+        <button class="btn btn-test" onclick="attemptAction('read')">
+          Attempt Read 👁️
+        </button>
+        <button class="btn" style="background:#21262d; color:#fff; border:1px solid #30363d;" onclick="attemptAction('delete')">
+          Attempt Delete 🗑️
+        </button>
+        
+        <div class="log-box" id="accessLog">
+          <div class="log-entry">> System Ready.</div>
+          <div class="log-entry">> Default: Implicit Deny.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">🛡️ Security Best Practices</h2>
+    <ul class="practice-list">
+      <li class="practice-item">
+        <div class="practice-icon">🤏</div>
+        <div class="practice-content">
+          <h4>Least Privilege</h4>
+          <p>Only grant the <strong>exact</strong> permissions needed. Never give <code>AdministratorAccess</code> to a developer who just needs to upload a file.</p>
+        </div>
+      </li>
+      <li class="practice-item">
+        <div class="practice-icon">📵</div>
+        <div class="practice-content">
+          <h4>No Root User</h4>
+          <p>Lock away the "Root" account credentials in a safe. Create an IAM User for daily work. Root can do anything and cannot be restricted.</p>
+        </div>
+      </li>
+      <li class="practice-item">
+        <div class="practice-icon">📱</div>
+        <div class="practice-content">
+          <h4>MFA (Multi-Factor Auth)</h4>
+          <p>Require a code from a phone app for console logins. It stops hackers even if they steal your password.</p>
+        </div>
+      </li>
+    </ul>
+
+  </div>
+
+  <script>
+    const userAvatar = document.getElementById('userAvatar');
+    const laserGate = document.getElementById('laserGate');
+    const statusMsg = document.getElementById('statusMsg');
+    const logBox = document.getElementById('accessLog');
+
+    const pRead = document.getElementById('permRead');
+    const pDelete = document.getElementById('permDelete');
+    const pAdmin = document.getElementById('permAdmin');
+
+    function log(msg, type) {
+      const div = document.createElement('div');
+      div.className = 'log-entry ' + (type === 'allow' ? 'log-allow' : type === 'deny' ? 'log-deny' : '');
+      div.innerText = `> ${msg}`;
+      logBox.prepend(div);
+    }
+
+    function attemptAction(actionType) {
+      // 1. Reset Visuals
+      userAvatar.classList.remove('denied', 'allowed');
+      laserGate.classList.remove('open');
+      statusMsg.innerText = "Checking Policies...";
+      statusMsg.style.color = "#8b949e";
+
+      // 2. Check Permissions
+      let isAllowed = false;
+      let reason = "Implicit Deny";
+
+      // Admin overrides everything
+      if (pAdmin.checked) {
+        isAllowed = true;
+        reason = "Allowed by s3:*";
+      } else {
+        if (actionType === 'read') {
+          if (pRead.checked) { isAllowed = true; reason = "Allowed by s3:GetObject"; }
+          else { reason = "Missing s3:GetObject"; }
+        }
+        if (actionType === 'delete') {
+          if (pDelete.checked) { isAllowed = true; reason = "Allowed by s3:DeleteObject"; }
+          else { reason = "Missing s3:DeleteObject"; }
+        }
+      }
+
+      // 3. Animate Result
+      setTimeout(() => {
+        if (isAllowed) {
+          userAvatar.classList.add('allowed');
+          laserGate.classList.add('open');
+          statusMsg.innerText = "ACCESS GRANTED";
+          statusMsg.style.color = "#2ea043";
+          log(`${actionType.toUpperCase()}: Granted (${reason})`, 'allow');
+          
+          if (actionType === 'delete') {
+            log("⚠️ WARNING: You allowed Delete!", 'deny');
+          }
+        } else {
+          userAvatar.classList.add('denied');
+          statusMsg.innerText = "ACCESS DENIED";
+          statusMsg.style.color = "#ff7b72";
+          log(`${actionType.toUpperCase()}: Denied (${reason})`, 'deny');
+        }
+      }, 500);
+    }
+  </script>
+
+</body>
+</html>

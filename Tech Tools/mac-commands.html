@@ -1,0 +1,3406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 19: Mac Commands 0 to Hero | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060a10;
+      --bg-deep: #020407;
+      --panel: rgba(11, 16, 24, 0.84);
+      --line: rgba(196, 206, 221, 0.16);
+      --line-strong: rgba(196, 206, 221, 0.34);
+      --text: #f5f8ff;
+      --muted: #a9b3c6;
+      --accent: #d4d9e3;
+      --accent-strong: #99a9c6;
+      --blue: #6fb7ff;
+      --success: #63d6a1;
+      --warning: #ffc978;
+      --danger: #ff9999;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 8rem;
+    }
+
+    body {
+      min-height: 100vh;
+      position: relative;
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      background:
+        radial-gradient(circle at 12% 16%, rgba(255, 255, 255, 0.08), transparent 26%),
+        radial-gradient(circle at 85% 18%, rgba(111, 183, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 76% 80%, rgba(84, 104, 142, 0.2), transparent 30%),
+        linear-gradient(180deg, #090f18 0%, #050910 46%, #03060b 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    summary {
+      font: inherit;
+    }
+
+    code,
+    pre {
+      font-family: var(--font-mono);
+    }
+
+    .shell {
+      width: min(1380px, calc(100% - 2.5rem));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      padding: 1.5rem 0 4.4rem;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      width: 21rem;
+      height: 21rem;
+      top: -4rem;
+      left: -5rem;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero::after {
+      width: 18rem;
+      height: 18rem;
+      top: 2rem;
+      right: -5rem;
+      background: rgba(111, 183, 255, 0.14);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+      gap: 3rem;
+      align-items: end;
+      min-height: min(84vh, 840px);
+    }
+
+    .hero-copy {
+      max-width: 45rem;
+      padding: 2rem 0 1rem;
+    }
+
+    .breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: rgba(9, 14, 22, 0.72);
+      margin-bottom: 1.35rem;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.3rem rgba(196, 206, 221, 0.14);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 8vw, 6.4rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      max-width: 11ch;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-summary {
+      max-width: 43rem;
+      font-size: clamp(1.04rem, 1.8vw, 1.28rem);
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.45rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #f8fbff);
+      color: #091018;
+      font-weight: 700;
+      box-shadow: 0 18px 36px rgba(196, 206, 221, 0.2);
+    }
+
+    .button.secondary {
+      border-color: var(--line-strong);
+      background: rgba(8, 17, 31, 0.74);
+    }
+
+    .hero-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      list-style: none;
+      max-width: 48rem;
+    }
+
+    .hero-notes li {
+      padding: 0.95rem 1rem;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 19, 35, 0.62), rgba(10, 19, 35, 0));
+    }
+
+    .hero-notes strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      padding-top: 2rem;
+    }
+
+    .poster {
+      position: relative;
+      min-height: 37rem;
+      padding: 1.4rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.8rem;
+      background:
+        linear-gradient(180deg, rgba(10, 18, 29, 0.95), rgba(4, 8, 14, 0.94)),
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 28%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(196, 206, 221, 0.08) calc(100% - 1px)),
+        linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(196, 206, 221, 0.08) calc(100% - 1px));
+      background-size: 2.5rem 2.5rem;
+      opacity: 0.24;
+      pointer-events: none;
+    }
+
+    .poster-top,
+    .route-strip,
+    .guide-grid,
+    .checklist,
+    .lab-list,
+    .stack-list,
+    .notes-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .poster-top {
+      position: relative;
+      z-index: 1;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.1rem;
+    }
+
+    .poster-tag,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(196, 206, 221, 0.18);
+      background: rgba(196, 206, 221, 0.06);
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .poster-core {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .poster-panel,
+    .rail-block,
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column,
+    .lab,
+    .option,
+    .route-link,
+    .code-block,
+    .note-block,
+    .sim-panel,
+    .shortcut-card,
+    .terminal-card {
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+    }
+
+    .poster-panel {
+      padding: 1rem;
+      background: rgba(10, 18, 32, 0.78);
+    }
+
+    .poster-panel h2,
+    .poster-panel h3,
+    .panel h3,
+    .panel-plain h3,
+    .flow-block h3,
+    .symptoms h3,
+    .cleanup-column h3,
+    .option h3,
+    .lab-side h4,
+    .note-block h3,
+    .shortcut-card h3,
+    .terminal-card h3 {
+      font-size: 1.02rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .poster-panel p,
+    .poster-panel span,
+    .panel p,
+    .panel-plain p,
+    .flow-block p,
+    .symptoms p,
+    .cleanup-column p,
+    .option p,
+    .lab-side p,
+    .note-block p,
+    .shortcut-card p,
+    .terminal-card p {
+      color: var(--muted);
+    }
+
+    .pipeline-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.85rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      background: rgba(111, 183, 255, 0.06);
+      border: 1px solid rgba(111, 183, 255, 0.12);
+    }
+
+    .pipeline-row strong,
+    .poster-stats strong,
+    .route-link strong,
+    .chapter-state strong,
+    .flow-step strong,
+    .shortcut-card strong,
+    .terminal-card strong {
+      color: var(--text);
+    }
+
+    .pipeline-row code {
+      color: var(--blue);
+    }
+
+    .poster-footer {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .poster-stats {
+      padding: 0.8rem 0.85rem;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(6, 14, 25, 0.08), rgba(6, 14, 25, 0.62));
+    }
+
+    .guide-layer {
+      position: relative;
+      z-index: 30;
+      margin-top: -2rem;
+      padding-bottom: 1rem;
+    }
+
+    .route-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .route-link {
+      display: block;
+      padding: 1rem 1rem 1.05rem;
+      border-top: 2px solid rgba(196, 206, 221, 0.34);
+      background: rgba(7, 16, 29, 0.84);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .route-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(196, 206, 221, 0.34);
+      background: rgba(10, 21, 39, 0.92);
+    }
+
+    .route-link span,
+    .section-label,
+    .lab-kicker,
+    .chapter-state span,
+    .option span,
+    .note-block span,
+    .flow-step span,
+    .box-label {
+      display: inline-block;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .route-link span {
+      margin-bottom: 0.45rem;
+    }
+
+    .chapter-bar {
+      position: sticky;
+      top: 0.75rem;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      padding: 0.8rem 0.95rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.25rem;
+      background: rgba(6, 14, 25, 0.92);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .chapter-state {
+      min-width: 11rem;
+      padding-right: 1rem;
+      border-right: 1px solid rgba(196, 206, 221, 0.12);
+    }
+
+    .chapter-track {
+      display: flex;
+      gap: 0.55rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 0.1rem;
+    }
+
+    .chapter-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chapter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      padding: 0.68rem 0.92rem;
+      border-radius: 999px;
+      border: 1px solid rgba(196, 206, 221, 0.14);
+      background: rgba(196, 206, 221, 0.04);
+      color: var(--muted);
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .chapter-link:hover,
+    .chapter-link.active,
+    .chip.active,
+    .chip:hover {
+      color: var(--text);
+      border-color: rgba(196, 206, 221, 0.34);
+      background: rgba(196, 206, 221, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 18.5rem minmax(0, 1fr);
+      gap: 2.5rem;
+      padding: 1.3rem 0 6rem;
+      align-items: start;
+    }
+
+    .rail {
+      position: sticky;
+      top: 6.5rem;
+      align-self: start;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .rail-block {
+      padding: 1rem;
+    }
+
+    .rail-block h2 {
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    .rail-links {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .rail-links a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: var(--muted);
+      padding: 0.55rem 0.75rem;
+      border: 1px solid transparent;
+      border-radius: 0.9rem;
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+
+    .rail-links a::after {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: inset 0 0 0 1px rgba(196, 206, 221, 0.25);
+      flex: 0 0 auto;
+    }
+
+    .rail-links a:hover,
+    .rail-links a.active {
+      color: var(--text);
+      background: rgba(196, 206, 221, 0.07);
+      border-color: rgba(196, 206, 221, 0.14);
+    }
+
+    .rail-links a.active::after {
+      background: var(--accent);
+      box-shadow: 0 0 0 0.24rem rgba(196, 206, 221, 0.14);
+    }
+
+    .checklist {
+      gap: 0.7rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .check-item input {
+      margin-top: 0.2rem;
+      accent-color: var(--blue);
+      transform: scale(1.15);
+    }
+
+    .progress-bar {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-top: 0.8rem;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), #eef5ff);
+      transition: width 0.18s ease;
+    }
+
+    .progress-copy {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.55rem;
+    }
+
+    .content {
+      min-width: 0;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .section {
+      position: relative;
+      padding: 2.15rem 0 3rem;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 8rem;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      left: -1.2rem;
+      top: 2.3rem;
+      bottom: 0.5rem;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(196, 206, 221, 0.2), rgba(196, 206, 221, 0));
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 0.85rem;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(196, 206, 221, 0.16);
+      background: rgba(196, 206, 221, 0.06);
+    }
+
+    .section-label::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.22rem rgba(196, 206, 221, 0.12);
+    }
+
+    .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      max-width: 13ch;
+      margin-bottom: 1rem;
+    }
+
+    .section-intro {
+      max-width: 62ch;
+      color: var(--muted);
+      margin-bottom: 1.95rem;
+      font-size: 1.08rem;
+    }
+
+    .stage-grid,
+    .flow-strip,
+    .command-grid,
+    .cleanup-grid,
+    .finish-grid,
+    .atlas-toolbar,
+    .search-row,
+    .sim-shell,
+    .sim-buttons,
+    .sim-stats,
+    .notes-grid,
+    .tips-grid,
+    .option-grid,
+    .lab-body,
+    .flow-grid,
+    .shortcut-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .stage-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.6rem;
+    }
+
+    .stage,
+    .option {
+      padding: 1rem 0.95rem 0;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 22, 39, 0.58), rgba(10, 22, 39, 0));
+      min-height: 12rem;
+    }
+
+    .stage-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.2rem;
+      min-height: 2.2rem;
+      border-radius: 999px;
+      background: rgba(111, 183, 255, 0.12);
+      border: 1px solid rgba(111, 183, 255, 0.28);
+      color: var(--blue);
+      font-family: var(--font-mono);
+      margin-bottom: 0.9rem;
+    }
+
+    .stage p,
+    .panel ul,
+    .cleanup-column li,
+    .lab-side li,
+    .option p {
+      color: var(--muted);
+    }
+
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column {
+      padding: 1.15rem;
+    }
+
+    .panel-plain {
+      background: rgba(6, 14, 25, 0.72);
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(18rem, 0.76fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .statement {
+      font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+      line-height: 1.28;
+      max-width: 24ch;
+      margin-bottom: 1rem;
+    }
+
+    .flow-strip {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .flow-step {
+      position: relative;
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(111, 183, 255, 0.14);
+      background: rgba(111, 183, 255, 0.05);
+      min-height: 8rem;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "->";
+      position: absolute;
+      top: calc(50% - 0.6rem);
+      right: -0.7rem;
+      color: rgba(111, 183, 255, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+    }
+
+    .flow-step span {
+      margin-bottom: 0.4rem;
+    }
+
+    .tips-grid,
+    .notes-grid,
+    .cleanup-grid,
+    .finish-grid,
+    .flow-grid,
+    .shortcut-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shortcut-stack,
+    .shortcut-callouts {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .shortcut-group {
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .shortcut-group h3 {
+      font-size: 1.18rem;
+      margin: 0;
+    }
+
+    .shortcut-group p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 68ch;
+    }
+
+    .shortcut-callouts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shortcut-card,
+    .terminal-card {
+      padding: 1rem;
+      background: rgba(8, 16, 30, 0.86);
+    }
+
+    .shortcut-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .key-cap {
+      border: 1px solid rgba(196, 206, 221, 0.26);
+      border-radius: 0.45rem;
+      padding: 0.24rem 0.48rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: rgba(196, 206, 221, 0.08);
+      color: var(--text);
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .code-block {
+      overflow: hidden;
+      background: rgba(4, 8, 16, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(111, 183, 255, 0.1);
+      color: var(--muted);
+      font-size: 0.84rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(8, 18, 33, 0.84);
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 1.15rem 1rem 1.2rem;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #dff2ff;
+    }
+
+    .note-block {
+      padding: 1rem;
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .note-block span {
+      margin-bottom: 0.35rem;
+    }
+
+    .atlas-toolbar {
+      margin-bottom: 1rem;
+    }
+
+    .search-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .search-row input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(8, 18, 33, 0.78);
+      color: var(--text);
+      padding: 0.9rem 1rem;
+      outline: none;
+    }
+
+    .search-row input:focus {
+      border-color: rgba(111, 183, 255, 0.6);
+      box-shadow: 0 0 0 0.25rem rgba(111, 183, 255, 0.12);
+    }
+
+    .result-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 6rem;
+      padding: 0.9rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .chip {
+      cursor: pointer;
+      transition: border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: rgba(5, 11, 20, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .command-table,
+    .symptom-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .command-table th,
+    .command-table td,
+    .symptom-table th,
+    .symptom-table td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.95rem 1rem;
+      border-bottom: 1px solid rgba(111, 183, 255, 0.1);
+    }
+
+    .command-table th,
+    .symptom-table th {
+      color: var(--blue);
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: rgba(11, 23, 43, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .command-table td,
+    .symptom-table td {
+      color: var(--muted);
+    }
+
+    .command-table td:first-child,
+    .symptom-table td:first-child {
+      color: var(--text);
+    }
+
+    .command-table tbody tr:nth-child(even),
+    .symptom-table tbody tr:nth-child(even) {
+      background: rgba(111, 183, 255, 0.025);
+    }
+
+    .command-table tbody tr:hover,
+    .symptom-table tbody tr:hover {
+      background: rgba(111, 183, 255, 0.06);
+    }
+
+    .muted-mini {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.7rem;
+    }
+
+    .option-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 1.2rem;
+    }
+
+    .option span {
+      margin-bottom: 0.75rem;
+    }
+
+    .lab {
+      overflow: hidden;
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .lab[open] {
+      border-color: rgba(196, 206, 221, 0.26);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+    }
+
+    .lab summary {
+      list-style: none;
+      cursor: pointer;
+      position: relative;
+      padding: 1rem 4rem 1rem 1.1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      background: rgba(9, 18, 34, 0.92);
+    }
+
+    .lab summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .lab summary:hover {
+      background: rgba(11, 23, 43, 0.96);
+    }
+
+    .lab summary::after {
+      content: "+";
+      position: absolute;
+      right: 1.1rem;
+      top: calc(50% - 0.8rem);
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(196, 206, 221, 0.18);
+      background: rgba(196, 206, 221, 0.06);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .lab[open] summary::after {
+      content: "-";
+      background: rgba(196, 206, 221, 0.12);
+      border-color: rgba(196, 206, 221, 0.3);
+    }
+
+    .lab-kicker {
+      margin-bottom: 0.35rem;
+    }
+
+    .lab-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      align-self: start;
+      padding-top: 0.25rem;
+    }
+
+    .lab-body {
+      grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+      padding: 1rem 1.1rem 1.2rem;
+      border-top: 1px solid rgba(196, 206, 221, 0.1);
+      background: linear-gradient(180deg, rgba(7, 14, 25, 0.28), rgba(7, 14, 25, 0));
+    }
+
+    .lab-side {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+    }
+
+    .lab-box {
+      border: 1px solid rgba(111, 183, 255, 0.14);
+      border-radius: 1rem;
+      padding: 0.9rem;
+      background: rgba(6, 14, 25, 0.64);
+    }
+
+    .sim-shell {
+      grid-template-columns: 22rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .sim-panel {
+      overflow: hidden;
+      background: rgba(7, 16, 29, 0.84);
+    }
+
+    .sim-controls,
+    .sim-view {
+      padding: 1.1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .sim-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-stat {
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(111, 183, 255, 0.12);
+      background: rgba(111, 183, 255, 0.05);
+    }
+
+    .sim-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .sim-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-button {
+      min-height: 2.9rem;
+      border: 1px solid rgba(111, 183, 255, 0.18);
+      border-radius: 0.95rem;
+      background: rgba(111, 183, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .sim-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(111, 183, 255, 0.38);
+    }
+
+    .sim-button.success {
+      background: rgba(99, 214, 161, 0.08);
+      border-color: rgba(99, 214, 161, 0.24);
+    }
+
+    .sim-button.warning {
+      background: rgba(255, 201, 120, 0.08);
+      border-color: rgba(255, 201, 120, 0.24);
+    }
+
+    .sim-button.danger {
+      background: rgba(255, 153, 153, 0.08);
+      border-color: rgba(255, 153, 153, 0.24);
+    }
+
+    .sim-log {
+      border: 1px solid rgba(111, 183, 255, 0.1);
+      border-radius: 1rem;
+      background: rgba(3, 8, 15, 0.84);
+      padding: 0.85rem;
+      min-height: 12rem;
+      max-height: 16rem;
+      overflow-y: auto;
+      display: grid;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .sim-log div {
+      border-bottom: 1px dashed rgba(111, 183, 255, 0.08);
+      padding-bottom: 0.35rem;
+    }
+
+    .terminal-window {
+      background: #161a21;
+      border: 1px solid rgba(196, 206, 221, 0.14);
+      border-radius: 1.1rem;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .terminal-top {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(196, 206, 221, 0.08);
+    }
+
+    .window-dot {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+    }
+
+    .window-dot.red { background: #ff5f57; }
+    .window-dot.yellow { background: #febc2e; }
+    .window-dot.green { background: #28c840; }
+
+    .terminal-title {
+      margin-left: auto;
+      margin-right: auto;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
+    .terminal-body {
+      padding: 1rem;
+      min-height: 21rem;
+      max-height: 26rem;
+      overflow-y: auto;
+      background: #0c1118;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    .term-line {
+      margin-bottom: 0.4rem;
+      color: #e1edf7;
+      word-break: break-word;
+    }
+
+    .prompt {
+      color: var(--success);
+    }
+
+    .path {
+      color: var(--blue);
+    }
+
+    .input-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cmd-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #fff;
+      outline: none;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    footer {
+      padding: 2rem 0 4rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer a {
+      color: var(--text);
+      border-bottom: 1px solid rgba(196, 206, 221, 0.22);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .guide-layer {
+        margin-top: 0;
+        padding-top: 1rem;
+      }
+
+      .route-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .chapter-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-state {
+        min-width: 0;
+        padding-right: 0;
+        padding-bottom: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(196, 206, 221, 0.12);
+      }
+
+      .hero-grid,
+      .page-grid,
+      .two-up,
+      .tips-grid,
+      .notes-grid,
+      .flow-grid,
+      .shortcut-callouts,
+      .cleanup-grid,
+      .finish-grid,
+      .lab-body,
+      .sim-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        order: 2;
+      }
+
+      .content {
+        order: 1;
+      }
+
+      .section::before {
+        display: none;
+      }
+
+      .hero-grid {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .stage-grid,
+      .route-strip,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .option-grid,
+      .sim-stats,
+      .shortcut-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100% - 1.25rem, 1380px);
+      }
+
+      .chapter-bar,
+      .route-strip,
+      .hero-notes,
+      .stage-grid,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .option-grid,
+      .sim-stats,
+      .sim-buttons,
+      .search-row,
+      .shortcut-callouts,
+      .shortcut-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        max-width: 8ch;
+      }
+
+      .lab summary::after {
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Development &amp; OS</div>
+        <div class="eyebrow">Level 19 / macOS power use</div>
+        <h1>Mac Commands 0 to Hero</h1>
+        <p class="hero-summary">
+          Learn macOS the power-user way: Terminal basics, safe commands, Finder and Spotlight
+          tricks, clipboard tools, Homebrew, networking, process control, automation, cleanup, and
+          practical things to try on your own Mac without wrecking it.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#roadmap">Start the roadmap</a>
+          <a class="button secondary" href="#command-atlas">Open the command atlas</a>
+        </div>
+        <ul class="hero-notes">
+          <li>
+            <strong>Terminal first</strong>
+            Learn how shells, files, processes, permissions, and packages work on macOS.
+          </li>
+          <li>
+            <strong>Mac tips too</strong>
+            Includes practical Finder, Spotlight, clipboard, screenshot, and system tricks worth using daily.
+          </li>
+          <li>
+            <strong>Built to practice</strong>
+            Safe labs, cleanup guidance, and a fake terminal simulator help you build confidence fast.
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <div class="poster">
+          <div class="poster-top">
+            <div class="poster-tag">zsh</div>
+            <div class="poster-tag">Finder</div>
+            <div class="poster-tag">Spotlight</div>
+            <div class="poster-tag">Homebrew</div>
+            <div class="poster-tag">safe cleanup</div>
+          </div>
+
+          <div class="poster-core">
+            <section class="poster-panel">
+              <h2>Mac power workflow</h2>
+              <div class="stack-list">
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Navigate</strong>
+                    <span>Move through folders, inspect files, and open places faster than the GUI.</span>
+                  </div>
+                  <code>cd / ls / open</code>
+                </div>
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Control the system</strong>
+                    <span>Read processes, ports, battery, network info, and clipboard state from Terminal.</span>
+                  </div>
+                  <code>ps / top / pmset</code>
+                </div>
+                <div class="pipeline-row">
+                  <div>
+                    <strong>Install tools</strong>
+                    <span>Use Homebrew to add developer tools, CLIs, and modern utilities.</span>
+                  </div>
+                  <code>brew install</code>
+                </div>
+              </div>
+            </section>
+
+            <section class="poster-panel">
+              <h3>What makes macOS special</h3>
+              <div class="notes-grid">
+                <div class="terminal-card">
+                  <strong>Unix foundation</strong>
+                  <p>macOS gives you a real Unix-like shell and filesystem tools out of the box.</p>
+                </div>
+                <div class="terminal-card">
+                  <strong>GUI + CLI together</strong>
+                  <p>You can jump between Terminal, Finder, Spotlight, Quick Look, and Automator-style workflows easily.</p>
+                </div>
+                <div class="terminal-card">
+                  <strong>Danger line</strong>
+                  <p>Some commands are powerful enough to remove data instantly. Safe habits matter.</p>
+                </div>
+                <div class="terminal-card">
+                  <strong>Daily payoff</strong>
+                  <p>Even a handful of good commands can make troubleshooting and dev setup dramatically faster.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="poster-footer">
+            <div class="poster-stats">
+              <strong>Speed</strong>
+              <span>Terminal can do in seconds what takes many clicks in Finder or System Settings.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Visibility</strong>
+              <span>Commands reveal what the system is actually doing, not just what the UI chooses to show.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Repeatability</strong>
+              <span>Once a task is a command, you can reuse it, script it, and teach it easily.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="guide-layer">
+    <div class="shell guide-grid">
+      <nav class="route-strip" aria-label="Quick study routes">
+        <a class="route-link" href="#roadmap">
+          <span>Start here</span>
+          <strong>Learn the basics</strong>
+          <p>Use the roadmap if you want the right order for becoming comfortable in Terminal and macOS power tools.</p>
+        </a>
+        <a class="route-link" href="#command-atlas">
+          <span>Use it fast</span>
+          <strong>Jump to commands</strong>
+          <p>Search commands for files, networking, clipboard, brew, processes, and system inspection.</p>
+        </a>
+        <a class="route-link" href="#labs">
+          <span>Get hands-on</span>
+          <strong>Try safe Mac drills</strong>
+          <p>Run beginner-safe things to try on your Mac without touching dangerous system areas.</p>
+        </a>
+        <a class="route-link" href="#tips">
+          <span>Work smarter</span>
+          <strong>Mac tips and tricks</strong>
+          <p>Jump to daily macOS shortcuts, Finder tricks, clipboard power moves, and practical power-user habits.</p>
+        </a>
+      </nav>
+
+      <div class="chapter-bar" aria-label="Chapter navigation">
+        <div class="chapter-state">
+          <span>Now reading</span>
+          <strong id="chapterState">Roadmap</strong>
+        </div>
+        <nav class="chapter-track">
+          <a class="chapter-link active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a class="chapter-link" data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a class="chapter-link" data-nav-target="tips" href="#tips">Tips &amp; tricks</a>
+          <a class="chapter-link" data-nav-target="shortcuts" href="#shortcuts">Shortcuts</a>
+          <a class="chapter-link" data-nav-target="command-atlas" href="#command-atlas">Commands</a>
+          <a class="chapter-link" data-nav-target="labs" href="#labs">Labs</a>
+          <a class="chapter-link" data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a class="chapter-link" data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a class="chapter-link" data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a class="chapter-link" data-nav-target="finish" href="#finish">Finish</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell page-grid">
+    <aside class="rail" aria-label="Page navigation">
+      <div class="rail-block">
+        <h2>On this page</h2>
+        <nav class="rail-links">
+          <a class="active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a data-nav-target="tips" href="#tips">Tips &amp; tricks</a>
+          <a data-nav-target="shortcuts" href="#shortcuts">Shortcuts</a>
+          <a data-nav-target="command-atlas" href="#command-atlas">Command atlas</a>
+          <a data-nav-target="labs" href="#labs">Things to try</a>
+          <a data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a data-nav-target="finish" href="#finish">Next steps</a>
+        </nav>
+      </div>
+
+      <div class="rail-block">
+        <h2>Study checklist</h2>
+        <div class="checklist">
+          <label class="check-item"><input type="checkbox" data-checkpoint="shell" /> I understand what zsh, Terminal, paths, and the home folder are.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="files" /> I can navigate files and folders safely from Terminal.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="system" /> I know how to inspect processes, ports, network state, and battery info.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="brew" /> I can use Homebrew to search, install, update, and inspect packages.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="labs" /> I have tried at least two safe Mac or Terminal exercises.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="cleanup" /> I know which commands are safe and which deserve extra caution.</label>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-copy" id="progressCopy">0 / 6 complete</p>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="section" id="roadmap">
+        <div class="section-label">Roadmap</div>
+        <h2>Learn your Mac in an order that makes Terminal feel friendly</h2>
+        <p class="section-intro">
+          A lot of people bounce off Terminal because they start with scary commands. The easier path
+          is: understand the shell, learn safe navigation and file operations, then expand into system
+          info, networking, Homebrew, and daily macOS shortcuts.
+        </p>
+
+        <div class="stage-grid">
+          <article class="stage">
+            <div class="stage-index">01</div>
+            <h3>Learn the nouns</h3>
+            <p>Terminal, shell, prompt, path, home directory, hidden file, and sudo should all feel distinct.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">02</div>
+            <h3>Navigate safely</h3>
+            <p>Practice <code>pwd</code>, <code>ls</code>, <code>cd</code>, <code>mkdir</code>, <code>touch</code>, and <code>open</code>.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">03</div>
+            <h3>Inspect the Mac</h3>
+            <p>Read process lists, ports, IPs, clipboard contents, battery health, and disk usage.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">04</div>
+            <h3>Add tools</h3>
+            <p>Use Homebrew to install developer tools and common command-line utilities the right way.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">05</div>
+            <h3>Build Mac habits</h3>
+            <p>Use Spotlight, Finder, clipboard tools, screenshots, and keyboard shortcuts like a power user.</p>
+          </article>
+        </div>
+
+        <div class="two-up">
+          <div class="panel">
+            <p class="statement">The shortest useful definition of Terminal is: a text-based doorway into the real Unix layer underneath macOS.</p>
+            <p>That is why it is so valuable. The GUI shows you one path through the system. Terminal gives you direct visibility and repeatable control.</p>
+          </div>
+          <div class="panel-plain">
+            <h3>Safe beginner rule</h3>
+            <p>Read first, create second, delete last. Commands like <code>pwd</code>, <code>ls</code>, <code>open .</code>, <code>pbcopy</code>, and <code>brew list</code> are great places to start.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="mental-model">
+        <div class="section-label">Mental model</div>
+        <h2>See how macOS power use fits together</h2>
+        <p class="section-intro">
+          macOS power use is not just about typing commands. The sweet spot is moving smoothly
+          between Terminal, Finder, Spotlight, Quick Look, Homebrew, and built-in system tools.
+        </p>
+
+        <div class="flow-strip">
+          <div class="flow-step">
+            <span>1</span>
+            <strong>Find things quickly</strong>
+            <p>Use Spotlight, Finder search, or terminal search commands depending on the job.</p>
+          </div>
+          <div class="flow-step">
+            <span>2</span>
+            <strong>Inspect before changing</strong>
+            <p>Read the current state with safe commands before you edit or delete anything.</p>
+          </div>
+          <div class="flow-step">
+            <span>3</span>
+            <strong>Use the right tool</strong>
+            <p>Some tasks are faster in Finder, some in Terminal, and the best workflow often uses both.</p>
+          </div>
+          <div class="flow-step">
+            <span>4</span>
+            <strong>Install tools cleanly</strong>
+            <p>Homebrew keeps command-line software organized and easier to update later.</p>
+          </div>
+          <div class="flow-step">
+            <span>5</span>
+            <strong>Automate repetition</strong>
+            <p>Once something becomes a command, you can reuse it, script it, and chain it with other tools.</p>
+          </div>
+          <div class="flow-step">
+            <span>6</span>
+            <strong>Stay safe</strong>
+            <p>Know when a command is read-only, when it changes files, and when it deserves extra caution.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="tips">
+        <div class="section-label">Tips &amp; tricks</div>
+        <h2>Daily macOS tricks worth learning even if you are not a developer</h2>
+        <p class="section-intro">
+          These are the practical Mac habits that pay off quickly. They make Finder, Spotlight,
+          screenshots, clipboard work, and Terminal feel like one connected toolkit.
+        </p>
+
+        <div class="tips-grid">
+          <article class="shortcut-card">
+            <span class="box-label">Spotlight</span>
+            <h3>Launch almost anything with one shortcut</h3>
+            <p>Use Spotlight to open apps, files, settings, currency conversions, calculations, and unit conversions faster than navigating menus.</p>
+            <div class="shortcut-pill">
+              <span class="key-cap">Cmd</span>
+              <span class="key-cap">Space</span>
+            </div>
+          </article>
+          <article class="shortcut-card">
+            <span class="box-label">Finder</span>
+            <h3>Open the current Terminal folder in Finder</h3>
+            <p><code>open .</code> is one of the best bridge commands between Terminal and the GUI.</p>
+          </article>
+          <article class="shortcut-card">
+            <span class="box-label">Clipboard</span>
+            <h3>Use clipboard commands from Terminal</h3>
+            <p><code>pbcopy</code> sends text to the clipboard and <code>pbpaste</code> pulls clipboard contents back into the shell.</p>
+          </article>
+          <article class="shortcut-card">
+            <span class="box-label">Screenshots</span>
+            <h3>Use the built-in screenshot overlay</h3>
+            <p>Capture full screen, window, region, or video recording from one panel.</p>
+            <div class="shortcut-pill">
+              <span class="key-cap">Shift</span>
+              <span class="key-cap">Cmd</span>
+              <span class="key-cap">5</span>
+            </div>
+          </article>
+          <article class="shortcut-card">
+            <span class="box-label">Quick Look</span>
+            <h3>Preview files instantly without opening apps</h3>
+            <p>Select a file in Finder and tap Space to preview it instantly.</p>
+          </article>
+          <article class="shortcut-card">
+            <span class="box-label">Terminal</span>
+            <h3>Drag files into Terminal to paste the path</h3>
+            <p>It is the easiest way to avoid typing long paths or fighting spaces in filenames.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="shortcuts">
+        <div class="section-label">Shortcuts</div>
+        <h2>The default MacBook Air keyboard shortcuts worth actually learning</h2>
+        <p class="section-intro">
+          This is the expanded shortcut guide for a MacBook Air with Apple silicon. I focused on the
+          default macOS shortcuts, Finder shortcuts, screenshot shortcuts, text-editing moves, and
+          hardware-key behavior that actually matter day to day. App-specific shortcuts can still vary,
+          and many can be customized in System Settings &gt; Keyboard &gt; Keyboard Shortcuts.
+        </p>
+
+        <div class="shortcut-callouts">
+          <article class="note-block">
+            <span>Keyboard model</span>
+            <h3>What is special about the MacBook Air M2 keyboard</h3>
+            <p>
+              Your top row is a hybrid row: by default it controls Mac features like brightness,
+              Mission Control, Spotlight, Dictation, Focus, media, and volume. Hold <code>Fn</code>
+              while pressing one of those keys if you want the standard <code>F1</code> to
+              <code>F12</code> behavior instead.
+            </p>
+          </article>
+          <article class="note-block">
+            <span>Apple silicon note</span>
+            <h3>Startup behavior is different from old Intel Macs</h3>
+            <p>
+              On a MacBook Air M2, the main startup shortcut is really the power button itself:
+              press and keep holding Touch ID / power during startup to open Startup Options,
+              Recovery, and Safe Mode choices. Most of the old Intel startup key combos do not work
+              the same way on Apple silicon.
+            </p>
+          </article>
+        </div>
+
+        <div class="shortcut-stack">
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Modifier keys</span>
+            <h3>Know what each special key is for</h3>
+            <p>
+              If Mac shortcuts feel confusing at first, it is usually because the modifier keys do
+              different jobs than on Windows. Learn this legend once and the rest of the page makes
+              much more sense.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>What it does</th>
+                    <th>Why it matters</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Cmd</code></td>
+                    <td>The primary action key for most Mac shortcuts.</td>
+                    <td>Think of it as the key behind copy, paste, save, switch apps, hide, and quit.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option</code></td>
+                    <td>Changes a command into an alternate or more advanced version.</td>
+                    <td>Common for hidden menu items, smaller volume steps, alternate open behavior, and word navigation.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control</code></td>
+                    <td>Used for focus movement, context behavior, and classic text-navigation shortcuts.</td>
+                    <td>You will see it a lot in accessibility, Mission Control, and cursor-control shortcuts.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift</code></td>
+                    <td>Adds selection, uppercase, or the "bigger version" of a shortcut.</td>
+                    <td>Very common in screenshots, text selection, redo, and alternate save actions.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn</code> / <code>Globe</code></td>
+                    <td>Switches top-row behavior, opens certain system tools, and triggers Mac laptop actions.</td>
+                    <td>Important on the MacBook Air because it unlocks standard <code>F</code> keys and Globe-key shortcuts.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Touch ID</code> / power</td>
+                    <td>Acts as power button, lock button, and the Apple silicon startup-options trigger.</td>
+                    <td>It is the key you use for wake, lock, force power-off, and startup recovery access.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Top row</span>
+            <h3>MacBook Air M2 function keys and what the hardware row does by default</h3>
+            <p>
+              This is the row most people underuse. On a MacBook Air M2 it gives you direct access
+              to the most common system controls without opening menus.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>Default action</th>
+                    <th>What it does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>F1</code></td>
+                    <td>Brightness down</td>
+                    <td>Decreases display brightness.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F2</code></td>
+                    <td>Brightness up</td>
+                    <td>Increases display brightness.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F3</code></td>
+                    <td>Mission Control</td>
+                    <td>Shows open windows and spaces so you can jump between workspaces visually.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F4</code></td>
+                    <td>Spotlight</td>
+                    <td>Opens Spotlight search for files, apps, settings, calculations, and quick actions.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F5</code></td>
+                    <td>Dictation / Siri</td>
+                    <td>Starts Dictation, and press-and-hold activates Siri.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F6</code></td>
+                    <td>Do Not Disturb</td>
+                    <td>Toggles Focus so notifications stop interrupting you.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F7</code></td>
+                    <td>Previous / rewind</td>
+                    <td>Moves backward in supported audio and video playback.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F8</code></td>
+                    <td>Play / pause</td>
+                    <td>Starts or pauses media playback.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F9</code></td>
+                    <td>Next / fast-forward</td>
+                    <td>Moves forward in supported audio and video playback.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F10</code></td>
+                    <td>Mute</td>
+                    <td>Mutes or unmutes Mac audio.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F11</code></td>
+                    <td>Volume down</td>
+                    <td>Reduces output volume.</td>
+                  </tr>
+                  <tr>
+                    <td><code>F12</code></td>
+                    <td>Volume up</td>
+                    <td>Raises output volume.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn</code> + <code>F1</code> to <code>F12</code></td>
+                    <td>Use standard function keys</td>
+                    <td>Runs the normal <code>F</code>-key behavior instead of the printed Mac feature.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option</code> + brightness or volume key</td>
+                    <td>Open related settings</td>
+                    <td>Jumps straight to Displays or Sound settings from the keyboard.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option</code> + <code>Shift</code> + brightness or volume key</td>
+                    <td>Fine-grained adjustment</td>
+                    <td>Changes brightness or volume in smaller steps when you want more precise control.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Everyday shortcuts</span>
+            <h3>The core default shortcuts that work almost everywhere</h3>
+            <p>
+              These are the shortcuts most Mac users end up using dozens of times a day across Finder,
+              browsers, editors, documents, and utility apps.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>What it does</th>
+                    <th>Where it helps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Cmd-X</code></td>
+                    <td>Cut the selected item to the clipboard.</td>
+                    <td>Useful when moving selected text or editable content.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-C</code></td>
+                    <td>Copy the selected item.</td>
+                    <td>Works for text, images, files, and many UI objects.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-V</code></td>
+                    <td>Paste clipboard contents.</td>
+                    <td>Use it everywhere from Finder to notes, email, and editors.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Z</code> / <code>Shift-Cmd-Z</code></td>
+                    <td>Undo or redo the last action.</td>
+                    <td>One of the safest ways to experiment without fear.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-A</code></td>
+                    <td>Select all.</td>
+                    <td>Fast for bulk edits, file selection, or replacing content.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-F</code></td>
+                    <td>Find inside the current window, page, or document.</td>
+                    <td>Ideal for scanning long pages, logs, docs, and Finder results.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-G</code> / <code>Shift-Cmd-G</code></td>
+                    <td>Jump to the next or previous search match.</td>
+                    <td>Pairs naturally with <code>Cmd-F</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-N</code></td>
+                    <td>Create a new window or document.</td>
+                    <td>Finder, browsers, editors, and many Apple apps use it.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-O</code></td>
+                    <td>Open a file, project, or item.</td>
+                    <td>Good for jumping straight into selected content.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-S</code></td>
+                    <td>Save the current file.</td>
+                    <td>The reflex shortcut that prevents accidental data loss.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-P</code></td>
+                    <td>Open the print dialog.</td>
+                    <td>Works in documents, browsers, PDFs, and many utilities.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-W</code></td>
+                    <td>Close the current tab or window.</td>
+                    <td>Great for cleanup without quitting the entire app.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Q</code></td>
+                    <td>Quit the current app.</td>
+                    <td>Use it when you want the whole app closed, not just a window.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-H</code></td>
+                    <td>Hide the current app.</td>
+                    <td>Useful when you want visual focus without actually closing anything.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Cmd-H</code></td>
+                    <td>Hide all apps except the current one.</td>
+                    <td>A fast way to clear desktop clutter.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Tab</code></td>
+                    <td>Switch to the next most recently used app.</td>
+                    <td>The fastest way to move between open applications.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-`</code></td>
+                    <td>Cycle between windows in the current app.</td>
+                    <td>Especially useful when you have multiple Finder or browser windows open.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Space</code></td>
+                    <td>Open or close Spotlight.</td>
+                    <td>Launch apps, search files, run math, and find settings instantly.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Cmd-Space</code></td>
+                    <td>Open Spotlight search from a Finder window.</td>
+                    <td>Helpful when you want search scoped to file work.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Cmd-Space</code> or <code>Fn-E</code></td>
+                    <td>Open emoji and symbol picker.</td>
+                    <td>Great for quick emoji, arrows, accents, and special symbols.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-,</code></td>
+                    <td>Open settings for the frontmost app.</td>
+                    <td>Usually the fastest path to preferences.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Cmd-F</code></td>
+                    <td>Toggle full screen for the current app.</td>
+                    <td>Useful when you want distraction-free work.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-Q</code></td>
+                    <td>Create a Quick Note.</td>
+                    <td>Great when you want to capture an idea without losing context.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Cmd-Esc</code></td>
+                    <td>Open the Force Quit window.</td>
+                    <td>Use it when a GUI app is frozen and refuses to close normally.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Finder and macOS</span>
+            <h3>The best default shortcuts for files, windows, search, and system panels</h3>
+            <p>
+              These are the ones that make Finder feel fast instead of slow and menu-driven.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>What it does</th>
+                    <th>Why you will use it</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Space</code></td>
+                    <td>Quick Look preview for the selected file.</td>
+                    <td>Preview images, PDFs, text, and many files instantly without opening the app.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-N</code></td>
+                    <td>Create a new folder in Finder.</td>
+                    <td>One of the fastest file-organizing moves on macOS.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Cmd-N</code></td>
+                    <td>Create a folder containing the selected items.</td>
+                    <td>Great for cleaning messy downloads or grouping related files fast.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-.</code></td>
+                    <td>Show or hide hidden files.</td>
+                    <td>Perfect when you need to inspect dotfiles like <code>.gitignore</code> or <code>.zshrc</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-I</code></td>
+                    <td>Open Get Info for the selected item.</td>
+                    <td>Useful for size, permissions, file type, and metadata.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-D</code></td>
+                    <td>Duplicate the selected file.</td>
+                    <td>Fast way to make a safe copy before editing something important.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-E</code></td>
+                    <td>Eject the selected disk, drive, or volume.</td>
+                    <td>Use before unplugging external storage.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Delete</code></td>
+                    <td>Move the selected item to Trash.</td>
+                    <td>Cleaner and faster than dragging files to the Trash icon.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-F</code></td>
+                    <td>Start a Finder search.</td>
+                    <td>Quick path to file discovery when you do not want Spotlight first.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-A</code></td>
+                    <td>Show or hide the Dock.</td>
+                    <td>Helpful when you want extra screen space or less clutter.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-C</code></td>
+                    <td>Show or hide Control Center.</td>
+                    <td>Good for quick audio, Wi-Fi, Bluetooth, and display controls.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-D</code></td>
+                    <td>Start or stop Dictation.</td>
+                    <td>Useful when you want voice-to-text without leaving your current app.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-N</code></td>
+                    <td>Show or hide Notification Center.</td>
+                    <td>Quick way to review alerts without opening extra panels.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-Shift-A</code></td>
+                    <td>Open Apps or Launchpad, depending on macOS version.</td>
+                    <td>Useful for browsing installed apps visually.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-Fn</code></td>
+                    <td>Open Character Viewer.</td>
+                    <td>Helpful for symbols, accented characters, and emoji selection.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Command</code> then <code>Command</code> again</td>
+                    <td>Open or close Type to Siri.</td>
+                    <td>Useful if you prefer typing requests instead of speaking them.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Space</code></td>
+                    <td>Switch input source.</td>
+                    <td>Important if you type in more than one language or layout.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Option-Space</code></td>
+                    <td>Move to the next input source.</td>
+                    <td>Useful for cycling through multiple configured keyboards.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Up Arrow</code></td>
+                    <td>Open Mission Control.</td>
+                    <td>Shows all spaces and windows so you can reorganize your desktop fast.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Down Arrow</code></td>
+                    <td>Show all windows of the front app.</td>
+                    <td>Excellent when one app has several documents or browser windows open.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-M</code></td>
+                    <td>Minimize the current window to the Dock.</td>
+                    <td>Useful when you want it out of the way but still open.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Screenshots and power</span>
+            <h3>Shortcuts every Mac owner should know for captures, locking, sleep, and recovery</h3>
+            <p>
+              These are the shortcuts people usually end up searching for in a hurry. Memorizing them
+              once pays off for years.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>What it does</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Shift-Cmd-3</code></td>
+                    <td>Capture the entire screen.</td>
+                    <td>The screenshot normally saves to the desktop.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-4</code></td>
+                    <td>Capture a selected region.</td>
+                    <td>After pressing it, drag to choose the area you want.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-4</code>, then <code>Space</code></td>
+                    <td>Capture a specific window.</td>
+                    <td>Great for cleaner screenshots of one app window without manual cropping.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-5</code></td>
+                    <td>Open the screenshot and screen-recording toolbar.</td>
+                    <td>Best all-in-one panel for screenshots, window capture, timer, and recordings.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control</code> + screenshot shortcut</td>
+                    <td>Copy the screenshot to the clipboard instead of saving it to the desktop.</td>
+                    <td>Perfect when you want to paste directly into chat, notes, or email.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Cmd-Q</code></td>
+                    <td>Lock the screen immediately.</td>
+                    <td>One of the best privacy habits when you step away from your Mac.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-Q</code></td>
+                    <td>Log out of the current macOS account.</td>
+                    <td>macOS asks for confirmation first.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Shift-Cmd-Q</code></td>
+                    <td>Log out immediately.</td>
+                    <td>Skips the confirmation dialog.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Touch ID</code> press</td>
+                    <td>Lock the screen on keyboards with Touch ID.</td>
+                    <td>On a MacBook Air M2 this is the fast physical lock control.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Touch ID</code> hold at startup</td>
+                    <td>Open Startup Options on Apple silicon.</td>
+                    <td>Use it for Recovery, startup disk selection, and Safe Mode access.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Touch ID</code> hold while Mac is unresponsive</td>
+                    <td>Force power off.</td>
+                    <td>Use only when the Mac is frozen and normal shutdown is impossible.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Text editing</span>
+            <h3>Navigation and editing shortcuts that make typing feel much faster</h3>
+            <p>
+              These work in many text fields and editors. Behavior can vary by app, but the patterns
+              below are part of standard macOS text editing.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>What it does</th>
+                    <th>Where it shines</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Option-Left Arrow</code> / <code>Option-Right Arrow</code></td>
+                    <td>Move one word left or right.</td>
+                    <td>Huge speedup when editing long commands, URLs, notes, or code.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Shift-Left Arrow</code> / <code>Option-Shift-Right Arrow</code></td>
+                    <td>Select by word instead of by character.</td>
+                    <td>Perfect for cleaning up text quickly.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Left Arrow</code> / <code>Cmd-Right Arrow</code></td>
+                    <td>Jump to the beginning or end of the current line.</td>
+                    <td>Essential in terminals, editors, browsers, and forms.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-Left Arrow</code> / <code>Shift-Cmd-Right Arrow</code></td>
+                    <td>Select from the cursor to the start or end of the line.</td>
+                    <td>Very useful when replacing chunks of text.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Cmd-Up Arrow</code> / <code>Cmd-Down Arrow</code></td>
+                    <td>Jump to the beginning or end of the document or text area.</td>
+                    <td>Helpful in long files, notes, and documents.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Shift-Cmd-Up Arrow</code> / <code>Shift-Cmd-Down Arrow</code></td>
+                    <td>Select from the cursor to the start or end of the document.</td>
+                    <td>Fast for selecting large text blocks.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Option-Delete</code></td>
+                    <td>Delete the word to the left of the insertion point.</td>
+                    <td>Much faster than tapping Delete repeatedly.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Fn-Delete</code></td>
+                    <td>Forward delete on laptops without a dedicated forward-delete key.</td>
+                    <td>Deletes the character to the right of the cursor.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-H</code></td>
+                    <td>Delete the character to the left of the cursor.</td>
+                    <td>Classic terminal and text-field editing behavior.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-D</code></td>
+                    <td>Delete the character to the right of the cursor.</td>
+                    <td>A handy keyboard-only alternative to forward delete.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-A</code></td>
+                    <td>Move to the beginning of the line or paragraph.</td>
+                    <td>Especially useful in shells and simple text fields.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-E</code></td>
+                    <td>Move to the end of the line or paragraph.</td>
+                    <td>Pairs naturally with <code>Control-A</code>.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F</code> / <code>Control-B</code></td>
+                    <td>Move one character forward or backward.</td>
+                    <td>Good when you want small cursor moves without touching arrow keys.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-N</code> / <code>Control-P</code></td>
+                    <td>Move down or up one line.</td>
+                    <td>Very useful in text areas and terminal-style editing.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-O</code></td>
+                    <td>Insert a new line after the insertion point.</td>
+                    <td>Nice for quick editing without changing where your cursor focus is.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-L</code></td>
+                    <td>Center the cursor or selection in the visible area.</td>
+                    <td>Useful in longer documents when you lose visual context.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Cmd-D</code></td>
+                    <td>Show dictionary definition for the selected word.</td>
+                    <td>Great for quick lookups without leaving the app.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel-plain shortcut-group">
+            <span class="box-label">Accessibility and focus</span>
+            <h3>The default shortcuts for keyboard navigation, focus control, and accessibility tools</h3>
+            <p>
+              These are especially helpful if you want to navigate macOS without always reaching for
+              the trackpad.
+            </p>
+            <div class="table-wrap">
+              <table class="command-table">
+                <thead>
+                  <tr>
+                    <th>Shortcut</th>
+                    <th>What it does</th>
+                    <th>When to use it</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>Option-Cmd-F5</code></td>
+                    <td>Open the Accessibility Shortcuts panel.</td>
+                    <td>Fast gateway to VoiceOver, Zoom, color filters, captions, and more.</td>
+                  </tr>
+                  <tr>
+                    <td>Triple-press <code>Touch ID</code></td>
+                    <td>Open Accessibility Shortcuts.</td>
+                    <td>A good hardware shortcut if you prefer not to remember the key combo.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F2</code> or <code>Fn-Control-F2</code></td>
+                    <td>Move focus to the menu bar.</td>
+                    <td>Useful for full keyboard navigation of app menus.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F3</code> or <code>Fn-Control-F3</code></td>
+                    <td>Move focus to the Dock.</td>
+                    <td>Lets you navigate Dock items with the keyboard.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F4</code> or <code>Fn-Control-F4</code></td>
+                    <td>Move focus to the active or next window.</td>
+                    <td>Helpful for window switching when you want less trackpad use.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F5</code> or <code>Fn-Control-F5</code></td>
+                    <td>Move focus to the window toolbar.</td>
+                    <td>Useful for controls near the top of app windows.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F6</code> or <code>Fn-Control-F6</code></td>
+                    <td>Move focus to the floating window.</td>
+                    <td>Helpful in apps that open inspector or floating panels.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Shift-F6</code></td>
+                    <td>Move focus to the previous panel.</td>
+                    <td>Lets you step backward through panels instead of forward only.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F7</code> or <code>Fn-Control-F7</code></td>
+                    <td>Change how Tab navigates controls.</td>
+                    <td>Useful if you want Tab to move through all controls, not just text boxes and lists.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-F8</code> or <code>Fn-Control-F8</code></td>
+                    <td>Move focus to the status menu in the menu bar.</td>
+                    <td>Good for keyboard access to Wi-Fi, battery, sound, and other status items.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Tab</code> / <code>Shift-Tab</code></td>
+                    <td>Move to the next or previous control.</td>
+                    <td>The basic habit behind full keyboard navigation.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Tab</code> / <code>Control-Shift-Tab</code></td>
+                    <td>Move between grouped controls.</td>
+                    <td>Helpful in forms, grouped options, and dialog layouts.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Option-Cmd-8</code></td>
+                    <td>Invert colors.</td>
+                    <td>Useful if you have enabled that accessibility shortcut in settings.</td>
+                  </tr>
+                  <tr>
+                    <td><code>Control-Option-Cmd-,</code> / <code>Control-Option-Cmd-.</code></td>
+                    <td>Reduce or increase contrast.</td>
+                    <td>Helpful for visual accessibility adjustments.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="command-atlas">
+        <div class="section-label">Command atlas</div>
+        <h2>The Mac commands and tools you will actually use</h2>
+        <p class="section-intro">
+          Search or filter the atlas below. The goal is not just to show command names, but to explain what each one is for and when it is a good idea to use it.
+        </p>
+
+        <div class="atlas-toolbar">
+          <div class="search-row">
+            <input id="commandSearch" type="search" placeholder="Search Mac commands, system tasks, or daily utilities" />
+            <div class="result-counter" id="commandCounter">34 rows</div>
+          </div>
+          <div class="chip-row">
+            <button class="chip active" data-command-filter="all">All</button>
+            <button class="chip" data-command-filter="files">Files</button>
+            <button class="chip" data-command-filter="search">Search</button>
+            <button class="chip" data-command-filter="system">System</button>
+            <button class="chip" data-command-filter="network">Network</button>
+            <button class="chip" data-command-filter="brew">Brew</button>
+            <button class="chip" data-command-filter="clipboard">Clipboard</button>
+            <button class="chip" data-command-filter="cleanup">Cleanup</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="command-table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>What it does</th>
+                <th>When to use it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="command-row" data-category="files" data-search="pwd working directory path">
+                <td><code>pwd</code></td>
+                <td>Prints the current working directory.</td>
+                <td>Use it anytime you are unsure where you are in the filesystem.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="ls list files hidden">
+                <td><code>ls -la</code></td>
+                <td>Lists files in long format including hidden files.</td>
+                <td>Great first command in any folder you are exploring.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="cd change directory home parent">
+                <td><code>cd ..</code> / <code>cd ~</code></td>
+                <td>Moves up one directory or back to your home folder.</td>
+                <td>Core navigation habit for staying oriented.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="mkdir create folder">
+                <td><code>mkdir sandbox</code></td>
+                <td>Creates a new directory.</td>
+                <td>Use it to make a safe place for practice or a new project folder.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="touch create file">
+                <td><code>touch notes.txt</code></td>
+                <td>Creates an empty file if it does not exist.</td>
+                <td>Useful for quick file creation or testing paths.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="cat read file contents">
+                <td><code>cat notes.txt</code></td>
+                <td>Prints the contents of a file to the terminal.</td>
+                <td>Good for small text files or quick inspection.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="cp copy file folder recursive">
+                <td><code>cp source.txt copy.txt</code></td>
+                <td>Copies a file. Use <code>-r</code> for directories.</td>
+                <td>Use it when duplicating files or folders safely.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="mv move rename file">
+                <td><code>mv old.txt new.txt</code></td>
+                <td>Moves or renames files and folders.</td>
+                <td>Use it to rename things without opening Finder.</td>
+              </tr>
+              <tr class="command-row" data-category="files cleanup" data-search="rm remove file caution">
+                <td><code>rm file.txt</code></td>
+                <td>Deletes a file immediately.</td>
+                <td>Use carefully. Unlike Finder delete, there is no Trash safety net here.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="open current folder finder">
+                <td><code>open .</code></td>
+                <td>Opens the current directory in Finder.</td>
+                <td>Excellent bridge between Terminal and the GUI.</td>
+              </tr>
+              <tr class="command-row" data-category="files" data-search="open file app">
+                <td><code>open report.pdf</code></td>
+                <td>Opens a file in its default macOS application.</td>
+                <td>Great for previewing output without leaving Terminal.</td>
+              </tr>
+              <tr class="command-row" data-category="search" data-search="find locate filename">
+                <td><code>find . -name "*.log"</code></td>
+                <td>Searches for files matching a pattern under the current directory.</td>
+                <td>Use it when you know the filename pattern but not the exact location.</td>
+              </tr>
+              <tr class="command-row" data-category="search" data-search="grep search inside files text">
+                <td><code>grep -R "TODO" .</code></td>
+                <td>Searches file contents recursively for matching text.</td>
+                <td>Useful for source code, notes, and config searches.</td>
+              </tr>
+              <tr class="command-row" data-category="search" data-search="mdfind spotlight terminal">
+                <td><code>mdfind "invoice"</code></td>
+                <td>Uses Spotlight indexing from Terminal to find matching files.</td>
+                <td>Very fast when Spotlight already knows about the file.</td>
+              </tr>
+              <tr class="command-row" data-category="clipboard" data-search="pbcopy clipboard">
+                <td><code>echo "hello" | pbcopy</code></td>
+                <td>Sends text to the macOS clipboard.</td>
+                <td>Perfect when you want command output ready to paste elsewhere.</td>
+              </tr>
+              <tr class="command-row" data-category="clipboard" data-search="pbpaste clipboard read">
+                <td><code>pbpaste</code></td>
+                <td>Prints the current clipboard contents.</td>
+                <td>Useful for checking or piping clipboard text into other commands.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="ps processes">
+                <td><code>ps aux</code></td>
+                <td>Lists running processes and their details.</td>
+                <td>Use it when an app feels stuck or you need to identify a process ID.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="top realtime cpu memory">
+                <td><code>top</code></td>
+                <td>Shows live CPU and memory usage.</td>
+                <td>Good quick check when the Mac feels slow or hot.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="kill process pid">
+                <td><code>kill 12345</code></td>
+                <td>Asks a process to stop by PID.</td>
+                <td>Use it when an app ignores the normal close flow.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="killall app finder">
+                <td><code>killall Finder</code></td>
+                <td>Stops all processes with that name and lets macOS restart them if appropriate.</td>
+                <td>Common for refreshing Finder or quitting stubborn apps.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="df disk free space">
+                <td><code>df -h</code></td>
+                <td>Shows filesystem disk usage in human-readable form.</td>
+                <td>Use it when you think storage is running low.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="du folder size">
+                <td><code>du -sh ~/Downloads</code></td>
+                <td>Shows how much disk space a folder is using.</td>
+                <td>Useful for finding large directories quickly.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="pmset battery">
+                <td><code>pmset -g batt</code></td>
+                <td>Displays current battery and charging status.</td>
+                <td>Good quick battery check without opening System Settings.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="system profiler hardware software">
+                <td><code>system_profiler SPHardwareDataType</code></td>
+                <td>Shows hardware details like model, serial, and memory.</td>
+                <td>Helpful when you need exact machine specs.</td>
+              </tr>
+              <tr class="command-row" data-category="network" data-search="ifconfig ip interface">
+                <td><code>ifconfig</code></td>
+                <td>Lists network interfaces and IP details.</td>
+                <td>Use it when you want the raw network interface view.</td>
+              </tr>
+              <tr class="command-row" data-category="network" data-search="ping reachability">
+                <td><code>ping google.com</code></td>
+                <td>Tests basic reachability to another host.</td>
+                <td>Use it when network access feels questionable.</td>
+              </tr>
+              <tr class="command-row" data-category="network" data-search="curl fetch url api">
+                <td><code>curl https://example.com</code></td>
+                <td>Fetches data from a URL.</td>
+                <td>Great for testing web responses and APIs from Terminal.</td>
+              </tr>
+              <tr class="command-row" data-category="network system" data-search="lsof port process">
+                <td><code>lsof -i :3000</code></td>
+                <td>Shows which process is using a specific port.</td>
+                <td>Very useful when a local dev server says the port is already in use.</td>
+              </tr>
+              <tr class="command-row" data-category="network" data-search="scutil dns">
+                <td><code>scutil --dns</code></td>
+                <td>Displays macOS DNS resolver information.</td>
+                <td>Use it when DNS behavior looks strange.</td>
+              </tr>
+              <tr class="command-row" data-category="brew" data-search="brew version check">
+                <td><code>brew --version</code></td>
+                <td>Shows the installed Homebrew version.</td>
+                <td>Quick check before using Brew commands.</td>
+              </tr>
+              <tr class="command-row" data-category="brew" data-search="brew search package">
+                <td><code>brew search python</code></td>
+                <td>Searches Homebrew formulas and casks.</td>
+                <td>Use it when you know roughly what tool you want but not the exact package name.</td>
+              </tr>
+              <tr class="command-row" data-category="brew" data-search="brew install package">
+                <td><code>brew install wget</code></td>
+                <td>Installs a command-line package.</td>
+                <td>Use it to add developer tools or missing Unix utilities cleanly.</td>
+              </tr>
+              <tr class="command-row" data-category="brew" data-search="brew list installed">
+                <td><code>brew list</code></td>
+                <td>Lists installed Homebrew packages.</td>
+                <td>Good for auditing what you already have installed.</td>
+              </tr>
+              <tr class="command-row" data-category="brew" data-search="brew update upgrade">
+                <td><code>brew update &amp;&amp; brew upgrade</code></td>
+                <td>Refreshes Brew metadata and upgrades installed packages.</td>
+                <td>Use occasionally to keep your tooling current.</td>
+              </tr>
+              <tr class="command-row" data-category="brew cleanup" data-search="brew cleanup old versions">
+                <td><code>brew cleanup</code></td>
+                <td>Removes outdated Homebrew package versions and cached files.</td>
+                <td>Useful when Brew is taking more disk space than expected.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="say speech voice mac">
+                <td><code>say "Hello from your Mac"</code></td>
+                <td>Makes macOS speak the given text aloud.</td>
+                <td>Fun, but also useful for quick audio alerts or demos.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="screencapture screenshot">
+                <td><code>screencapture ~/Desktop/shot.png</code></td>
+                <td>Takes a screenshot from Terminal.</td>
+                <td>Use it for automation or when you want predictable screenshot output paths.</td>
+              </tr>
+              <tr class="command-row" data-category="system" data-search="defaults read preferences">
+                <td><code>defaults read com.apple.finder</code></td>
+                <td>Reads preference values for an app or system domain.</td>
+                <td>Useful for inspecting settings, but change-related defaults commands deserve extra care.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="clear terminal screen">
+                <td><code>clear</code></td>
+                <td>Clears the terminal display.</td>
+                <td>Simple but nice for resetting visual clutter while you work.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="history past commands">
+                <td><code>history</code></td>
+                <td>Shows your shell command history.</td>
+                <td>Useful when you want to repeat or learn from previous commands.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted-mini">Tip: use <code>pwd</code>, <code>ls -la</code>, <code>open .</code>, <code>pbcopy</code>, and <code>brew search</code> often. They are high-value, low-risk commands for building confidence.</p>
+      </section>
+
+      <section class="section" id="labs">
+        <div class="section-label">Things to try</div>
+        <h2>Safe Mac exercises you can try on your own machine today</h2>
+        <p class="section-intro">
+          These exercises are intentionally beginner-safe. They focus on reading state, creating a sandbox,
+          using built-in tools, and building confidence without touching sensitive system areas.
+        </p>
+
+        <div class="option-grid">
+          <article class="option">
+            <span>Best start</span>
+            <h3>Make a sandbox</h3>
+            <p>Create one safe folder in your home directory and use it for experiments.</p>
+          </article>
+          <article class="option">
+            <span>Best bridge</span>
+            <h3>Open Terminal and Finder together</h3>
+            <p>Practice switching between CLI and GUI instead of treating them as separate worlds.</p>
+          </article>
+          <article class="option">
+            <span>Best insight</span>
+            <h3>Inspect your Mac</h3>
+            <p>Check battery, storage, ports, clipboard, and network info with read-only commands.</p>
+          </article>
+          <article class="option">
+            <span>Best habit</span>
+            <h3>Delete carefully</h3>
+            <p>Know when not to use <code>rm</code> and keep experiments inside folders you control.</p>
+          </article>
+        </div>
+
+        <div class="lab-list">
+          <details class="lab" open>
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 0</span>
+                <h3>Create a safe sandbox for Mac command practice</h3>
+                <p>Make one folder under your home directory and do all your early experiments there.</p>
+              </div>
+              <div class="lab-meta">5 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Sandbox setup</span></div>
+                <pre><code>cd ~
+mkdir mac-sandbox
+cd mac-sandbox
+pwd
+open .</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You create a safe area for practice and connect Terminal navigation with Finder visually.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>cd ~
+rm -r mac-sandbox</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 1</span>
+                <h3>Create and inspect files</h3>
+                <p>Practice core navigation and file commands in your sandbox.</p>
+              </div>
+              <div class="lab-meta">8 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Files + folders</span></div>
+                <pre><code>cd ~/mac-sandbox
+mkdir notes
+touch notes/today.txt
+ls -la
+cat notes/today.txt
+open notes</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You create folders and files, inspect them from Terminal, then open them in Finder.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>rm -r ~/mac-sandbox/notes</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 2</span>
+                <h3>Use the clipboard from Terminal</h3>
+                <p>Move text into and out of the macOS clipboard without leaving the shell.</p>
+              </div>
+              <div class="lab-meta">5 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Clipboard tools</span></div>
+                <pre><code>echo "Mac power user mode" | pbcopy
+pbpaste</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>This is one of the most practical Mac-only Terminal tricks for daily work.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <p>No cleanup needed unless you want to overwrite the clipboard with something else.</p>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 3</span>
+                <h3>Inspect your Mac with read-only commands</h3>
+                <p>Check battery, disk, hardware, and active ports without changing anything.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>System inspection</span></div>
+                <pre><code>pmset -g batt
+df -h
+system_profiler SPHardwareDataType
+lsof -i :3000</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You get real operational information from your Mac using safe, read-only commands.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <p>No cleanup required because these commands only read information.</p>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 4</span>
+                <h3>Search files two different ways</h3>
+                <p>Try both filesystem search and Spotlight-backed search so you feel the difference.</p>
+              </div>
+              <div class="lab-meta">8 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Find vs Spotlight</span></div>
+                <pre><code>cd ~/mac-sandbox
+touch report.txt
+find . -name "report.txt"
+mdfind "report"</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p><code>find</code> walks the filesystem directly. <code>mdfind</code> asks Spotlight’s index.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>rm ~/mac-sandbox/report.txt</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 5</span>
+                <h3>Install one safe utility with Homebrew</h3>
+                <p>Practice searching and installing a package using the standard Mac package manager.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Homebrew basics</span></div>
+                <pre><code>brew search tree
+brew install tree
+brew list | grep tree</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You practice the normal Homebrew flow: discover, install, verify.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>brew uninstall tree</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="section" id="troubleshooting">
+        <div class="section-label">Troubleshooting</div>
+        <h2>Debug Mac and Terminal issues in a calm order</h2>
+        <p class="section-intro">
+          Most Mac command problems are easier to solve when you ask the right question first: is this
+          a path issue, a permissions issue, a missing command, a process issue, or a network issue?
+        </p>
+
+        <div class="flow-grid">
+          <div class="flow-block">
+            <h3>Fast debug sequence</h3>
+            <div class="stack-list">
+              <div class="pipeline-row">
+                <div>
+                  <strong>Check where you are</strong>
+                  <p>Use <code>pwd</code> and <code>ls -la</code> before assuming the file is missing.</p>
+                </div>
+                <code>path</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Check whether the command exists</strong>
+                  <p>If macOS says command not found, verify spelling or install the tool with Brew if appropriate.</p>
+                </div>
+                <code>tool</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Read the system state</strong>
+                  <p>Use <code>ps</code>, <code>top</code>, <code>lsof</code>, or <code>ifconfig</code> based on the symptom.</p>
+                </div>
+                <code>state</code>
+              </div>
+              <div class="pipeline-row">
+                <div>
+                  <strong>Be careful with permissions</strong>
+                  <p>Do not jump to <code>sudo</code> unless you understand why a command needs elevated privileges.</p>
+                </div>
+                <code>permissions</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="symptoms">
+            <h3>Common signals and what they usually mean</h3>
+            <div class="table-wrap">
+              <table class="symptom-table">
+                <thead>
+                  <tr>
+                    <th>Signal</th>
+                    <th>Likely meaning</th>
+                    <th>First move</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>command not found</code></td>
+                    <td>The command is not installed, misspelled, or not in your shell path.</td>
+                    <td>Recheck the name or install it with Brew if appropriate</td>
+                  </tr>
+                  <tr>
+                    <td><code>No such file or directory</code></td>
+                    <td>The path is wrong or you are in the wrong folder.</td>
+                    <td><code>pwd</code> and <code>ls -la</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>Permission denied</code></td>
+                    <td>The file, folder, or command needs different permissions or elevated access.</td>
+                    <td>Inspect the file and understand why before using <code>sudo</code></td>
+                  </tr>
+                  <tr>
+                    <td>Port already in use</td>
+                    <td>Another app is already listening on that port.</td>
+                    <td><code>lsof -i :PORT</code></td>
+                  </tr>
+                  <tr>
+                    <td>Mac feels slow</td>
+                    <td>A runaway process, memory pressure, or low disk space may be involved.</td>
+                    <td><code>top</code>, <code>ps aux</code>, <code>df -h</code></td>
+                  </tr>
+                  <tr>
+                    <td>Brew behaves strangely</td>
+                    <td>Its metadata or packages may need refreshing.</td>
+                    <td><code>brew update</code> then <code>brew doctor</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="simulator">
+        <div class="section-label">Interactive simulator</div>
+        <h2>Practice basic zsh commands without risk</h2>
+        <p class="section-intro">
+          This fake terminal is here so you can practice safe commands and build intuition around prompts,
+          paths, file listings, clipboard utilities, and Mac-specific helpers.
+        </p>
+
+        <div class="sim-shell">
+          <section class="sim-panel">
+            <div class="sim-controls">
+              <div class="sim-stats">
+                <div class="sim-stat"><span>Current path</span><strong id="simPath">~</strong></div>
+                <div class="sim-stat"><span>Known commands</span><strong>13</strong></div>
+                <div class="sim-stat"><span>Clipboard</span><strong id="simClipboard">empty</strong></div>
+                <div class="sim-stat"><span>Mode</span><strong>safe sandbox</strong></div>
+              </div>
+
+              <div class="sim-buttons">
+                <button class="sim-button success" id="simHelpBtn">Run help</button>
+                <button class="sim-button" id="simLsBtn">Run ls</button>
+                <button class="sim-button warning" id="simOpenBtn">Run open .</button>
+                <button class="sim-button danger" id="simResetBtn">Reset</button>
+              </div>
+
+              <div>
+                <h3>Command hints</h3>
+                <div class="sim-log" id="simLog"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="sim-panel">
+            <div class="sim-view">
+              <div class="terminal-window" id="termWindow">
+                <div class="terminal-top">
+                  <div class="window-dot red"></div>
+                  <div class="window-dot yellow"></div>
+                  <div class="window-dot green"></div>
+                  <div class="terminal-title">user@macbook-pro : ~</div>
+                </div>
+                <div class="terminal-body" id="termOutput"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="section" id="cleanup">
+        <div class="section-label">Cleanup</div>
+        <h2>Know which Mac commands are safe and which deserve caution</h2>
+        <p class="section-intro">
+          The best safety habit on macOS is understanding command intent before you run it. Read-only
+          commands build confidence. Deletion and privilege commands deserve more thought.
+        </p>
+
+        <div class="cleanup-grid">
+          <article class="cleanup-column">
+            <h3>Safe starter commands</h3>
+            <ul>
+              <li><code>pwd</code>, <code>ls -la</code>, <code>open .</code>, <code>pbpaste</code>, <code>pmset -g batt</code>, <code>df -h</code>.</li>
+              <li>These mostly read state or open views and are excellent for beginners.</li>
+              <li>Use them often to build confidence before trying more powerful commands.</li>
+            </ul>
+          </article>
+          <article class="cleanup-column">
+            <h3>Commands to treat carefully</h3>
+            <ul>
+              <li><code>rm</code>, especially <code>rm -r</code>, because it deletes immediately.</li>
+              <li><code>sudo</code>, because it grants elevated privileges.</li>
+              <li><code>defaults write</code> and force-quit style commands when you are not sure what they affect.</li>
+              <li>If a command changes system state, understand it first and prefer using a sandbox folder when learning.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="finish">
+        <div class="section-label">Finish line</div>
+        <h2>Your next step after Mac Terminal feels comfortable</h2>
+        <p class="section-intro">
+          Once Terminal and basic macOS power moves feel natural, the next leap is combining them
+          with scripting, Git, development tools, and automation for repeatable workflows.
+        </p>
+
+        <div class="finish-grid">
+          <article class="panel">
+            <h3>Practice next</h3>
+            <ul>
+              <li>Customize your shell prompt or aliases in your zsh config.</li>
+              <li>Use Brew to install a few tools you actually need and keep them tidy.</li>
+              <li>Build a tiny shell script for a repeated task like opening folders or cleaning temp files in your sandbox.</li>
+              <li>Get comfortable with Git commands once file navigation feels natural.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Related pages in this hub</h3>
+            <p>macOS power use becomes even more useful once it connects to developer tooling and infrastructure topics.</p>
+            <ul>
+              <li><a href="linux-commands.html">Linux Commands</a> for the broader Unix command-line world.</li>
+              <li><a href="containers.html">Containers &amp; Docker</a> for packaging apps beyond the local Mac.</li>
+              <li><a href="scripts.html">Scripts</a> for turning repeated shell steps into automation.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        A powerful Mac workflow is not about memorizing every command. It is about knowing a small set of safe, high-value tools well enough to move confidently between the GUI and the shell.
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    const progressKey = "mac-commands-zero-to-hero-progress";
+    const checkpoints = document.querySelectorAll("[data-checkpoint]");
+    const progressFill = document.getElementById("progressFill");
+    const progressCopy = document.getElementById("progressCopy");
+
+    function loadChecklist() {
+      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
+      checkpoints.forEach((checkbox) => {
+        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+      });
+      updateChecklist();
+    }
+
+    function updateChecklist() {
+      const saved = {};
+      let checkedCount = 0;
+
+      checkpoints.forEach((checkbox) => {
+        saved[checkbox.dataset.checkpoint] = checkbox.checked;
+        if (checkbox.checked) checkedCount += 1;
+      });
+
+      localStorage.setItem(progressKey, JSON.stringify(saved));
+      const pct = (checkedCount / checkpoints.length) * 100;
+      progressFill.style.width = pct + "%";
+      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
+    }
+
+    checkpoints.forEach((checkbox) => {
+      checkbox.addEventListener("change", updateChecklist);
+    });
+
+    const chapterState = document.getElementById("chapterState");
+    const syncedNavLinks = Array.from(document.querySelectorAll("[data-nav-target]"));
+    const observedSections = Array.from(document.querySelectorAll(".section[id]"));
+    const navTargetState = new Map();
+
+    function setActiveNav(targetId) {
+      if (!targetId) return;
+
+      syncedNavLinks.forEach((link) => {
+        const isActive = link.dataset.navTarget === targetId;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      const labelSource = syncedNavLinks.find((link) => link.dataset.navTarget === targetId);
+      if (labelSource && chapterState) {
+        chapterState.textContent = labelSource.textContent.trim();
+      }
+    }
+
+    function resolveVisibleSection() {
+      const rankedSections = observedSections
+        .map((section) => {
+          const rect = section.getBoundingClientRect();
+          return {
+            id: section.id,
+            ratio: navTargetState.get(section.id) || 0,
+            distance: Math.abs(rect.top - 180),
+            top: rect.top
+          };
+        })
+        .filter((section) => section.ratio > 0 || section.top < window.innerHeight * 0.55)
+        .sort((left, right) => {
+          if (right.ratio !== left.ratio) return right.ratio - left.ratio;
+          return left.distance - right.distance;
+        });
+
+      return rankedSections[0]?.id || observedSections[0]?.id || null;
+    }
+
+    if (observedSections.length > 0 && syncedNavLinks.length > 0) {
+      const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          navTargetState.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        });
+
+        const activeId = resolveVisibleSection();
+        if (activeId) setActiveNav(activeId);
+      }, {
+        rootMargin: "-18% 0px -62% 0px",
+        threshold: [0, 0.15, 0.35, 0.6, 0.9]
+      });
+
+      observedSections.forEach((section) => navObserver.observe(section));
+      syncedNavLinks.forEach((link) => {
+        link.addEventListener("click", () => setActiveNav(link.dataset.navTarget));
+      });
+
+      const hashId = window.location.hash.replace("#", "");
+      const initialId = observedSections.some((section) => section.id === hashId)
+        ? hashId
+        : observedSections[0].id;
+      setActiveNav(initialId);
+    }
+
+    const commandSearch = document.getElementById("commandSearch");
+    const commandCounter = document.getElementById("commandCounter");
+    const commandRows = Array.from(document.querySelectorAll(".command-row"));
+    const chips = Array.from(document.querySelectorAll("[data-command-filter]"));
+    let activeFilter = "all";
+
+    function filterCommands() {
+      const term = commandSearch.value.trim().toLowerCase();
+      let visible = 0;
+
+      commandRows.forEach((row) => {
+        const categories = row.dataset.category.split(" ");
+        const matchesFilter = activeFilter === "all" || categories.includes(activeFilter);
+        const text = row.textContent.toLowerCase() + " " + row.dataset.search.toLowerCase();
+        const matchesSearch = term === "" || text.includes(term);
+        const show = matchesFilter && matchesSearch;
+        row.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      commandCounter.textContent = visible + " row" + (visible === 1 ? "" : "s");
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.commandFilter;
+        chips.forEach((btn) => btn.classList.toggle("active", btn === chip));
+        filterCommands();
+      });
+    });
+
+    commandSearch.addEventListener("input", filterCommands);
+
+    const termOutput = document.getElementById("termOutput");
+    const simPath = document.getElementById("simPath");
+    const simClipboard = document.getElementById("simClipboard");
+    const simHelpBtn = document.getElementById("simHelpBtn");
+    const simLsBtn = document.getElementById("simLsBtn");
+    const simOpenBtn = document.getElementById("simOpenBtn");
+    const simResetBtn = document.getElementById("simResetBtn");
+    const simLog = document.getElementById("simLog");
+
+    let currentPath = "~";
+    let clipboardValue = "";
+
+    const fileSystem = {
+      "~": ["Desktop", "Downloads", "Documents", "mac-sandbox", "notes.txt"],
+      "Desktop": ["Screenshot.png", "todo.md"],
+      "Downloads": ["installer.dmg", "archive.zip"],
+      "Documents": ["budget.xlsx", "resume.pdf"],
+      "mac-sandbox": ["report.txt", "scripts"]
+    };
+
+    function logSim(message) {
+      const line = document.createElement("div");
+      line.textContent = "[zsh] " + message;
+      simLog.prepend(line);
+      while (simLog.children.length > 12) {
+        simLog.removeChild(simLog.lastChild);
+      }
+    }
+
+    function appendOutput(text, color = "#e1edf7") {
+      const div = document.createElement("div");
+      div.className = "term-line";
+      div.style.color = color;
+      div.innerHTML = text;
+      termOutput.appendChild(div);
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    function updateTerminalStats() {
+      simPath.textContent = currentPath;
+      simClipboard.textContent = clipboardValue || "empty";
+    }
+
+    function createInputLine() {
+      const div = document.createElement("div");
+      div.className = "input-line";
+      div.innerHTML = `
+        <span class="prompt">➜</span>
+        <span class="path">${currentPath}</span>
+        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" spellcheck="false" />
+      `;
+      termOutput.appendChild(div);
+      const input = div.querySelector("input");
+      input.focus();
+      input.addEventListener("keydown", handleCommand);
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    function handleCommand(event) {
+      if (event.key !== "Enter") return;
+
+      const input = event.currentTarget;
+      const raw = input.value.trim();
+      input.disabled = true;
+      processCommand(raw);
+    }
+
+    function processCommand(rawCmd) {
+      const parts = rawCmd.split(" ").filter(Boolean);
+      const cmd = (parts[0] || "").toLowerCase();
+      const arg = parts[1];
+
+      if (cmd === "") {
+        createInputLine();
+        return;
+      }
+
+      if (cmd === "help") {
+        appendOutput("Available safe simulator commands:", "#9cb6c7");
+        appendOutput("  help");
+        appendOutput("  ls");
+        appendOutput("  pwd");
+        appendOutput("  cd [folder]");
+        appendOutput("  cd ..");
+        appendOutput("  open .");
+        appendOutput("  whoami");
+        appendOutput("  date");
+        appendOutput("  say [text]");
+        appendOutput("  pbcopy [text]");
+        appendOutput("  pbpaste");
+        appendOutput("  clear");
+        appendOutput("  cat notes.txt");
+        logSim("displayed the command list");
+      } else if (cmd === "ls") {
+        appendOutput((fileSystem[currentPath] || []).join("&nbsp;&nbsp;&nbsp;"), "#b9dcff");
+        logSim("listed files for " + currentPath);
+      } else if (cmd === "pwd") {
+        appendOutput("/Users/user/" + (currentPath === "~" ? "" : currentPath));
+        logSim("printed the current path");
+      } else if (cmd === "cd") {
+        if (!arg || arg === "~") {
+          currentPath = "~";
+          logSim("returned to the home directory");
+        } else if (arg === "..") {
+          currentPath = "~";
+          logSim("moved up one level in the simplified sandbox");
+        } else {
+          const files = fileSystem[currentPath] || [];
+          if (files.includes(arg) && !arg.includes(".")) {
+            currentPath = arg;
+            logSim("changed directory into " + arg);
+          } else {
+            appendOutput("cd: no such file or directory: " + arg, "#ff9999");
+            logSim("hit a missing directory error");
+          }
+        }
+      } else if (cmd === "open" && arg === ".") {
+        appendOutput("Opening Finder window...", "#63d6a1");
+        logSim("used the Finder bridge command open .");
+      } else if (cmd === "whoami") {
+        appendOutput("user");
+        logSim("checked the current username");
+      } else if (cmd === "date") {
+        appendOutput(new Date().toString());
+        logSim("printed the current date");
+      } else if (cmd === "say") {
+        const text = parts.slice(1).join(" ");
+        if (text) {
+          appendOutput('(Speaking: "' + text + '")', "#ffc978");
+          logSim("used macOS speech synthesis");
+        } else {
+          appendOutput("usage: say [text]", "#ff9999");
+        }
+      } else if (cmd === "pbcopy") {
+        clipboardValue = parts.slice(1).join(" ");
+        appendOutput("Copied text to clipboard.", "#63d6a1");
+        logSim("copied text into the simulated clipboard");
+      } else if (cmd === "pbpaste") {
+        appendOutput(clipboardValue || "(clipboard empty)");
+        logSim("read the simulated clipboard");
+      } else if (cmd === "cat" && arg === "notes.txt") {
+        appendOutput("Mac tip: drag files into Terminal to paste paths.", "#ffc978");
+        logSim("read a small file from the sandbox");
+      } else if (cmd === "clear") {
+        termOutput.innerHTML = "";
+        logSim("cleared the terminal display");
+      } else {
+        appendOutput("zsh: command not found: " + cmd, "#ff9999");
+        logSim("hit an unknown command");
+      }
+
+      updateTerminalStats();
+      createInputLine();
+    }
+
+    function resetTerminal() {
+      currentPath = "~";
+      clipboardValue = "";
+      termOutput.innerHTML = "";
+      simLog.innerHTML = "";
+      appendOutput("Last login: Thu Apr 24 09:41:00 on ttys000", "#9cb6c7");
+      appendOutput('Welcome to <span style="color:#63d6a1;">Mac zsh simulator</span>');
+      appendOutput('Type <span style="color:#6fb7ff;">help</span> to see safe practice commands.');
+      appendOutput("<br>");
+      updateTerminalStats();
+      logSim("simulator reset");
+      createInputLine();
+    }
+
+    simHelpBtn.addEventListener("click", () => {
+      const input = document.getElementById("cmdInput");
+      if (!input) return;
+      input.value = "help";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    });
+
+    simLsBtn.addEventListener("click", () => {
+      const input = document.getElementById("cmdInput");
+      if (!input) return;
+      input.value = "ls";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    });
+
+    simOpenBtn.addEventListener("click", () => {
+      const input = document.getElementById("cmdInput");
+      if (!input) return;
+      input.value = "open .";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    });
+
+    simResetBtn.addEventListener("click", resetTerminal);
+
+    loadChecklist();
+    filterCommands();
+    resetTerminal();
+  </script>
+</body>
+</html>

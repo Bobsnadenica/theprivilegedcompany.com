@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 6: Infrastructure as Code | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #a371f7; /* Purple for IaC (Terraform-ish) */
+      --accent-manual: #ff7b72; /* Red for Manual/Error */
+      --accent-auto: #2ea043;   /* Green for Automation */
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(163, 113, 247, 0.08), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(46, 160, 67, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: THE RACE */
+    .race-arena {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; position: relative;
+    }
+    @media (max-width: 768px) { .race-arena { grid-template-columns: 1fr; } }
+
+    .race-track {
+      background: #161b22; border-radius: 8px; padding: 1.5rem;
+      border: 1px solid #30363d; display: flex; flex-direction: column; gap: 1rem;
+    }
+    
+    .track-header { 
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; 
+      border-bottom: 1px solid #30363d; padding-bottom: 10px;
+    }
+    .track-title { font-weight: bold; font-size: 1.1rem; }
+    .score-board { font-family: var(--font-mono); font-size: 1.2rem; font-weight: bold; }
+
+    /* MANUAL SIDE */
+    .manual-btn {
+      background: #21262d; border: 1px solid #30363d; color: var(--text-primary);
+      padding: 15px; border-radius: 6px; cursor: pointer; text-align: left;
+      transition: all 0.1s; position: relative; overflow: hidden;
+    }
+    .manual-btn:hover { border-color: var(--accent-manual); }
+    .manual-btn:active { transform: scale(0.98); }
+    .manual-btn.loading { pointer-events: none; opacity: 0.7; }
+    .manual-btn.loading::after {
+      content: ""; position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent-manual);
+      animation: load 1s linear forwards;
+    }
+
+    /* IAC SIDE */
+    .code-block {
+      background: #000; padding: 1rem; border-radius: 6px; font-family: var(--font-mono);
+      font-size: 0.85rem; color: #a5d6ff; border: 1px solid #30363d; margin-bottom: 1rem;
+    }
+    .iac-btn {
+      background: var(--accent-auto); color: #fff; border: none;
+      padding: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;
+      font-size: 1rem; transition: filter 0.2s;
+    }
+    .iac-btn:hover { filter: brightness(1.1); }
+    .iac-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* SERVER GRID VISUALS */
+    .server-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 5px;
+      margin-top: 1rem; min-height: 100px; background: #010409; padding: 10px; border-radius: 6px;
+    }
+    .server-dot {
+      width: 30px; height: 30px; background: #21262d; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+      transition: all 0.3s;
+    }
+    .server-dot.active { background: var(--accent-auto); color: #fff; transform: scale(1.1); }
+    .server-dot.manual-active { background: var(--accent-manual); color: #fff; transform: scale(1.1); }
+
+    @keyframes load { 0% { width: 0%; } 100% { width: 100%; } }
+
+    /* Comparison Table */
+    .comp-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .comp-table th { text-align: left; padding: 1rem; border-bottom: 1px solid #30363d; color: var(--text-secondary); }
+    .comp-table td { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .comp-table tr:hover { background: rgba(255,255,255,0.02); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Infrastructure as Code (IaC)</h1>
+      <p class="intro">
+        The practice of managing and provisioning infrastructure through 
+        <span style="color:var(--accent-primary)">code files</span> rather than manually clicking buttons in a web console.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3>🖱️ The "ClickOps" Problem</h3>
+        <p>
+          Configuring servers manually (ClickOps) is slow, error-prone, and impossible to replicate perfectly. 
+          If you lose the server, you have to remember every single button you clicked to rebuild it.
+        </p>
+      </div>
+      <div class="card">
+        <h3>📜 The IaC Solution</h3>
+        <p>
+          You write a "Blueprint" (Code). You run a tool (Terraform/CloudFormation). The tool builds the servers. 
+          If disaster strikes, you just run the code again.
+        </p>
+      </div>
+      <div class="card">
+        <h3>🕵️ Drift Detection</h3>
+        <p>
+          IaC tools ensure your live infrastructure matches your code. If someone manually changes a firewall rule, 
+          the IaC tool detects the "Drift" and fixes it automatically.
+        </p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🏎️ The SysAdmin Race: Manual vs. Code</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> Deploy 10 Servers. See which method scales better.
+    </p>
+
+    <div class="race-arena">
+      
+      <div class="race-track" style="border-color: var(--accent-manual);">
+        <div class="track-header">
+          <div class="track-title" style="color: var(--accent-manual);">Player 1: ClickOps</div>
+          <div class="score-board" id="manualScore">0 / 10</div>
+        </div>
+        
+        <p style="font-size: 0.9rem; color: #8b949e;">Task: Click the button 10 times. Wait for each to finish.</p>
+        
+        <button id="manualBtn" class="manual-btn" onclick="provisionManual()">
+          <strong>+ Create Server</strong>
+          <div style="font-size:0.8rem; opacity:0.7;">Click to provision...</div>
+        </button>
+
+        <div class="server-grid" id="manualGrid">
+          </div>
+      </div>
+
+      <div class="race-track" style="border-color: var(--accent-auto);">
+        <div class="track-header">
+          <div class="track-title" style="color: var(--accent-auto);">Player 2: IaC</div>
+          <div class="score-board" id="iacScore">0 / 10</div>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #8b949e;">Task: Write code once. Apply.</p>
+
+        <div class="code-block">
+          resource "aws_instance" "web" {<br>
+          &nbsp;&nbsp;count = <span style="color:var(--accent-auto)">10</span><br>
+          &nbsp;&nbsp;ami = "ami-12345678"<br>
+          }
+        </div>
+
+        <button id="iacBtn" class="iac-btn" onclick="provisionIaC()">
+          Terraform Apply 🚀
+        </button>
+
+        <div class="server-grid" id="iacGrid">
+          </div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">🧠 Imperative vs. Declarative</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>🗣️ Imperative (Scripting)</h3>
+        <p>You tell the computer <strong>HOW</strong> to do it.</p>
+        <div class="code-block" style="margin-top:1rem; color:#8b949e;">
+          # Bash Script<br>
+          1. Create Server<br>
+          2. Install Nginx<br>
+          3. Start Service
+        </div>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">If you run this twice, you might get 2 servers or an error.</p>
+      </div>
+
+      <div class="card" style="border-color: var(--accent-auto);">
+        <h3>📜 Declarative (IaC)</h3>
+        <p>You tell the computer <strong>WHAT</strong> you want.</p>
+        <div class="code-block" style="margin-top:1rem; color:#8b949e;">
+          # Terraform / CloudFormation<br>
+          I want: 1 Server<br>
+          State: Running
+        </div>
+        <p style="font-size:0.85rem; margin-top:0.5rem;">If you run this twice, nothing happens (because you already have 1 server). This is called <strong>Idempotency</strong>.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🛠️ The Tool Landscape</h2>
+    <div style="overflow-x: auto;">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Type</th>
+            <th>Best For</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:bold; color:var(--accent-primary);">Terraform</td>
+            <td>Declarative</td>
+            <td>Multi-Cloud</td>
+            <td>The industry standard. Uses HCL language. Works with AWS, Azure, Google, etc.</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; color:#eb6f92;">CloudFormation</td>
+            <td>Declarative</td>
+            <td>AWS Only</td>
+            <td>Native to AWS. Deep integration but verbose (YAML/JSON).</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; color:#e3b341;">Ansible</td>
+            <td>Imperative*</td>
+            <td>Config Management</td>
+            <td>Best for configuring software <em>inside</em> servers (installing packages, patching).</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; color:#58a6ff;">Pulumi / CDK</td>
+            <td>Code</td>
+            <td>Developers</td>
+            <td>Use real programming languages (Python, TypeScript) to define infrastructure.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // --- MANUAL GAME LOGIC ---
+    let manualCount = 0;
+    const manualTarget = 10;
+    const manualBtn = document.getElementById('manualBtn');
+    const manualGrid = document.getElementById('manualGrid');
+    const manualScore = document.getElementById('manualScore');
+
+    // Initialize grids
+    for(let i=0; i<manualTarget; i++) {
+      const d = document.createElement('div'); d.className = 'server-dot'; d.id = `m-dot-${i}`;
+      d.innerText = 'SRV';
+      manualGrid.appendChild(d);
+    }
+    for(let i=0; i<manualTarget; i++) {
+      const d = document.createElement('div'); d.className = 'server-dot'; d.id = `i-dot-${i}`;
+      d.innerText = 'SRV';
+      document.getElementById('iacGrid').appendChild(d);
+    }
+
+    function provisionManual() {
+      if(manualCount >= manualTarget) return;
+
+      manualBtn.classList.add('loading');
+      manualBtn.innerHTML = `<strong>Provisioning...</strong><div style="font-size:0.8rem;">Please wait...</div>`;
+      
+      // Simulate slow manual process (1 second per server)
+      setTimeout(() => {
+        const dot = document.getElementById(`m-dot-${manualCount}`);
+        dot.classList.add('manual-active');
+        
+        manualCount++;
+        manualScore.innerText = `${manualCount} / ${manualTarget}`;
+        
+        if(manualCount >= manualTarget) {
+          manualBtn.classList.remove('loading');
+          manualBtn.innerHTML = `<strong>✅ DONE!</strong><div style="font-size:0.8rem;">That took forever.</div>`;
+          manualBtn.style.borderColor = 'var(--accent-success)';
+          manualBtn.disabled = true;
+        } else {
+          manualBtn.classList.remove('loading');
+          manualBtn.innerHTML = `<strong>+ Create Server</strong><div style="font-size:0.8rem;">Click to provision...</div>`;
+        }
+      }, 1000); 
+    }
+
+    // --- IAC GAME LOGIC ---
+    const iacBtn = document.getElementById('iacBtn');
+    const iacScore = document.getElementById('iacScore');
+
+    function provisionIaC() {
+      iacBtn.disabled = true;
+      iacBtn.innerText = "Applying Configuration...";
+
+      // Simulate Terraform plan/apply speed (fast parallel)
+      let current = 0;
+      const interval = setInterval(() => {
+        if(current >= manualTarget) {
+          clearInterval(interval);
+          iacBtn.innerText = "✅ Apply Complete (1.2s)";
+          iacBtn.style.background = "#1f6feb";
+          return;
+        }
+        
+        // Provision 2 at a time (parallelism)
+        if(current < manualTarget) document.getElementById(`i-dot-${current}`).classList.add('active');
+        if(current+1 < manualTarget) document.getElementById(`i-dot-${current+1}`).classList.add('active');
+        
+        current += 2;
+        iacScore.innerText = `${Math.min(current, 10)} / 10`;
+      }, 200); // Very fast updates
+    }
+  </script>
+
+</body>
+</html>

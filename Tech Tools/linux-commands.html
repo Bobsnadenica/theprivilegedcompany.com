@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 18: Linux Commands | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-linux: #dd4814;   /* Ubuntu Orange */
+      --accent-term: #4af626;    /* Hacker Green */
+      --accent-root: #ff7b72;    /* Red for Sudo/Root */
+      --accent-cmd: #58a6ff;     /* Blue for Commands */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Courier New", Courier, monospace; /* Old school terminal feel */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        linear-gradient(rgba(0, 20, 0, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 20, 0, 0.1) 1px, transparent 1px);
+      background-size: 20px 20px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-linux); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-linux));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-linux);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-linux); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-linux); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: TERMINAL SIMULATOR */
+    .term-window {
+      background: #000; border: 1px solid #333; border-radius: 6px;
+      box-shadow: 0 0 30px rgba(74, 246, 38, 0.1); margin: 2rem 0;
+      font-family: var(--font-mono); font-size: 1rem; overflow: hidden;
+    }
+    
+    .term-bar {
+      background: #1a1a1a; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #333; color: #666; font-size: 0.8rem;
+    }
+    
+    .term-body {
+      padding: 1rem; height: 450px; overflow-y: auto; color: var(--accent-term); cursor: text;
+    }
+    .term-line { margin-bottom: 5px; word-break: break-all; }
+    
+    .prompt { color: var(--accent-linux); font-weight: bold; }
+    .path { color: var(--accent-cmd); font-weight: bold; }
+    .input-line { display: flex; align-items: center; }
+    .cmd-input {
+      background: transparent; border: none; color: #fff; font-family: var(--font-mono);
+      font-size: 1rem; flex-grow: 1; outline: none; margin-left: 8px; caret-color: var(--accent-term);
+    }
+
+    /* MISSION BOX */
+    .mission-box {
+      background: #161b22; border-left: 4px solid var(--accent-root); padding: 1rem;
+      margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .mission-status {
+      font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .status-down { color: var(--accent-root); animation: blink 1s infinite; }
+    .status-up { color: var(--accent-term); }
+
+    /* COMMAND TABLE */
+    .cmd-table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem;
+    }
+    .cmd-table th { text-align: left; padding: 12px; border-bottom: 1px solid var(--border-subtle); color: var(--accent-cmd); }
+    .cmd-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .cmd-code { 
+      font-family: var(--font-mono); color: var(--accent-linux); background: rgba(221, 72, 20, 0.1); 
+      padding: 2px 6px; border-radius: 4px; display: inline-block; font-weight: bold;
+    }
+    .cmd-desc { color: var(--text-secondary); font-size: 0.9rem; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Development & OS</div>
+      <h1>Linux Terminal Commands</h1>
+      <p class="intro">
+        The servers running the internet don't have a mouse. They run <strong>Linux</strong>. 
+        Knowing these commands distinguishes a "User" from an "Admin".
+      </p>
+    </header>
+
+    <h2 class="section-title">🐧 Core Concepts</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>The Shell (Bash)</h3>
+        <p>The program that takes your commands and gives them to the OS. If you see a <code>$</code> prompt, you are talking to the shell.</p>
+      </div>
+      <div class="card">
+        <h3>Root (Superuser)</h3>
+        <p>The "God Mode" user. Can delete the entire operating system with one command. We use <code>sudo</code> to borrow Root's power temporarily.</p>
+      </div>
+      <div class="card">
+        <h3>Everything is a File</h3>
+        <p>In Linux, your hard drive is a file. Your mouse is a file. Your settings are files. If you can edit text files, you can configure anything.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ SysAdmin Crisis Simulator</h2>
+    
+    <div class="mission-box">
+      <div>
+        <strong>🚨 ALERT:</strong> The web server is offline! Customers are angry.
+        <br><span style="font-size:0.9rem; color:#8b949e;">Mission: Find the error logs and restart the service.</span>
+      </div>
+      <div class="mission-status status-down" id="serverStatus">OFFLINE</div>
+    </div>
+
+    <div class="term-window" onclick="document.getElementById('cmdInput').focus()">
+      <div class="term-bar">
+        <div>admin@production-server-01: /var/www</div>
+        <div>SSH Session</div>
+      </div>
+      <div class="term-body" id="termOutput">
+        <div class="term-line">Welcome to Ubuntu 22.04 LTS (GNU/Linux 5.15.0-generic x86_64)</div>
+        <div class="term-line">System load: 0.05, 0.01, 0.00</div>
+        <div class="term-line"><br></div>
+        <div class="term-line" style="color:#fff">Hint: Start by listing files with <span style="color:var(--accent-cmd)">ls</span></div>
+        <div class="term-line"><br></div>
+        
+        </div>
+    </div>
+
+    <h2 class="section-title">📜 The Cheat Sheet</h2>
+    
+    <h3 style="color:#fff; margin-top:2rem;">📂 File Operations</h3>
+    <table class="cmd-table">
+      <tr>
+        <td width="30%"><span class="cmd-code">ls -lah</span></td>
+        <td class="cmd-desc">List all files (including hidden), detailed view, human readable sizes.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">cd /var/log</span></td>
+        <td class="cmd-desc">Change Directory. Jump straight to a folder.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">cat error.log</span></td>
+        <td class="cmd-desc">Print the full content of a file to the screen.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">tail -f error.log</span></td>
+        <td class="cmd-desc">Watch the end of a file in real-time. Crucial for debugging live logs.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">grep "error" file.txt</span></td>
+        <td class="cmd-desc">Search for a specific word inside a file.</td>
+      </tr>
+    </table>
+
+    <h3 style="color:#fff; margin-top:2rem;">⚙️ System Administration</h3>
+    <table class="cmd-table">
+      <tr>
+        <td width="30%"><span class="cmd-code">sudo [cmd]</span></td>
+        <td class="cmd-desc">Run as Root. Required for restarting services or editing system configs.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">systemctl restart nginx</span></td>
+        <td class="cmd-desc">Control background services (Start, Stop, Restart, Status).</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">ps aux</span></td>
+        <td class="cmd-desc">See every running process on the machine.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">top</span></td>
+        <td class="cmd-desc">Task Manager. See CPU/RAM usage live.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">df -h</span></td>
+        <td class="cmd-desc">Disk Free. Check how much hard drive space is left.</td>
+      </tr>
+    </table>
+
+    <h3 style="color:#fff; margin-top:2rem;">🔐 Permissions</h3>
+    <table class="cmd-table">
+      <tr>
+        <td width="30%"><span class="cmd-code">chmod 777 file</span></td>
+        <td class="cmd-desc">Change Mode. Sets read/write/execute permissions. (777 is dangerous!)</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">chown user:group file</span></td>
+        <td class="cmd-desc">Change Owner. Takes ownership of a file.</td>
+      </tr>
+    </table>
+
+    <h3 style="color:#fff; margin-top:2rem;">📦 Package Manager (APT)</h3>
+    <table class="cmd-table">
+      <tr>
+        <td width="30%"><span class="cmd-code">apt update</span></td>
+        <td class="cmd-desc">Refresh the list of available software.</td>
+      </tr>
+      <tr>
+        <td><span class="cmd-code">apt install [package]</span></td>
+        <td class="cmd-desc">Download and install software (e.g., <code>apt install nginx</code>).</td>
+      </tr>
+    </table>
+
+  </div>
+
+  <script>
+    const termOutput = document.getElementById('termOutput');
+    const serverStatus = document.getElementById('serverStatus');
+    let currentPath = "/var/www";
+    let isRoot = false;
+    let serviceFixed = false;
+    
+    // Fake FS
+    const fileSystem = {
+      "/var/www": ["html", "logs", "config"],
+      "/var/www/html": ["index.html", "robots.txt"],
+      "/var/www/logs": ["access.log", "error.log"],
+      "/var/www/config": ["nginx.conf"]
+    };
+
+    const fileContents = {
+      "error.log": "[CRITICAL] Server crashed. Port 80 blocked.\n[INFO] Try restarting the service.",
+      "nginx.conf": "server { listen 80; root /var/www/html; }",
+      "index.html": "<h1>Hello World</h1>"
+    };
+
+    function initTerminal() {
+      createInputLine();
+    }
+
+    function createInputLine() {
+      const div = document.createElement('div');
+      div.className = 'input-line';
+      // Prompt: admin@host:path$ 
+      const user = isRoot ? "root" : "admin";
+      const symbol = isRoot ? "#" : "$";
+      div.innerHTML = `
+        <span class="prompt">${user}@prod-01</span>:<span class="path">${currentPath}</span>${symbol} 
+        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" spellcheck="false" autofocus>
+      `;
+      termOutput.appendChild(div);
+      
+      const input = div.querySelector('input');
+      input.focus();
+      input.addEventListener('keydown', handleCommand);
+      termOutput.scrollTop = termOutput.scrollHeight;
+    }
+
+    function handleCommand(e) {
+      if (e.key === 'Enter') {
+        const cmd = this.value.trim();
+        this.disabled = true; 
+        processCommand(cmd);
+      }
+    }
+
+    function output(text, color) {
+      const div = document.createElement('div');
+      div.className = 'term-line';
+      if (color) div.style.color = color;
+      div.innerHTML = text;
+      termOutput.appendChild(div);
+    }
+
+    function processCommand(rawCmd) {
+      if(!rawCmd) { createInputLine(); return; }
+
+      const parts = rawCmd.split(' ');
+      let cmd = parts[0];
+      let arg = parts[1];
+
+      // Handle SUDO
+      if (cmd === "sudo") {
+        if (!parts[1]) {
+          output("usage: sudo command");
+          createInputLine();
+          return;
+        }
+        cmd = parts[1]; // Shift command
+        arg = parts[2];
+        // In this sim, sudo just works without password for flow
+      }
+
+      if (cmd === "help") {
+        output("Available: ls, cd, cat, grep, systemctl, whoami, clear");
+      }
+      else if (cmd === "ls") {
+        const files = fileSystem[currentPath] || [];
+        output(files.join("   "));
+      }
+      else if (cmd === "cd") {
+        if (!arg || arg === "..") {
+          // Simple back logic
+          if (currentPath !== "/") {
+            const pathParts = currentPath.split('/');
+            pathParts.pop();
+            currentPath = pathParts.join('/') || "/";
+          }
+        } else {
+          // Forward logic
+          const target = currentPath === "/" ? `/${arg}` : `${currentPath}/${arg}`;
+          if (fileSystem[target]) {
+            currentPath = target;
+          } else {
+            output(`cd: ${arg}: No such directory`, "#ff7b72");
+          }
+        }
+      }
+      else if (cmd === "cat") {
+        if (fileContents[arg]) {
+          output(fileContents[arg]);
+          // Hint for game progress
+          if (arg === "error.log") {
+            output("--> HINT: The log says the service crashed. Try 'systemctl restart nginx'", "#ffff00");
+          }
+        } else {
+          output(`cat: ${arg}: No such file`, "#ff7b72");
+        }
+      }
+      else if (cmd === "grep") {
+        output("grep: searching... found 1 match.");
+      }
+      else if (cmd === "systemctl") {
+        const action = arg;
+        const service = parts[2] || parts[3]; // handle sudo shift
+        
+        if (action === "status") {
+          output(`● nginx.service - A high performance web server`);
+          output(`   Loaded: loaded (/lib/systemd/system/nginx.service; enabled)`);
+          output(`   Active: ${serviceFixed ? 'active (running)' : 'failed (Result: exit-code)'}`, serviceFixed ? '#2ea043' : '#ff7b72');
+        } 
+        else if (action === "restart" || action === "start") {
+          if (!rawCmd.startsWith("sudo")) {
+            output("Failed to restart nginx: Permission denied. (Try 'sudo')", "#ff7b72");
+          } else {
+            output("Restarting nginx service...");
+            setTimeout(() => {
+              serviceFixed = true;
+              output("✓ Service started successfully.", "#2ea043");
+              serverStatus.innerText = "ONLINE";
+              serverStatus.className = "mission-status status-up";
+              serverStatus.style.animation = "none";
+            }, 800);
+          }
+        }
+      }
+      else if (cmd === "whoami") {
+        output("admin");
+      }
+      else if (cmd === "clear") {
+        termOutput.innerHTML = "";
+      }
+      else {
+        output(`${cmd}: command not found`, "#ff7b72");
+      }
+
+      // Add small delay for realism
+      setTimeout(createInputLine, 50);
+    }
+
+    // Start
+    initTerminal();
+  </script>
+
+</body>
+</html>

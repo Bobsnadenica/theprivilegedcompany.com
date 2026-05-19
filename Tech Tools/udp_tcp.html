@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 26: TCP vs UDP | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-tcp: #0078d4;     /* Corporate Blue */
+      --accent-udp: #ff9900;     /* Energetic Orange */
+      --accent-ack: #2ea043;     /* Green (Receipt) */
+      --accent-loss: #ff7b72;    /* Red (Packet Loss) */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 20% 20%, rgba(0, 120, 212, 0.1), transparent 25%),
+        radial-gradient(circle at 80% 80%, rgba(255, 153, 0, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: #fff; }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, var(--accent-tcp), var(--accent-udp));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid #fff;
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: PROTOCOL WARS */
+    .proto-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .proto-console { grid-template-columns: 1fr; } }
+
+    .lane {
+      border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem;
+      background: #161b22; display: flex; flex-direction: column; gap: 1rem;
+      position: relative; min-height: 400px;
+    }
+    .lane-header {
+      font-weight: bold; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #30363d; padding-bottom: 10px;
+    }
+
+    /* TCP STYLES */
+    .lane-tcp { border-top: 4px solid var(--accent-tcp); }
+    .tcp-title { color: var(--accent-tcp); }
+
+    /* UDP STYLES */
+    .lane-udp { border-top: 4px solid var(--accent-udp); }
+    .udp-title { color: var(--accent-udp); }
+
+    /* ANIMATION AREA */
+    .anim-box {
+      flex-grow: 1; background: #010409; border: 1px dashed #30363d; border-radius: 6px;
+      position: relative; overflow: hidden;
+    }
+    .endpoint {
+      position: absolute; top: 20px; bottom: 20px; width: 60px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 0.8rem; color: #fff; z-index: 5;
+    }
+    .client { left: 10px; background: #21262d; border: 2px solid #fff; }
+    .server { right: 10px; background: #21262d; border: 2px solid #2ea043; transition: background 0.2s; }
+    .server.flash { background: #2ea043; }
+
+    /* PACKETS */
+    .packet {
+      position: absolute; width: 24px; height: 24px; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;
+      color: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.2); z-index: 10;
+    }
+    .p-tcp { background: var(--accent-tcp); }
+    .p-ack { background: var(--accent-ack); border-radius: 50%; font-size: 0.5rem; }
+    .p-udp { background: var(--accent-udp); border-radius: 50%; }
+
+    /* CONTROLS */
+    .btn {
+      width: 100%; padding: 15px; border-radius: 6px; border: none;
+      font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.1s;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-tcp { background: rgba(0, 120, 212, 0.1); border: 1px solid var(--accent-tcp); color: var(--accent-tcp); }
+    .btn-tcp:hover { background: var(--accent-tcp); color: #fff; }
+    .btn-tcp:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+    .btn-udp { background: var(--accent-udp); color: #000; }
+    .btn-udp:hover { filter: brightness(1.1); }
+    
+    .stats {
+      font-family: var(--font-mono); font-size: 0.8rem; color: #8b949e;
+      display: flex; justify-content: space-between; margin-top: 10px;
+    }
+    .val-loss { color: var(--accent-loss); }
+
+    /* ANALOGY BOX */
+    .analogy-box {
+      margin-top: 1rem; font-size: 0.9rem; color: #8b949e; 
+      background: #0d1117; padding: 10px; border-radius: 6px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>TCP vs UDP</h1>
+      <p class="intro">
+        The two languages of the internet. Do you want your data <span style="color:var(--accent-tcp)">Perfect & Slow</span> (TCP) 
+        or <span style="color:var(--accent-udp)">Fast & Messy</span> (UDP)?
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-tcp);">
+        <h3>TCP (Transmission Control Protocol)</h3>
+        <p><strong>The "Reliable Courier".</strong><br>Ensures every single byte arrives in order. If a packet is lost, it re-sends it. Requires a "Handshake" to start.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-tcp);">Used for: Web (HTTP), Email, File Transfers</div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-udp);">
+        <h3>UDP (User Datagram Protocol)</h3>
+        <p><strong>The "Fire Hose".</strong><br>Blasts data as fast as possible. No receipts. No re-sends. If a packet drops, it's gone forever. Zero latency overhead.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-udp);">Used for: Video Streaming, FPS Gaming, VoIP</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Protocol Wars Simulator</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Experiment:</strong> Compare the transmission styles.
+      <br>Notice how TCP forces you to wait for an ACK (Receipt) before sending again. UDP lets you spam the button, but you might lose data.
+    </p>
+
+    <div class="proto-console">
+      
+      <div class="lane lane-tcp">
+        <div class="lane-header">
+          <span class="tcp-title">TCP Connection</span>
+          <span style="font-size:0.8rem; color:#8b949e;">Connection-Oriented</span>
+        </div>
+
+        <div class="anim-box" id="tcpBox">
+          <div class="endpoint client">Sender</div>
+          <div class="endpoint server" id="tcpServer">Receiver</div>
+          <div style="position:absolute; bottom:10px; left:0; right:0; text-align:center; font-size:0.7rem; color:#8b949e;">
+            Strict Ordering Enforced
+          </div>
+        </div>
+
+        <button class="btn btn-tcp" id="btnTcp" onclick="sendTcp()">
+          <span>📧 Send TCP Packet</span>
+          <span style="font-size:0.7rem; opacity:0.7;">(Wait for ACK)</span>
+        </button>
+
+        <div class="analogy-box">
+          "Did you get the file?"<br>"Yes I got it."<br>"Okay sending next part."
+        </div>
+      </div>
+
+      <div class="lane lane-udp">
+        <div class="lane-header">
+          <span class="udp-title">UDP Stream</span>
+          <span style="font-size:0.8rem; color:#8b949e;">Connection-Less</span>
+        </div>
+
+        <div class="anim-box" id="udpBox">
+          <div class="endpoint client">Sender</div>
+          <div class="endpoint server" id="udpServer">Receiver</div>
+          <div style="position:absolute; bottom:10px; left:0; right:0; text-align:center; font-size:0.7rem; color:#8b949e;">
+            Packet Loss Possible!
+          </div>
+        </div>
+
+        <button class="btn btn-udp" id="btnUdp" onclick="sendUdp()">
+          <span>🔥 BLAST UDP!</span>
+          <span style="font-size:0.7rem; opacity:0.7;">(Click as fast as you can)</span>
+        </button>
+
+        <div class="stats">
+          <span>Sent: <strong id="udpSent">0</strong></span>
+          <span>Received: <strong id="udpRecv">0</strong></span>
+          <span class="val-loss">Loss: <strong id="udpLoss">0%</strong></span>
+        </div>
+      </div>
+
+    </div>
+
+    <h2 class="section-title">📊 Head to Head</h2>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse; background:#161b22; color:var(--text-secondary);">
+        <thead>
+          <tr style="background:#21262d; color:#fff; text-align:left;">
+            <th style="padding:1rem;">Feature</th>
+            <th style="padding:1rem; color:var(--accent-tcp);">TCP</th>
+            <th style="padding:1rem; color:var(--accent-udp);">UDP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Reliability</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>100% Guaranteed.</strong> Re-sends lost data.</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Best Effort.</strong> If it's lost, it's lost.</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Ordering</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Ordered.</strong> Packet 1 always arrives before Packet 2.</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Chaotic.</strong> Packet 2 might arrive before Packet 1.</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Speed</strong></td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;">Slower (Handshakes + ACKs).</td>
+            <td style="padding:1rem; border-bottom:1px solid #30363d;"><strong>Light Speed.</strong> Low overhead.</td>
+          </tr>
+          <tr>
+            <td style="padding:1rem;"><strong>Analogy</strong></td>
+            <td style="padding:1rem;">Certified Mail (Signature Required)</td>
+            <td style="padding:1rem;">Shouting across a room</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // TCP LOGIC
+    const btnTcp = document.getElementById('btnTcp');
+    const tcpBox = document.getElementById('tcpBox');
+    const tcpServer = document.getElementById('tcpServer');
+
+    function sendTcp() {
+      // 1. Disable button (Blocking nature of TCP)
+      btnTcp.disabled = true;
+      btnTcp.style.opacity = '0.5';
+      btnTcp.querySelector('span').innerText = "⏳ Waiting for ACK...";
+
+      // 2. Create Packet
+      const p = document.createElement('div');
+      p.className = 'packet p-tcp';
+      p.innerText = 'DAT';
+      p.style.left = '70px';
+      p.style.top = '50%';
+      p.style.transform = 'translateY(-50%)';
+      tcpBox.appendChild(p);
+
+      // 3. Animate to Server
+      const travelTime = 1000;
+      const distance = tcpBox.offsetWidth - 100; // approx width minus endpoints
+
+      p.animate([
+        { left: '70px' },
+        { left: `${distance}px` }
+      ], {
+        duration: travelTime,
+        fill: 'forwards',
+        easing: 'linear'
+      }).onfinish = () => {
+        // 4. Server Receive
+        tcpServer.classList.add('flash');
+        setTimeout(() => tcpServer.classList.remove('flash'), 200);
+        p.remove();
+
+        // 5. Create ACK (Receipt)
+        const ack = document.createElement('div');
+        ack.className = 'packet p-ack';
+        ack.innerText = 'ACK';
+        ack.style.left = `${distance}px`;
+        ack.style.top = '50%';
+        ack.style.transform = 'translateY(-50%)';
+        tcpBox.appendChild(ack);
+
+        // 6. Animate ACK back
+        ack.animate([
+          { left: `${distance}px` },
+          { left: '70px' }
+        ], {
+          duration: travelTime,
+          fill: 'forwards',
+          easing: 'linear'
+        }).onfinish = () => {
+          // 7. Complete
+          ack.remove();
+          btnTcp.disabled = false;
+          btnTcp.style.opacity = '1';
+          btnTcp.querySelector('span').innerText = "📧 Send TCP Packet";
+        };
+      };
+    }
+
+    // UDP LOGIC
+    let udpSentCount = 0;
+    let udpRecvCount = 0;
+    const udpBox = document.getElementById('udpBox');
+    const udpServer = document.getElementById('udpServer');
+    const elSent = document.getElementById('udpSent');
+    const elRecv = document.getElementById('udpRecv');
+    const elLoss = document.getElementById('udpLoss');
+
+    function sendUdp() {
+      udpSentCount++;
+      elSent.innerText = udpSentCount;
+      updateUdpStats();
+
+      // Create Packet
+      const p = document.createElement('div');
+      p.className = 'packet p-udp';
+      p.style.left = '70px';
+      
+      // Random Y position to look chaotic
+      const randY = Math.random() * 60 + 20; // 20% to 80% height
+      p.style.top = `${randY}%`;
+      
+      udpBox.appendChild(p);
+
+      // Random Speed (Jitter)
+      const speed = Math.random() * 500 + 500; // 500ms to 1000ms
+      const distance = udpBox.offsetWidth - 100;
+
+      // Packet Loss Simulation (20% chance)
+      const willSurvive = Math.random() > 0.2;
+
+      const anim = p.animate([
+        { left: '70px' },
+        { left: `${distance}px` }
+      ], {
+        duration: speed,
+        fill: 'forwards',
+        easing: 'linear'
+      });
+
+      if (!willSurvive) {
+        // Kill packet mid-air
+        setTimeout(() => {
+          p.style.backgroundColor = '#ff7b72'; // Turn red
+          p.style.transform = 'scale(0)';
+          p.style.opacity = '0';
+          setTimeout(() => p.remove(), 200);
+        }, speed * 0.6); // Die at 60% of the way
+      } else {
+        // Survive
+        anim.onfinish = () => {
+          udpRecvCount++;
+          elRecv.innerText = udpRecvCount;
+          updateUdpStats();
+          
+          udpServer.classList.add('flash');
+          setTimeout(() => udpServer.classList.remove('flash'), 100);
+          p.remove();
+        };
+      }
+    }
+
+    function updateUdpStats() {
+      if (udpSentCount === 0) return;
+      const loss = ((udpSentCount - udpRecvCount) / udpSentCount) * 100;
+      elLoss.innerText = loss.toFixed(0) + "%";
+    }
+  </script>
+
+</body>
+</html>

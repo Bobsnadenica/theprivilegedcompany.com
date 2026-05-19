@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 7: Serverless | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #f778ba; /* Hot Pink for Serverless/Lambda vibes */
+      --accent-cold: #3fb950;    /* Green for Running */
+      --accent-warm: #d29922;    /* Orange for Cold Start */
+      --accent-cost: #e3b341;    /* Gold for Money */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(247, 120, 186, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 85%, rgba(227, 179, 65, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* ANALOGY BOX */
+    .analogy-box {
+      background: #161b22; border: 1px dashed #30363d; border-radius: 8px;
+      padding: 1rem; margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary);
+    }
+    .analogy-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+
+    /* GAMIFICATION: SCALE SIMULATOR */
+    .sim-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 250px 1fr; gap: 2rem;
+    }
+    @media (max-width: 800px) { .sim-console { grid-template-columns: 1fr; } }
+
+    /* CONTROLS (Left) */
+    .control-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .stat-card {
+      background: #161b22; padding: 1rem; border-radius: 8px; border: 1px solid #30363d;
+    }
+    .stat-label { font-size: 0.8rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 1.8rem; font-weight: bold; color: #fff; font-family: var(--font-mono); }
+    .stat-value.cost { color: var(--accent-cost); }
+
+    .btn {
+      width: 100%; padding: 15px; border-radius: 6px; border: none;
+      font-weight: bold; cursor: pointer; font-size: 1rem; transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .btn-single { background: #21262d; color: #fff; border: 1px solid #30363d; }
+    .btn-single:hover { border-color: var(--accent-primary); }
+    
+    .btn-burst { background: var(--accent-primary); color: #000; }
+    .btn-burst:hover { filter: brightness(1.1); box-shadow: 0 0 20px rgba(247, 120, 186, 0.4); }
+
+    /* VISUALIZATION (Right) */
+    .function-space {
+      background: #010409; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1rem; min-height: 400px; position: relative;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      grid-auto-rows: 40px; gap: 8px; align-content: start;
+    }
+    
+    .lambda-node {
+      width: 40px; height: 40px; border-radius: 6px; 
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; position: relative;
+      animation: spawn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    /* STATES */
+    .lambda-node.cold { 
+      background: transparent; border: 2px dashed var(--accent-warm); 
+      color: var(--accent-warm); 
+    }
+    .lambda-node.cold::after { content: "❄️"; font-size: 0.8rem; }
+    
+    .lambda-node.running { 
+      background: var(--accent-primary); border: none; color: #000; 
+      box-shadow: 0 0 10px rgba(247, 120, 186, 0.5);
+    }
+    .lambda-node.running::after { content: "⚙️"; animation: spin 2s linear infinite; font-size: 1rem; }
+
+    @keyframes spawn { from { transform: scale(0); } to { transform: scale(1); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+    /* Cold Start Explanation */
+    .cold-start-banner {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9); padding: 1rem 2rem; border-radius: 8px;
+      border: 1px solid var(--accent-warm); color: var(--accent-warm);
+      font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+      z-index: 10; text-align: center;
+    }
+    .cold-start-banner.visible { opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Serverless Compute</h1>
+      <p class="intro">
+        "Serverless" doesn't mean there are no servers. It means <span style="color:var(--accent-primary)">you don't manage them</span>.
+        You upload code, and the cloud provider runs it only when needed.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3>⚡ Event-Driven</h3>
+        <p>
+          Functions sleep until something wakes them up (an HTTP request, a file upload, a database change). You pay <strong>$0.00</strong> when they are sleeping.
+        </p>
+        <div class="analogy-box">
+          <span class="analogy-icon">💡</span>
+          Like a motion-sensor light. It's only on when someone is there.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>❄️ The Cold Start</h3>
+        <p>
+          If your function hasn't run in a while, the provider turns it off. The next request takes a few seconds to "wake up" (boot) the environment.
+        </p>
+        <div class="analogy-box">
+          <span class="analogy-icon">🚗</span>
+          Like starting a car on a freezing morning. It takes a moment to warm up.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>💸 Pay Per Millisecond</h3>
+        <p>
+          You are billed for exactly how long your code runs (e.g., 200ms). If your code crashes instantly, you pay almost nothing.
+        </p>
+        <div class="analogy-box">
+          <span class="analogy-icon">🚰</span>
+          Like a water tap. You only pay while the water is actually flowing.
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The "Scale-to-Zero" Simulator</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      Watch how Serverless handles traffic. Notice how servers appear out of nowhere and disappear when the job is done.
+    </p>
+
+    <div class="sim-console">
+      
+      <div class="control-panel">
+        <div class="stat-card">
+          <div class="stat-label">Active Instances</div>
+          <div class="stat-value" id="instanceCount">0</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-label">Current Bill</div>
+          <div class="stat-value cost" id="costDisplay">$0.0000</div>
+        </div>
+
+        <button class="btn btn-single" onclick="triggerRequest(1)">
+          <span>⚡ Send 1 Request</span>
+          <span style="font-size:0.7rem; font-weight:normal; opacity:0.7;">(Tests Cold Start)</span>
+        </button>
+
+        <button class="btn btn-burst" onclick="triggerBurst()">
+          <span>🚀 Traffic Spike (50x)</span>
+          <span style="font-size:0.7rem; font-weight:normal; opacity:0.7;">(Tests Auto-Scaling)</span>
+        </button>
+      </div>
+
+      <div class="function-space" id="functionSpace">
+        <div class="cold-start-banner" id="coldMsg">
+          ❄️ COLD START DETECTED ❄️<br>
+          <span style="font-size:0.8rem; color:#fff; font-weight:normal;">Spinning up new environment... (+1000ms latency)</span>
+        </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">✅ When to use Serverless?</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Image Processing</h3>
+        <p>User uploads a photo → Trigger Lambda → Resize thumbnail → Save to S3. Perfect because uploads are unpredictable.</p>
+      </div>
+      <div class="card">
+        <h3>Cron Jobs</h3>
+        <p>Run a cleanup script every night at 3 AM. Why pay for a server to sit idle for the other 23 hours and 59 minutes?</p>
+      </div>
+      <div class="card">
+        <h3>APIs with Spiky Traffic</h3>
+        <p>Ticket sales or voting apps. Traffic goes from 0 to 1 Million in seconds. Serverless handles the burst automatically.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const space = document.getElementById('functionSpace');
+    const instanceCountLabel = document.getElementById('instanceCount');
+    const costLabel = document.getElementById('costDisplay');
+    const coldMsg = document.getElementById('coldMsg');
+
+    let activeInstances = 0;
+    let totalBill = 0.0000;
+    let isWarm = false; // Tracks if environment is warm
+
+    // Function to update cost periodically if instances are running
+    setInterval(() => {
+      if (activeInstances > 0) {
+        // Assume $0.000002 per 100ms per instance
+        const costTick = activeInstances * 0.000002;
+        totalBill += costTick;
+        costLabel.innerText = '$' + totalBill.toFixed(6);
+      }
+    }, 100);
+
+    function triggerRequest(count) {
+      // Check for Cold Start logic on single request
+      if (count === 1 && !isWarm && activeInstances === 0) {
+        showColdStart();
+        setTimeout(() => spawnInstance(), 1200); // Delay for cold start
+      } else {
+        spawnInstance();
+      }
+    }
+
+    function triggerBurst() {
+      // Bursts usually force warm up quickly or hit limits, we'll simulate instant scale
+      let spawned = 0;
+      const interval = setInterval(() => {
+        spawnInstance();
+        spawned++;
+        if (spawned >= 50) clearInterval(interval);
+      }, 30); // Fast spawn
+      
+      isWarm = true; // Burst warms everything up
+    }
+
+    function showColdStart() {
+      coldMsg.classList.add('visible');
+      setTimeout(() => {
+        coldMsg.classList.remove('visible');
+      }, 1200);
+    }
+
+    function spawnInstance() {
+      const node = document.createElement('div');
+      node.className = 'lambda-node running';
+      space.appendChild(node);
+      
+      updateCount(1);
+
+      // Function runs for a random time between 2s and 5s
+      const duration = Math.random() * 3000 + 2000;
+
+      setTimeout(() => {
+        node.style.transform = 'scale(0)';
+        setTimeout(() => {
+          if(node.parentNode) space.removeChild(node);
+          updateCount(-1);
+          
+          // If all gone, start cooling down logic (simplified)
+          if(activeInstances === 0) {
+            setTimeout(() => { isWarm = false; }, 5000); // Cooldown after 5s of idleness
+          }
+        }, 200);
+      }, duration);
+    }
+
+    function updateCount(change) {
+      activeInstances += change;
+      instanceCountLabel.innerText = activeInstances;
+      
+      // Visual feedback on the card
+      if(activeInstances > 0) {
+        instanceCountLabel.style.color = '#3fb950';
+      } else {
+        instanceCountLabel.style.color = '#fff';
+      }
+    }
+  </script>
+
+</body>
+</html>

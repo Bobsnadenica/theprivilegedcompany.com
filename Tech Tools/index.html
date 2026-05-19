@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tech Knowledge Hub</title>
+  <style>
+    /* --- YOUR EXISTING STYLES --- */
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #58a6ff;
+      --accent-glow: rgba(56, 139, 253, 0.15);
+      
+      /* Badge Colors */
+      --badge-net-bg: rgba(56, 139, 253, 0.1); --badge-net-text: #58a6ff;
+      --badge-cloud-bg: rgba(235, 111, 146, 0.1); --badge-cloud-text: #eb6f92;
+      --badge-data-bg: rgba(234, 154, 151, 0.1); --badge-data-text: #ea9a97;
+      --badge-dev-bg: rgba(46, 160, 67, 0.1); --badge-dev-text: #3fb950;
+      --badge-ops-bg: rgba(210, 153, 34, 0.1); --badge-ops-text: #d29922;
+      --badge-extra-bg: rgba(227, 179, 65, 0.1); --badge-extra-text: #e3b341;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(88, 166, 255, 0.05), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(235, 111, 146, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .hero { padding: 4rem 1rem 2rem; text-align: center; }
+    .hero-inner { max-width: 800px; margin: 0 auto; }
+
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #fff, #a5d6ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem; }
+
+    /* SEARCH BAR */
+    .search-container { position: relative; max-width: 600px; margin: 0 auto; }
+    .search-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--text-secondary); pointer-events: none;
+    }
+    #searchInput {
+      width: 100%; padding: 14px 16px 14px 48px;
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: 12px; color: var(--text-primary); font-size: 1rem;
+      transition: all 0.2s ease; outline: none;
+    }
+    #searchInput:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+    /* GRID LAYOUT */
+    .container { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    .category-section { margin-bottom: 4rem; }
+    
+    .section-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .section-header h2 { font-size: 1.4rem; font-weight: 700; }
+
+    .count-badge {
+      background: var(--bg-surface); color: var(--text-secondary);
+      padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* CARDS */
+    .topic-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem; text-decoration: none;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      display: flex; flex-direction: column; position: relative; overflow: hidden;
+      height: 100%;
+    }
+    .topic-card:hover {
+      transform: translateY(-4px); border-color: var(--border-hover);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .badge {
+      display: inline-block; padding: 4px 8px; border-radius: 6px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 1rem; align-self: flex-start;
+    }
+    .badge.net { background: var(--badge-net-bg); color: var(--badge-net-text); }
+    .badge.cloud { background: var(--badge-cloud-bg); color: var(--badge-cloud-text); }
+    .badge.data, .badge.security { background: var(--badge-data-bg); color: var(--badge-data-text); }
+    .badge.dev { background: var(--badge-dev-bg); color: var(--badge-dev-text); }
+    .badge.ops { background: var(--badge-ops-bg); color: var(--badge-ops-text); }
+    .badge.extra { background: var(--badge-extra-bg); color: var(--badge-extra-text); }
+
+    .topic-card h3 { color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.15rem; }
+    .topic-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+
+    .hidden { display: none !important; }
+    
+    footer {
+      text-align: center; padding: 3rem; color: var(--text-secondary);
+      font-size: 0.85rem; border-top: 1px solid var(--border-subtle);
+      background: var(--bg-body); margin-top: 4rem;
+    }
+
+    /* --- NEW AI FEATURE STYLES --- */
+    #no-results { margin-top: 4rem; text-align: center; animation: fadeIn 0.5s ease; }
+    
+    .ai-prompt { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 1.5rem; }
+    .kbd { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 2px 6px; font-size: 0.8em; color: var(--text-primary); }
+    
+    .ai-card {
+      background: linear-gradient(145deg, #161b22, #0d1117);
+      border: 1px solid var(--accent-primary);
+      box-shadow: 0 0 20px rgba(88, 166, 255, 0.1);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: left;
+      display: none; /* Hidden by default */
+    }
+    .ai-card.visible { display: block; animation: slideUp 0.3s ease; }
+    
+    .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+    .ai-badge { background: rgba(88, 166, 255, 0.2); color: #58a6ff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .ai-content { color: var(--text-primary); line-height: 1.7; white-space: pre-wrap; }
+    .loading-pulse { color: var(--accent-primary); font-style: italic; animation: pulse 1.5s infinite; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <a href="../" style="color: var(--accent-primary); text-decoration: none; font-size: 0.9rem; margin-bottom: 1.2rem; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; opacity: 0.8; transition: opacity 0.2s;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to MyCompany
+        </a>
+        <h1>Tech Knowledge Hub</h1>
+        <p class="subtitle">Practical tech references for seniors and juniors alike.</p>
+        
+        <div class="search-container">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Search concepts (e.g., 'Kubernetes')..." autofocus />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2 style="color:var(--success)">Interactive Labs</h2>
+        <span class="count-badge">2</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="labs.html" data-tags="labs interactive hands-on kubernetes networking affinity debugging">
+          <span class="badge dev" style="background: rgba(90, 215, 160, 0.1); color: var(--success);">Hands-on</span>
+          <h3>Scenario Labs</h3>
+          <p>Downloadable scripts that spin up "broken" environments. Learn by fixing real architectural problems.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2 style="color:#e3b341">Resources & Extras</h2>
+        <span class="count-badge">2</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="how_to.html" data-tags="guide howto troubleshooting playbook commands mac linux kubernetes terraform ansible aws cli docker">
+          <span class="badge extra">Guides</span>
+          <h3>How-To Playbook</h3>
+          <p>Choose a technology, browse a command list, and click any command to see a simulated output.</p>
+        </a>
+
+        <a class="topic-card" href="scripts.html" data-tags="scripts code snippets bash python sql">
+          <span class="badge extra">Tools</span>
+          <h3>Script Vault</h3>
+          <p>Production-ready code snippets. Copy/paste Bash, Python, and SQL commands instantly.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2>DevOps & Observability</h2>
+        <span class="count-badge">5</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="cicd.html" data-tags="devops cicd jenkins github actions pipeline">
+          <span class="badge ops">Automation</span>
+          <h3>CI/CD Pipelines</h3>
+          <p>Continuous Integration & Deployment. Jenkins, GitHub Actions, and the art of shipping code automatically.</p>
+        </a>
+
+        <a class="topic-card" href="monitoring.html" data-tags="devops monitoring prometheus metrics alert">
+          <span class="badge ops">Observability</span>
+          <h3>Prometheus</h3>
+          <p>Time-series database for monitoring. How to scrape metrics and set alerts.</p>
+        </a>
+
+        <a class="topic-card" href="monitoring.html" data-tags="devops monitoring grafana dashboard visualization">
+          <span class="badge ops">Observability</span>
+          <h3>Grafana</h3>
+          <p>The visualization layer. Turning Prometheus metrics into beautiful, actionable dashboards.</p>
+        </a>
+
+        <a class="topic-card" href="git.html" data-tags="devops github git version control">
+          <span class="badge ops">SCM</span>
+          <h3>GitHub & Git</h3>
+          <p>Version control fundamentals. Branching, Pull Requests, and collaborative coding.</p>
+        </a>
+
+        <a class="topic-card" href="cicd.html" data-tags="devops jenkins automation server groovy">
+          <span class="badge ops">Automation</span>
+          <h3>Jenkins</h3>
+          <p>The classic automation server. Building pipelines with Groovy and plugins.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2>Networking</h2>
+        <span class="count-badge">9</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="cdn.html" data-tags="networking cdn cache cloudfront akamai edge">
+          <span class="badge net">Performance</span>
+          <h3>CDN</h3>
+          <p>Content Delivery Network. Caching content at the edge to serve users globally in milliseconds.</p>
+        </a>
+
+        <a class="topic-card" href="nat.html" data-tags="networking nat ip private public">
+          <span class="badge net">Networking</span>
+          <h3>NAT</h3>
+          <p>Network Address Translation. How private subnets access the internet safely.</p>
+        </a>
+
+        <a class="topic-card" href="dns.html" data-tags="networking dns route53 domain">
+          <span class="badge net">Networking</span>
+          <h3>DNS</h3>
+          <p>Domain Name System. Translating human names to IP addresses.</p>
+        </a>
+
+        <a class="topic-card" href="load-balancing.html" data-tags="networking alb nlb traffic">
+          <span class="badge net">Networking</span>
+          <h3>Load Balancing</h3>
+          <p>Distributing traffic across healthy targets for high availability.</p>
+        </a>
+
+        <a class="topic-card" href="vpc.html" data-tags="networking vpc subnet cidr cloud">
+          <span class="badge net">Networking</span>
+          <h3>VPC</h3>
+          <p>Virtual Private Cloud. Isolated network environments.</p>
+        </a>
+
+        <a class="topic-card" href="network_layers.html" data-tags="networking osi tcp ip layers">
+          <span class="badge net">Networking</span>
+          <h3>Network Layers</h3>
+          <p>The OSI Model. Understanding how data moves from Layer 1 to 7.</p>
+        </a>
+
+        <a class="topic-card" href="subnets.html" data-tags="networking vpc subnet ip range">
+          <span class="badge net">Networking</span>
+          <h3>Subnets</h3>
+          <p>Dividing a network into smaller, secure segments (Public vs Private).</p>
+        </a>
+
+        <a class="topic-card" href="security-groups.html" data-tags="networking firewall security port">
+          <span class="badge net">Networking</span>
+          <h3>Security Groups</h3>
+          <p>Virtual firewalls that control traffic at the instance level.</p>
+        </a>
+
+        <a class="topic-card" href="udp_tcp.html" data-tags="networking udp tcp protocol transport">
+          <span class="badge net">Networking</span>
+          <h3>TCP vs UDP</h3>
+          <p>Reliable delivery (TCP) vs speed (UDP). The two languages of the internet.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2>Cloud & Infrastructure</h2>
+        <span class="count-badge">12</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="iac.html" data-tags="cloud iac terraform cloudformation">
+          <span class="badge cloud">IaC</span>
+          <h3>Infrastructure as Code</h3>
+          <p>Managing infrastructure via declarative configuration files.</p>
+        </a>
+
+        <a class="topic-card" href="cloudformation.html" data-tags="cloud aws iac yaml">
+          <span class="badge cloud">IaC</span>
+          <h3>CloudFormation</h3>
+          <p>AWS native tool for provisioning resources using YAML templates.</p>
+        </a>
+
+        <a class="topic-card" href="terraform.html" data-tags="cloud iac hashicorp multi-cloud">
+          <span class="badge cloud">IaC</span>
+          <h3>Terraform</h3>
+          <p>Open-source tool for building, changing, and versioning infrastructure safely.</p>
+        </a>
+
+        <a class="topic-card" href="serverless.html" data-tags="cloud lambda fargate compute">
+          <span class="badge cloud">Compute</span>
+          <h3>Serverless</h3>
+          <p>Running code without provisioning or managing servers.</p>
+        </a>
+
+        <a class="topic-card" href="containers.html" data-tags="cloud docker container">
+          <span class="badge cloud">Compute</span>
+          <h3>Containers</h3>
+          <p>Standardized units of software packaging for consistent deployment.</p>
+        </a>
+
+        <a class="topic-card" href="kubernetes.html" data-tags="cloud k8s orchestration pods">
+          <span class="badge cloud">Orchestration</span>
+          <h3>Kubernetes</h3>
+          <p>Automating deployment, scaling, and management of containerized apps.</p>
+        </a>
+
+        <a class="topic-card" href="openshift.html" data-tags="cloud redhat k8s enterprise">
+          <span class="badge cloud">Orchestration</span>
+          <h3>OpenShift</h3>
+          <p>Enterprise Kubernetes platform by Red Hat with added developer tools.</p>
+        </a>
+
+        <a class="topic-card" href="helm.html" data-tags="cloud k8s package manager charts">
+          <span class="badge cloud">Tooling</span>
+          <h3>Helm</h3>
+          <p>The package manager for Kubernetes. Managing charts and releases.</p>
+        </a>
+
+        <a class="topic-card" href="iam.html" data-tags="cloud security iam permission role">
+          <span class="badge security">Security</span>
+          <h3>IAM</h3>
+          <p>Identity and Access Management. Controlling who can do what.</p>
+        </a>
+
+        <a class="topic-card" href="cloud-models.html" data-tags="cloud paas saas iaas service">
+          <span class="badge cloud">Concepts</span>
+          <h3>IaaS vs PaaS vs SaaS</h3>
+          <p>Understanding the shared responsibility models in cloud computing.</p>
+        </a>
+
+        <a class="topic-card" href="resource-groups.html" data-tags="cloud azure aws management tag">
+          <span class="badge cloud">Management</span>
+          <h3>Resource Groups</h3>
+          <p>Logical containers for grouping and managing related resources.</p>
+        </a>
+
+        <a class="topic-card" href="well-architected.html" data-tags="cloud best practices framework aws">
+          <span class="badge cloud">Framework</span>
+          <h3>Well-Architected</h3>
+          <p>The 6 pillars of building secure, high-performing, resilient infrastructure.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2>Data & Reliability</h2>
+        <span class="count-badge">5</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="database-types.html" data-tags="data sql nosql rds dynamodb">
+          <span class="badge data">Data</span>
+          <h3>SQL vs NoSQL</h3>
+          <p>Choosing between relational and non-relational data models.</p>
+        </a>
+
+        <a class="topic-card" href="storage-types.html" data-tags="data s3 ebs efs block object file">
+          <span class="badge data">Storage</span>
+          <h3>Storage Types</h3>
+          <p>Block (EBS), File (EFS), and Object (S3) storage explained.</p>
+        </a>
+
+        <a class="topic-card" href="caching.html" data-tags="data redis memcached performance">
+          <span class="badge data">Performance</span>
+          <h3>Caching Strategies</h3>
+          <p>Storing transient data to reduce latency and database load.</p>
+        </a>
+
+        <a class="topic-card" href="disaster-recovery.html" data-tags="reliability backup rto rpo">
+          <span class="badge data">Reliability</span>
+          <h3>Disaster Recovery</h3>
+          <p>Strategies for restoring systems after catastrophic failure.</p>
+        </a>
+
+        <a class="topic-card" href="llm.html" data-tags="data ai llm gpt machine learning">
+          <span class="badge data">AI</span>
+          <h3>Large Language Models</h3>
+          <p>How LLMs work (Tokens, Probability, Temperature) and how to use them.</p>
+        </a>
+
+                <a class="topic-card" href="itsm.html" data-tags="data ai itsm it service management">
+          <span class="badge data">AI</span>
+          <h3>IT Service Management</h3>
+          <p>Best practices for managing IT services and workflows in cloud environments.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="category-section">
+      <div class="section-header">
+        <h2>Development & OS</h2>
+        <span class="count-badge">5</span>
+      </div>
+      <div class="grid">
+        <a class="topic-card" href="graphql.html" data-tags="dev api graphql query schema">
+          <span class="badge dev">API</span>
+          <h3>GraphQL</h3>
+          <p>The alternative to REST. Fetch exactly the data you need in a single request.</p>
+        </a>
+
+        <a class="topic-card" href="linux-commands.html" data-tags="dev linux bash terminal cli">
+          <span class="badge dev">OS</span>
+          <h3>Linux Commands</h3>
+          <p>Essential CLI commands for managing servers and permissions.</p>
+        </a>
+
+        <a class="topic-card" href="mac-commands.html" data-tags="dev macos terminal zsh brew">
+          <span class="badge dev">OS</span>
+          <h3>Mac Terminal</h3>
+          <p>Power user commands and tools for macOS development.</p>
+        </a>
+
+        <a class="topic-card" href="First_setup.html" data-tags="dev macos setup automation installation check">
+          <span class="badge dev">Setup</span>
+          <h3>Mac First Setup</h3>
+          <p>Essential checklist, automation scripts, and software installations for a new Mac machine.</p>
+        </a>
+
+        <a class="topic-card" href="rest-api.html" data-tags="dev api http json endpoint">
+          <span class="badge dev">API</span>
+          <h3>REST API</h3>
+          <p>Representational State Transfer. Standard architecture for web APIs.</p>
+        </a>
+
+        <a class="topic-card" href="api-server.html" data-tags="dev backend server express node">
+          <span class="badge dev">Backend</span>
+          <h3>API Server</h3>
+          <p>The backend engine that processes requests and connects to databases.</p>
+        </a>
+      </div>
+    </section>
+
+    <div id="no-results" class="hidden">
+      <p class="ai-prompt">No local topics found. Press <span class="kbd">Enter</span> to ask AI.</p>
+      
+      <div id="ai-result-card" class="ai-card">
+        <div class="ai-header">
+          <span class="ai-badge">AI Assistant</span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary)">Generated via ChatGPT</span>
+        </div>
+        <div id="ai-content-body" class="ai-content"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Tech Knowledge Hub. Кот такоа.</p>
+  </footer>
+
+  <script>
+    // --- CONFIGURATION ---
+    const AI_ENDPOINT = "https://k33c65f323cz4usrtbn32guhs40jvrvt.lambda-url.eu-central-1.on.aws/"; 
+    // ---------------------
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('searchInput');
+      const sections = document.querySelectorAll('.category-section');
+      const noResults = document.getElementById('no-results');
+      const aiCard = document.getElementById('ai-result-card');
+      const aiContent = document.getElementById('ai-content-body');
+      
+      let isSearchingAI = false;
+
+      // Update badge counts dynamically on load
+      sections.forEach(section => {
+        const countBadge = section.querySelector('.count-badge');
+        const cards = section.querySelectorAll('.topic-card');
+        if (countBadge) countBadge.textContent = cards.length;
+      });
+
+      // Filter Logic
+      searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        let hasLocalResults = false;
+
+        // Reset AI UI when typing
+        if (aiCard) {
+            aiCard.classList.remove('visible');
+            aiContent.innerHTML = '';
+        }
+
+        sections.forEach(section => {
+          let visibleCardsInSection = 0;
+          const sectionCards = section.querySelectorAll('.topic-card');
+
+          sectionCards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const desc = card.querySelector('p').textContent.toLowerCase();
+            const tags = card.dataset.tags ? card.dataset.tags.toLowerCase() : '';
+
+            const isMatch = title.includes(term) || desc.includes(term) || tags.includes(term);
+
+            if (isMatch) {
+              card.classList.remove('hidden');
+              visibleCardsInSection++;
+              hasLocalResults = true;
+            } else {
+              card.classList.add('hidden');
+            }
+          });
+
+          // Hide section if empty
+          if (visibleCardsInSection === 0) {
+            section.classList.add('hidden');
+          } else {
+            section.classList.remove('hidden');
+          }
+        });
+
+        if (hasLocalResults) {
+          noResults.classList.add('hidden');
+        } else {
+          noResults.classList.remove('hidden');
+        }
+      });
+
+      // AI Logic (Enter Key)
+      searchInput.addEventListener('keydown', async (e) => {
+        // Only trigger if Enter is pressed, no local results are shown, and there is text
+        if (e.key === 'Enter' && !noResults.classList.contains('hidden') && searchInput.value.trim() !== "") {
+          
+          if (isSearchingAI) return;
+          isSearchingAI = true;
+          
+          // Show Loading UI
+          aiCard.classList.add('visible');
+          aiContent.innerHTML = '<span class="loading-pulse">Consulting the neural network...</span>';
+          
+          try {
+            const res = await fetch(AI_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: searchInput.value })
+            });
+            
+            const data = await res.json();
+            
+            if (data.answer) {
+              aiContent.textContent = data.answer;
+            } else {
+              aiContent.textContent = "Error: Could not retrieve answer from AI.";
+            }
+          } catch (err) {
+            aiContent.textContent = "Connection failed. Check your API endpoint.";
+          } finally {
+            isSearchingAI = false;
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

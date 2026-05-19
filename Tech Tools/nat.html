@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 1: NAT | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent-primary: #58a6ff;
+      --accent-success: #2ea043;
+      --accent-warn: #d29922;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 80% 20%, rgba(46, 160, 67, 0.05), transparent 25%),
+        radial-gradient(circle at 10% 80%, rgba(88, 166, 255, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, #a5d6ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS & CONTENT */
+    .section-title { font-size: 1.5rem; margin: 3rem 0 1.5rem; color: var(--text-primary); display: flex; align-items: center; gap: 10px; }
+    .icon { font-size: 1.5rem; }
+
+    .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+    @media (max-width: 700px) { .concept-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: THE CONSOLE */
+    .game-console {
+      background: #000; border: 1px solid #333; border-radius: 12px;
+      padding: 1.5rem; font-family: var(--font-mono); margin: 2rem 0;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 40px rgba(88, 166, 255, 0.1);
+    }
+
+    .game-header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 1rem; color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    .packet-stage {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .device { text-align: center; width: 120px; }
+    .device-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .device-label { font-size: 0.8rem; color: #888; }
+    .device-ip { color: var(--accent-warn); font-size: 0.9rem; margin-top: 5px; }
+    .device-ip.public { color: var(--accent-success); }
+
+    .connection-line {
+      flex-grow: 1; height: 2px; background: #333; margin: 0 1rem; position: relative;
+    }
+
+    .packet {
+      position: absolute; top: -14px; left: 0;
+      background: var(--accent-primary); color: #000;
+      padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;
+      transition: left 1s ease-in-out;
+      box-shadow: 0 0 10px var(--accent-primary);
+    }
+
+    .game-controls { text-align: center; }
+    .btn {
+      background: var(--bg-surface); color: var(--text-primary);
+      border: 1px solid var(--border-subtle); padding: 10px 20px;
+      border-radius: 6px; cursor: pointer; font-family: var(--font-mono);
+      font-size: 0.9rem; transition: all 0.2s;
+    }
+    .btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .log-window {
+      background: #111; padding: 10px; border-radius: 6px; height: 100px; overflow-y: auto;
+      margin-top: 1rem; font-size: 0.8rem; color: #444; border: 1px solid #222;
+    }
+    .log-entry { margin-bottom: 4px; }
+    .log-entry span { color: var(--accent-success); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>NAT Gateway</h1>
+      <p class="intro">
+        Think of NAT (Network Address Translation) as the 
+        <span style="color: var(--accent-primary)">receptionist</span> of a very private office building.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card">
+        <h3>The Problem</h3>
+        <p>
+          You have 50 computers (private IPs), but your ISP only gave you 1 Public IP address. How do they all talk to the internet at once?
+        </p>
+      </div>
+      <div class="card">
+        <h3>The Solution</h3>
+        <p>
+          The NAT Gateway stands in the middle. It takes outgoing mail, stamps its own "Public" address as the sender, and remembers who sent it.
+        </p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Simulator: Send a Request</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+      See how your Private IP (10.0.0.5) gets rewritten to a Public IP before hitting the internet.
+    </p>
+
+    <div class="game-console">
+      <div class="game-header">
+        <div>System: NAT_GTW_v1</div>
+        <div>Status: <span style="color: var(--accent-success)">ONLINE</span></div>
+      </div>
+
+      <div class="packet-stage">
+        <div class="device">
+          <span class="device-icon">💻</span>
+          <div class="device-label">Your Laptop</div>
+          <div class="device-ip">10.0.0.5</div>
+        </div>
+
+        <div class="connection-line">
+          <div id="packet" class="packet" style="opacity: 0;">DATA</div>
+        </div>
+
+        <div class="device">
+          <span class="device-icon">🛡️</span>
+          <div class="device-label">NAT Gateway</div>
+          <div class="device-ip public">203.0.113.1</div>
+        </div>
+
+        <div class="connection-line"></div>
+
+        <div class="device">
+          <span class="device-icon">☁️</span>
+          <div class="device-label">Google</div>
+          <div class="device-ip">8.8.8.8</div>
+        </div>
+      </div>
+
+      <div class="game-controls">
+        <button id="sendBtn" class="btn" onclick="startSimulation()">Step 1: Send Request</button>
+        <button id="translateBtn" class="btn" onclick="translatePacket()" disabled>Step 2: Translate & Forward</button>
+      </div>
+
+      <div class="log-window" id="gameLog">
+        <div class="log-entry">> Waiting for traffic...</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">💡 Why do we actually need this?</h2>
+    
+    <div class="concept-grid">
+      <div class="card">
+        <h3>1. Security (The Bodyguard)</h3>
+        <p>
+          Since your laptop has a private IP (10.x.x.x), the internet literally <strong>cannot route to you</strong> directly. 
+          Hackers can scan the NAT Gateway, but they can't touch your laptop unless the NAT lets them in.
+        </p>
+      </div>
+      <div class="card">
+        <h3>2. IPv4 Shortage (The Economy)</h3>
+        <p>
+          There are only ~4 billion IPv4 addresses. If every toaster and phone needed a public one, we'd have run out in the 90s. NAT lets thousands of devices hide behind one Public IP.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const packet = document.getElementById('packet');
+    const sendBtn = document.getElementById('sendBtn');
+    const translateBtn = document.getElementById('translateBtn');
+    const log = document.getElementById('gameLog');
+
+    function addLog(msg) {
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = `> ${msg}`;
+      log.prepend(div);
+    }
+
+    function startSimulation() {
+      // Reset
+      packet.style.transition = 'none';
+      packet.style.left = '0%';
+      packet.style.opacity = '1';
+      packet.textContent = 'SRC: 10.0.0.5';
+      packet.style.backgroundColor = '#d29922'; // Private color
+      
+      sendBtn.disabled = true;
+      addLog("Laptop sending packet to Google (8.8.8.8)...");
+
+      // Animate to Gateway
+      setTimeout(() => {
+        packet.style.transition = 'left 1s ease-in-out';
+        packet.style.left = '45%';
+        
+        setTimeout(() => {
+          addLog("Packet reached NAT Gateway. Stopped by Firewall rule.");
+          addLog("<span>Action Required:</span> Translate Private IP to Public IP.");
+          translateBtn.disabled = false;
+        }, 1000);
+      }, 100);
+    }
+
+    function translatePacket() {
+      translateBtn.disabled = true;
+      
+      // Visual Change
+      packet.textContent = 'SRC: 203.0.113.1';
+      packet.style.backgroundColor = '#2ea043'; // Public color
+      packet.style.boxShadow = '0 0 15px #2ea043';
+
+      addLog("NAT Table Updated: Mapping 10.0.0.5 <--> 203.0.113.1:12345");
+      addLog("Forwarding to Internet...");
+
+      // Animate to Internet
+      setTimeout(() => {
+        packet.style.left = '90%';
+        setTimeout(() => {
+          addLog("<span>Success!</span> Google received the packet from 203.0.113.1");
+          packet.style.opacity = '0';
+          
+          setTimeout(() => {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send Another";
+          }, 1000);
+        }, 1000);
+      }, 500);
+    }
+  </script>
+
+</body>
+</html>

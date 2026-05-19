@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 18: Security Groups | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-sg: #f778ba;      /* Pink for SG */
+      --accent-allow: #2ea043;   /* Green */
+      --accent-block: #ff7b72;   /* Red */
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 85% 20%, rgba(247, 120, 186, 0.08), transparent 25%),
+        radial-gradient(circle at 15% 80%, rgba(46, 160, 67, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-sg); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-sg));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-sg);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-sg); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-sg); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: PORT GUARDIAN */
+    .sg-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 350px 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .sg-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: RULES EDITOR */
+    .rules-panel {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      display: flex; flex-direction: column; overflow: hidden; height: 100%;
+    }
+    .panel-header {
+      background: #21262d; padding: 10px 15px; font-weight: bold; color: #fff;
+      border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;
+    }
+    .sg-id { font-family: var(--font-mono); font-size: 0.8rem; color: #8b949e; }
+
+    .rules-list { padding: 1rem; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+    
+    .rule-row {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .rule-info { font-size: 0.85rem; }
+    .rule-port { font-weight: bold; color: var(--accent-sg); }
+    .rule-src { font-family: var(--font-mono); color: #8b949e; font-size: 0.75rem; }
+    
+    .toggle-switch {
+      position: relative; width: 40px; height: 20px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #30363d; transition: .4s; border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+      background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent-allow); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .add-rule-area {
+      padding: 1rem; border-top: 1px solid #30363d; background: #0d1117;
+    }
+    .dropdown {
+      width: 100%; padding: 8px; background: #161b22; color: #fff; border: 1px solid #30363d;
+      border-radius: 4px; margin-bottom: 10px; font-size: 0.9rem;
+    }
+
+    /* RIGHT: VISUALIZER */
+    .traffic-stage {
+      background: #010409; border: 1px solid #30363d; border-radius: 12px;
+      position: relative; min-height: 400px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; overflow: hidden;
+    }
+
+    /* SERVER */
+    .server-node {
+      width: 100px; height: 120px; background: #21262d; border: 2px solid #30363d; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; z-index: 10;
+    }
+    .server-icon { font-size: 3rem; margin-bottom: 5px; }
+    .server-label { font-size: 0.8rem; font-weight: bold; color: #fff; }
+    
+    /* FIREWALL BARRIER */
+    .firewall-line {
+      position: absolute; top: 20px; bottom: 20px; left: 70%; width: 4px;
+      background: var(--accent-sg); box-shadow: 0 0 15px var(--accent-sg);
+      border-radius: 2px; z-index: 5;
+    }
+
+    /* PACKETS */
+    .packet {
+      position: absolute; left: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; font-weight: bold; box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      transition: left 2s linear, opacity 0.2s; z-index: 6;
+    }
+    .packet.web { border: 2px solid var(--accent-allow); background: #000; color: #fff; }
+    .packet.ssh { border: 2px solid #58a6ff; background: #000; color: #fff; }
+    .packet.hacker { border: 2px solid var(--accent-block); background: #3d1f1f; }
+
+    /* LOGS */
+    .console-log {
+      position: absolute; bottom: 10px; left: 10px; right: 10px; height: 100px;
+      background: rgba(0,0,0,0.8); border-radius: 6px; padding: 10px;
+      font-family: var(--font-mono); font-size: 0.75rem; color: #8b949e; overflow-y: auto;
+      pointer-events: none; border: 1px solid #30363d;
+    }
+    .log-allow { color: var(--accent-allow); }
+    .log-block { color: var(--accent-block); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>Security Groups</h1>
+      <p class="intro">
+        The virtual firewall for your instances. Security Groups (SG) control inbound and outbound traffic 
+        at the <span style="color:var(--accent-sg)">instance level</span>. They are your first line of defense.
+      </p>
+    </header>
+
+    <h2 class="section-title">🛡️ How it works</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Stateful Memory</h3>
+        <p>If you allow a request to come <strong>IN</strong> (e.g., Requesting a webpage), the response is automatically allowed <strong>OUT</strong>. You don't need a separate rule for the reply.</p>
+      </div>
+      <div class="card">
+        <h3>Allow Lists Only</h3>
+        <p>Security Groups deny everything by default. You can only add <strong>Allow</strong> rules. You cannot explicitly "Deny" a specific IP (use Network ACLs for that).</p>
+      </div>
+      <div class="card">
+        <h3>Source: "Self"</h3>
+        <p>A cool trick: You can set the source of a rule to be <strong>another Security Group ID</strong>. Example: "Allow access only if the traffic comes from the Load Balancer SG".</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Port Guardian Simulator</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> Configure the Web Server firewall.
+      <br>1. Allow <strong>Web Traffic</strong> (Port 80) from Anywhere.
+      <br>2. Allow <strong>SSH</strong> (Port 22) ONLY from your Admin IP.
+      <br>3. <strong>BLOCK</strong> everything else.
+    </p>
+
+    <div class="sg-console">
+      
+      <div class="rules-panel">
+        <div class="panel-header">
+          <span>Inbound Rules</span>
+          <span class="sg-id">sg-0a1b2c3d</span>
+        </div>
+        
+        <div class="rules-list">
+          
+          <div class="rule-row">
+            <div class="rule-info">
+              <div class="rule-port">HTTP (80)</div>
+              <div class="rule-src">Source: 0.0.0.0/0</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ruleHttp" onchange="updateRules()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-info">
+              <div class="rule-port" style="color:#58a6ff">SSH (22)</div>
+              <div class="rule-src">Source: 192.168.1.5 (My IP)</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ruleSshSafe" onchange="updateRules()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="rule-row" style="border-color:var(--accent-block)">
+            <div class="rule-info">
+              <div class="rule-port" style="color:var(--accent-block)">SSH (22)</div>
+              <div class="rule-src">Source: 0.0.0.0/0 (DANGER)</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ruleSshDanger" onchange="updateRules()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="add-rule-area">
+          <div style="font-size:0.8rem; color:#8b949e; text-align:center;">
+            Toggle switches to apply rules instantly.
+          </div>
+        </div>
+      </div>
+
+      <div class="traffic-stage" id="stage">
+        
+        <div class="firewall-line"></div>
+
+        <div class="server-node" style="margin-left:auto;">
+          <div class="server-icon">🖥️</div>
+          <div class="server-label">Web Server</div>
+        </div>
+
+        <div class="console-log" id="logs">
+          <div>> Firewall Active. Deny All (Default).</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">✅ Best Practices</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Never open 0.0.0.0/0 for SSH/RDP</h3>
+        <p>If you leave Port 22 open to the world, bots will start brute-forcing your password within minutes. Always restrict to your IP or use a VPN.</p>
+      </div>
+      <div class="card">
+        <h3>Use SG Chaining</h3>
+        <p>Don't put IPs in your Database SG. Instead, say "Allow traffic from the <strong>Web Server SG</strong>". If the Web Server IP changes, access still works.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const stage = document.getElementById('stage');
+    const logBox = document.getElementById('logs');
+    
+    // Rule States
+    let allowHttp = false;
+    let allowSshSafe = false;
+    let allowSshDanger = false;
+
+    // Traffic Loop
+    setInterval(spawnTraffic, 2000);
+
+    function updateRules() {
+      allowHttp = document.getElementById('ruleHttp').checked;
+      allowSshSafe = document.getElementById('ruleSshSafe').checked;
+      allowSshDanger = document.getElementById('ruleSshDanger').checked;
+      
+      // Prevent both SSH rules being on logic (Simulator fix)
+      if (allowSshDanger && allowSshSafe) {
+        // Just visuals logic, physically possible but redundant
+      }
+    }
+
+    function log(msg, type) {
+      const div = document.createElement('div');
+      div.className = type === 'allow' ? 'log-allow' : 'log-block';
+      div.innerText = `> ${msg}`;
+      logBox.prepend(div);
+    }
+
+    function spawnTraffic() {
+      // Randomly decide packet type: 0=User(HTTP), 1=Admin(SSH), 2=Hacker(SSH)
+      const rand = Math.random();
+      let type = 'web';
+      let icon = '👤';
+      let label = 'User';
+      
+      if (rand > 0.6) {
+        type = 'ssh'; icon = '🛡️'; label = 'Admin';
+      } 
+      if (rand > 0.8) {
+        type = 'hacker'; icon = '👾'; label = 'Bot';
+      }
+
+      const packet = document.createElement('div');
+      packet.className = `packet ${type}`;
+      packet.innerHTML = icon;
+      packet.style.left = '0px';
+      
+      // Spread vertical start position
+      const randomTop = Math.floor(Math.random() * 200) + 100; // between 100 and 300
+      packet.style.top = `${randomTop}px`;
+
+      stage.appendChild(packet);
+
+      // Animate Movement
+      setTimeout(() => {
+        // Move to Firewall (70% width approx 600px in this container context usually)
+        // We use percentage for responsiveness
+        const firewallPos = stage.offsetWidth * 0.7 - 20; 
+        packet.style.left = `${firewallPos}px`;
+
+        // Check Rules upon arrival (approx 2s duration)
+        setTimeout(() => {
+          let allowed = false;
+
+          if (type === 'web') {
+            if (allowHttp) allowed = true;
+          } 
+          else if (type === 'ssh') {
+            // Admin matches Safe IP rule AND Danger rule (since Danger covers all IPs)
+            if (allowSshSafe || allowSshDanger) allowed = true;
+          }
+          else if (type === 'hacker') {
+            // Hacker matches ONLY Danger rule
+            if (allowSshDanger) allowed = true;
+          }
+
+          if (allowed) {
+            // Pass through
+            packet.style.left = '90%'; // Server position
+            packet.style.backgroundColor = '#2ea043';
+            packet.style.opacity = '0';
+            log(`Allowed: ${label} traffic on port ${type === 'web' ? '80' : '22'}`, 'allow');
+            
+            if (type === 'hacker') {
+              log("⚠️ WARNING: Malicious actor accessed SSH!", 'block');
+            }
+          } else {
+            // Bounce/Block
+            packet.style.transform = 'translateX(-50px) scale(0.5)';
+            packet.style.opacity = '0';
+            packet.style.backgroundColor = '#ff7b72';
+            log(`Blocked: ${label} request (Implicit Deny)`, 'block');
+          }
+
+          // Cleanup DOM
+          setTimeout(() => packet.remove(), 500);
+
+        }, 2000);
+      }, 100);
+    }
+  </script>
+
+</body>
+</html>

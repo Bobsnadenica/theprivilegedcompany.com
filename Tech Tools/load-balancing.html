@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 3: Load Balancing | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #58a6ff;
+      --accent-secondary: #ff7b72; /* Red/Pink for failure */
+      --accent-success: #2ea043;
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(210, 153, 34, 0.05), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(88, 166, 255, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, #58a6ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* SECTIONS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+    
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+    .card .highlight { color: var(--accent-success); font-weight: bold; }
+
+    /* GAMIFICATION: LB CONSOLE */
+    .game-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; font-family: var(--font-mono); margin: 2rem 0;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+
+    .traffic-map {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 3rem; position: relative; height: 200px;
+    }
+
+    /* NODES */
+    .node-group { display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 2; }
+    
+    .node {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+      padding: 1rem; width: 140px; text-align: center;
+      transition: all 0.3s; position: relative;
+    }
+    .node-icon { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; }
+    .node-label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    /* LB Specific */
+    .node.lb { border-color: var(--accent-primary); box-shadow: 0 0 20px rgba(88, 166, 255, 0.15); height: 120px; justify-content: center; display: flex; flex-direction: column; }
+    
+    /* Server Specific */
+    .server-wrapper { display: flex; gap: 10px; align-items: center; }
+    .node.server.active { border-color: var(--accent-success); box-shadow: 0 0 15px rgba(46, 160, 67, 0.3); transform: scale(1.05); }
+    .node.server.dead { border-color: var(--accent-secondary); opacity: 0.6; }
+    .node.server.dead::after { content: "OFFLINE"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); color: var(--accent-secondary); font-weight: bold; font-size: 1.2rem; border: 2px solid var(--accent-secondary); padding: 2px 8px; }
+
+    /* KILL SWITCHES */
+    .kill-switch {
+      background: #21262d; border: 1px solid #30363d; color: var(--accent-secondary);
+      font-size: 0.7rem; padding: 4px 8px; cursor: pointer; border-radius: 4px;
+      margin-left: 10px; transition: all 0.2s;
+    }
+    .kill-switch:hover { background: var(--accent-secondary); color: #fff; }
+
+    /* PACKET */
+    .packet {
+      position: absolute; width: 16px; height: 16px;
+      background: #fff; border-radius: 50%;
+      box-shadow: 0 0 10px #fff;
+      top: 50%; left: 10%;
+      z-index: 10; opacity: 0;
+      transition: left 0.5s linear, top 0.5s linear;
+    }
+
+    .controls { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+    
+    .btn {
+      background: var(--bg-surface); color: var(--text-primary);
+      border: 1px solid var(--border-subtle); padding: 12px 28px;
+      border-radius: 6px; cursor: pointer; font-family: var(--font-mono);
+      font-size: 0.95rem; transition: all 0.2s; font-weight: bold;
+    }
+    .btn.primary { background: var(--accent-primary); color: #000; border: none; }
+    .btn.primary:hover { background: #79c0ff; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .terminal-output {
+      background: #000; color: #2ea043; padding: 1.5rem;
+      border-radius: 8px; margin-top: 2rem; height: 150px;
+      overflow-y: auto; font-size: 0.85rem; border: 1px solid #333;
+      font-family: var(--font-mono);
+    }
+    .log-line { margin-bottom: 6px; border-bottom: 1px dashed #222; padding-bottom: 4px; }
+    .log-line.error { color: var(--accent-secondary); }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Networking</div>
+      <h1>Load Balancing</h1>
+      <p class="intro">
+        A Load Balancer (LB) is the <span style="color:var(--accent-primary)">Traffic Cop</span> of your infrastructure. It distributes incoming traffic across multiple healthy servers so no single server gets overwhelmed.
+      </p>
+    </header>
+
+    <h2 class="section-title">💡 Core Concepts</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Why do we need it?</h3>
+        <p>
+          If you run a website on one server and it crashes, your site is down. If you run it on 3 servers, how does the user know which one to call? The LB gives a <strong>single entry point</strong> (DNS name) and routes traffic behind the scenes.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>🚑 Health Checks</h3>
+        <p>
+          The LB constantly pings your servers ("Are you there?"). If a server fails to reply (e.g., CPU overload or crash), the LB <strong>stops sending traffic</strong> to it until it recovers.
+        </p>
+      </div>
+      
+      <div class="card">
+        <h3>Algorithms</h3>
+        <p>
+          <strong>Round Robin:</strong> Server 1, then 2, then 3, repeat.<br>
+          <strong>Least Connections:</strong> Send to the server with the fewest active users.<br>
+          <strong>IP Hash:</strong> User A always goes to Server 1 (Sticky).
+        </p>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ Simulator: The Traffic Distributor</h2>
+    <div class="game-console">
+      <div style="text-align:center; color:#8b949e; font-size:0.9rem; margin-bottom:1rem;">
+        Algorithm: <strong style="color: #fff">Round Robin</strong> (Traffic cycles 1 → 2 → 3)
+      </div>
+
+      <div class="packet" id="packet"></div>
+
+      <div class="traffic-map">
+        <div class="node-group" style="justify-content: center;">
+          <div class="node">
+            <span class="node-icon">👥</span>
+            <div class="node-label">Users</div>
+            <div class="node-name">Internet</div>
+          </div>
+        </div>
+
+        <div class="node-group" style="justify-content: center;">
+          <div class="node lb">
+            <span class="node-icon">⚖️</span>
+            <div class="node-label">Load Balancer</div>
+            <div class="node-name">ALB / NGINX</div>
+          </div>
+        </div>
+
+        <div class="node-group">
+          <div class="server-wrapper">
+            <div class="node server" id="s1">
+              <span class="node-icon">🖥️</span>
+              <div class="node-name">Server A</div>
+              <div class="node-label">Healthy</div>
+            </div>
+            <button class="kill-switch" onclick="toggleServer('s1')">KILL</button>
+          </div>
+
+          <div class="server-wrapper">
+            <div class="node server" id="s2">
+              <span class="node-icon">🖥️</span>
+              <div class="node-name">Server B</div>
+              <div class="node-label">Healthy</div>
+            </div>
+            <button class="kill-switch" onclick="toggleServer('s2')">KILL</button>
+          </div>
+
+          <div class="server-wrapper">
+            <div class="node server" id="s3">
+              <span class="node-icon">🖥️</span>
+              <div class="node-name">Server C</div>
+              <div class="node-label">Healthy</div>
+            </div>
+            <button class="kill-switch" onclick="toggleServer('s3')">KILL</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal-output" id="terminal">
+        <div class="log-line">System Online. All servers registered healthy.</div>
+      </div>
+
+      <div class="controls">
+        <button id="sendBtn" class="btn primary" onclick="sendRequest()">Send Request 🚀</button>
+        <button class="btn" onclick="burstMode()">Burst Mode (x5) 🔥</button>
+      </div>
+    </div>
+
+    <h2 class="section-title">🏗️ ALB vs NLB (The AWS Flavors)</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>Application Load Balancer (ALB)</h3>
+        <p class="highlight">Layer 7 (HTTP/HTTPS)</p>
+        <p>
+          Smart. It looks inside the packet. It can route `/api` to Server A and `/images` to Server B. It handles SSL termination and is best for websites/APIs.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Network Load Balancer (NLB)</h3>
+        <p class="highlight">Layer 4 (TCP/UDP)</p>
+        <p>
+          Fast. It doesn't look inside. It just forwards packets at lightning speed. It handles millions of requests per second. Used for gaming or extreme performance.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const packet = document.getElementById('packet');
+    const terminal = document.getElementById('terminal');
+    
+    // Server State
+    const servers = {
+      s1: { id: 's1', healthy: true, el: document.getElementById('s1'), top: '10%' },
+      s2: { id: 's2', healthy: true, el: document.getElementById('s2'), top: '40%' }, // approximate visual position
+      s3: { id: 's3', healthy: true, el: document.getElementById('s3'), top: '70%' }
+    };
+
+    let currentTargetIndex = 0;
+    const serverKeys = ['s1', 's2', 's3'];
+
+    function log(msg, isError = false) {
+      const line = document.createElement('div');
+      line.className = isError ? 'log-line error' : 'log-line';
+      line.textContent = `> ${msg}`;
+      terminal.prepend(line);
+    }
+
+    function toggleServer(id) {
+      const s = servers[id];
+      s.healthy = !s.healthy;
+      
+      if (!s.healthy) {
+        s.el.classList.add('dead');
+        s.el.querySelector('.node-label').textContent = "CRITICAL";
+        log(`ALERT: ${s.el.querySelector('.node-name').textContent} has crashed! Health checks failing.`, true);
+      } else {
+        s.el.classList.remove('dead');
+        s.el.querySelector('.node-label').textContent = "Healthy";
+        log(`INFO: ${s.el.querySelector('.node-name').textContent} recovered and is back in rotation.`);
+      }
+    }
+
+    function getNextHealthyServer() {
+      // Try finding a server up to 3 times (to prevent infinite loop if all dead)
+      let attempts = 0;
+      while (attempts < 3) {
+        const key = serverKeys[currentTargetIndex];
+        currentTargetIndex = (currentTargetIndex + 1) % 3; // Round Robin Logic
+        
+        if (servers[key].healthy) {
+          return servers[key];
+        }
+        attempts++;
+      }
+      return null; // All dead
+    }
+
+    function sendRequest() {
+      const target = getNextHealthyServer();
+
+      // Reset Packet
+      packet.style.transition = 'none';
+      packet.style.opacity = '1';
+      packet.style.left = '10%'; // User position
+      packet.style.top = '50%'; // Middle
+      
+      // Force reflow
+      void packet.offsetWidth;
+
+      if (!target) {
+        log("CRITICAL: All servers are down! Returning 503 Service Unavailable.", true);
+        packet.style.backgroundColor = '#ff7b72';
+        setTimeout(() => { packet.style.opacity = '0'; packet.style.backgroundColor = '#fff'; }, 1000);
+        return;
+      }
+
+      // Step 1: User -> LB
+      packet.style.transition = 'left 0.4s linear, top 0.4s linear';
+      packet.style.left = '45%'; // LB position
+
+      setTimeout(() => {
+        // Step 2: LB -> Server
+        // We need to calculate precise top position based on the target element
+        const targetRect = target.el.getBoundingClientRect();
+        const containerRect = document.querySelector('.traffic-map').getBoundingClientRect();
+        const relativeTop = targetRect.top - containerRect.top + (targetRect.height / 2);
+        
+        packet.style.left = '80%';
+        packet.style.top = `${relativeTop}px`;
+
+        log(`LB: Routing request to ${target.el.querySelector('.node-name').textContent}...`);
+
+        setTimeout(() => {
+          // Hit Animation
+          target.el.classList.add('active');
+          setTimeout(() => target.el.classList.remove('active'), 200);
+          packet.style.opacity = '0';
+          log(`SUCCESS: Request handled by ${target.el.querySelector('.node-name').textContent} (200 OK)`);
+        }, 400);
+
+      }, 400);
+    }
+
+    function burstMode() {
+      let count = 0;
+      const interval = setInterval(() => {
+        sendRequest();
+        count++;
+        if (count >= 5) clearInterval(interval);
+      }, 300);
+    }
+  </script>
+
+</body>
+</html>

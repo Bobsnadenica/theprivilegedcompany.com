@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 23: Storage Types | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-block: #ff7b72;   /* Red for Fast/Expensive */
+      --accent-file: #e3b341;    /* Gold for Shared */
+      --accent-object: #2ea043;  /* Green for Cheap/Infinite */
+      --accent-warn: #d29922;
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(255, 123, 114, 0.08), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(46, 160, 67, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: #fff; }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-block));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-object);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: STORAGE SORTER */
+    .sort-console {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 12px;
+      padding: 2rem; margin: 2rem 0; overflow: hidden;
+      display: grid; grid-template-columns: 250px 1fr; gap: 2rem;
+    }
+    @media (max-width: 900px) { .sort-console { grid-template-columns: 1fr; } }
+
+    /* LEFT: INCOMING DATA */
+    .conveyor-belt {
+      background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1rem;
+      display: flex; flex-direction: column; gap: 1rem; min-height: 300px;
+    }
+    .belt-title { font-weight: bold; color: #8b949e; text-transform: uppercase; font-size: 0.8rem; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+    
+    .data-packet {
+      background: #21262d; border: 1px solid #30363d; padding: 10px; border-radius: 6px;
+      cursor: grab; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .data-packet:hover { transform: scale(1.02); border-color: #fff; }
+    .data-packet:active { cursor: grabbing; }
+    .data-icon { font-size: 1.5rem; }
+    .data-info div:first-child { font-weight: bold; font-size: 0.85rem; }
+    .data-info div:last-child { font-size: 0.7rem; color: #8b949e; font-family: var(--font-mono); }
+
+    /* RIGHT: BINS */
+    .warehouse {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
+    }
+    @media (max-width: 600px) { .warehouse { grid-template-columns: 1fr; } }
+    
+    .storage-bin {
+      border: 2px dashed #30363d; border-radius: 12px; padding: 1rem;
+      position: relative; transition: all 0.3s; background: #010409;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      min-height: 250px; text-align: center;
+    }
+    .storage-bin.drag-over { background: rgba(255,255,255,0.05); border-color: #fff; transform: scale(1.02); }
+    
+    .bin-header { font-weight: bold; margin-bottom: 5px; font-size: 1rem; }
+    .bin-desc { font-size: 0.7rem; color: #8b949e; margin-bottom: 1rem; }
+    .bin-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
+
+    .bin-block { border-color: var(--accent-block); }
+    .bin-block .bin-header { color: var(--accent-block); }
+    
+    .bin-file { border-color: var(--accent-file); }
+    .bin-file .bin-header { color: var(--accent-file); }
+    
+    .bin-object { border-color: var(--accent-object); }
+    .bin-object .bin-header { color: var(--accent-object); }
+
+    .status-msg {
+      grid-column: span 3; text-align: center; margin-top: 1rem; 
+      font-family: var(--font-mono); font-size: 0.9rem; color: #8b949e; min-height: 24px;
+    }
+
+    /* COMPARISON TABLE */
+    .comp-table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem; background: #161b22;
+      border: 1px solid #30363d; border-radius: 8px; overflow: hidden;
+    }
+    .comp-table th { background: #21262d; text-align: left; padding: 1rem; color: #fff; font-size: 0.9rem; }
+    .comp-table td { padding: 1rem; border-top: 1px solid #30363d; color: var(--text-secondary); font-size: 0.9rem; }
+    .comp-highlight { font-weight: bold; color: #fff; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Data & Storage</div>
+      <h1>Storage Types</h1>
+      <p class="intro">
+        In the cloud, not all hard drives are created equal. You choose storage based on 
+        <span style="color:var(--accent-block)">Speed</span>, <span style="color:var(--accent-file)">Sharing</span>, or <span style="color:var(--accent-object)">Scale</span>.
+      </p>
+    </header>
+
+    <div class="concept-grid">
+      <div class="card" style="border-top: 4px solid var(--accent-block);">
+        <h3>💽 Block (EBS)</h3>
+        <p><strong>The Hard Drive.</strong><br>Fastest. Attached to ONE server at a time. The Operating System (OS) lives here. If you format it, it breaks.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-block);">Best for: Databases, Boot Drives</div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-file);">
+        <h3>📂 File (EFS)</h3>
+        <p><strong>The Network Share.</strong><br>Like a shared folder at the office. Many servers can read/write at the same time. Good for collaboration.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-file);">Best for: CMS Content, Shared Configs</div>
+      </div>
+
+      <div class="card" style="border-top: 4px solid var(--accent-object);">
+        <h3>🪣 Object (S3)</h3>
+        <p><strong>The Infinite Bucket.</strong><br>Stores files as "Objects" with metadata. Accessible via HTTP URL. Infinitely scalable and very cheap.</p>
+        <div style="margin-top:10px; font-size:0.8rem; color:var(--accent-object);">Best for: Images, Backups, Videos</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The Storage Sorter</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> You are the Data Architect. Drag the incoming files to the most efficient storage bin.
+    </p>
+
+    <div class="sort-console">
+      
+      <div class="conveyor-belt" id="belt">
+        <div class="belt-title">Incoming Data</div>
+        
+        <div class="data-packet" draggable="true" data-type="block">
+          <div class="data-icon">💻</div>
+          <div class="data-info"><div>Windows C:\ Drive</div><div>OS Boot Files</div></div>
+        </div>
+
+        <div class="data-packet" draggable="true" data-type="object">
+          <div class="data-icon">📸</div>
+          <div class="data-info"><div>Profile Pics</div><div>1 Million JPEGs</div></div>
+        </div>
+
+        <div class="data-packet" draggable="true" data-type="file">
+          <div class="data-icon">📑</div>
+          <div class="data-info"><div>Shared Office Docs</div><div>Team Collaboration</div></div>
+        </div>
+
+        <div class="data-packet" draggable="true" data-type="block">
+          <div class="data-icon">🗄️</div>
+          <div class="data-info"><div>Oracle DB Data</div><div>High IOPS Required</div></div>
+        </div>
+
+        <div class="data-packet" draggable="true" data-type="object">
+          <div class="data-icon">📦</div>
+          <div class="data-info"><div>Log Archive</div><div>Keep for 7 years</div></div>
+        </div>
+
+      </div>
+
+      <div class="warehouse">
+        
+        <div class="storage-bin bin-block" data-type="block">
+          <div class="bin-icon">💽</div>
+          <div class="bin-header">Block Storage</div>
+          <div class="bin-desc">Low Latency / Single Attach</div>
+          </div>
+
+        <div class="storage-bin bin-file" data-type="file">
+          <div class="bin-icon">📂</div>
+          <div class="bin-header">File Storage</div>
+          <div class="bin-desc">Shared Access / Hierarchical</div>
+          </div>
+
+        <div class="storage-bin bin-object" data-type="object">
+          <div class="bin-icon">🪣</div>
+          <div class="bin-header">Object Storage</div>
+          <div class="bin-desc">HTTP Access / Flat Structure</div>
+          </div>
+
+        <div class="status-msg" id="statusLog">Waiting for input...</div>
+
+      </div>
+
+    </div>
+
+    <h2 class="section-title">📊 Quick Comparison</h2>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="comp-table" style="margin:0; border:none;">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="color:var(--accent-block)">Block</th>
+            <th style="color:var(--accent-file)">File</th>
+            <th style="color:var(--accent-object)">Object</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cost</strong></td>
+            <td>$$$ (Expensive)</td>
+            <td>$$ (Moderate)</td>
+            <td><span class="comp-highlight">$ (Cheap)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Performance</strong></td>
+            <td><span class="comp-highlight">🚀 Very Fast (ms)</span></td>
+            <td>🚗 Medium</td>
+            <td>🐢 Slow (HTTP overhead)</td>
+          </tr>
+          <tr>
+            <td><strong>Access Method</strong></td>
+            <td>Mount as Drive (Z:)</td>
+            <td>Mount Network Path</td>
+            <td>REST API (PUT/GET)</td>
+          </tr>
+          <tr>
+            <td><strong>Metadata</strong></td>
+            <td>None</td>
+            <td>Basic (File attributes)</td>
+            <td><span class="comp-highlight">Rich Custom Tags</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const draggables = document.querySelectorAll('.data-packet');
+    const bins = document.querySelectorAll('.storage-bin');
+    const statusLog = document.getElementById('statusLog');
+    
+    let draggedItem = null;
+
+    draggables.forEach(item => {
+      item.addEventListener('dragstart', () => {
+        draggedItem = item;
+        item.style.opacity = '0.5';
+      });
+      item.addEventListener('dragend', () => {
+        draggedItem = null;
+        item.style.opacity = '1';
+      });
+    });
+
+    bins.forEach(bin => {
+      bin.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        bin.classList.add('drag-over');
+      });
+
+      bin.addEventListener('dragleave', () => {
+        bin.classList.remove('drag-over');
+      });
+
+      bin.addEventListener('drop', (e) => {
+        e.preventDefault();
+        bin.classList.remove('drag-over');
+        
+        if (draggedItem) {
+          validateDrop(draggedItem, bin);
+        }
+      });
+    });
+
+    function validateDrop(item, bin) {
+      const itemType = item.getAttribute('data-type');
+      const binType = bin.getAttribute('data-type');
+      
+      const itemName = item.querySelector('.data-info div:first-child').innerText;
+
+      if (itemType === binType) {
+        bin.appendChild(item);
+        item.setAttribute('draggable', 'false');
+        item.style.cursor = 'default';
+        item.style.border = '1px solid #2ea043';
+        
+        // Custom messages
+        let msg = "✅ Correct!";
+        if(binType === 'block') msg = "✅ Correct! High performance needed.";
+        if(binType === 'file') msg = "✅ Correct! Shared access needed.";
+        if(binType === 'object') msg = "✅ Correct! Cost-effective for massive data.";
+        
+        statusLog.innerText = msg;
+        statusLog.style.color = "#2ea043";
+      } else {
+        statusLog.innerText = `❌ Error: ${itemName} doesn't belong in ${binType} storage!`;
+        statusLog.style.color = "#ff7b72";
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,2669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 15: Helm 0 to Hero | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #06111d;
+      --bg-deep: #02070e;
+      --panel: rgba(10, 18, 33, 0.84);
+      --panel-soft: rgba(10, 20, 37, 0.72);
+      --line: rgba(94, 128, 255, 0.16);
+      --line-strong: rgba(94, 128, 255, 0.34);
+      --text: #f2f6ff;
+      --muted: #9cadc7;
+      --accent: #4e7dff;
+      --accent-strong: #2b5ad8;
+      --accent-soft: rgba(78, 125, 255, 0.12);
+      --success: #5ad7a0;
+      --warning: #ffc76f;
+      --danger: #ff8f8f;
+      --values: #ff9e8e;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 8rem;
+    }
+
+    body {
+      min-height: 100vh;
+      position: relative;
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(78, 125, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 86% 20%, rgba(43, 90, 216, 0.16), transparent 24%),
+        radial-gradient(circle at 72% 80%, rgba(38, 61, 124, 0.22), transparent 30%),
+        linear-gradient(180deg, #081220 0%, #050b13 45%, #03070d 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    summary {
+      font: inherit;
+    }
+
+    code,
+    pre {
+      font-family: var(--font-mono);
+    }
+
+    .shell {
+      width: min(1380px, calc(100% - 2.5rem));
+      margin: 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      padding: 1.5rem 0 4.4rem;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(18px);
+      opacity: 0.44;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      width: 20rem;
+      height: 20rem;
+      top: -4rem;
+      left: -5rem;
+      background: rgba(78, 125, 255, 0.18);
+    }
+
+    .hero::after {
+      width: 18rem;
+      height: 18rem;
+      top: 2rem;
+      right: -5rem;
+      background: rgba(255, 158, 142, 0.14);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+      gap: 3rem;
+      align-items: end;
+      min-height: min(84vh, 840px);
+    }
+
+    .hero-copy {
+      max-width: 45rem;
+      padding: 2rem 0 1rem;
+    }
+
+    .breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: rgba(7, 15, 28, 0.72);
+      margin-bottom: 1.35rem;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.3rem rgba(78, 125, 255, 0.14);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3.2rem, 8vw, 6.5rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      max-width: 10ch;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-summary {
+      max-width: 43rem;
+      font-size: clamp(1.04rem, 1.8vw, 1.28rem);
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.45rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #97b4ff);
+      color: #07111d;
+      font-weight: 700;
+      box-shadow: 0 18px 36px rgba(78, 125, 255, 0.24);
+    }
+
+    .button.secondary {
+      border-color: var(--line-strong);
+      background: rgba(8, 17, 31, 0.74);
+    }
+
+    .hero-notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      list-style: none;
+      max-width: 48rem;
+    }
+
+    .hero-notes li {
+      padding: 0.95rem 1rem;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 19, 35, 0.62), rgba(10, 19, 35, 0));
+    }
+
+    .hero-notes strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .hero-visual {
+      position: relative;
+      padding-top: 2rem;
+    }
+
+    .poster {
+      position: relative;
+      min-height: 37rem;
+      padding: 1.4rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.8rem;
+      background:
+        linear-gradient(180deg, rgba(10, 20, 38, 0.94), rgba(4, 10, 18, 0.94)),
+        radial-gradient(circle at 20% 20%, rgba(78, 125, 255, 0.1), transparent 28%);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .poster::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(78, 125, 255, 0.08) calc(100% - 1px)),
+        linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(78, 125, 255, 0.08) calc(100% - 1px));
+      background-size: 2.5rem 2.5rem;
+      opacity: 0.24;
+      pointer-events: none;
+    }
+
+    .poster-top,
+    .flow-strip,
+    .route-strip,
+    .lab-list,
+    .checklist,
+    .guide-grid,
+    .manifest-notes,
+    .stack-list {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .poster-top {
+      position: relative;
+      z-index: 1;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.1rem;
+    }
+
+    .poster-tag,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(78, 125, 255, 0.18);
+      background: rgba(78, 125, 255, 0.06);
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .poster-core {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .poster-panel,
+    .rail-block,
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column,
+    .lab,
+    .option,
+    .route-link,
+    .code-block,
+    .note-block,
+    .sim-panel,
+    .chart-item {
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+    }
+
+    .poster-panel {
+      padding: 1rem;
+      background: rgba(10, 18, 32, 0.78);
+    }
+
+    .poster-panel h2,
+    .poster-panel h3,
+    .panel h3,
+    .panel-plain h3,
+    .flow-block h3,
+    .symptoms h3,
+    .cleanup-column h3,
+    .note-block h3,
+    .option h3,
+    .lab-side h4,
+    .chart-item h3 {
+      font-size: 1.02rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .poster-panel p,
+    .poster-panel span,
+    .panel p,
+    .panel-plain p,
+    .flow-block p,
+    .symptoms p,
+    .cleanup-column p,
+    .note-block p,
+    .option p,
+    .lab-side p,
+    .chart-item p {
+      color: var(--muted);
+    }
+
+    .render-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.85rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      background: rgba(78, 125, 255, 0.06);
+      border: 1px solid rgba(78, 125, 255, 0.12);
+    }
+
+    .render-line strong,
+    .poster-stats strong,
+    .chapter-state strong,
+    .route-link strong,
+    .flow-step strong,
+    .chart-item strong {
+      color: var(--text);
+    }
+
+    .render-line code {
+      color: var(--values);
+    }
+
+    .release-stack {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .release-pill {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.7rem;
+      align-items: center;
+      padding: 0.8rem 0.9rem;
+      border-radius: 1rem;
+      background: rgba(5, 12, 23, 0.84);
+      border: 1px solid rgba(78, 125, 255, 0.12);
+    }
+
+    .release-pill code {
+      color: var(--accent);
+    }
+
+    .release-pill .status-ok {
+      color: var(--success);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .release-pill .status-bad {
+      color: var(--danger);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .poster-footer {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .poster-stats {
+      padding: 0.8rem 0.85rem;
+      border-top: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(6, 14, 25, 0.08), rgba(6, 14, 25, 0.62));
+    }
+
+    .guide-layer {
+      position: relative;
+      z-index: 30;
+      margin-top: -2rem;
+      padding-bottom: 1rem;
+    }
+
+    .route-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .route-link {
+      display: block;
+      padding: 1rem 1rem 1.05rem;
+      border-top: 2px solid rgba(78, 125, 255, 0.34);
+      background: rgba(7, 16, 29, 0.84);
+      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    }
+
+    .route-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(78, 125, 255, 0.34);
+      background: rgba(10, 21, 39, 0.92);
+    }
+
+    .route-link span,
+    .section-label,
+    .lab-kicker,
+    .chapter-state span,
+    .option span,
+    .note-block span,
+    .flow-step span,
+    .box-label {
+      display: inline-block;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .route-link span {
+      margin-bottom: 0.45rem;
+    }
+
+    .chapter-bar {
+      position: sticky;
+      top: 0.75rem;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      padding: 0.8rem 0.95rem;
+      border: 1px solid var(--line-strong);
+      border-radius: 1.25rem;
+      background: rgba(6, 14, 25, 0.92);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .chapter-state {
+      min-width: 11rem;
+      padding-right: 1rem;
+      border-right: 1px solid rgba(78, 125, 255, 0.12);
+    }
+
+    .chapter-track {
+      display: flex;
+      gap: 0.55rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 0.1rem;
+    }
+
+    .chapter-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chapter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      padding: 0.68rem 0.92rem;
+      border-radius: 999px;
+      border: 1px solid rgba(78, 125, 255, 0.14);
+      background: rgba(78, 125, 255, 0.04);
+      color: var(--muted);
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .chapter-link:hover,
+    .chapter-link.active,
+    .chip.active,
+    .chip:hover {
+      color: var(--text);
+      border-color: rgba(78, 125, 255, 0.34);
+      background: rgba(78, 125, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 18.5rem minmax(0, 1fr);
+      gap: 2.5rem;
+      padding: 1.3rem 0 6rem;
+      align-items: start;
+    }
+
+    .rail {
+      position: sticky;
+      top: 6.5rem;
+      align-self: start;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .rail-block {
+      padding: 1rem;
+    }
+
+    .rail-block h2 {
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    .rail-links {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .rail-links a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      color: var(--muted);
+      padding: 0.55rem 0.75rem;
+      border: 1px solid transparent;
+      border-radius: 0.9rem;
+      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    }
+
+    .rail-links a::after {
+      content: "";
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: inset 0 0 0 1px rgba(78, 125, 255, 0.25);
+      flex: 0 0 auto;
+    }
+
+    .rail-links a:hover,
+    .rail-links a.active {
+      color: var(--text);
+      background: rgba(78, 125, 255, 0.07);
+      border-color: rgba(78, 125, 255, 0.14);
+    }
+
+    .rail-links a.active::after {
+      background: var(--accent);
+      box-shadow: 0 0 0 0.24rem rgba(78, 125, 255, 0.14);
+    }
+
+    .checklist {
+      gap: 0.7rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .check-item input {
+      margin-top: 0.2rem;
+      accent-color: var(--accent);
+      transform: scale(1.15);
+    }
+
+    .progress-bar {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      margin-top: 0.8rem;
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-strong), #9cb6ff);
+      transition: width 0.18s ease;
+    }
+
+    .progress-copy {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.55rem;
+    }
+
+    .content {
+      min-width: 0;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .section {
+      position: relative;
+      padding: 2.15rem 0 3rem;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 8rem;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      left: -1.2rem;
+      top: 2.3rem;
+      bottom: 0.5rem;
+      width: 1px;
+      background: linear-gradient(180deg, rgba(78, 125, 255, 0.2), rgba(78, 125, 255, 0));
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-bottom: 0.85rem;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(78, 125, 255, 0.16);
+      background: rgba(78, 125, 255, 0.06);
+    }
+
+    .section-label::before {
+      content: "";
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0.22rem rgba(78, 125, 255, 0.12);
+    }
+
+    .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+      max-width: 13ch;
+      margin-bottom: 1rem;
+    }
+
+    .section-intro {
+      max-width: 62ch;
+      color: var(--muted);
+      margin-bottom: 1.95rem;
+      font-size: 1.08rem;
+    }
+
+    .stage-grid,
+    .poster-top,
+    .poster-footer,
+    .flow-strip,
+    .command-grid,
+    .cleanup-grid,
+    .finish-grid,
+    .atlas-toolbar,
+    .search-row,
+    .sim-shell,
+    .sim-buttons,
+    .sim-stats,
+    .chart-grid,
+    .option-grid,
+    .lab-body,
+    .flow-grid,
+    .workflow-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .stage-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1.6rem;
+    }
+
+    .stage,
+    .option {
+      padding: 1rem 0.95rem 0;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(10, 22, 39, 0.58), rgba(10, 22, 39, 0));
+      min-height: 12rem;
+    }
+
+    .stage-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.2rem;
+      min-height: 2.2rem;
+      border-radius: 999px;
+      background: rgba(78, 125, 255, 0.12);
+      border: 1px solid rgba(78, 125, 255, 0.28);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      margin-bottom: 0.9rem;
+    }
+
+    .stage p,
+    .stage li,
+    .panel ul,
+    .cleanup-column li,
+    .lab-side li,
+    .symptoms li,
+    .option p {
+      color: var(--muted);
+    }
+
+    .panel,
+    .panel-plain,
+    .flow-block,
+    .symptoms,
+    .cleanup-column {
+      padding: 1.15rem;
+    }
+
+    .panel-plain {
+      background: rgba(6, 14, 25, 0.72);
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(18rem, 0.76fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .statement {
+      font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+      line-height: 1.28;
+      max-width: 24ch;
+      margin-bottom: 1rem;
+    }
+
+    .flow-strip {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .flow-step {
+      position: relative;
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(78, 125, 255, 0.14);
+      background: rgba(78, 125, 255, 0.05);
+      min-height: 8rem;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "->";
+      position: absolute;
+      top: calc(50% - 0.6rem);
+      right: -0.7rem;
+      color: rgba(78, 125, 255, 0.5);
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+    }
+
+    .flow-step span {
+      margin-bottom: 0.4rem;
+    }
+
+    .chart-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 1.2rem;
+    }
+
+    .chart-item {
+      padding: 1rem;
+      background: rgba(8, 16, 30, 0.86);
+    }
+
+    .workflow-grid,
+    .flow-grid,
+    .cleanup-grid,
+    .finish-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .code-block {
+      overflow: hidden;
+      background: rgba(4, 8, 16, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(78, 125, 255, 0.1);
+      color: var(--muted);
+      font-size: 0.84rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(8, 18, 33, 0.84);
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 1.15rem 1rem 1.2rem;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: #dfeaff;
+    }
+
+    .note-block {
+      padding: 1rem;
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .note-block span {
+      margin-bottom: 0.35rem;
+    }
+
+    .atlas-toolbar {
+      margin-bottom: 1rem;
+    }
+
+    .search-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .search-row input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: rgba(8, 18, 33, 0.78);
+      color: var(--text);
+      padding: 0.9rem 1rem;
+      outline: none;
+    }
+
+    .search-row input:focus {
+      border-color: rgba(78, 125, 255, 0.6);
+      box-shadow: 0 0 0 0.25rem rgba(78, 125, 255, 0.12);
+    }
+
+    .result-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 6rem;
+      padding: 0.9rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(8, 18, 33, 0.74);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .chip {
+      cursor: pointer;
+      transition: border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 1.2rem;
+      background: rgba(5, 11, 20, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .command-table,
+    .symptom-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .command-table th,
+    .command-table td,
+    .symptom-table th,
+    .symptom-table td {
+      text-align: left;
+      vertical-align: top;
+      padding: 0.95rem 1rem;
+      border-bottom: 1px solid rgba(78, 125, 255, 0.1);
+    }
+
+    .command-table th,
+    .symptom-table th {
+      color: var(--accent);
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: rgba(11, 23, 43, 0.9);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .command-table td,
+    .symptom-table td {
+      color: var(--muted);
+    }
+
+    .command-table td:first-child,
+    .symptom-table td:first-child {
+      color: var(--text);
+    }
+
+    .command-table tbody tr:nth-child(even),
+    .symptom-table tbody tr:nth-child(even) {
+      background: rgba(78, 125, 255, 0.025);
+    }
+
+    .command-table tbody tr:hover,
+    .symptom-table tbody tr:hover {
+      background: rgba(78, 125, 255, 0.06);
+    }
+
+    .muted-mini {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.7rem;
+    }
+
+    .option-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 1.2rem;
+    }
+
+    .option span {
+      margin-bottom: 0.75rem;
+    }
+
+    .lab {
+      overflow: hidden;
+      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .lab[open] {
+      border-color: rgba(78, 125, 255, 0.26);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+    }
+
+    .lab summary {
+      list-style: none;
+      cursor: pointer;
+      position: relative;
+      padding: 1rem 4rem 1rem 1.1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      background: rgba(9, 18, 34, 0.92);
+    }
+
+    .lab summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .lab summary:hover {
+      background: rgba(11, 23, 43, 0.96);
+    }
+
+    .lab summary::after {
+      content: "+";
+      position: absolute;
+      right: 1.1rem;
+      top: calc(50% - 0.8rem);
+      width: 1.7rem;
+      height: 1.7rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(78, 125, 255, 0.18);
+      background: rgba(78, 125, 255, 0.06);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .lab[open] summary::after {
+      content: "-";
+      background: rgba(78, 125, 255, 0.12);
+      border-color: rgba(78, 125, 255, 0.3);
+    }
+
+    .lab-kicker {
+      margin-bottom: 0.35rem;
+    }
+
+    .lab-meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+      align-self: start;
+      padding-top: 0.25rem;
+    }
+
+    .lab-body {
+      grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+      padding: 1rem 1.1rem 1.2rem;
+      border-top: 1px solid rgba(78, 125, 255, 0.1);
+      background: linear-gradient(180deg, rgba(7, 14, 25, 0.28), rgba(7, 14, 25, 0));
+    }
+
+    .lab-side {
+      display: grid;
+      gap: 0.9rem;
+      align-content: start;
+    }
+
+    .lab-box {
+      border: 1px solid rgba(78, 125, 255, 0.14);
+      border-radius: 1rem;
+      padding: 0.9rem;
+      background: rgba(6, 14, 25, 0.64);
+    }
+
+    .symptoms .table-wrap {
+      margin-top: 0.8rem;
+    }
+
+    .sim-shell {
+      grid-template-columns: 22rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .sim-panel {
+      overflow: hidden;
+      background: rgba(7, 16, 29, 0.84);
+    }
+
+    .sim-controls,
+    .sim-view {
+      padding: 1.1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .sim-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-stat {
+      padding: 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(78, 125, 255, 0.12);
+      background: rgba(78, 125, 255, 0.05);
+    }
+
+    .sim-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .yaml-editor {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .yaml-row {
+      display: grid;
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.8rem 0.85rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(78, 125, 255, 0.12);
+      background: rgba(78, 125, 255, 0.05);
+    }
+
+    .yaml-row label {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .yaml-row input,
+    .yaml-row select {
+      width: 100%;
+      border: 1px solid rgba(78, 125, 255, 0.14);
+      border-radius: 0.8rem;
+      padding: 0.7rem 0.8rem;
+      color: var(--text);
+      background: rgba(4, 10, 19, 0.9);
+    }
+
+    .sim-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sim-button {
+      min-height: 2.9rem;
+      border: 1px solid rgba(78, 125, 255, 0.18);
+      border-radius: 0.95rem;
+      background: rgba(78, 125, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .sim-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(78, 125, 255, 0.38);
+    }
+
+    .sim-button.success {
+      background: rgba(90, 215, 160, 0.08);
+      border-color: rgba(90, 215, 160, 0.24);
+    }
+
+    .sim-button.warning {
+      background: rgba(255, 199, 111, 0.08);
+      border-color: rgba(255, 199, 111, 0.24);
+    }
+
+    .sim-button.danger {
+      background: rgba(255, 143, 143, 0.08);
+      border-color: rgba(255, 143, 143, 0.24);
+    }
+
+    .sim-log,
+    .history-log {
+      border: 1px solid rgba(78, 125, 255, 0.1);
+      border-radius: 1rem;
+      background: rgba(3, 8, 15, 0.84);
+      padding: 0.85rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .sim-log {
+      min-height: 12rem;
+      max-height: 16rem;
+      overflow-y: auto;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .sim-log div {
+      border-bottom: 1px dashed rgba(78, 125, 255, 0.08);
+      padding-bottom: 0.35rem;
+    }
+
+    .history-log {
+      min-height: 18rem;
+      align-content: start;
+    }
+
+    .revision-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.9rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(78, 125, 255, 0.12);
+      background: rgba(9, 18, 34, 0.86);
+      transition: border-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .revision-card.active {
+      border-color: rgba(90, 215, 160, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .revision-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3.2rem;
+      min-height: 2rem;
+      border-radius: 999px;
+      background: rgba(78, 125, 255, 0.14);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+
+    .revision-state {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .revision-state.ok {
+      color: var(--success);
+    }
+
+    .revision-state.bad {
+      color: var(--danger);
+    }
+
+    .render-preview {
+      border: 1px solid rgba(78, 125, 255, 0.1);
+      border-radius: 1rem;
+      background: rgba(4, 10, 19, 0.92);
+      overflow: hidden;
+    }
+
+    .render-preview pre {
+      color: #e2ebff;
+    }
+
+    footer {
+      padding: 2rem 0 4rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer a {
+      color: var(--text);
+      border-bottom: 1px solid rgba(78, 125, 255, 0.22);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .guide-layer {
+        margin-top: 0;
+        padding-top: 1rem;
+      }
+
+      .route-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .chapter-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-state {
+        min-width: 0;
+        padding-right: 0;
+        padding-bottom: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(78, 125, 255, 0.12);
+      }
+
+      .hero-grid,
+      .page-grid,
+      .two-up,
+      .workflow-grid,
+      .flow-grid,
+      .cleanup-grid,
+      .finish-grid,
+      .lab-body,
+      .sim-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .rail {
+        position: static;
+        order: 2;
+      }
+
+      .content {
+        order: 1;
+      }
+
+      .section::before {
+        display: none;
+      }
+
+      .hero-grid {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .stage-grid,
+      .route-strip,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .chart-grid,
+      .option-grid,
+      .sim-stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100% - 1.25rem, 1380px);
+      }
+
+      .chapter-bar,
+      .route-strip,
+      .hero-notes,
+      .stage-grid,
+      .poster-top,
+      .poster-footer,
+      .flow-strip,
+      .chart-grid,
+      .option-grid,
+      .sim-stats,
+      .sim-buttons,
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        max-width: 8ch;
+      }
+
+      .yaml-row,
+      .revision-card,
+      .lab summary {
+        grid-template-columns: 1fr;
+      }
+
+      .lab summary::after {
+        top: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Cloud &amp; Infrastructure</div>
+        <div class="eyebrow">Level 15 / Kubernetes packaging</div>
+        <h1>Helm 0 to Hero</h1>
+        <p class="hero-summary">
+          Learn Helm as the release engine for Kubernetes, not just a bag of commands. This page
+          shows how charts, values, templates, revisions, repos, upgrades, rollbacks, and cleanup
+          fit into one repeatable workflow you can trust.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#roadmap">Start the roadmap</a>
+          <a class="button secondary" href="#command-atlas">Open the command atlas</a>
+        </div>
+        <ul class="hero-notes">
+          <li>
+            <strong>Why Helm exists</strong>
+            Stop copy-pasting raw manifests and start shipping reusable packages with sane defaults.
+          </li>
+          <li>
+            <strong>What you practice</strong>
+            Chart structure, rendering, installing, upgrading, rolling back, and cleaning up.
+          </li>
+          <li>
+            <strong>How to use this page</strong>
+            Learn the mental model first, then jump to commands, labs, or the simulator when needed.
+          </li>
+        </ul>
+      </div>
+
+      <div class="hero-visual">
+        <div class="poster">
+          <div class="poster-top">
+            <div class="poster-tag">Chart</div>
+            <div class="poster-tag">Values</div>
+            <div class="poster-tag">Templates</div>
+            <div class="poster-tag">Release</div>
+            <div class="poster-tag">Rollback</div>
+          </div>
+
+          <div class="poster-core">
+            <section class="poster-panel">
+              <h2>Render pipeline</h2>
+              <div class="stack-list">
+                <div class="render-line">
+                  <div>
+                    <strong>Chart code</strong>
+                    <span>Reusable templates and metadata live in one versioned package.</span>
+                  </div>
+                  <code>templates/</code>
+                </div>
+                <div class="render-line">
+                  <div>
+                    <strong>Values</strong>
+                    <span>Environment-specific configuration overrides defaults without editing templates.</span>
+                  </div>
+                  <code>values.yaml</code>
+                </div>
+                <div class="render-line">
+                  <div>
+                    <strong>Rendered manifests</strong>
+                    <span>Helm fills template placeholders and sends plain Kubernetes YAML to the cluster.</span>
+                  </div>
+                  <code>helm template</code>
+                </div>
+              </div>
+            </section>
+
+            <section class="poster-panel">
+              <h3>Release history</h3>
+              <div class="release-stack">
+                <div class="release-pill">
+                  <code>REV 1</code>
+                  <span>stable install with default values</span>
+                  <span class="status-ok">deployed</span>
+                </div>
+                <div class="release-pill">
+                  <code>REV 2</code>
+                  <span>replicas increased for production</span>
+                  <span class="status-ok">deployed</span>
+                </div>
+                <div class="release-pill">
+                  <code>REV 3</code>
+                  <span>bad image tag introduced during upgrade</span>
+                  <span class="status-bad">failed</span>
+                </div>
+                <div class="release-pill">
+                  <code>REV 4</code>
+                  <span>rollback restored healthy configuration</span>
+                  <span class="status-ok">rolled back</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="poster-footer">
+            <div class="poster-stats">
+              <strong>Reusability</strong>
+              <span>One chart can be installed many times with different names and values.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Repeatability</strong>
+              <span>Every upgrade becomes a revision you can inspect and undo.</span>
+            </div>
+            <div class="poster-stats">
+              <strong>Visibility</strong>
+              <span>Rendered manifests and release history show what actually changed.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="guide-layer">
+    <div class="shell guide-grid">
+      <nav class="route-strip" aria-label="Quick study routes">
+        <a class="route-link" href="#roadmap">
+          <span>Start here</span>
+          <strong>Learn the flow</strong>
+          <p>Use the roadmap if you want Helm to make sense as a full release workflow, not isolated commands.</p>
+        </a>
+        <a class="route-link" href="#command-atlas">
+          <span>Use it fast</span>
+          <strong>Jump to commands</strong>
+          <p>Find install, upgrade, rollback, template, repo, and cleanup commands with context.</p>
+        </a>
+        <a class="route-link" href="#labs">
+          <span>Get hands-on</span>
+          <strong>Run local labs</strong>
+          <p>Practice chart creation, rendering, installation, upgrades, and rollback on a safe cluster.</p>
+        </a>
+        <a class="route-link" href="#troubleshooting">
+          <span>Fix stuff</span>
+          <strong>Debug releases</strong>
+          <p>Use the troubleshooting section when a chart renders badly or a release upgrades into trouble.</p>
+        </a>
+      </nav>
+
+      <div class="chapter-bar" aria-label="Chapter navigation">
+        <div class="chapter-state">
+          <span>Now reading</span>
+          <strong id="chapterState">Roadmap</strong>
+        </div>
+        <nav class="chapter-track">
+          <a class="chapter-link active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a class="chapter-link" data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a class="chapter-link" data-nav-target="chart-anatomy" href="#chart-anatomy">Chart anatomy</a>
+          <a class="chapter-link" data-nav-target="workflow" href="#workflow">Workflow</a>
+          <a class="chapter-link" data-nav-target="command-atlas" href="#command-atlas">Commands</a>
+          <a class="chapter-link" data-nav-target="labs" href="#labs">Labs</a>
+          <a class="chapter-link" data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a class="chapter-link" data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a class="chapter-link" data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a class="chapter-link" data-nav-target="finish" href="#finish">Finish</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell page-grid">
+    <aside class="rail" aria-label="Page navigation">
+      <div class="rail-block">
+        <h2>On this page</h2>
+        <nav class="rail-links">
+          <a class="active" data-nav-target="roadmap" href="#roadmap">Roadmap</a>
+          <a data-nav-target="mental-model" href="#mental-model">Mental model</a>
+          <a data-nav-target="chart-anatomy" href="#chart-anatomy">Chart anatomy</a>
+          <a data-nav-target="workflow" href="#workflow">Workflow</a>
+          <a data-nav-target="command-atlas" href="#command-atlas">Command atlas</a>
+          <a data-nav-target="labs" href="#labs">Laptop labs</a>
+          <a data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+          <a data-nav-target="simulator" href="#simulator">Simulator</a>
+          <a data-nav-target="cleanup" href="#cleanup">Cleanup</a>
+          <a data-nav-target="finish" href="#finish">Next steps</a>
+        </nav>
+      </div>
+
+      <div class="rail-block">
+        <h2>Study checklist</h2>
+        <div class="checklist">
+          <label class="check-item"><input type="checkbox" data-checkpoint="chart" /> I understand the difference between a chart, a value, and a release.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="render" /> I know how to render a chart before installing it.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="upgrade" /> I can install, upgrade, inspect history, and roll back a release.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="repos" /> I know the role of repos, dependencies, and packaged charts.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="labs" /> I have run at least two Helm labs locally.</label>
+          <label class="check-item"><input type="checkbox" data-checkpoint="cleanup" /> I know how to remove releases and clean up namespaces or local clusters.</label>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-copy" id="progressCopy">0 / 6 complete</p>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="section" id="roadmap">
+        <div class="section-label">Roadmap</div>
+        <h2>Learn Helm in the order people actually use it</h2>
+        <p class="section-intro">
+          Helm feels simple at first and confusing later because most people learn the install
+          command before they learn how charts are structured or how releases get versioned. Go in
+          this order and Helm will feel much more predictable.
+        </p>
+
+        <div class="stage-grid">
+          <article class="stage">
+            <div class="stage-index">01</div>
+            <h3>Understand the nouns</h3>
+            <p>Chart, values, release, template, and revision are the core building blocks.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">02</div>
+            <h3>Render before installing</h3>
+            <p>Use <code>helm template</code> and <code>helm lint</code> so you can see the generated YAML before it hits a cluster.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">03</div>
+            <h3>Install and inspect</h3>
+            <p>Install a chart, check status, and inspect rendered manifests and stored values.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">04</div>
+            <h3>Upgrade safely</h3>
+            <p>Learn how overrides, values files, and revisions work so upgrades become deliberate rather than scary.</p>
+          </article>
+          <article class="stage">
+            <div class="stage-index">05</div>
+            <h3>Rollback and clean up</h3>
+            <p>Practice history, rollback, uninstall, and namespace cleanup so experiments stay disposable.</p>
+          </article>
+        </div>
+
+        <div class="two-up">
+          <div class="panel">
+            <p class="statement">The shortest useful definition of Helm is: a package and release manager for Kubernetes that turns templates plus values into versioned installs.</p>
+            <p>Helm does not replace Kubernetes. It produces Kubernetes manifests and tracks each install or upgrade as a release revision so you can inspect and roll back what changed.</p>
+          </div>
+          <div class="panel-plain">
+            <h3>When Helm helps most</h3>
+            <p>Use Helm when the same app needs different values across environments, when you want repeatable installs, or when a pile of raw YAML is getting hard to maintain.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="mental-model">
+        <div class="section-label">Mental model</div>
+        <h2>See the Helm flow end to end before you memorize commands</h2>
+        <p class="section-intro">
+          Helm becomes intuitive once you can picture the whole sequence: you start with a chart,
+          feed it values, render Kubernetes YAML, send that to the cluster, and then track the
+          result as a release with revision history.
+        </p>
+
+        <div class="flow-strip">
+          <div class="flow-step">
+            <span>1</span>
+            <strong>Author or fetch a chart</strong>
+            <p>A chart is the package that contains templates, defaults, and metadata.</p>
+          </div>
+          <div class="flow-step">
+            <span>2</span>
+            <strong>Provide values</strong>
+            <p>Values files and <code>--set</code> overrides customize the install for an environment.</p>
+          </div>
+          <div class="flow-step">
+            <span>3</span>
+            <strong>Render templates</strong>
+            <p>Helm resolves template expressions into plain Kubernetes manifests.</p>
+          </div>
+          <div class="flow-step">
+            <span>4</span>
+            <strong>Install or upgrade</strong>
+            <p>The rendered objects are submitted to Kubernetes and become the active release state.</p>
+          </div>
+          <div class="flow-step">
+            <span>5</span>
+            <strong>Store revision history</strong>
+            <p>Every change becomes a new release revision that Helm can inspect or roll back to.</p>
+          </div>
+          <div class="flow-step">
+            <span>6</span>
+            <strong>Operate the release</strong>
+            <p>Use status, history, get, rollback, and uninstall as the release lifecycle tools.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="chart-anatomy">
+        <div class="section-label">Chart anatomy</div>
+        <h2>Know the files inside a chart and what each one is responsible for</h2>
+        <p class="section-intro">
+          Once the chart folder structure stops feeling mysterious, Helm gets much easier to reason
+          about. Most charts are a small set of well-known files with clear jobs.
+        </p>
+
+        <div class="chart-grid">
+          <article class="chart-item">
+            <h3><code>Chart.yaml</code></h3>
+            <p>Stores chart metadata such as name, version, app version, and dependency declarations.</p>
+          </article>
+          <article class="chart-item">
+            <h3><code>values.yaml</code></h3>
+            <p>Holds the default configuration values that templates can reference through <code>.Values</code>.</p>
+          </article>
+          <article class="chart-item">
+            <h3><code>templates/</code></h3>
+            <p>Contains Kubernetes YAML templates such as Deployments, Services, Ingress objects, and helpers.</p>
+          </article>
+        </div>
+
+        <div class="workflow-grid">
+          <div class="code-block">
+            <div class="code-header"><span>Minimal chart tree</span><span>starter layout</span></div>
+            <pre><code>my-app/
+  Chart.yaml
+  values.yaml
+  charts/
+  templates/
+    deployment.yaml
+    service.yaml
+    _helpers.tpl
+    NOTES.txt</code></pre>
+          </div>
+          <div class="manifest-notes">
+            <div class="note-block">
+              <span><code>_helpers.tpl</code></span>
+              <p>Usually stores reusable snippets for names, labels, and common template logic.</p>
+            </div>
+            <div class="note-block">
+              <span><code>NOTES.txt</code></span>
+              <p>Optional post-install instructions shown to the user after a successful install.</p>
+            </div>
+            <div class="note-block">
+              <span><code>charts/</code></span>
+              <p>Contains chart dependencies when they are pulled or packaged locally.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="workflow">
+        <div class="section-label">Workflow</div>
+        <h2>Read a simple template and understand what Helm is really doing</h2>
+        <p class="section-intro">
+          Helm templates are just Kubernetes YAML with placeholders. The key skill is learning how a
+          value flows from <code>values.yaml</code> into the final manifest that the cluster sees.
+        </p>
+
+        <div class="workflow-grid">
+          <div class="code-block">
+            <div class="code-header"><span>Template example</span><span>deployment snippet</span></div>
+            <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "my-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "my-app.name" . }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}</code></pre>
+          </div>
+          <div class="manifest-notes">
+            <div class="note-block">
+              <span><code>.Values.*</code></span>
+              <p>Reads values from <code>values.yaml</code> or overrides passed at install and upgrade time.</p>
+            </div>
+            <div class="note-block">
+              <span><code>include</code></span>
+              <p>Calls reusable helper templates so naming and labels stay consistent across objects.</p>
+            </div>
+            <div class="note-block">
+              <span>Rendered output</span>
+              <p>After templating, Helm sends plain Kubernetes YAML to the cluster. Kubernetes never sees the template expressions.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="command-atlas">
+        <div class="section-label">Command atlas</div>
+        <h2>The Helm commands you will reach for most often</h2>
+        <p class="section-intro">
+          Search or filter the command atlas below. The focus is not just syntax, but what each
+          command is good for so you know when to use it in a real workflow.
+        </p>
+
+        <div class="atlas-toolbar">
+          <div class="search-row">
+            <input id="commandSearch" type="search" placeholder="Search Helm commands, release tasks, or chart actions" />
+            <div class="result-counter" id="commandCounter">21 rows</div>
+          </div>
+          <div class="chip-row">
+            <button class="chip active" data-command-filter="all">All</button>
+            <button class="chip" data-command-filter="chart">Chart</button>
+            <button class="chip" data-command-filter="release">Release</button>
+            <button class="chip" data-command-filter="debug">Debug</button>
+            <button class="chip" data-command-filter="repo">Repo</button>
+            <button class="chip" data-command-filter="cleanup">Cleanup</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="command-table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>What it does</th>
+                <th>When to use it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="command-row" data-category="chart" data-search="create scaffold chart starter">
+                <td><code>helm create demo-chart</code></td>
+                <td>Scaffolds a new chart directory with defaults, templates, and helper files.</td>
+                <td>Use it when you want a fast starter chart to customize.</td>
+              </tr>
+              <tr class="command-row" data-category="chart debug" data-search="lint validate chart">
+                <td><code>helm lint ./demo-chart</code></td>
+                <td>Runs chart checks and catches common structure or templating problems.</td>
+                <td>Use it before installing or packaging a chart.</td>
+              </tr>
+              <tr class="command-row" data-category="chart debug" data-search="template render dry run yaml">
+                <td><code>helm template demo ./demo-chart</code></td>
+                <td>Renders templates locally without installing anything.</td>
+                <td>Best way to inspect the generated Kubernetes YAML before it hits a cluster.</td>
+              </tr>
+              <tr class="command-row" data-category="chart debug" data-search="template values file render">
+                <td><code>helm template demo ./demo-chart -f values-prod.yaml</code></td>
+                <td>Renders the chart using a specific values file.</td>
+                <td>Use it to preview production-style overrides safely.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="install namespace create release">
+                <td><code>helm install demo ./demo-chart -n lab --create-namespace</code></td>
+                <td>Installs a chart as a new release in the <code>lab</code> namespace.</td>
+                <td>Use it for a first-time install on a cluster.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="upgrade chart release">
+                <td><code>helm upgrade demo ./demo-chart -n lab</code></td>
+                <td>Upgrades an existing release using the chart contents on disk.</td>
+                <td>Use it after changing chart templates or values.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="upgrade values file prod">
+                <td><code>helm upgrade demo ./demo-chart -f values-prod.yaml -n lab</code></td>
+                <td>Upgrades a release using an explicit values file.</td>
+                <td>Use it when environments are represented by separate values files.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="set inline values tag image">
+                <td><code>helm upgrade demo ./demo-chart --set image.tag=2.0.0 -n lab</code></td>
+                <td>Overrides one value inline during an upgrade.</td>
+                <td>Helpful for one-off tests or CI-driven image updates.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="upgrade install idempotent">
+                <td><code>helm upgrade demo ./demo-chart --install -n lab</code></td>
+                <td>Installs if missing, otherwise upgrades the release.</td>
+                <td>Useful in automation where you want one command for both states.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="list releases all namespaces">
+                <td><code>helm list -A</code></td>
+                <td>Lists releases across all namespaces.</td>
+                <td>Use it to orient yourself when you forget where a release lives.</td>
+              </tr>
+              <tr class="command-row" data-category="release debug" data-search="status release">
+                <td><code>helm status demo -n lab</code></td>
+                <td>Shows the current release state, revision, and other metadata.</td>
+                <td>Start here when a release behaves unexpectedly.</td>
+              </tr>
+              <tr class="command-row" data-category="release debug" data-search="history revisions">
+                <td><code>helm history demo -n lab</code></td>
+                <td>Shows release revision history.</td>
+                <td>Use it before deciding which revision to roll back to.</td>
+              </tr>
+              <tr class="command-row" data-category="release" data-search="rollback previous revision">
+                <td><code>helm rollback demo 1 -n lab</code></td>
+                <td>Rolls the release back to revision <code>1</code>.</td>
+                <td>Use it when a recent upgrade broke the app.</td>
+              </tr>
+              <tr class="command-row" data-category="debug" data-search="get values current release">
+                <td><code>helm get values demo -n lab</code></td>
+                <td>Shows the values currently stored for the release.</td>
+                <td>Use it to verify what configuration Helm actually applied.</td>
+              </tr>
+              <tr class="command-row" data-category="debug" data-search="get manifest release rendered yaml">
+                <td><code>helm get manifest demo -n lab</code></td>
+                <td>Prints the rendered manifests stored for the release.</td>
+                <td>Use it when you want to compare chart intent with cluster reality.</td>
+              </tr>
+              <tr class="command-row" data-category="debug" data-search="dry run debug install">
+                <td><code>helm install demo ./demo-chart --dry-run --debug</code></td>
+                <td>Simulates an install and prints detailed debug output.</td>
+                <td>One of the safest pre-flight checks before a first install.</td>
+              </tr>
+              <tr class="command-row" data-category="repo" data-search="repo add chart repository">
+                <td><code>helm repo add bitnami https://charts.bitnami.com/bitnami</code></td>
+                <td>Adds a chart repository to your local Helm config.</td>
+                <td>Use it before searching or installing charts from that source.</td>
+              </tr>
+              <tr class="command-row" data-category="repo" data-search="repo update refresh index">
+                <td><code>helm repo update</code></td>
+                <td>Refreshes local repository indexes.</td>
+                <td>Run it after adding repos or before searching for fresh chart versions.</td>
+              </tr>
+              <tr class="command-row" data-category="repo" data-search="search repo charts">
+                <td><code>helm search repo nginx</code></td>
+                <td>Searches added chart repositories for matching charts.</td>
+                <td>Useful when you want to discover installable charts quickly.</td>
+              </tr>
+              <tr class="command-row" data-category="repo chart" data-search="show values chart defaults">
+                <td><code>helm show values bitnami/nginx</code></td>
+                <td>Prints the chart's default values.</td>
+                <td>Use it before writing overrides for a repo chart.</td>
+              </tr>
+              <tr class="command-row" data-category="chart repo" data-search="dependency update package charts">
+                <td><code>helm dependency update ./demo-chart</code></td>
+                <td>Downloads or updates chart dependencies declared in <code>Chart.yaml</code>.</td>
+                <td>Use it when a chart depends on other charts.</td>
+              </tr>
+              <tr class="command-row" data-category="cleanup" data-search="uninstall release remove">
+                <td><code>helm uninstall demo -n lab</code></td>
+                <td>Removes a release from the namespace.</td>
+                <td>Use it for cleanup when you want the app gone but not the whole namespace.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted-mini">Tip: pair <code>helm template</code>, <code>helm lint</code>, and <code>helm get manifest</code> before you blame Kubernetes. Many Helm problems are visible before the cluster even sees the YAML.</p>
+      </section>
+
+      <section class="section" id="labs">
+        <div class="section-label">Laptop labs</div>
+        <h2>Safe Helm exercises you can run on a disposable cluster</h2>
+        <p class="section-intro">
+          These labs assume you already have a local Kubernetes cluster available. If you do not,
+          create one with kind or use the Kubernetes page first, then come back here and layer Helm on top.
+        </p>
+
+        <div class="option-grid">
+          <article class="option">
+            <span>Best path</span>
+            <h3>kind + Helm</h3>
+            <p>Fast, disposable, and perfect for install, upgrade, rollback, and uninstall drills.</p>
+          </article>
+          <article class="option">
+            <span>Most visual</span>
+            <h3>Docker Desktop</h3>
+            <p>Good if you want a one-machine Kubernetes setup with fewer moving parts.</p>
+          </article>
+          <article class="option">
+            <span>Important habit</span>
+            <h3>Always render first</h3>
+            <p>Use template and lint before install. It saves time and confusion later.</p>
+          </article>
+          <article class="option">
+            <span>Cleanup rule</span>
+            <h3>Uninstall intentionally</h3>
+            <p>Delete releases, namespaces, and local clusters in a known order so labs stay disposable.</p>
+          </article>
+        </div>
+
+        <div class="lab-list">
+          <details class="lab" open>
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 0</span>
+                <h3>Bootstrap a clean namespace for Helm work</h3>
+                <p>Create a lab namespace and confirm your cluster is ready for chart installs.</p>
+              </div>
+              <div class="lab-meta">5 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Namespace bootstrap</span></div>
+                <pre><code>kubectl create namespace lab
+kubectl config set-context --current --namespace=lab
+helm list
+kubectl get ns</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Helm installs into a namespace context, so starting with a clean namespace keeps labs isolated.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>kubectl config set-context --current --namespace=default
+kubectl delete namespace lab</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 1</span>
+                <h3>Create a starter chart and inspect the files</h3>
+                <p>Scaffold a chart and look at the files Helm generates for you.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Chart scaffold</span></div>
+                <pre><code>helm create demo-chart
+helm lint ./demo-chart
+find demo-chart -maxdepth 2 -type f | sort</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You see the default chart structure and get comfortable with <code>Chart.yaml</code>, <code>values.yaml</code>, and the <code>templates/</code> folder.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>rm -rf demo-chart</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 2</span>
+                <h3>Render a chart locally before installing it</h3>
+                <p>Preview the Kubernetes YAML Helm will generate without touching the cluster.</p>
+              </div>
+              <div class="lab-meta">10 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Render only</span></div>
+                <pre><code>helm create demo-chart
+helm template demo ./demo-chart
+helm template demo ./demo-chart --set replicaCount=3
+helm install demo ./demo-chart --dry-run --debug</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>This is the safest place to catch surprising names, labels, ports, and value substitutions.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>rm -rf demo-chart</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 3</span>
+                <h3>Install a release and inspect its stored state</h3>
+                <p>Install a chart as a real release, then inspect status, values, and rendered manifests.</p>
+              </div>
+              <div class="lab-meta">12 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Install + inspect</span></div>
+                <pre><code>helm create demo-chart
+helm install demo ./demo-chart -n lab --create-namespace
+helm status demo -n lab
+helm get values demo -n lab
+helm get manifest demo -n lab</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>You see the difference between the chart on disk and the release state Helm stores for a real install.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>helm uninstall demo -n lab
+rm -rf demo-chart</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 4</span>
+                <h3>Upgrade a release using values overrides</h3>
+                <p>Make a release change on purpose and watch Helm record a new revision.</p>
+              </div>
+              <div class="lab-meta">12 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Upgrade flow</span></div>
+                <pre><code>helm create demo-chart
+helm install demo ./demo-chart -n lab --create-namespace
+helm upgrade demo ./demo-chart --set replicaCount=3 -n lab
+helm history demo -n lab
+helm get values demo -n lab</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>An upgrade is not a vague change. It becomes a specific release revision with known values and manifests.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>helm uninstall demo -n lab
+rm -rf demo-chart</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+
+          <details class="lab">
+            <summary>
+              <div>
+                <span class="lab-kicker">Lab 5</span>
+                <h3>Break a release and recover with rollback</h3>
+                <p>Introduce a bad image tag or config override, then use history and rollback to recover.</p>
+              </div>
+              <div class="lab-meta">15 min</div>
+            </summary>
+            <div class="lab-body">
+              <div class="code-block">
+                <div class="code-header"><span>Run</span><span>Rollback drill</span></div>
+                <pre><code>helm create demo-chart
+helm install demo ./demo-chart -n lab --create-namespace
+helm upgrade demo ./demo-chart --set image.tag=does-not-exist -n lab
+helm history demo -n lab
+helm status demo -n lab
+helm rollback demo 1 -n lab
+helm history demo -n lab</code></pre>
+              </div>
+              <aside class="lab-side">
+                <div class="lab-box">
+                  <h4>What you learn</h4>
+                  <p>Rollback feels much safer once you have seen a bad revision appear in history and restored a previous good one.</p>
+                </div>
+                <div class="lab-box">
+                  <h4>Cleanup</h4>
+                  <pre><code>helm uninstall demo -n lab
+rm -rf demo-chart</code></pre>
+                </div>
+              </aside>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="section" id="troubleshooting">
+        <div class="section-label">Troubleshooting</div>
+        <h2>Debug Helm in the right layer</h2>
+        <p class="section-intro">
+          Some problems are chart problems. Others are Kubernetes runtime problems that Helm merely
+          triggered. Start by identifying which layer is actually failing before you change anything.
+        </p>
+
+        <div class="flow-grid">
+          <div class="flow-block">
+            <h3>Fast debug sequence</h3>
+            <div class="stack-list">
+              <div class="render-line">
+                <div>
+                  <strong>Lint the chart</strong>
+                  <p>Use <code>helm lint</code> for structure and obvious template issues.</p>
+                </div>
+                <code>chart</code>
+              </div>
+              <div class="render-line">
+                <div>
+                  <strong>Render the manifests</strong>
+                  <p>Use <code>helm template</code> or <code>--dry-run --debug</code> to see what Helm generated.</p>
+                </div>
+                <code>render</code>
+              </div>
+              <div class="render-line">
+                <div>
+                  <strong>Inspect release state</strong>
+                  <p>Use <code>helm status</code>, <code>helm history</code>, and <code>helm get values</code>.</p>
+                </div>
+                <code>release</code>
+              </div>
+              <div class="render-line">
+                <div>
+                  <strong>Check Kubernetes objects</strong>
+                  <p>Use <code>kubectl get</code>, <code>describe</code>, and <code>logs</code> if the chart rendered fine but the app still failed.</p>
+                </div>
+                <code>cluster</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="symptoms">
+            <h3>Common signals and what they usually mean</h3>
+            <div class="table-wrap">
+              <table class="symptom-table">
+                <thead>
+                  <tr>
+                    <th>Signal</th>
+                    <th>Likely meaning</th>
+                    <th>First move</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Template render error</td>
+                    <td>The chart references a value path or helper incorrectly.</td>
+                    <td><code>helm template</code> and inspect the failing template</td>
+                  </tr>
+                  <tr>
+                    <td>Install succeeded but Pods fail</td>
+                    <td>Helm worked, but the generated Kubernetes objects are unhealthy at runtime.</td>
+                    <td><code>kubectl get pods</code> then <code>describe</code> and <code>logs</code></td>
+                  </tr>
+                  <tr>
+                    <td>Upgrade created a bad revision</td>
+                    <td>A values change or chart change broke the workload.</td>
+                    <td><code>helm history</code> then <code>helm rollback</code></td>
+                  </tr>
+                  <tr>
+                    <td>Wrong config in cluster</td>
+                    <td>The values you think you applied are not the values Helm stored.</td>
+                    <td><code>helm get values</code></td>
+                  </tr>
+                  <tr>
+                    <td>Unexpected generated YAML</td>
+                    <td>The chart rendered something other than what you assumed.</td>
+                    <td><code>helm get manifest</code> or <code>helm template</code></td>
+                  </tr>
+                  <tr>
+                    <td>Repo chart behaves differently than expected</td>
+                    <td>You may be overriding the wrong key or missing a required value block.</td>
+                    <td><code>helm show values</code> and compare your overrides carefully</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="simulator">
+        <div class="section-label">Interactive simulator</div>
+        <h2>Practice install, upgrade, broken release, and rollback</h2>
+        <p class="section-intro">
+          Change the chart values, install a release, upgrade it, deliberately pick a broken version,
+          and then roll back to a healthy revision. The goal is to make revision thinking feel intuitive.
+        </p>
+
+        <div class="sim-shell">
+          <section class="sim-panel">
+            <div class="sim-controls">
+              <div class="sim-stats">
+                <div class="sim-stat"><span>Current revision</span><strong id="simRevision">0</strong></div>
+                <div class="sim-stat"><span>Target version</span><strong id="simVersion">1.0.0</strong></div>
+                <div class="sim-stat"><span>Replicas</span><strong id="simReplicas">1</strong></div>
+                <div class="sim-stat"><span>Release state</span><strong id="simState">not installed</strong></div>
+              </div>
+
+              <div class="yaml-editor">
+                <div class="yaml-row">
+                  <label for="simValVersion">version</label>
+                  <select id="simValVersion">
+                    <option value="1.0.0">1.0.0 stable</option>
+                    <option value="2.0.0">2.0.0 new</option>
+                    <option value="3.0.0">3.0.0 broken</option>
+                  </select>
+                </div>
+                <div class="yaml-row">
+                  <label for="simValReplicas">replicas</label>
+                  <input id="simValReplicas" type="number" min="1" max="6" value="1" />
+                </div>
+                <div class="yaml-row">
+                  <label for="simValEnv">env</label>
+                  <select id="simValEnv">
+                    <option value="prod">production</option>
+                    <option value="staging">staging</option>
+                    <option value="dev">development</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="sim-buttons">
+                <button class="sim-button success" id="simInstallBtn">helm install</button>
+                <button class="sim-button" id="simUpgradeBtn">helm upgrade</button>
+                <button class="sim-button warning" id="simRollbackBtn">helm rollback</button>
+                <button class="sim-button danger" id="simResetBtn">reset</button>
+              </div>
+
+              <div>
+                <h3>Action log</h3>
+                <div class="sim-log" id="simLog"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="sim-panel">
+            <div class="sim-view">
+              <h3>Release history</h3>
+              <div class="history-log" id="historyLog"></div>
+
+              <div class="render-preview">
+                <div class="code-header"><span>Rendered summary</span><span>release view</span></div>
+                <pre id="simRendered"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - image: my-app:1.0.0</code></pre>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="section" id="cleanup">
+        <div class="section-label">Cleanup</div>
+        <h2>Leave no stray releases behind</h2>
+        <p class="section-intro">
+          Helm cleanup is straightforward when you remember the boundaries: release first, namespace
+          second, cluster last if you are using a disposable local setup.
+        </p>
+
+        <div class="cleanup-grid">
+          <article class="cleanup-column">
+            <h3>Fast cleanup checklist</h3>
+            <ul>
+              <li>Uninstall the release: <code>helm uninstall demo -n lab</code>.</li>
+              <li>Delete the namespace when the whole lab is done: <code>kubectl delete namespace lab</code>.</li>
+              <li>Remove local starter charts or package files you created during practice.</li>
+              <li>Reset your active namespace if you changed it during the labs.</li>
+            </ul>
+          </article>
+          <article class="cleanup-column">
+            <h3>What Helm does not clean automatically</h3>
+            <ul>
+              <li>Cluster-wide objects, external cloud resources, or persistent storage side effects may remain.</li>
+              <li>If the chart created PVC-backed workloads, verify what data and storage should persist.</li>
+              <li>Remember that uninstall removes the release, but not your repo config or local chart files.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="finish">
+        <div class="section-label">Finish line</div>
+        <h2>Your next step after Helm feels comfortable</h2>
+        <p class="section-intro">
+          Once Helm makes sense, the next jump is combining it with CI/CD and deployment discipline.
+          That is where charts become truly powerful rather than just convenient packaging.
+        </p>
+
+        <div class="finish-grid">
+          <article class="panel">
+            <h3>Practice next</h3>
+            <ul>
+              <li>Create separate values files for dev, staging, and prod.</li>
+              <li>Add a chart dependency and run <code>helm dependency update</code>.</li>
+              <li>Compare <code>helm template</code> output before and after a value change.</li>
+              <li>Use Helm in a CI/CD pipeline only after rendering and linting feel routine.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Related pages in this hub</h3>
+            <p>Helm works best when the surrounding platform layers already make sense.</p>
+            <ul>
+              <li><a href="kubernetes.html">Kubernetes</a> for the orchestration layer Helm is packaging for.</li>
+              <li><a href="containers.html">Containers &amp; Docker</a> for the image layer that charts often deploy.</li>
+              <li><a href="cicd.html">CI/CD</a> for automating chart validation and releases.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        Helm feels much lighter once you stop treating it like magic and start seeing it as a repeatable path from chart plus values to release plus history.
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    const progressKey = "helm-zero-to-hero-progress";
+    const checkpoints = document.querySelectorAll("[data-checkpoint]");
+    const progressFill = document.getElementById("progressFill");
+    const progressCopy = document.getElementById("progressCopy");
+
+    function loadChecklist() {
+      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
+      checkpoints.forEach((checkbox) => {
+        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+      });
+      updateChecklist();
+    }
+
+    function updateChecklist() {
+      const saved = {};
+      let checkedCount = 0;
+
+      checkpoints.forEach((checkbox) => {
+        saved[checkbox.dataset.checkpoint] = checkbox.checked;
+        if (checkbox.checked) checkedCount += 1;
+      });
+
+      localStorage.setItem(progressKey, JSON.stringify(saved));
+      const pct = (checkedCount / checkpoints.length) * 100;
+      progressFill.style.width = pct + "%";
+      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
+    }
+
+    checkpoints.forEach((checkbox) => {
+      checkbox.addEventListener("change", updateChecklist);
+    });
+
+    const chapterState = document.getElementById("chapterState");
+    const syncedNavLinks = Array.from(document.querySelectorAll("[data-nav-target]"));
+    const observedSections = Array.from(document.querySelectorAll(".section[id]"));
+    const navTargetState = new Map();
+
+    function setActiveNav(targetId) {
+      if (!targetId) return;
+
+      syncedNavLinks.forEach((link) => {
+        const isActive = link.dataset.navTarget === targetId;
+        link.classList.toggle("active", isActive);
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+
+      const labelSource = syncedNavLinks.find((link) => link.dataset.navTarget === targetId);
+      if (labelSource && chapterState) {
+        chapterState.textContent = labelSource.textContent.trim();
+      }
+    }
+
+    function resolveVisibleSection() {
+      const rankedSections = observedSections
+        .map((section) => {
+          const rect = section.getBoundingClientRect();
+          return {
+            id: section.id,
+            ratio: navTargetState.get(section.id) || 0,
+            distance: Math.abs(rect.top - 180),
+            top: rect.top
+          };
+        })
+        .filter((section) => section.ratio > 0 || section.top < window.innerHeight * 0.55)
+        .sort((left, right) => {
+          if (right.ratio !== left.ratio) return right.ratio - left.ratio;
+          return left.distance - right.distance;
+        });
+
+      return rankedSections[0]?.id || observedSections[0]?.id || null;
+    }
+
+    if (observedSections.length > 0 && syncedNavLinks.length > 0) {
+      const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          navTargetState.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        });
+
+        const activeId = resolveVisibleSection();
+        if (activeId) setActiveNav(activeId);
+      }, {
+        rootMargin: "-18% 0px -62% 0px",
+        threshold: [0, 0.15, 0.35, 0.6, 0.9]
+      });
+
+      observedSections.forEach((section) => navObserver.observe(section));
+      syncedNavLinks.forEach((link) => {
+        link.addEventListener("click", () => setActiveNav(link.dataset.navTarget));
+      });
+
+      const hashId = window.location.hash.replace("#", "");
+      const initialId = observedSections.some((section) => section.id === hashId)
+        ? hashId
+        : observedSections[0].id;
+      setActiveNav(initialId);
+    }
+
+    const commandSearch = document.getElementById("commandSearch");
+    const commandCounter = document.getElementById("commandCounter");
+    const commandRows = Array.from(document.querySelectorAll(".command-row"));
+    const chips = Array.from(document.querySelectorAll("[data-command-filter]"));
+    let activeFilter = "all";
+
+    function filterCommands() {
+      const term = commandSearch.value.trim().toLowerCase();
+      let visible = 0;
+
+      commandRows.forEach((row) => {
+        const categories = row.dataset.category.split(" ");
+        const matchesFilter = activeFilter === "all" || categories.includes(activeFilter);
+        const text = row.textContent.toLowerCase() + " " + row.dataset.search.toLowerCase();
+        const matchesSearch = term === "" || text.includes(term);
+        const show = matchesFilter && matchesSearch;
+        row.hidden = !show;
+        if (show) visible += 1;
+      });
+
+      commandCounter.textContent = visible + " row" + (visible === 1 ? "" : "s");
+    }
+
+    chips.forEach((chip) => {
+      chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.commandFilter;
+        chips.forEach((btn) => btn.classList.toggle("active", btn === chip));
+        filterCommands();
+      });
+    });
+
+    commandSearch.addEventListener("input", filterCommands);
+
+    const simRevision = document.getElementById("simRevision");
+    const simVersion = document.getElementById("simVersion");
+    const simReplicas = document.getElementById("simReplicas");
+    const simState = document.getElementById("simState");
+    const simValVersion = document.getElementById("simValVersion");
+    const simValReplicas = document.getElementById("simValReplicas");
+    const simValEnv = document.getElementById("simValEnv");
+    const historyLog = document.getElementById("historyLog");
+    const simLog = document.getElementById("simLog");
+    const simRendered = document.getElementById("simRendered");
+    const simInstallBtn = document.getElementById("simInstallBtn");
+    const simUpgradeBtn = document.getElementById("simUpgradeBtn");
+    const simRollbackBtn = document.getElementById("simRollbackBtn");
+    const simResetBtn = document.getElementById("simResetBtn");
+
+    let revisions = [];
+    let activeRevisionId = null;
+
+    function logRelease(message) {
+      const line = document.createElement("div");
+      line.textContent = "[helm] " + message;
+      simLog.prepend(line);
+      while (simLog.children.length > 12) {
+        simLog.removeChild(simLog.lastChild);
+      }
+    }
+
+    function renderReleaseSummary() {
+      const active = revisions.find((revision) => revision.id === activeRevisionId);
+      if (!active) {
+        simRevision.textContent = "0";
+        simVersion.textContent = simValVersion.value;
+        simReplicas.textContent = simValReplicas.value;
+        simState.textContent = "not installed";
+        historyLog.innerHTML = "<div style=\"color: var(--muted);\">No release installed yet.</div>";
+        simRendered.textContent = [
+          "apiVersion: apps/v1",
+          "kind: Deployment",
+          "metadata:",
+          "  name: my-app",
+          "spec:",
+          "  replicas: " + simValReplicas.value,
+          "  template:",
+          "    spec:",
+          "      containers:",
+          "        - image: my-app:" + simValVersion.value
+        ].join("\n");
+        simUpgradeBtn.disabled = true;
+        simRollbackBtn.disabled = true;
+        return;
+      }
+
+      simRevision.textContent = String(active.id);
+      simVersion.textContent = active.version;
+      simReplicas.textContent = String(active.replicas);
+      simState.textContent = active.status.toLowerCase();
+
+      historyLog.innerHTML = "";
+      revisions
+        .slice()
+        .reverse()
+        .forEach((revision) => {
+          const card = document.createElement("div");
+          card.className = "revision-card" + (revision.id === activeRevisionId ? " active" : "");
+          const statusClass = revision.status === "FAILED" ? "bad" : "ok";
+          card.innerHTML = `
+            <div class="revision-badge">REV ${revision.id}</div>
+            <div>
+              <strong>my-app</strong>
+              <div style="color: var(--muted); font-size: 0.9rem;">image ${revision.version} | replicas ${revision.replicas} | env ${revision.env}</div>
+            </div>
+            <div class="revision-state ${statusClass}">${revision.status}</div>
+          `;
+          historyLog.appendChild(card);
+        });
+
+      simRendered.textContent = [
+        "apiVersion: apps/v1",
+        "kind: Deployment",
+        "metadata:",
+        "  name: my-app",
+        "spec:",
+        "  replicas: " + active.replicas,
+        "  template:",
+        "    spec:",
+        "      containers:",
+        "        - image: my-app:" + active.version,
+        "      metadata:",
+        "        annotations:",
+        "          env: " + active.env
+      ].join("\n");
+
+      simUpgradeBtn.disabled = false;
+      const latestHealthy = revisions.some((revision) => revision.id !== active.id && revision.status !== "FAILED");
+      simRollbackBtn.disabled = !latestHealthy;
+    }
+
+    function addRevision(statusLabel) {
+      const nextId = revisions.length + 1;
+      const version = simValVersion.value;
+      const replicas = Number(simValReplicas.value);
+      const env = simValEnv.value;
+      const status = version === "3.0.0" && statusLabel !== "ROLLED BACK" ? "FAILED" : statusLabel;
+
+      const revision = { id: nextId, version, replicas, env, status };
+      revisions.push(revision);
+      activeRevisionId = revision.id;
+      renderReleaseSummary();
+      logRelease((statusLabel === "DEPLOYED" ? "installed" : "upgraded") + " revision " + revision.id + " with image " + version);
+
+      if (status === "FAILED") {
+        logRelease("revision " + revision.id + " is unhealthy due to a bad version tag");
+      }
+    }
+
+    function installRelease() {
+      if (revisions.length > 0) return;
+      addRevision("DEPLOYED");
+    }
+
+    function upgradeRelease() {
+      if (revisions.length === 0) return;
+      addRevision("DEPLOYED");
+    }
+
+    function rollbackRelease() {
+      const candidate = revisions.slice().reverse().find((revision) => revision.id !== activeRevisionId && revision.status !== "FAILED");
+      if (!candidate) return;
+
+      const nextId = revisions.length + 1;
+      revisions.push({
+        id: nextId,
+        version: candidate.version,
+        replicas: candidate.replicas,
+        env: candidate.env,
+        status: "ROLLED BACK"
+      });
+      activeRevisionId = nextId;
+      simValVersion.value = candidate.version;
+      simValReplicas.value = String(candidate.replicas);
+      simValEnv.value = candidate.env;
+      renderReleaseSummary();
+      logRelease("rolled back release to healthy settings from revision " + candidate.id);
+    }
+
+    function resetSimulator() {
+      revisions = [];
+      activeRevisionId = null;
+      simValVersion.value = "1.0.0";
+      simValReplicas.value = "1";
+      simValEnv.value = "prod";
+      simLog.innerHTML = "";
+      logRelease("simulator reset");
+      renderReleaseSummary();
+    }
+
+    simInstallBtn.addEventListener("click", installRelease);
+    simUpgradeBtn.addEventListener("click", upgradeRelease);
+    simRollbackBtn.addEventListener("click", rollbackRelease);
+    simResetBtn.addEventListener("click", resetSimulator);
+    simValVersion.addEventListener("change", renderReleaseSummary);
+    simValReplicas.addEventListener("input", renderReleaseSummary);
+    simValEnv.addEventListener("change", renderReleaseSummary);
+
+    loadChecklist();
+    filterCommands();
+    resetSimulator();
+  </script>
+</body>
+</html>

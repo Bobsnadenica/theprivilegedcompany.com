@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 29: Monitoring | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-card: #0d1117;
+      --text-primary: #f0f6fc;
+      --accent-prom: #e6522c;    /* Prometheus Orange */
+      --accent-graf: #f7941d;    /* Grafana Orange */
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", monospace;
+    }
+    body { background: var(--bg-body); color: var(--text-primary); font-family: sans-serif; padding: 2rem; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 2.5rem; margin-bottom: 2rem; }
+    
+    .monitor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    
+    .panel { background: var(--bg-card); border: 1px solid #333; border-radius: 8px; padding: 1.5rem; }
+    .panel-header { font-weight: bold; margin-bottom: 1rem; color: #8b949e; display: flex; justify-content: space-between; }
+    
+    /* GRAPH */
+    .graph-box { height: 200px; border-left: 2px solid #555; border-bottom: 2px solid #555; position: relative; overflow: hidden; }
+    .bar { position: absolute; bottom: 0; width: 10px; background: #2ea043; transition: height 0.2s; }
+    .bar.critical { background: #ff7b72; }
+
+    /* PROM QUERY */
+    .prom-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-family: var(--font-mono); }
+    .btn-query { margin-top: 10px; padding: 8px 16px; background: var(--accent-prom); color: #fff; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
+    
+    .alert-box { margin-top: 1rem; padding: 1rem; border: 1px solid #ff7b72; color: #ff7b72; background: rgba(255, 123, 114, 0.1); display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="margin-bottom:1rem;"><a href="index.html" style="color:#8b949e; text-decoration:none;">← Back</a></div>
+    <h1>Observability Stack</h1>
+    
+    <div class="monitor-grid">
+      
+      <div class="panel">
+        <div class="panel-header">
+          <span>GRAFANA DASHBOARD</span>
+          <span style="color:var(--accent-graf)">Live</span>
+        </div>
+        <div class="graph-box" id="graph">
+          </div>
+        <div style="font-size:0.8rem; margin-top:10px; color:#8b949e;">Metric: node_cpu_usage_seconds_total</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span>PROMETHEUS (TSDB)</span>
+          <span style="color:var(--accent-prom)">Query</span>
+        </div>
+        <p style="font-size:0.9rem; color:#8b949e;">The dashboard is showing a spike! Write a PromQL query to find the culprit.</p>
+        <input type="text" class="prom-input" id="promQuery" placeholder="Try: topk(1, cpu_usage)">
+        <button class="btn-query" onclick="runQuery()">Execute</button>
+        
+        <div class="alert-box" id="alertResult">
+          <strong>RESULT:</strong> service="crypto-miner" cpu="99%"
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const graph = document.getElementById('graph');
+    const alertResult = document.getElementById('alertResult');
+    let bars = [];
+
+    // Live Graph Simulation
+    setInterval(() => {
+      const h = Math.random() * 50 + 20; // Normal height
+      const isSpike = Math.random() > 0.8;
+      const height = isSpike ? 180 : h;
+      
+      const bar = document.createElement('div');
+      bar.className = isSpike ? 'bar critical' : 'bar';
+      bar.style.height = height + 'px';
+      bar.style.left = '100%';
+      graph.appendChild(bar);
+      bars.push(bar);
+
+      // Move bars left
+      bars.forEach((b, i) => {
+        const left = parseFloat(b.style.left) || 100;
+        b.style.left = (bars.length - 1 - i) * 15 + 'px'; // Simple stack from right logic inverted for demo
+        b.style.left = (300 - (bars.length - i) * 15) + 'px'; // Move right
+      });
+      
+      // Cleanup
+      if (bars.length > 20) {
+        graph.removeChild(bars.shift());
+      }
+    }, 500);
+
+    function runQuery() {
+      const q = document.getElementById('promQuery').value;
+      if (q.includes('cpu')) {
+        alertResult.style.display = 'block';
+        alertResult.innerHTML = `<strong>RESULT:</strong> {service="bitcoin-miner", pod="hacked-pod-1"} <strong>98%</strong>`;
+      } else {
+        alertResult.style.display = 'block';
+        alertResult.innerHTML = `Error: No metric found.`;
+      }
+    }
+  </script>
+</body>
+</html>

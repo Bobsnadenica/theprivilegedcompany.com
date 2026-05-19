@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git & GitHub Guide | Tech Knowledge Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    /* Reuse styles from kubernetes.html */
+    :root {
+      --bg: #04101d;
+      --bg-deep: #02070d;
+      --panel: rgba(8, 18, 33, 0.82);
+      --panel-strong: #0c1830;
+      --panel-soft: rgba(11, 23, 43, 0.68);
+      --line: rgba(124, 177, 255, 0.16);
+      --line-strong: rgba(124, 177, 255, 0.34);
+      --text: #f2f7ff;
+      --muted: #9cb0cb;
+      --blue: #6ea8ff;
+      --blue-strong: #2d72f4;
+      --blue-soft: rgba(110, 168, 255, 0.12);
+      --success: #5ad7a0;
+      --warning: #ffc86f;
+      --danger: #ff8f8f;
+      --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+      --font-display: "Space Grotesk", sans-serif;
+      --font-body: "Space Grotesk", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: 8rem; }
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      position: relative;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(244, 46, 46, 0.1), transparent 28%),
+        radial-gradient(circle at 87% 22%, rgba(255, 110, 110, 0.08), transparent 24%),
+        linear-gradient(180deg, #0d0707 0%, #0a0404 45%, #0d0202 100%);
+    }
+
+    /* Red accents for Git (Git logo style) */
+    .eyebrow { color: #f05032; border-color: rgba(240, 80, 50, 0.3); }
+    .eyebrow::before { background: #f05032; box-shadow: 0 0 0 0.3rem rgba(240, 80, 50, 0.14); }
+    .button.primary { background: linear-gradient(135deg, #f05032, #ff7e67); box-shadow: 0 18px 36px rgba(240, 80, 50, 0.24); }
+    .section-label { color: #f05032; border-color: rgba(240, 80, 50, 0.16); background: rgba(240, 80, 50, 0.06); }
+    .section-label::before { background: #f05032; box-shadow: 0 0 0 0.22rem rgba(240, 80, 50, 0.12); }
+    .route-link span, .chapter-state span, .rail-block h2 { color: #f05032; }
+    .chapter-link.active, .chapter-link:hover { border-color: rgba(240, 80, 50, 0.34); background: rgba(240, 80, 50, 0.12); }
+    .rail-links a.active::after { background: #f05032; box-shadow: 0 0 0 0.24rem rgba(240, 80, 50, 0.14); }
+
+    /* Copied Styles from kubernetes.html for consistency */
+    a { color: inherit; text-decoration: none; }
+    button, input, summary { font: inherit; }
+    code, pre { font-family: var(--font-mono); }
+    .shell { width: min(1400px, calc(100% - 2.5rem)); margin: 0 auto; }
+    .hero { position: relative; padding: 1.5rem 0 4.5rem; border-bottom: 1px solid var(--line); overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr); gap: 3rem; align-items: end; min-height: min(88vh, 860px); }
+    .hero-copy { max-width: 44rem; padding: 2rem 0 1rem; }
+    .breadcrumb { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; }
+    .breadcrumb a { color: var(--text); opacity: 0.92; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 0.65rem; padding: 0.45rem 0.85rem; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 1.4rem; }
+    h1 { font-family: var(--font-display); font-size: clamp(3.4rem, 8vw, 6.8rem); line-height: 0.95; letter-spacing: -0.05em; max-width: 12ch; margin-bottom: 1.25rem; }
+    .hero-summary { max-width: 44rem; font-size: clamp(1.05rem, 1.9vw, 1.32rem); color: var(--muted); margin-bottom: 1.75rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-bottom: 1.5rem; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 3rem; padding: 0.8rem 1.1rem; border-radius: 999px; border: 1px solid transparent; transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease; }
+    .button:hover { transform: translateY(-2px); }
+    .button.secondary { border-color: var(--line-strong); background: rgba(9, 19, 35, 0.74); }
+    .hero-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; list-style: none; max-width: 48rem; }
+    .hero-notes li { padding: 0.95rem 1rem; border-top: 1px solid var(--line-strong); background: linear-gradient(180deg, rgba(8, 18, 33, 0.62), rgba(8, 18, 33, 0)); }
+    .hero-notes strong { display: block; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.25rem; }
+    .guide-layer { position: relative; z-index: 30; margin-top: -2rem; padding-bottom: 1rem; }
+    .guide-grid { display: grid; gap: 0.95rem; }
+    .route-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.85rem; }
+    .route-link { display: block; padding: 1rem 1rem 1.05rem; border: 1px solid var(--line); border-top: 2px solid rgba(240, 80, 50, 0.34); border-radius: 1.2rem; background: rgba(7, 16, 29, 0.84); backdrop-filter: blur(14px); transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease; box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22); }
+    .route-link:hover { transform: translateY(-2px); border-color: rgba(240, 80, 50, 0.34); background: rgba(10, 21, 39, 0.92); }
+    .route-link span { display: inline-block; font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.45rem; }
+    .route-link strong { display: block; font-size: 1rem; margin-bottom: 0.35rem; color: var(--text); }
+    .route-link p { color: var(--muted); font-size: 0.92rem; }
+    .chapter-bar { position: sticky; top: 0.75rem; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: center; padding: 0.8rem 0.95rem; border: 1px solid var(--line-strong); border-radius: 1.25rem; background: rgba(6, 14, 25, 0.92); backdrop-filter: blur(16px); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24); z-index: 100; }
+    .chapter-state { min-width: 11rem; padding-right: 1rem; border-right: 1px solid rgba(124, 177, 255, 0.12); }
+    .chapter-state span { display: inline-block; font-family: var(--font-mono); font-size: 0.76rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.15rem; }
+    .chapter-state strong { display: block; font-size: 1rem; }
+    .chapter-track { display: flex; gap: 0.55rem; overflow-x: auto; scrollbar-width: none; padding-bottom: 0.1rem; }
+    .chapter-track::-webkit-scrollbar { display: none; }
+    .chapter-link { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; padding: 0.68rem 0.92rem; border-radius: 999px; border: 1px solid rgba(124, 177, 255, 0.14); background: rgba(110, 168, 255, 0.04); color: var(--muted); transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease; }
+    .chapter-link:hover, .chapter-link.active { color: var(--text); transform: translateY(-1px); }
+    .page-grid { display: grid; grid-template-columns: 18.5rem minmax(0, 1fr); gap: 2.5rem; padding: 1.3rem 0 6rem; align-items: start; }
+    .rail { position: sticky; top: 6.5rem; align-self: start; display: grid; gap: 1rem; }
+    .rail-block { border: 1px solid var(--line); border-radius: 1.2rem; padding: 1rem; background: var(--panel); backdrop-filter: blur(14px); }
+    .rail-block h2 { font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.8rem; }
+    .rail-links { display: grid; gap: 0.35rem; }
+    .rail-links a { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; color: var(--muted); padding: 0.55rem 0.75rem; border: 1px solid transparent; border-radius: 0.9rem; transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease; }
+    .rail-links a::after { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: transparent; box-shadow: inset 0 0 0 1px rgba(124, 177, 255, 0.25); flex: 0 0 auto; }
+    .rail-links a:hover, .rail-links a.active { color: var(--text); background: rgba(240, 80, 50, 0.07); border-color: rgba(240, 80, 50, 0.14); }
+    .content { min-width: 0; display: grid; gap: 0.4rem; }
+    .section { position: relative; padding: 2.15rem 0 3rem; border-bottom: 1px solid var(--line); scroll-margin-top: 8rem; }
+    .section-label { display: inline-flex; align-items: center; gap: 0.55rem; font-family: var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 0.85rem; padding: 0.38rem 0.72rem; border-radius: 999px; }
+    .section-label::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 50%; }
+    .section h2 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.04; letter-spacing: -0.04em; max-width: 13ch; margin-bottom: 1rem; }
+    .section-intro { max-width: 62ch; color: var(--muted); margin-bottom: 1.95rem; font-size: 1.08rem; }
+    .panel { border: 1px solid var(--line); border-radius: 1.3rem; background: var(--panel); padding: 1.15rem; backdrop-filter: blur(10px); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 1.2rem; background: rgba(5, 11, 20, 0.72); }
+    .command-table { width: 100%; border-collapse: collapse; }
+    .command-table th, .command-table td { text-align: left; vertical-align: top; padding: 0.95rem 1rem; border-bottom: 1px solid rgba(124, 177, 255, 0.1); }
+    .command-table th { font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: #f05032; background: rgba(11, 23, 43, 0.9); position: sticky; top: 0; z-index: 1; }
+    .command-table td { color: var(--muted); }
+    .command-table tbody tr:hover { background: rgba(240, 80, 50, 0.06); }
+    code { font-family: var(--font-mono); color: var(--text); font-size: 0.88rem; }
+
+    /* IMPACT ZONE BADGES */
+    .impact-badge { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
+    .impact-workdir { background: rgba(255, 200, 111, 0.1); color: var(--warning); border-color: rgba(255, 200, 111, 0.2); }
+    .impact-staging { background: rgba(110, 168, 255, 0.1); color: var(--blue); border-color: rgba(110, 168, 255, 0.2); }
+    .impact-local { background: rgba(90, 215, 160, 0.1); color: var(--success); border-color: rgba(90, 215, 160, 0.2); }
+    .impact-remote { background: rgba(255, 143, 143, 0.1); color: var(--danger); border-color: rgba(255, 143, 143, 0.2); }
+
+    /* SIMULATOR STYLES */
+    .sim-shell { display: grid; grid-template-columns: 21rem minmax(0, 1fr); gap: 1rem; align-items: start; }
+    .sim-panel { border: 1px solid var(--line); border-radius: 1.3rem; background: rgba(7, 16, 29, 0.84); overflow: hidden; }
+    .sim-controls { padding: 1.1rem; display: grid; gap: 1rem; }
+    .sim-view { padding: 1.1rem; display: grid; gap: 1rem; }
+    .git-canvas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; min-height: 25rem; }
+    .git-column { border-radius: 1.1rem; border: 1px solid rgba(124, 177, 255, 0.14); background: rgba(4, 10, 18, 0.94); padding: 0.9rem; display: flex; flex-direction: column; gap: 0.8rem; position: relative; }
+    .git-column header { border-bottom: 1px solid rgba(124, 177, 255, 0.1); padding-bottom: 0.6rem; text-align: center; }
+    .git-column header strong { display: block; font-size: 0.9rem; color: #f05032; text-transform: uppercase; letter-spacing: 0.1em; }
+    .file-node { padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--panel-strong); font-size: 0.85rem; position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .file-node.staged { border-color: var(--blue); background: rgba(110, 168, 255, 0.1); }
+    .file-node.committed { border-color: var(--success); background: rgba(90, 215, 160, 0.1); }
+    .file-node.pushed { border-color: var(--danger); background: rgba(255, 143, 143, 0.1); }
+    .sim-log { border: 1px solid rgba(124, 177, 255, 0.1); border-radius: 1rem; background: rgba(3, 8, 15, 0.84); padding: 0.85rem; height: 12rem; overflow-y: auto; font-size: 0.84rem; color: var(--muted); }
+    .sim-log div { border-bottom: 1px dashed rgba(124, 177, 255, 0.08); padding-bottom: 0.4rem; margin-bottom: 0.4rem; }
+    .sim-button { min-height: 2.8rem; border: 1px solid rgba(240, 80, 50, 0.2); border-radius: 0.95rem; background: rgba(240, 80, 50, 0.08); color: var(--text); cursor: pointer; transition: all 0.2s; }
+    .sim-button:hover { background: rgba(240, 80, 50, 0.15); transform: translateY(-1px); border-color: rgba(240, 80, 50, 0.4); }
+    
+    /* ATLAS TOOLBAR */
+    .atlas-toolbar { display: grid; gap: 1rem; margin-bottom: 1rem; }
+    .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; }
+    .search-row input { width: 100%; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(8, 18, 33, 0.78); color: var(--text); padding: 0.9rem 1rem; outline: none; }
+    .result-counter { display: inline-flex; align-items: center; justify-content: center; min-width: 6rem; padding: 0.9rem 1rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: rgba(8, 18, 33, 0.74); }
+
+    @media (max-width: 1180px) {
+      .hero-grid, .page-grid, .sim-shell { grid-template-columns: 1fr; }
+      .rail { position: static; order: 2; }
+      .content { order: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell hero-grid">
+      <div class="hero-copy">
+        <div class="breadcrumb"><a href="index.html">Back to Hub</a> / DevOps &amp; SCM</div>
+        <div class="eyebrow">Level 10 / Version Control</div>
+        <h1>Git &amp; GitHub Masterclass</h1>
+        <p class="hero-summary">
+          Master the time-travel machine of software engineering. This guide moves beyond 
+          basic commands to help you understand the internal states, branch management, 
+          and how to rescue your work when things go wrong.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#roadmap">Start the roadmap</a>
+          <a class="button secondary" href="#command-atlas">Open the command atlas</a>
+        </div>
+        <ul class="hero-notes">
+          <li><strong>Mental Model First</strong> Understand Working Dir vs Staging vs Repo.</li>
+          <li><strong>Disaster Recovery</strong> Learn <code>reflog</code> and <code>reset</code> to fix mistakes.</li>
+          <li><strong>Team Workflow</strong> PRs, Merge vs Rebase, and Conflict resolution.</li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <div class="guide-layer">
+    <div class="shell guide-grid">
+      <nav class="route-strip">
+        <a class="route-link" href="#core-concepts"><span>Start here</span><strong>The 4 States</strong><p>Understand where your code lives at any moment.</p></a>
+        <a class="route-link" href="#command-atlas"><span>Use it fast</span><strong>Command Atlas</strong><p>Searchable cheatsheet with impact zones.</p></a>
+        <a class="route-link" href="#tricks"><span>Power User</span><strong>Tricks & Rescue</strong><p>Undo mistakes and use advanced workflows.</p></a>
+        <a class="route-link" href="#simulator"><span>Practice</span><strong>Git Simulator</strong><p>Visualize how commands move files.</p></a>
+      </nav>
+
+      <div class="chapter-bar">
+        <div class="chapter-state"><span>Now reading</span><strong id="chapterState">Concepts</strong></div>
+        <nav class="chapter-track">
+          <a class="chapter-link active" data-nav-target="core-concepts" href="#core-concepts">Concepts</a>
+          <a class="chapter-link" data-nav-target="command-atlas" href="#command-atlas">Commands</a>
+          <a class="chapter-link" data-nav-target="tricks" href="#tricks">Tricks</a>
+          <a class="chapter-link" data-nav-target="simulator" href="#simulator">Simulator</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell page-grid">
+    <aside class="rail">
+      <div class="rail-block">
+        <h2>On this page</h2>
+        <nav class="rail-links">
+          <a class="active" data-nav-target="core-concepts" href="#core-concepts">Core Concepts</a>
+          <a data-nav-target="command-atlas" href="#command-atlas">Command Atlas</a>
+          <a data-nav-target="tricks" href="#tricks">Tricks & Rescue</a>
+          <a data-nav-target="simulator" href="#simulator">Simulator</a>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="content">
+      <section class="section" id="core-concepts">
+        <div class="section-label">Core Concepts</div>
+        <h2>The 4 States of Git</h2>
+        <p class="section-intro">
+          Git isn't just a backup tool; it's a state machine. Most confusion comes from not knowing 
+          which of these four "areas" your changes currently reside in.
+        </p>
+        <div class="panel">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div>
+              <strong style="color: var(--warning)">1. Working Directory</strong>
+              <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">Untracked or modified files on your disk. Git knows they changed but doesn't "own" them yet.</p>
+            </div>
+            <div>
+              <strong style="color: var(--blue)">2. Staging Area (Index)</strong>
+              <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">A middle ground. You've marked these changes to be included in the next snapshot.</p>
+            </div>
+            <div>
+              <strong style="color: var(--success)">3. Local Repository</strong>
+              <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">The committed history on your machine. Your work is safe here locally.</p>
+            </div>
+            <div>
+              <strong style="color: var(--danger)">4. Remote Repository</strong>
+              <p style="font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem;">The shared truth (GitHub/GitLab). Where your team sees your work.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="command-atlas">
+        <div class="section-label">Command Atlas</div>
+        <h2>The Searchable Git Bible</h2>
+        <div class="atlas-toolbar">
+          <div class="search-row">
+            <input id="commandSearch" type="search" placeholder="Search commands (e.g. 'undo', 'branch', 'save')" />
+            <div class="result-counter" id="commandCounter">0 rows</div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="command-table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>Impact Zone</th>
+                <th>When to use it</th>
+              </tr>
+            </thead>
+            <tbody id="commandBody">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="tricks">
+        <div class="section-label">Tricks & Rescue</div>
+        <h2>"Oh no, I broke it" (Disaster Recovery)</h2>
+        <p class="section-intro">Git is almost impossible to break permanently. Here is how to undo the most common "mistakes".</p>
+        <div style="display: grid; gap: 1rem;">
+          <div class="panel">
+            <h3>Undo the last commit (keep changes)</h3>
+            <code>git reset --soft HEAD~1</code>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Moves changes back to the Staging area. Perfect if you forgot a file or made a typo in the message.</p>
+          </div>
+          <div class="panel">
+            <h3>Rescue "deleted" work</h3>
+            <code>git reflog</code>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Git's secret diary. It records every move you make, even if you delete a branch. Find the hash and <code>git checkout [hash]</code> to bring it back.</p>
+          </div>
+          <div class="panel">
+            <h3>Interactive Rebase (Clean history)</h3>
+            <code>git rebase -i HEAD~3</code>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Squash 5 messy "wip" commits into one clean feature commit before pushing.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="simulator">
+        <div class="section-label">Simulator</div>
+        <h2>Interactive Git Flow</h2>
+        <p class="section-intro">Click the commands to see how they move your files through the 4 states.</p>
+        <div class="sim-shell">
+          <aside class="sim-panel">
+            <div class="sim-controls">
+              <button class="sim-button" onclick="gitAction('add')">git add file.js</button>
+              <button class="sim-button" onclick="gitAction('commit')">git commit -m "..."</button>
+              <button class="sim-button" onclick="gitAction('push')">git push origin main</button>
+              <button class="sim-button" style="border-color: var(--warning)" onclick="gitAction('reset')">git reset (Unstage)</button>
+              <button class="sim-button" style="border-color: var(--danger)" onclick="gitAction('checkout')">git checkout (Discard)</button>
+              <div class="sim-log" id="simLog"></div>
+            </div>
+          </aside>
+          <div class="sim-panel">
+            <div class="sim-view">
+              <div class="git-canvas">
+                <div class="git-column" id="col-workdir"><header><strong>Workdir</strong></header></div>
+                <div class="git-column" id="col-staging"><header><strong>Staging</strong></header></div>
+                <div class="git-column" id="col-local"><header><strong>Local Repo</strong></header></div>
+                <div class="git-column" id="col-remote"><header><strong>Remote</strong></header></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const commands = [
+      { cmd: 'git init', zone: 'Local Repo', desc: 'Transform a folder into a Git repository.', tags: 'start create setup' },
+      { cmd: 'git add .', zone: 'Staging', desc: 'Prepare all changes for the next commit.', tags: 'stage prepare' },
+      { cmd: 'git commit -m "msg"', zone: 'Local Repo', desc: 'Save a permanent snapshot of staged changes.', tags: 'save snapshot' },
+      { cmd: 'git status', zone: 'Local', desc: 'See which files are modified or staged.', tags: 'check look find' },
+      { cmd: 'git push', zone: 'Remote', desc: 'Upload local commits to the server.', tags: 'upload share sync' },
+      { cmd: 'git pull', zone: 'Workdir', desc: 'Download remote changes and merge them.', tags: 'download sync update' },
+      { cmd: 'git fetch', zone: 'Local Repo', desc: 'Download remote changes but dont merge them.', tags: 'download look' },
+      { cmd: 'git checkout -b name', zone: 'Local Repo', desc: 'Create and switch to a new branch.', tags: 'branch move switch' },
+      { cmd: 'git merge branch', zone: 'Local Repo', desc: 'Combine work from another branch.', tags: 'combine join' },
+      { cmd: 'git rebase main', zone: 'Local Repo', desc: 'Move your work on top of latest main.', tags: 'clean rewrite history' },
+      { cmd: 'git stash', zone: 'Local Repo', desc: 'Temporarily hide changes to work on something else.', tags: 'hide save pause' },
+      { cmd: 'git reset --hard', zone: 'Workdir', desc: 'DESTROY all uncommitted changes.', tags: 'undo delete clean danger' },
+    ];
+
+    function renderCommands() {
+      const term = document.getElementById('commandSearch').value.toLowerCase();
+      const body = document.getElementById('commandBody');
+      body.innerHTML = '';
+      let visible = 0;
+
+      commands.forEach(c => {
+        if (!term || c.cmd.includes(term) || c.desc.toLowerCase().includes(term) || c.tags.includes(term)) {
+          const zoneClass = 'impact-' + c.zone.split(' ')[0].toLowerCase();
+          body.innerHTML += `
+            <tr>
+              <td><code>${c.cmd}</code></td>
+              <td><span class="impact-badge ${zoneClass}">${c.zone}</span></td>
+              <td>${c.desc}</td>
+            </tr>
+          `;
+          visible++;
+        }
+      });
+      document.getElementById('commandCounter').textContent = visible + ' rows';
+    }
+
+    document.getElementById('commandSearch').addEventListener('input', renderCommands);
+    renderCommands();
+
+    // Simulator Logic
+    let fileState = 'workdir'; // workdir, staging, local, remote
+    
+    function logSim(msg) {
+      const log = document.getElementById('simLog');
+      const div = document.createElement('div');
+      div.textContent = `> ${msg}`;
+      log.prepend(div);
+    }
+
+    function renderSim() {
+      ['workdir', 'staging', 'local', 'remote'].forEach(id => {
+        document.getElementById(`col-${id}`).querySelectorAll('.file-node').forEach(n => n.remove());
+      });
+
+      const node = document.createElement('div');
+      node.className = 'file-node';
+      node.textContent = 'file.js';
+      
+      if (fileState === 'staging') node.classList.add('staged');
+      if (fileState === 'local') node.classList.add('committed');
+      if (fileState === 'remote') node.classList.add('pushed');
+
+      document.getElementById(`col-${fileState}`).appendChild(node);
+    }
+
+    function gitAction(action) {
+      if (action === 'add') {
+        if (fileState === 'workdir') { fileState = 'staging'; logSim('Staged file.js'); }
+        else logSim('Nothing to add.');
+      }
+      if (action === 'commit') {
+        if (fileState === 'staging') { fileState = 'local'; logSim('Committed to Local Repo'); }
+        else logSim('Nothing staged to commit.');
+      }
+      if (action === 'push') {
+        if (fileState === 'local') { fileState = 'remote'; logSim('Pushed to Remote (GitHub)'); }
+        else logSim('No local commits to push.');
+      }
+      if (action === 'reset') {
+        if (fileState === 'staging') { fileState = 'workdir'; logSim('Unstaged changes'); }
+        else logSim('Nothing to unstage.');
+      }
+      if (action === 'checkout') {
+        if (fileState === 'workdir') logSim('Discarded local changes');
+        else logSim('Cannot discard; changes already staged/committed.');
+      }
+      renderSim();
+    }
+
+    renderSim();
+
+    // Chapter Sync (Shared with k8s)
+    const chapterState = document.getElementById('chapterState');
+    const syncedNavLinks = Array.from(document.querySelectorAll('[data-nav-target]'));
+    const observedSections = Array.from(document.querySelectorAll('.section[id]'));
+    const navTargetState = new Map();
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => navTargetState.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0));
+      const activeId = observedSections.sort((a,b) => (navTargetState.get(b.id)||0) - (navTargetState.get(a.id)||0))[0]?.id;
+      if (activeId) {
+        syncedNavLinks.forEach(l => l.classList.toggle('active', l.dataset.navTarget === activeId));
+        const label = syncedNavLinks.find(l => l.dataset.navTarget === activeId);
+        if (label) chapterState.textContent = label.textContent;
+      }
+    }, { rootMargin: '-20% 0px -60% 0px', threshold: [0, 0.5, 1] });
+
+    observedSections.forEach(s => navObserver.observe(s));
+
+  </script>
+</body>
+</html>

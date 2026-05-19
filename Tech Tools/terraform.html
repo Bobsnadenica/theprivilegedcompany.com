@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Level 13: Terraform | Tech Knowledge Hub</title>
+  <style>
+    :root {
+      --bg-body: #0a0d12;
+      --bg-surface: #161b22;
+      --bg-card: #0d1117;
+      --border-subtle: rgba(240, 246, 252, 0.1);
+      --border-hover: rgba(56, 139, 253, 0.4);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      
+      --accent-primary: #7b42bc; /* HashiCorp Purple */
+      --accent-aws: #ff9900;
+      --accent-azure: #0078d4;
+      --accent-gcp: #4285f4;
+      --accent-add: #2ea043;     /* Green for + */
+      --accent-destroy: #ff7b72; /* Red for - */
+      
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(123, 66, 188, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(66, 133, 244, 0.05), transparent 25%);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* LAYOUT */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* HEADER */
+    header { padding: 3rem 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 3rem; }
+    .breadcrumb { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+    .breadcrumb a:hover { color: var(--accent-primary); }
+    
+    h1 {
+      font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;
+      background: linear-gradient(90deg, #fff, var(--accent-primary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .intro { font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; }
+
+    /* CARDS */
+    .section-title { 
+      font-size: 1.75rem; margin: 4rem 0 1.5rem; color: var(--text-primary); 
+      display: flex; align-items: center; gap: 12px;
+      border-left: 4px solid var(--accent-primary);
+      padding-left: 1rem;
+    }
+
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 1.5rem;
+      transition: transform 0.2s; position: relative; overflow: hidden;
+    }
+    .card:hover { border-color: var(--accent-primary); transform: translateY(-2px); }
+    .card h3 { color: var(--accent-primary); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* GAMIFICATION: CONSTRUCTOR */
+    .tf-console {
+      display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem;
+      height: 600px; margin-top: 2rem;
+    }
+    @media (max-width: 900px) { .tf-console { grid-template-columns: 1fr; height: auto; } }
+
+    /* LEFT: TERMINAL & CODE */
+    .tf-left { display: flex; flex-direction: column; gap: 1rem; height: 100%; }
+    
+    .code-editor {
+      background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+      flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .editor-header {
+      background: #161b22; padding: 8px 15px; font-size: 0.8rem; font-family: var(--font-mono);
+      border-bottom: 1px solid #30363d; color: #8b949e; display: flex; justify-content: space-between;
+    }
+    .editor-content {
+      padding: 1rem; font-family: var(--font-mono); font-size: 0.85rem; color: #e6edf3;
+      white-space: pre; overflow-y: auto; line-height: 1.5;
+    }
+    .keyword { color: #ff7b72; }
+    .string { color: #a5d6ff; }
+    .resource-type { color: #79c0ff; }
+
+    .terminal {
+      background: #000; border: 1px solid #30363d; border-radius: 8px;
+      height: 200px; padding: 1rem; font-family: var(--font-mono); font-size: 0.8rem;
+      overflow-y: auto; color: #c9d1d9; display: flex; flex-direction: column;
+    }
+    .term-line { margin-bottom: 4px; }
+    .term-success { color: var(--accent-add); }
+    .term-plan { color: #e3b341; }
+    
+    .btn-group { display: flex; gap: 10px; }
+    .btn {
+      flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: bold;
+      cursor: pointer; font-family: var(--font-mono); font-size: 0.9rem; transition: filter 0.2s;
+    }
+    .btn-plan { background: #e3b341; color: #000; }
+    .btn-apply { background: var(--accent-primary); color: #fff; }
+    .btn-destroy { background: var(--accent-destroy); color: #fff; }
+    .btn:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+
+    /* RIGHT: MULTI-CLOUD MAP */
+    .tf-map {
+      background: #010409; border: 1px solid #30363d; border-radius: 12px;
+      padding: 1.5rem; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 1rem;
+      position: relative;
+    }
+    
+    .cloud-zone {
+      border: 1px dashed #30363d; border-radius: 8px; padding: 1rem;
+      position: relative; transition: all 0.3s;
+    }
+    .cloud-zone::before {
+      position: absolute; top: -10px; left: 1rem; background: #010409; padding: 0 8px;
+      font-size: 0.8rem; font-weight: bold; color: #8b949e;
+    }
+    
+    .zone-aws { border-color: rgba(255, 153, 0, 0.3); }
+    .zone-aws::before { content: "AWS (us-east-1)"; color: var(--accent-aws); }
+    
+    .zone-azure { border-color: rgba(0, 120, 212, 0.3); }
+    .zone-azure::before { content: "Azure (West Europe)"; color: var(--accent-azure); }
+    
+    .zone-gcp { border-color: rgba(66, 133, 244, 0.3); }
+    .zone-gcp::before { content: "Google Cloud (asia-east1)"; color: var(--accent-gcp); }
+
+    .resource-box {
+      display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 80px; height: 80px; background: #161b22; border: 1px solid #30363d;
+      border-radius: 8px; margin: 10px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .resource-box:hover { transform: scale(1.1); border-color: var(--accent-destroy); }
+    .resource-box:hover::after { content: "❌"; position: absolute; font-size: 1.5rem; opacity: 0.8; }
+    
+    .res-icon { font-size: 1.8rem; margin-bottom: 5px; }
+    .res-name { font-size: 0.7rem; font-family: var(--font-mono); color: #8b949e; }
+
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="breadcrumb"><a href="index.html">← Back to Hub</a> / Cloud & Infrastructure</div>
+      <h1>Terraform</h1>
+      <p class="intro">
+        The universal remote for the cloud. Use <strong>one language</strong> (HCL) to build infrastructure on AWS, Azure, Google Cloud, and 100+ other providers.
+      </p>
+    </header>
+
+    <h2 class="section-title">🧱 Core Building Blocks</h2>
+    <div class="concept-grid">
+      <div class="card">
+        <h3>1. The Provider</h3>
+        <p>The plugin that talks to the API. You tell Terraform "I want to use AWS", and it downloads the AWS translator.</p>
+      </div>
+      <div class="card">
+        <h3>2. The Plan</h3>
+        <p>The safety check. Terraform calculates exactly what it will do (Add +1, Change ~2, Destroy -0) so you can approve it.</p>
+      </div>
+      <div class="card">
+        <h3>3. The State</h3>
+        <p>The "Brain". A file that remembers what resources exist in real life, mapping your code to real IDs.</p>
+      </div>
+      <div class="card" style="border-color: #58a6ff;">
+        <h3>4. Data Sources</h3>
+        <p><strong>Read-Only.</strong> Allows you to fetch info about existing resources (e.g., finding the ID of the latest Amazon Machine Image) without creating them.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">📂 Best Practice: Folder Structure</h2>
+    <div class="card" style="background:#0d1117; font-family:var(--font-mono); font-size:0.9rem;">
+      <pre style="color:#8b949e; margin:0;">
+my-project/
+├── <strong style="color:#fff">modules/</strong>        <span style="color:#2ea043">// Reusable blueprints</span>
+│   ├── vpc/
+│   └── ec2/
+├── <strong style="color:#fff">environments/</strong>   <span style="color:#2ea043">// Live deployments</span>
+│   ├── <strong style="color:#a371f7">dev/</strong>
+│   │   ├── main.tf
+│   │   └── terraform.tfvars  <span style="color:#e3b341">(Small size)</span>
+│   └── <strong style="color:#ff7b72">prod/</strong>
+│       ├── main.tf
+│       └── terraform.tfvars  <span style="color:#e3b341">(Large size)</span>
+      </pre>
+      <div style="margin-top:1rem; border-top:1px solid #30363d; padding-top:10px; font-family:var(--font-sans); color:var(--text-primary);">
+        Always separate <strong>DEV</strong> and <strong>PROD</strong> into different folders (or workspaces) so they have separate <strong>State Files</strong>.
+      </div>
+    </div>
+
+    <h2 class="section-title">🕹️ The Universal Constructor</h2>
+    <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+      <strong>Mission:</strong> Write a multi-cloud config and deploy it. <br>
+      <strong>Bonus:</strong> Try clicking a created server to "Sabotage" (delete) it, then run Plan/Apply to fix it (Self-Healing).
+    </p>
+
+    <div class="tf-console">
+      
+      <div class="tf-left">
+        <div class="code-editor">
+          <div class="editor-header">
+            <span>main.tf</span>
+            <span>HCL</span>
+          </div>
+          <div class="editor-content"><span class="keyword">resource</span> <span class="string">"aws_instance" "web"</span> {
+  <span class="resource-type">ami</span> = "ami-0c55b159"
+  <span class="resource-type">instance_type</span> = "t2.micro"
+}
+
+<span class="keyword">resource</span> <span class="string">"azurerm_vm" "db"</span> {
+  <span class="resource-type">location</span> = "West Europe"
+  <span class="resource-type">size</span> = "Standard_DS1_v2"
+}
+
+<span class="keyword">resource</span> <span class="string">"google_compute_instance" "app"</span> {
+  <span class="resource-type">zone</span> = "asia-east1-a"
+  <span class="resource-type">machine_type</span> = "f1-micro"
+}</div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-plan" id="btnPlan" onclick="runPlan()">terraform plan</button>
+          <button class="btn btn-apply" id="btnApply" onclick="runApply()" disabled>terraform apply</button>
+        </div>
+
+        <div class="terminal" id="termOutput">
+          <div class="term-line">$ terraform init</div>
+          <div class="term-success">Terraform has been successfully initialized!</div>
+          <div class="term-line"><br>$ _</div>
+        </div>
+      </div>
+
+      <div class="tf-map">
+        <div class="cloud-zone zone-aws" id="awsZone"></div>
+        <div class="cloud-zone zone-azure" id="azureZone"></div>
+        <div class="cloud-zone zone-gcp" id="gcpZone"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const term = document.getElementById('termOutput');
+    const btnPlan = document.getElementById('btnPlan');
+    const btnApply = document.getElementById('btnApply');
+    
+    const zones = {
+      aws: document.getElementById('awsZone'),
+      azure: document.getElementById('azureZone'),
+      gcp: document.getElementById('gcpZone')
+    };
+
+    // State tracking
+    let state = {
+      aws: false,
+      azure: false,
+      gcp: false
+    };
+
+    function log(msg, type = '') {
+      const div = document.createElement('div');
+      div.className = 'term-line ' + type;
+      div.innerText = msg;
+      term.appendChild(div);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function runPlan() {
+      btnPlan.disabled = true;
+      log('$ terraform plan');
+      log('Refreshing state...');
+      
+      let changes = [];
+      
+      // Check difference between Code (All True) and Real State
+      if (!state.aws) changes.push('+ aws_instance.web');
+      if (!state.azure) changes.push('+ azurerm_vm.db');
+      if (!state.gcp) changes.push('+ google_compute_instance.app');
+
+      setTimeout(() => {
+        if (changes.length === 0) {
+          log('No changes. Infrastructure is up-to-date.', 'term-success');
+          btnPlan.disabled = false;
+        } else {
+          log('Terraform will perform the following actions:', 'term-plan');
+          changes.forEach(c => log('  ' + c, 'term-success'));
+          log(`Plan: ${changes.length} to add, 0 to change, 0 to destroy.`);
+          btnApply.disabled = false;
+        }
+      }, 800);
+    }
+
+    function runApply() {
+      btnApply.disabled = true;
+      log('$ terraform apply --auto-approve');
+      
+      setTimeout(() => {
+        if (!state.aws) createResource('aws', 'aws_instance.web', '🟧');
+        if (!state.azure) createResource('azure', 'azurerm_vm.db', '🟦');
+        if (!state.gcp) createResource('gcp', 'google_compute_instance', '🌈');
+
+        log('Apply complete!', 'term-success');
+        
+        // Reset Plan button for future drifts
+        setTimeout(() => { btnPlan.disabled = false; }, 1000);
+      }, 1000);
+    }
+
+    function createResource(cloud, name, icon) {
+      if (state[cloud]) return; // Already exists
+      
+      state[cloud] = true;
+      log(`${name}: Creating...`);
+      
+      setTimeout(() => {
+        log(`${name}: Creation complete after 4s`, 'term-success');
+        
+        const box = document.createElement('div');
+        box.className = 'resource-box';
+        box.id = `res-${cloud}`;
+        box.innerHTML = `<div class="res-icon">${icon}</div><div class="res-name">${name.split('.')[0]}</div>`;
+        box.onclick = () => sabotage(cloud, box);
+        
+        zones[cloud].appendChild(box);
+      }, 500);
+    }
+
+    function sabotage(cloud, element) {
+      if(confirm("⚠ SABOTAGE MODE: Manually delete this server? \n(This simulates an outage or manual error)")) {
+        element.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+          element.remove();
+          state[cloud] = false; // Drift happened! State file expects True, Reality is False.
+          log(`ALERT: Detected drift! ${cloud} resource missing.`, 'keyword');
+          log(`Run 'terraform plan' to fix it.`);
+        }, 500);
+      }
+    }
+  </script>
+
+</body>
+</html>
