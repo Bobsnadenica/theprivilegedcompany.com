@@ -371,6 +371,7 @@ body::before {
     bottom: 2rem;
     left: var(--gap);
     width: min(360px, calc(100vw - 2rem));
+    max-height: min(78vh, 720px);
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(15px);
     border: 1px solid var(--c-dim);
@@ -439,6 +440,7 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    min-height: 0;
 }
 
 .health-terminal {
@@ -447,6 +449,7 @@ body::before {
     padding: 0.8rem;
     min-height: 86px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    overflow: hidden;
 }
 
 .terminal-line {
@@ -472,10 +475,25 @@ body::before {
 .diagnostic-log {
     display: grid;
     gap: 0.55rem;
-    max-height: 190px;
+    max-height: min(42vh, 420px);
     margin-top: 0.75rem;
     overflow-y: auto;
-    padding-right: 0.2rem;
+    overscroll-behavior: contain;
+    padding-right: 0.45rem;
+    scrollbar-color: var(--c-accent) rgba(255, 157, 0, 0.08);
+    scrollbar-width: thin;
+}
+
+.diagnostic-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+.diagnostic-log::-webkit-scrollbar-track {
+    background: rgba(255, 157, 0, 0.08);
+}
+
+.diagnostic-log::-webkit-scrollbar-thumb {
+    background: var(--c-accent);
 }
 
 .diagnostic-log-entry {
@@ -495,6 +513,7 @@ body::before {
 
 .diagnostic-log-output {
     color: var(--c-muted);
+    white-space: pre-wrap;
 }
 
 #diagnostic-command,

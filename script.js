@@ -174,7 +174,7 @@ class ScrambleText {
 }
 
 /**
- * System Health Simulation
+ * System Health Diagnostics
  */
 const initHealthCheck = () => {
     const dashboard = document.getElementById('health-dashboard');
@@ -195,89 +195,252 @@ const initHealthCheck = () => {
         errors: 'status-errors'
     };
 
-    const targetHost = 'theprivilegedcompany.com';
-    const targetUrl = `https://${targetHost}`;
+    const targetOrigin = window.location.origin;
+    const targetHost = window.location.host;
+    const targetPath = path => new URL(path, targetOrigin).href;
+    const routeEntries = Object.entries(routes).filter(([key]) => key !== '');
+
+    const formatMs = ms => `${Math.max(1, Math.round(ms))}ms`;
+
+    const compact = (value, max = 560) => {
+        const clean = String(value || '').replace(/\s+/g, ' ').trim();
+        return clean.length > max ? `${clean.slice(0, max)}...` : clean;
+    };
+
+    const interestingHeaders = [
+        'content-type',
+        'cache-control',
+        'etag',
+        'last-modified',
+        'content-length',
+        'strict-transport-security',
+        'content-security-policy',
+        'x-content-type-options'
+    ];
+
+    const getReadableHeaders = response => {
+        const pairs = interestingHeaders
+            .map(name => [name, response.headers.get(name)])
+            .filter(([, value]) => value);
+        return pairs.length
+            ? pairs.map(([name, value]) => `${name}: ${value}`).join('\n')
+            : 'No readable diagnostic headers exposed.';
+    };
+
+    const request = async (path, options = {}) => {
+        const started = performance.now();
+        const response = await fetch(targetPath(path), {
+            cache: 'no-store',
+            ...options
+        });
+        const elapsed = performance.now() - started;
+        const text = options.method === 'HEAD' ? '' : await response.text();
+
+        return {
+            elapsed,
+            response,
+            text
+        };
+    };
+
     const getPageSnapshot = () => {
         const navigation = performance.getEntriesByType('navigation')[0];
         const resources = performance.getEntriesByType('resource');
+        const byType = resources.reduce((acc, resource) => {
+            const type = resource.initiatorType || 'other';
+            acc[type] = (acc[type] || 0) + 1;
+            return acc;
+        }, {});
+
         return {
             assets: resources.length,
+            byType,
+            connectMs: Math.max(0, Math.round((navigation?.connectEnd || 0) - (navigation?.connectStart || 0))),
+            dnsMs: Math.max(0, Math.round((navigation?.domainLookupEnd || 0) - (navigation?.domainLookupStart || 0))),
             links: document.querySelectorAll('a[href]').length,
             loadMs: Math.round(navigation?.duration || performance.now()),
-            title: document.title
+            tlsMs: navigation?.secureConnectionStart
+                ? Math.max(0, Math.round((navigation.connectEnd || 0) - navigation.secureConnectionStart))
+                : 0,
+            transferKb: Math.round((resources.reduce((sum, resource) => sum + (resource.transferSize || 0), 0) / 1024) * 10) / 10,
+            title: document.title,
+            url: window.location.href
         };
     };
 
     const checks = [
-        () => {
+        async () => {
+            const { response, elapsed } = await request('/', { method: 'HEAD' });
+            const serverPolicy = [
+                `status: ${response.status} ${response.statusText || ''}`.trim(),
+                `url: ${response.url}`,
+                `elapsed: ${formatMs(elapsed)}`,
+                getReadableHeaders(response)
+            ].join('\n');
+
             return {
-                command: `curl -I ${targetUrl}/`,
-                output: 'reveals: status, redirects, CDN/cache, HSTS, CSP, content-type',
-                updates: { http: 'HEADERS', shield: 'POLICY' }
+                command: `fetch HEAD ${targetPath('/')}`,
+                output: serverPolicy,
+                updates: {
+                    http: `${response.status} ${response.ok ? 'OK' : 'CHECK'}`,
+                    shield: response.headers.get('strict-transport-security') ? 'HSTS' : (window.location.protocol === 'https:' ? 'HTTPS' : 'HTTP')
+                }
             };
         },
-        () => {
+        async () => {
+            const { response, elapsed, text } = await request('/robots.txt');
+            const lines = text.split(/\r?\n/).filter(Boolean);
+
             return {
-                command: `dig +short A ${targetHost} && dig +short NS ${targetHost}`,
-                output: 'reveals: DNS records, host routing, nameservers, CDN edge clues',
-                updates: { latency: 'DNS', errors: 'SURFACE' }
+                command: `fetch GET ${targetPath('/robots.txt')}`,
+                output: [
+                    `status: ${response.status} ${response.statusText || ''}`.trim(),
+                    `elapsed: ${formatMs(elapsed)}`,
+                    `lines: ${lines.length}`,
+                    compact(lines.slice(0, 8).join(' | '), 420)
+                ].join('\n'),
+                updates: {
+                    seo: response.ok ? 'ROBOTS' : 'ROBOTS?',
+                    cache: `${lines.length} LINES`
+                }
             };
         },
-        () => {
+        async () => {
+            const { response, elapsed, text } = await request('/sitemap.xml');
+            const urls = [...text.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
+
             return {
-                command: `echo | openssl s_client -connect ${targetHost}:443 -servername ${targetHost}`,
-                output: 'reveals: certificate chain, expiry window, TLS version, ALPN',
-                updates: { latency: 'TLS', shield: 'CERT' }
+                command: `fetch GET ${targetPath('/sitemap.xml')}`,
+                output: [
+                    `status: ${response.status} ${response.statusText || ''}`.trim(),
+                    `elapsed: ${formatMs(elapsed)}`,
+                    `urls: ${urls.length}`,
+                    urls.slice(0, 8).join('\n') || 'No <loc> URLs found.'
+                ].join('\n'),
+                updates: {
+                    seo: response.ok ? 'SITEMAP' : 'MAP?',
+                    cache: `${urls.length} URLS`
+                }
             };
         },
-        () => {
+        async () => {
+            const results = await Promise.all(routeEntries.map(async ([key, route]) => {
+                const { response, elapsed, text } = await request(`/views/${route.view}`);
+                const bytes = new Blob([text]).size;
+                return `${key}: ${response.status} ${response.ok ? 'OK' : 'MISS'} /views/${route.view} ${bytes}B ${formatMs(elapsed)}`;
+            }));
+            const misses = results.filter(line => !line.includes(' OK ')).length;
+
             return {
-                command: `curl -s ${targetUrl}/robots.txt && curl -s ${targetUrl}/sitemap.xml`,
-                output: 'reveals: crawl rules, public routes, sitemap coverage, indexing hints',
-                updates: { seo: 'CRAWL', cache: 'ROUTES' }
+                command: 'fetch route view fragments',
+                output: results.join('\n'),
+                updates: {
+                    cache: `${routeEntries.length - misses}/${routeEntries.length}`,
+                    errors: misses ? `${misses} MISS` : 'CLEAR'
+                }
             };
         },
-        () => {
+        async () => {
+            const directRoutes = await Promise.all(routeEntries.map(async ([key]) => {
+                const { response, elapsed } = await request(`/${key}`, { method: 'HEAD' });
+                return `/${key}: ${response.status} ${response.ok ? 'OK' : 'HTTP'} ${formatMs(elapsed)}`;
+            }));
+            const nonOk = directRoutes.filter(line => !line.includes(' OK ')).length;
+
             return {
-                command: `npx lighthouse ${targetUrl} --view`,
-                output: 'reveals: Core Web Vitals, accessibility, SEO, best-practice gaps',
-                updates: { assets: 'CWV', seo: 'AUDIT' }
+                command: 'fetch HEAD deep-link routes',
+                output: [
+                    'Checks whether direct URL entry works without relying on an already-loaded SPA shell.',
+                    ...directRoutes
+                ].join('\n'),
+                updates: {
+                    http: nonOk ? `${nonOk} ROUTES` : 'ROUTES OK',
+                    errors: nonOk ? 'DEEP LINK' : 'CLEAR'
+                }
             };
         },
-        () => {
+        async () => {
+            const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+            const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute('href') || 'none';
+            const headings = [...document.querySelectorAll('h1, h2')].map(heading => `${heading.tagName}:${compact(heading.textContent, 80)}`);
+            const jsonLdCount = document.querySelectorAll('script[type="application/ld+json"]').length;
+
             return {
-                command: `curl -sL ${targetUrl}/ | pup 'title,meta[name=description],a attr{href}'`,
-                output: 'reveals: page title, meta description, links, content structure',
-                updates: { cache: 'CONTENT', seo: 'META' }
+                command: 'inspect live DOM metadata',
+                output: [
+                    `title: ${document.title}`,
+                    `description: ${metaDescription.length} chars - ${compact(metaDescription, 220)}`,
+                    `canonical: ${canonical}`,
+                    `json-ld blocks: ${jsonLdCount}`,
+                    `headings: ${headings.join(' | ')}`
+                ].join('\n'),
+                updates: {
+                    seo: metaDescription ? 'META' : 'META?',
+                    cache: `${document.querySelectorAll('a[href]').length} LINKS`
+                }
             };
         },
-        () => {
-            return {
-                command: `nmap -Pn -sV ${targetHost}`,
-                output: 'reveals: exposed ports, service versions, unexpected public surface',
-                updates: { errors: 'PORTS', shield: 'SCAN' }
-            };
-        },
-        () => {
-            return {
-                command: `curl -s 'https://crt.sh/?q=${targetHost}&output=json'`,
-                output: 'reveals: certificate-transparency subdomains and shadow assets',
-                updates: { errors: 'SUBDOMAINS', shield: 'CT LOGS' }
-            };
-        },
-        () => {
-            return {
-                command: 'goaccess access.log --log-format=COMBINED',
-                output: 'requires owned logs; reveals real visits, referrers, bots, 404s, top pages',
-                updates: { traffic: 'OWN LOGS', errors: '4XX/5XX' }
-            };
-        },
-        () => {
+        async () => {
             const snapshot = getPageSnapshot();
+            const typeSummary = Object.entries(snapshot.byType)
+                .map(([type, count]) => `${type}:${count}`)
+                .join(', ') || 'none';
+
             return {
-                command: 'browser performance + DOM snapshot',
-                output: `current render: ${snapshot.assets} assets, ${snapshot.links} links, ${snapshot.loadMs}ms load, title="${snapshot.title}"`,
-                updates: { assets: `${snapshot.assets} ASSETS`, cache: `${snapshot.links} LINKS` }
+                command: 'read PerformanceNavigationTiming',
+                output: [
+                    `url: ${snapshot.url}`,
+                    `load: ${snapshot.loadMs}ms`,
+                    `dns/connect/tls: ${snapshot.dnsMs}ms / ${snapshot.connectMs}ms / ${snapshot.tlsMs}ms`,
+                    `resources: ${snapshot.assets} (${typeSummary})`,
+                    `transfer: ${snapshot.transferKb}KB browser-reported`,
+                    `links: ${snapshot.links}`
+                ].join('\n'),
+                updates: {
+                    assets: `${snapshot.assets} ASSETS`,
+                    latency: `${snapshot.dnsMs}/${snapshot.tlsMs}MS`
+                }
+            };
+        },
+        async () => {
+            const mixedContent = [...document.querySelectorAll('[src], [href]')]
+                .map(el => el.getAttribute('src') || el.getAttribute('href'))
+                .filter(value => value && value.startsWith('http://'));
+            const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') || 'none';
+
+            return {
+                command: 'inspect browser-visible security state',
+                output: [
+                    `host: ${targetHost}`,
+                    `protocol: ${window.location.protocol}`,
+                    `secure context: ${window.isSecureContext ? 'yes' : 'no'}`,
+                    `mixed-content URLs in DOM: ${mixedContent.length}`,
+                    `meta CSP: ${compact(cspMeta, 260)}`
+                ].join('\n'),
+                updates: {
+                    shield: window.isSecureContext ? 'SECURE' : 'LOCAL',
+                    errors: mixedContent.length ? 'MIXED' : 'CLEAR'
+                }
+            };
+        },
+        async () => {
+            const links = [...document.querySelectorAll('a[href]')].map(link => link.getAttribute('href'));
+            const internal = links.filter(href => href && !href.startsWith('mailto:') && !href.startsWith('http')).length;
+            const email = links.filter(href => href?.startsWith('mailto:')).length;
+            const external = links.filter(href => href?.startsWith('http')).length;
+
+            return {
+                command: 'audit current-page links',
+                output: [
+                    `internal links: ${internal}`,
+                    `mailto links: ${email}`,
+                    `external links: ${external}`,
+                    `hrefs: ${links.join(' | ')}`
+                ].join('\n'),
+                updates: {
+                    traffic: `${internal} INTERNAL`,
+                    cache: `${links.length} HREFS`
+                }
             };
         }
     ];
@@ -317,40 +480,50 @@ const initHealthCheck = () => {
         logEl.scrollTop = logEl.scrollHeight;
     };
 
-    const runDiagnostic = () => {
-        const result = checks[checkIndex % checks.length]();
+    const runDiagnostic = async () => {
+        const check = checks[checkIndex % checks.length];
         checkIndex += 1;
 
-        commandEl.textContent = result.command;
-        outputEl.textContent = result.output;
-        Object.entries(result.updates).forEach(([key, value]) => updateStatus(key, value));
-        appendLog(result);
+        try {
+            const result = await check();
+            commandEl.textContent = result.command;
+            outputEl.textContent = result.output.split('\n')[0];
+            Object.entries(result.updates).forEach(([key, value]) => updateStatus(key, value));
+            appendLog(result);
+        } catch (error) {
+            const result = {
+                command: 'diagnostic probe failed',
+                output: error instanceof Error ? error.message : String(error),
+                updates: { errors: 'FAILED' }
+            };
+            commandEl.textContent = result.command;
+            outputEl.textContent = result.output;
+            updateStatus('errors', 'FAILED');
+            appendLog(result);
+        }
     };
 
-    const startDiagnostics = () => {
+    const startDiagnostics = async () => {
         if (diagnosticsRunning || diagnosticsHasRun) return;
 
         diagnosticsRunning = true;
         checkIndex = 0;
         logEl.replaceChildren();
-        commandEl.textContent = 'run website-probe-checklist';
-        outputEl.textContent = 'Running each probe example once...';
+        commandEl.textContent = `run diagnostics --target ${targetOrigin}`;
+        outputEl.textContent = 'Running live browser-side probes against this website...';
 
-        const runNext = () => {
-            if (checkIndex >= checks.length) {
-                commandEl.textContent = 'diagnostics complete';
-                outputEl.textContent = 'Probe examples logged below. Run them from a terminal against sites you own or are allowed to test.';
-                diagnosticsRunning = false;
-                diagnosticsHasRun = true;
-                diagnosticsTimer = null;
-                return;
-            }
+        while (checkIndex < checks.length) {
+            await runDiagnostic();
+            await new Promise(resolve => {
+                diagnosticsTimer = setTimeout(resolve, 350);
+            });
+        }
 
-            runDiagnostic();
-            diagnosticsTimer = setTimeout(runNext, 700);
-        };
-
-        runNext();
+        commandEl.textContent = 'diagnostics complete';
+        outputEl.textContent = 'Live probe output is available in the scrollable log below.';
+        diagnosticsRunning = false;
+        diagnosticsHasRun = true;
+        diagnosticsTimer = null;
     };
 
     const syncExpandedState = () => {
