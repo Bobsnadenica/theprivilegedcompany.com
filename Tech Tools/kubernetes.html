@@ -3,3170 +3,450 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kubernetes Reference & Lab Guide | Tech Knowledge Hub</title>
+  <title>Kubernetes: A Clear Path | Tech Knowledge Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #04101d;
-      --bg-deep: #02070d;
-      --panel: rgba(8, 18, 33, 0.82);
-      --panel-strong: #0c1830;
-      --panel-soft: rgba(11, 23, 43, 0.68);
-      --line: rgba(124, 177, 255, 0.16);
-      --line-strong: rgba(124, 177, 255, 0.34);
       --text: #f2f7ff;
       --muted: #9cb0cb;
       --blue: #6ea8ff;
       --blue-strong: #2d72f4;
-      --blue-soft: rgba(110, 168, 255, 0.12);
-      --success: #5ad7a0;
-      --warning: #ffc86f;
-      --danger: #ff8f8f;
-      --shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+      --line: rgba(124, 177, 255, 0.16);
       --font-display: "Space Grotesk", sans-serif;
       --font-body: "Space Grotesk", sans-serif;
       --font-mono: "IBM Plex Mono", monospace;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      scroll-padding-top: 8rem;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
-      min-height: 100vh;
+      background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-body);
-      line-height: 1.65;
-      position: relative;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(46, 114, 244, 0.18), transparent 28%),
-        radial-gradient(circle at 87% 22%, rgba(110, 168, 255, 0.14), transparent 24%),
-        radial-gradient(circle at 75% 78%, rgba(20, 52, 104, 0.22), transparent 30%),
-        linear-gradient(180deg, #071120 0%, #040a12 45%, #03070d 100%);
+      line-height: 1.6;
+      padding: 2rem 1rem;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input,
-    summary {
-      font: inherit;
-    }
-
-    code,
-    pre {
-      font-family: var(--font-mono);
-    }
-
-    .shell {
-      width: min(1400px, calc(100% - 2.5rem));
+    .container {
+      max-width: 800px;
       margin: 0 auto;
     }
 
-    .hero {
-      position: relative;
-      padding: 1.5rem 0 4.5rem;
+    header {
+      margin-bottom: 4rem;
       border-bottom: 1px solid var(--line);
-      overflow: hidden;
-    }
-
-    .hero::before,
-    .hero::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
-      inset: auto;
-      border-radius: 999px;
-      filter: blur(18px);
-      opacity: 0.45;
-    }
-
-    .hero::before {
-      width: 22rem;
-      height: 22rem;
-      top: -5rem;
-      left: -6rem;
-      background: rgba(45, 114, 244, 0.18);
-    }
-
-    .hero::after {
-      width: 20rem;
-      height: 20rem;
-      top: 2rem;
-      right: -6rem;
-      background: rgba(110, 168, 255, 0.16);
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
-      gap: 3rem;
-      align-items: end;
-      min-height: min(88vh, 860px);
-    }
-
-    .hero-copy {
-      max-width: 44rem;
-      padding: 2rem 0 1rem;
-    }
-
-    .breadcrumb {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-bottom: 1rem;
-    }
-
-    .breadcrumb a {
-      color: var(--text);
-      opacity: 0.92;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.65rem;
-      padding: 0.45rem 0.85rem;
-      border: 1px solid var(--line-strong);
-      border-radius: 999px;
-      font-size: 0.78rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--blue);
-      background: rgba(7, 17, 31, 0.72);
-      margin-bottom: 1.4rem;
-    }
-
-    .eyebrow::before {
-      content: "";
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 50%;
-      background: var(--blue);
-      box-shadow: 0 0 0 0.3rem rgba(110, 168, 255, 0.14);
+      padding-bottom: 2rem;
     }
 
     h1 {
-      font-family: var(--font-display);
-      font-size: clamp(3.4rem, 8vw, 6.8rem);
-      line-height: 0.95;
-      letter-spacing: -0.05em;
-      max-width: 12ch;
-      margin-bottom: 1.25rem;
-    }
-
-    .hero-summary {
-      max-width: 44rem;
-      font-size: clamp(1.05rem, 1.9vw, 1.32rem);
-      color: var(--muted);
-      margin-bottom: 1.75rem;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 3rem;
-      padding: 0.8rem 1.1rem;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-    }
-
-    .button:hover {
-      transform: translateY(-2px);
-    }
-
-    .button.primary {
-      background: linear-gradient(135deg, var(--blue), #9ec1ff);
-      color: #05101d;
-      font-weight: 700;
-      box-shadow: 0 18px 36px rgba(45, 114, 244, 0.24);
-    }
-
-    .button.secondary {
-      border-color: var(--line-strong);
-      background: rgba(9, 19, 35, 0.74);
-    }
-
-    .hero-notes {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1rem;
-      list-style: none;
-      max-width: 48rem;
-    }
-
-    .hero-notes li {
-      padding: 0.95rem 1rem;
-      border-top: 1px solid var(--line-strong);
-      background: linear-gradient(180deg, rgba(8, 18, 33, 0.62), rgba(8, 18, 33, 0));
-    }
-
-    .hero-notes strong {
-      display: block;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 0.25rem;
-    }
-
-    .guide-layer {
-      position: relative;
-      z-index: 30;
-      margin-top: -2rem;
-      padding-bottom: 1rem;
-    }
-
-    .guide-grid {
-      display: grid;
-      gap: 0.95rem;
-    }
-
-    .route-strip {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.85rem;
-    }
-
-    .route-link {
-      display: block;
-      padding: 1rem 1rem 1.05rem;
-      border: 1px solid var(--line);
-      border-top: 2px solid rgba(110, 168, 255, 0.34);
-      border-radius: 1.2rem;
-      background: rgba(7, 16, 29, 0.84);
-      backdrop-filter: blur(14px);
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
-    }
-
-    .route-link:hover {
-      transform: translateY(-2px);
-      border-color: rgba(110, 168, 255, 0.34);
-      background: rgba(10, 21, 39, 0.92);
-    }
-
-    .route-link span {
-      display: inline-block;
-      color: var(--blue);
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 0.45rem;
-    }
-
-    .route-link strong {
-      display: block;
-      font-size: 1rem;
-      margin-bottom: 0.35rem;
-      color: var(--text);
-    }
-
-    .route-link p {
-      color: var(--muted);
-      font-size: 0.92rem;
-    }
-
-    .chapter-bar {
-      position: sticky;
-      top: 0.75rem;
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 1rem;
-      align-items: center;
-      padding: 0.8rem 0.95rem;
-      border: 1px solid var(--line-strong);
-      border-radius: 1.25rem;
-      background: rgba(6, 14, 25, 0.92);
-      backdrop-filter: blur(16px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.24);
-    }
-
-    .chapter-state {
-      min-width: 11rem;
-      padding-right: 1rem;
-      border-right: 1px solid rgba(124, 177, 255, 0.12);
-    }
-
-    .chapter-state span {
-      display: inline-block;
-      font-family: var(--font-mono);
-      color: var(--blue);
-      font-size: 0.76rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 0.15rem;
-    }
-
-    .chapter-state strong {
-      display: block;
-      font-size: 1rem;
-    }
-
-    .chapter-track {
-      display: flex;
-      gap: 0.55rem;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 0.1rem;
-    }
-
-    .chapter-track::-webkit-scrollbar {
-      display: none;
-    }
-
-    .chapter-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-      padding: 0.68rem 0.92rem;
-      border-radius: 999px;
-      border: 1px solid rgba(124, 177, 255, 0.14);
-      background: rgba(110, 168, 255, 0.04);
-      color: var(--muted);
-      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
-    }
-
-    .chapter-link:hover,
-    .chapter-link.active {
-      color: var(--text);
-      border-color: rgba(110, 168, 255, 0.34);
-      background: rgba(110, 168, 255, 0.12);
-      transform: translateY(-1px);
-    }
-
-    .hero-visual {
-      position: relative;
-      padding-top: 2rem;
-    }
-
-    .poster {
-      position: relative;
-      min-height: 38rem;
-      padding: 1.4rem;
-      border: 1px solid var(--line-strong);
-      border-radius: 1.8rem;
-      background:
-        linear-gradient(180deg, rgba(10, 20, 38, 0.94), rgba(4, 10, 19, 0.94)),
-        radial-gradient(circle at 20% 20%, rgba(110, 168, 255, 0.1), transparent 28%);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .poster::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(110, 168, 255, 0.08) calc(100% - 1px)),
-        linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(110, 168, 255, 0.08) calc(100% - 1px));
-      background-size: 2.5rem 2.5rem;
-      opacity: 0.28;
-      pointer-events: none;
-    }
-
-    .poster-top {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-      margin-bottom: 1.3rem;
-    }
-
-    .poster-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.45rem 0.7rem;
-      border-radius: 999px;
-      border: 1px solid rgba(110, 168, 255, 0.18);
-      background: rgba(110, 168, 255, 0.06);
-      color: var(--muted);
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-    }
-
-    .poster-core {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      gap: 1rem;
-    }
-
-    .poster-panel {
-      border: 1px solid var(--line);
-      border-radius: 1.2rem;
-      padding: 1rem;
-      background: rgba(10, 18, 32, 0.78);
-    }
-
-    .poster-panel h2,
-    .poster-panel h3 {
-      font-size: 1rem;
-      margin-bottom: 0.7rem;
-    }
-
-    .poster-panel p,
-    .poster-panel span {
-      color: var(--muted);
-    }
-
-    .control-stack {
-      display: grid;
-      gap: 0.7rem;
-    }
-
-    .control-row {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 0.8rem;
-      padding: 0.75rem 0.85rem;
-      border-radius: 0.95rem;
-      background: rgba(110, 168, 255, 0.06);
-      border: 1px solid rgba(110, 168, 255, 0.12);
-    }
-
-    .control-row strong,
-    .worker strong,
-    .poster-stats strong {
-      display: block;
-      color: var(--text);
-      font-size: 0.95rem;
-      margin-bottom: 0.18rem;
-    }
-
-    .worker-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.8rem;
-    }
-
-    .worker {
-      border-radius: 1rem;
-      padding: 0.9rem;
-      border: 1px solid var(--line);
-      background: rgba(6, 14, 25, 0.88);
-      min-height: 11rem;
-    }
-
-    .pod-stack {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-top: 0.8rem;
-    }
-
-    .pod-chip {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 2.5rem;
-      min-height: 2.5rem;
-      border-radius: 999px;
-      border: 1px solid rgba(110, 168, 255, 0.24);
-      background: rgba(45, 114, 244, 0.14);
-      font-size: 0.72rem;
-      color: var(--text);
-    }
-
-    .pod-chip.alt {
-      background: rgba(90, 215, 160, 0.14);
-      border-color: rgba(90, 215, 160, 0.28);
-    }
-
-    .pod-chip.pending {
-      background: rgba(255, 200, 111, 0.12);
-      border-color: rgba(255, 200, 111, 0.32);
-      color: var(--warning);
-    }
-
-    .poster-footer {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.8rem;
-      margin-top: 1rem;
-    }
-
-    .poster-stats {
-      padding: 0.8rem 0.85rem;
-      border-top: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(6, 14, 25, 0.1), rgba(6, 14, 25, 0.62));
-    }
-
-    .page-grid {
-      display: grid;
-      grid-template-columns: 18.5rem minmax(0, 1fr);
-      gap: 2.5rem;
-      padding: 1.3rem 0 6rem;
-      align-items: start;
-    }
-
-    .rail {
-      position: sticky;
-      top: 6.5rem;
-      align-self: start;
-      display: grid;
-      gap: 1rem;
-    }
-
-    .rail-block {
-      border: 1px solid var(--line);
-      border-radius: 1.2rem;
-      padding: 1rem;
-      background: var(--panel);
-      backdrop-filter: blur(14px);
-    }
-
-    .rail-block h2 {
-      font-size: 0.82rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 0.8rem;
-    }
-
-    .rail-links {
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .rail-links a {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.8rem;
-      color: var(--muted);
-      padding: 0.55rem 0.75rem;
-      border: 1px solid transparent;
-      border-radius: 0.9rem;
-      transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
-    }
-
-    .rail-links a::after {
-      content: "";
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 50%;
-      background: transparent;
-      box-shadow: inset 0 0 0 1px rgba(124, 177, 255, 0.25);
-      flex: 0 0 auto;
-    }
-
-    .rail-links a:hover,
-    .rail-links a.active {
-      color: var(--text);
-      background: rgba(110, 168, 255, 0.07);
-      border-color: rgba(110, 168, 255, 0.14);
-    }
-
-    .rail-links a.active::after {
-      background: var(--blue);
-      box-shadow: 0 0 0 0.24rem rgba(110, 168, 255, 0.14);
-    }
-
-    .checklist {
-      display: grid;
-      gap: 0.7rem;
-    }
-
-    .check-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.7rem;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-
-    .check-item input {
-      margin-top: 0.2rem;
-      accent-color: var(--blue);
-      transform: scale(1.15);
-    }
-
-    .progress-bar {
-      height: 0.55rem;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      overflow: hidden;
-      margin-top: 0.8rem;
-    }
-
-    .progress-fill {
-      width: 0;
-      height: 100%;
-      background: linear-gradient(90deg, var(--blue-strong), #9cc0ff);
-      transition: width 0.18s ease;
-    }
-
-    .progress-copy {
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 0.55rem;
-    }
-
-    .content {
-      min-width: 0;
-      display: grid;
-      gap: 0.4rem;
-    }
-
-    .section {
-      position: relative;
-      padding: 2.15rem 0 3rem;
-      border-bottom: 1px solid var(--line);
-      scroll-margin-top: 8rem;
-    }
-
-    .section::before {
-      content: "";
-      position: absolute;
-      left: -1.2rem;
-      top: 2.3rem;
-      bottom: 0.5rem;
-      width: 1px;
-      background: linear-gradient(180deg, rgba(110, 168, 255, 0.2), rgba(110, 168, 255, 0));
-    }
-
-    .section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      font-family: var(--font-mono);
-      color: var(--blue);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      margin-bottom: 0.85rem;
-      padding: 0.38rem 0.72rem;
-      border-radius: 999px;
-      border: 1px solid rgba(110, 168, 255, 0.16);
-      background: rgba(110, 168, 255, 0.06);
-    }
-
-    .section-label::before {
-      content: "";
-      width: 0.45rem;
-      height: 0.45rem;
-      border-radius: 50%;
-      background: var(--blue);
-      box-shadow: 0 0 0 0.22rem rgba(110, 168, 255, 0.12);
-    }
-
-    .section h2 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      line-height: 1.04;
-      letter-spacing: -0.04em;
-      max-width: 13ch;
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      line-height: 1;
       margin-bottom: 1rem;
+      font-family: var(--font-display);
     }
 
-    .section-intro {
-      max-width: 62ch;
+    .intro {
+      font-size: 1.25rem;
       color: var(--muted);
-      margin-bottom: 1.95rem;
-      font-size: 1.08rem;
+      max-width: 60ch;
     }
 
-    .stage-grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.6rem;
+    section {
+      margin-bottom: 5rem;
+      scroll-margin-top: 2rem;
     }
 
-    .stage {
-      padding: 1rem 0.9rem 0;
-      border-top: 1px solid var(--line-strong);
-      min-height: 15rem;
-      background: linear-gradient(180deg, rgba(10, 22, 39, 0.62), rgba(10, 22, 39, 0));
-    }
-
-    .stage-index {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 2.2rem;
-      min-height: 2.2rem;
-      border-radius: 999px;
-      background: rgba(110, 168, 255, 0.12);
-      border: 1px solid rgba(110, 168, 255, 0.28);
+    .step-number {
+      font-family: var(--font-mono);
       color: var(--blue);
-      font-family: var(--font-mono);
-      margin-bottom: 0.9rem;
-    }
-
-    .stage h3,
-    .panel h3,
-    .matrix h3,
-    .pillar h3,
-    .timeline h3,
-    .panel-plain h3,
-    .lab-side h4,
-    .flow-block h3,
-    .symptoms h3,
-    .cleanup-column h3,
-    .finish-grid h3 {
-      font-size: 1.05rem;
-      margin-bottom: 0.45rem;
-    }
-
-    .stage p,
-    .panel p,
-    .matrix p,
-    .pillar p,
-    .timeline p,
-    .panel-plain p,
-    .lab-side p,
-    .flow-block p,
-    .symptoms p,
-    .cleanup-column p,
-    .finish-grid p {
-      color: var(--muted);
-    }
-
-    .stage ul,
-    .pillar ul,
-    .lab-side ul,
-    .cleanup-column ul,
-    .panel ul {
-      margin-left: 1.1rem;
-      color: var(--muted);
-    }
-
-    .stage li,
-    .pillar li,
-    .lab-side li,
-    .cleanup-column li,
-    .panel li {
-      margin-bottom: 0.45rem;
-    }
-
-    .two-up {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
-      gap: 1.25rem;
-      align-items: start;
-    }
-
-    .panel,
-    .panel-plain,
-    .matrix,
-    .pillar,
-    .flow-block,
-    .symptoms,
-    .cleanup-column {
-      border: 1px solid var(--line);
-      border-radius: 1.3rem;
-      background: var(--panel);
-      padding: 1.15rem;
-      backdrop-filter: blur(10px);
-    }
-
-    .panel-plain {
-      background: rgba(6, 14, 25, 0.72);
-    }
-
-    .statement {
-      font-size: clamp(1.35rem, 2.3vw, 1.85rem);
-      line-height: 1.28;
-      max-width: 24ch;
-      margin-bottom: 1rem;
-    }
-
-    .micro-list {
-      display: grid;
-      gap: 0.8rem;
-    }
-
-    .micro-item {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 0.8rem;
-      padding-top: 0.8rem;
-      border-top: 1px solid rgba(124, 177, 255, 0.12);
-    }
-
-    .micro-item strong {
-      color: var(--text);
-    }
-
-    .flow-strip {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 0.75rem;
-      margin-top: 1.3rem;
-    }
-
-    .flow-step {
-      position: relative;
-      padding: 0.85rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(110, 168, 255, 0.14);
-      background: rgba(110, 168, 255, 0.05);
-      min-height: 8rem;
-    }
-
-    .flow-step:not(:last-child)::after {
-      content: "->";
-      position: absolute;
-      top: calc(50% - 0.6rem);
-      right: -0.7rem;
-      color: rgba(110, 168, 255, 0.5);
-      font-family: var(--font-mono);
-      font-size: 0.92rem;
-    }
-
-    .flow-step span {
-      display: block;
-      color: var(--blue);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 0.4rem;
-    }
-
-    .architecture-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .stack-list {
-      display: grid;
-      gap: 0.85rem;
-    }
-
-    .stack-item {
-      display: grid;
-      grid-template-columns: 1.1fr 1.4fr;
-      gap: 0.9rem;
-      padding: 0.9rem;
-      border-radius: 1rem;
-      background: rgba(110, 168, 255, 0.05);
-      border: 1px solid rgba(110, 168, 255, 0.12);
-    }
-
-    .stack-item strong {
-      color: var(--text);
-    }
-
-    .matrix-table,
-    .command-table,
-    .symptom-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 1.2rem;
-      background: rgba(5, 11, 20, 0.72);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    }
-
-    .matrix-table th,
-    .matrix-table td,
-    .command-table th,
-    .command-table td,
-    .symptom-table th,
-    .symptom-table td {
-      text-align: left;
-      vertical-align: top;
-      padding: 0.95rem 1rem;
-      border-bottom: 1px solid rgba(124, 177, 255, 0.1);
-    }
-
-    .matrix-table th,
-    .command-table th,
-    .symptom-table th {
-      font-size: 0.8rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--blue);
-      background: rgba(11, 23, 43, 0.9);
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    .matrix-table td,
-    .command-table td,
-    .symptom-table td {
-      color: var(--muted);
-    }
-
-    .matrix-table tbody tr:nth-child(even),
-    .command-table tbody tr:nth-child(even),
-    .symptom-table tbody tr:nth-child(even) {
-      background: rgba(110, 168, 255, 0.025);
-    }
-
-    .matrix-table tbody tr:hover,
-    .command-table tbody tr:hover,
-    .symptom-table tbody tr:hover {
-      background: rgba(110, 168, 255, 0.06);
-    }
-
-    .matrix-table code,
-    .command-table code,
-    .code-note code,
-    .cleanup-column code,
-    .lab-side code,
-    .flow-block code {
-      color: var(--text);
-      font-size: 0.88rem;
-    }
-
-    .pillars {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-    }
-
-    .pillar {
-      min-height: 100%;
-    }
-
-    .code-note {
-      margin-top: 0.9rem;
-      padding-top: 0.9rem;
-      border-top: 1px solid rgba(124, 177, 255, 0.12);
-      color: var(--muted);
+      letter-spacing: 0.1em;
       font-size: 0.9rem;
+      display: block;
+      margin-bottom: 0.5rem;
     }
 
-    .manifest-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.12fr) minmax(20rem, 0.88fr);
-      gap: 1rem;
+    h2 {
+      font-size: 2.25rem;
+      margin-bottom: 1.5rem;
+      font-family: var(--font-display);
     }
+
+    p { margin-bottom: 1.5rem; color: var(--muted); }
 
     .code-block {
+      background: #05080d;
       border: 1px solid var(--line);
-      border-radius: 1.3rem;
-      background: rgba(4, 8, 16, 0.92);
-      overflow: hidden;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    }
-
-    .code-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.8rem 1rem;
-      border-bottom: 1px solid rgba(124, 177, 255, 0.1);
-      color: var(--muted);
-      font-size: 0.84rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      background: rgba(8, 18, 33, 0.84);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1.5rem 0;
+      position: relative;
     }
 
     pre {
-      overflow-x: auto;
-      padding: 1.15rem 1rem 1.2rem;
-      font-size: 0.88rem;
-      line-height: 1.7;
-      color: #dfeaff;
-    }
-
-    .manifest-notes {
-      display: grid;
-      gap: 0.85rem;
-    }
-
-    .note-block {
-      padding: 1rem;
-      border-radius: 1rem;
-      border: 1px solid var(--line);
-      background: rgba(8, 18, 33, 0.74);
-    }
-
-    .note-block span {
-      display: inline-block;
-      color: var(--blue);
       font-family: var(--font-mono);
-      font-size: 0.76rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+      color: var(--blue);
+      overflow-x: auto;
     }
 
-    .atlas-toolbar {
+    code { font-family: var(--font-mono); background: rgba(110, 168, 255, 0.1); padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--text); }
+
+    .grid-2 {
       display: grid;
-      gap: 1rem;
-      margin-bottom: 1rem;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
     }
 
-    .search-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 1rem;
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.02);
     }
 
-    .search-row input {
+    .panel h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--blue); }
+
+    table {
       width: 100%;
-      border-radius: 999px;
-      border: 1px solid var(--line-strong);
-      background: rgba(8, 18, 33, 0.78);
-      color: var(--text);
-      padding: 0.9rem 1rem;
-      outline: none;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
     }
 
-    .search-row input:focus {
-      border-color: rgba(110, 168, 255, 0.6);
-      box-shadow: 0 0 0 0.25rem rgba(110, 168, 255, 0.12);
-    }
-
-    .result-counter {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 6rem;
-      padding: 0.9rem 1rem;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      color: var(--muted);
-      background: rgba(8, 18, 33, 0.74);
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-    }
-
-    .chip {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: rgba(8, 18, 33, 0.68);
-      color: var(--muted);
-      padding: 0.55rem 0.9rem;
-      cursor: pointer;
-      transition: border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
-    }
-
-    .chip.active,
-    .chip:hover {
-      border-color: rgba(110, 168, 255, 0.44);
-      color: var(--text);
-      transform: translateY(-1px);
-    }
-
-    /* VISUAL COMMAND EXPLORER */
-    .explorer-grid {
-      display: grid;
-      grid-template-columns: 20rem minmax(0, 1fr);
-      gap: 2rem;
-      margin-top: 1rem;
-    }
-    .explorer-nav {
-      display: grid;
-      gap: 0.75rem;
-      align-content: start;
-    }
-    .explorer-btn {
+    th, td {
       text-align: left;
       padding: 1rem;
-      border: 1px solid var(--line);
-      border-radius: 1rem;
-      background: rgba(110, 168, 255, 0.05);
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .explorer-btn:hover, .explorer-btn.active {
-      border-color: rgba(110, 168, 255, 0.4);
-      background: rgba(110, 168, 255, 0.12);
-      color: var(--text);
-    }
-    .explorer-btn strong {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      margin-bottom: 0.25rem;
-    }
-    .explorer-btn span {
-      font-size: 0.82rem;
-    }
-    .explorer-viz {
-      position: relative;
-      border: 1px solid var(--line);
-      border-radius: 1.5rem;
-      background: rgba(4, 10, 18, 0.94);
-      padding: 2rem;
-      min-height: 30rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .viz-container {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 3rem;
-      align-items: center;
-    }
-    .viz-node {
-      padding: 1rem;
-      border: 2px solid var(--line);
-      border-radius: 1rem;
-      background: var(--panel-strong);
-      text-align: center;
-      transition: all 0.4s;
-      position: relative;
-      z-index: 2;
-    }
-    .viz-node.active {
-      border-color: var(--blue);
-      box-shadow: 0 0 20px rgba(110, 168, 255, 0.3);
-      transform: scale(1.05);
-    }
-    .viz-node strong {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 0.2rem;
-    }
-    .viz-node span {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-    .viz-arrow {
-      position: absolute;
-      height: 2px;
-      background: var(--line);
-      z-index: 1;
-      transition: all 0.4s;
-    }
-    .viz-arrow.active {
-      background: var(--blue);
-      box-shadow: 0 0 10px var(--blue);
-    }
-    .explorer-desc {
-      margin-top: 2rem;
-      padding: 1.2rem;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-    .explorer-desc strong {
-      color: var(--text);
+      border-bottom: 1px solid var(--line);
     }
 
-    .command-table td:first-child,
-    .matrix-table td:first-child,
-    .symptom-table td:first-child {
-      color: var(--text);
-    }
-
-    /* IMPACT ZONE BADGES */
-    .impact-badge {
-      display: inline-flex;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-    .impact-control { background: rgba(110, 168, 255, 0.1); color: var(--blue); border-color: rgba(110, 168, 255, 0.2); }
-    .impact-worker { background: rgba(255, 200, 111, 0.1); color: var(--warning); border-color: rgba(255, 200, 111, 0.2); }
-    .impact-local { background: rgba(90, 215, 160, 0.1); color: var(--success); border-color: rgba(90, 215, 160, 0.2); }
-    .impact-data { background: rgba(255, 143, 143, 0.1); color: var(--danger); border-color: rgba(255, 143, 143, 0.2); }
-
-    .muted-mini {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 0.7rem;
-    }
-
-    .option-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.2rem;
-    }
-
-    .option {
-      padding: 1rem;
-      border-top: 1px solid var(--line-strong);
-      background: linear-gradient(180deg, rgba(10, 22, 39, 0.58), rgba(10, 22, 39, 0));
-      min-height: 12rem;
-    }
-
-    .option span {
-      display: inline-block;
-      margin-bottom: 0.75rem;
-      color: var(--blue);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .lab-list {
-      display: grid;
-      gap: 0.95rem;
-      margin-top: 1rem;
-    }
+    th { color: var(--blue); text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; }
 
     .lab {
       border: 1px solid var(--line);
-      border-radius: 1.25rem;
-      background: rgba(8, 18, 33, 0.74);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
       overflow: hidden;
-      transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .lab[open] {
-      border-color: rgba(110, 168, 255, 0.26);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
-    }
-
-    .lab summary {
-      list-style: none;
-      cursor: pointer;
-      position: relative;
-      padding: 1rem 4rem 1rem 1.1rem;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 1rem;
-      align-items: center;
-      background: rgba(9, 18, 34, 0.92);
-    }
-
-    .lab summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .lab summary:hover {
-      background: rgba(11, 23, 43, 0.96);
-    }
-
-    .lab summary::after {
-      content: "+";
-      position: absolute;
-      right: 1.1rem;
-      top: calc(50% - 0.8rem);
-      width: 1.7rem;
-      height: 1.7rem;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(110, 168, 255, 0.18);
-      background: rgba(110, 168, 255, 0.06);
-      color: var(--blue);
-      font-weight: 700;
-    }
-
-    .lab[open] summary::after {
-      content: "-";
-      background: rgba(110, 168, 255, 0.12);
-      border-color: rgba(110, 168, 255, 0.3);
-    }
-
-    .lab-kicker {
-      display: inline-block;
-      font-family: var(--font-mono);
-      color: var(--blue);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      font-size: 0.76rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .lab-meta {
-      color: var(--muted);
-      font-size: 0.92rem;
-      align-self: start;
-      padding-top: 0.25rem;
-    }
-
-    .lab-body {
-      display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
-      gap: 1rem;
-      padding: 1rem 1.1rem 1.2rem;
-      border-top: 1px solid rgba(124, 177, 255, 0.1);
-      background: linear-gradient(180deg, rgba(7, 14, 25, 0.28), rgba(7, 14, 25, 0));
-    }
-
-    .lab-side {
-      display: grid;
-      gap: 0.9rem;
-      align-content: start;
-    }
-
-    .lab-box {
-      border: 1px solid rgba(124, 177, 255, 0.14);
-      border-radius: 1rem;
-      padding: 0.9rem;
-      background: rgba(6, 14, 25, 0.64);
-    }
-
-    .flow-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .debug-sequence {
-      display: grid;
-      gap: 0.75rem;
-    }
-
-    .debug-step {
-      display: grid;
-      grid-template-columns: 2.4rem minmax(0, 1fr);
-      gap: 0.85rem;
-      padding: 0.9rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(124, 177, 255, 0.12);
+    .lab-header {
       background: rgba(110, 168, 255, 0.05);
-    }
-
-    .debug-step span {
-      display: inline-flex;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      width: 2.4rem;
-      height: 2.4rem;
-      border-radius: 999px;
-      background: rgba(110, 168, 255, 0.14);
-      color: var(--blue);
-      font-family: var(--font-mono);
     }
 
-    .sim-shell {
-      display: grid;
-      grid-template-columns: 21rem minmax(0, 1fr);
+    .lab-header h3 { font-size: 1rem; }
+
+    .lab-content { padding: 1.5rem; }
+
+    .atlas-toolbar {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
-      align-items: start;
     }
 
-    .sim-panel {
+    #commandSearch {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: #05080d;
       border: 1px solid var(--line);
-      border-radius: 1.3rem;
-      background: rgba(7, 16, 29, 0.84);
-      overflow: hidden;
-    }
-
-    .sim-controls {
-      padding: 1.1rem;
-      display: grid;
-      gap: 1rem;
-    }
-
-    .sim-controls h3,
-    .sim-view h3 {
+      border-radius: 8px;
+      color: var(--text);
       font-size: 1rem;
     }
 
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.75rem;
-    }
-
-    .sim-stat {
-      padding: 0.85rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(124, 177, 255, 0.12);
-      background: rgba(110, 168, 255, 0.05);
-    }
-
-    .sim-stat span {
-      display: block;
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .chip {
+      background: rgba(110, 168, 255, 0.1);
+      border: 1px solid var(--line);
       color: var(--muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .chip.active { background: var(--blue-strong); color: white; border-color: var(--blue-strong); }
+
+    .impact-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
       text-transform: uppercase;
-      margin-bottom: 0.2rem;
+      font-weight: bold;
     }
-
-    .range-wrap {
-      display: grid;
-      gap: 0.55rem;
-    }
-
-    .range-wrap label {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--blue);
-      cursor: pointer;
-    }
-
-    .sim-buttons {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.7rem;
-    }
-
-    .sim-button {
-      min-height: 2.9rem;
-      border: 1px solid rgba(124, 177, 255, 0.18);
-      border-radius: 0.95rem;
-      background: rgba(110, 168, 255, 0.08);
-      color: var(--text);
-      cursor: pointer;
-      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-    }
-
-    .sim-button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(110, 168, 255, 0.38);
-    }
-
-    .sim-button.warning {
-      background: rgba(255, 200, 111, 0.08);
-      border-color: rgba(255, 200, 111, 0.24);
-    }
-
-    .sim-button.danger {
-      background: rgba(255, 143, 143, 0.08);
-      border-color: rgba(255, 143, 143, 0.24);
-    }
-
-    .sim-button.success {
-      background: rgba(90, 215, 160, 0.08);
-      border-color: rgba(90, 215, 160, 0.24);
-    }
-
-    .sim-log {
-      border: 1px solid rgba(124, 177, 255, 0.1);
-      border-radius: 1rem;
-      background: rgba(3, 8, 15, 0.84);
-      padding: 0.85rem;
-      min-height: 13rem;
-      max-height: 18rem;
-      overflow-y: auto;
-      display: grid;
-      gap: 0.45rem;
-      font-size: 0.84rem;
-      color: var(--muted);
-    }
-
-    .sim-log div {
-      border-bottom: 1px dashed rgba(124, 177, 255, 0.08);
-      padding-bottom: 0.4rem;
-    }
-
-    .sim-view {
-      padding: 1.1rem;
-      display: grid;
-      gap: 1rem;
-    }
-
-    .cluster-canvas {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1rem;
-    }
-
-    .sim-node {
-      min-height: 18rem;
-      border-radius: 1.1rem;
-      border: 1px solid rgba(124, 177, 255, 0.14);
-      background: rgba(4, 10, 18, 0.94);
-      padding: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .sim-node.offline {
-      opacity: 0.55;
-      border-color: rgba(255, 143, 143, 0.3);
-    }
-
-    .sim-node header {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      border-bottom: 1px solid rgba(124, 177, 255, 0.1);
-      padding-bottom: 0.6rem;
-    }
-
-    .sim-node header strong {
-      display: block;
-      font-size: 0.96rem;
-    }
-
-    .sim-node header span {
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .sim-pods,
-    .pending-lane {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-      align-content: flex-start;
-    }
-
-    .sim-pod {
-      width: 3.2rem;
-      height: 3.2rem;
-      border-radius: 999px;
-      border: 1px solid rgba(110, 168, 255, 0.3);
-      background: rgba(45, 114, 244, 0.16);
-      color: var(--text);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
-      font-size: 0.76rem;
-    }
-
-    .sim-pod:hover {
-      transform: scale(1.06);
-    }
-
-    .sim-pod.v2 {
-      background: rgba(90, 215, 160, 0.18);
-      border-color: rgba(90, 215, 160, 0.36);
-    }
-
-    .sim-pod.pending {
-      background: rgba(255, 200, 111, 0.12);
-      border-color: rgba(255, 200, 111, 0.34);
-      color: var(--warning);
-    }
-
-    .pending-wrap {
-      border-top: 1px solid rgba(124, 177, 255, 0.1);
-      padding-top: 0.9rem;
-    }
-
-    .pending-wrap h4 {
-      color: var(--muted);
-      margin-bottom: 0.7rem;
-      font-size: 0.9rem;
-    }
-
-    .cleanup-grid,
-    .finish-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-    }
+    .impact-local { background: rgba(90, 215, 160, 0.1); color: #5ad7a0; }
+    .impact-control { background: rgba(110, 168, 255, 0.1); color: var(--blue); }
+    .impact-worker { background: rgba(255, 200, 111, 0.1); color: #ffc86f; }
+    .impact-data { background: rgba(255, 143, 143, 0.1); color: #ff8f8f; }
 
     footer {
-      padding: 2rem 0 4rem;
+      text-align: center;
+      padding: 4rem 0;
       color: var(--muted);
-      font-size: 0.92rem;
+      border-top: 1px solid var(--line);
     }
 
-    footer a {
-      color: var(--text);
-      border-bottom: 1px solid rgba(124, 177, 255, 0.22);
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    @media (max-width: 1180px) {
-      .guide-layer {
-        margin-top: 0;
-        padding-top: 1rem;
-      }
-
-      .route-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .chapter-bar {
-        grid-template-columns: 1fr;
-      }
-
-      .chapter-state {
-        min-width: 0;
-        padding-right: 0;
-        padding-bottom: 0.75rem;
-        border-right: none;
-        border-bottom: 1px solid rgba(124, 177, 255, 0.12);
-      }
-
-      .hero-grid,
-      .page-grid,
-      .sim-shell,
-      .manifest-layout,
-      .lab-body,
-      .flow-grid,
-      .cleanup-grid,
-      .finish-grid,
-      .two-up {
-        grid-template-columns: 1fr;
-      }
-
-      .rail {
-        position: static;
-        order: 2;
-      }
-
-      .hero {
-        padding-bottom: 3rem;
-      }
-
-      .hero-grid {
-        min-height: auto;
-      }
-
-      .content {
-        order: 1;
-      }
-
-      .section::before {
-        display: none;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .route-strip,
-      .stage-grid,
-      .pillars,
-      .option-grid,
-      .poster-footer,
-      .worker-grid,
-      .cluster-canvas,
-      .architecture-grid,
-      .flow-strip {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .flow-step:not(:last-child)::after {
-        display: none;
-      }
-    }
-
-    @media (max-width: 720px) {
-      .shell {
-        width: min(100% - 1.25rem, 1400px);
-      }
-
-      .route-strip,
-      .chapter-bar,
-      .hero-notes,
-      .stage-grid,
-      .pillars,
-      .option-grid,
-      .poster-footer,
-      .worker-grid,
-      .cluster-canvas,
-      .architecture-grid,
-      .flow-strip,
-      .search-row,
-      .sim-buttons,
-      .stat-grid {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        max-width: 8ch;
-      }
-
-      .stack-item,
-      .micro-item,
-      .control-row {
-        grid-template-columns: 1fr;
-      }
-
-      .lab summary {
-        grid-template-columns: 1fr;
-      }
-
-      .lab summary::after {
-        top: 1rem;
-      }
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="shell hero-grid">
-      <div class="hero-copy">
-        <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Cloud &amp; Infrastructure</div>
-        <div class="eyebrow">Level 14 / Orchestration</div>
-        <h1>Kubernetes Lab Guide</h1>
-        <p class="hero-summary">
-          Learn Kubernetes like an operator, not like someone memorizing random YAML. This page
-          walks from the mental model to real workloads, networking, storage, security, commands,
-          laptop labs, cleanup routines, and failure drills you can run safely on your own machine.
-        </p>
-        <div class="hero-actions">
-          <a class="button primary" href="#roadmap">Start the roadmap</a>
-          <a class="button secondary" href="#command-atlas">Open the command atlas</a>
-        </div>
-        <ul class="hero-notes">
-          <li>
-            <strong>Built for beginners</strong>
-            Plain English first, production thinking second, command fluency throughout.
-          </li>
-          <li>
-            <strong>Run it locally</strong>
-            Includes kind, kubectl, laptop drills, rollback practice, and cleanup steps.
-          </li>
-          <li>
-            <strong>Reference after learning</strong>
-            Keep the cheat sheet, troubleshooting flow, and simulator open while you work.
-          </li>
-        </ul>
-      </div>
+  <div class="container">
+    <header>
+      <p style="margin-bottom: 0.5rem;"><a href="index.html" style="color: var(--blue); text-decoration: none;">&larr; Back to Hub</a></p>
+      <h1>Kubernetes: The Clear Path</h1>
+      <p class="intro">
+        A minimalistic guide to learning Kubernetes. Follow these steps sequentially to move from zero to cluster operator.
+      </p>
+    </header>
 
-      <div class="hero-visual">
-        <div class="poster">
-          <div class="poster-top">
-            <div class="poster-tag">Desired state</div>
-            <div class="poster-tag">Control loops</div>
-            <div class="poster-tag">Stable networking</div>
-            <div class="poster-tag">Self-healing</div>
-          </div>
-
-          <div class="poster-core">
-            <section class="poster-panel">
-              <h2>Control Plane</h2>
-              <div class="control-stack">
-                <div class="control-row">
-                  <div>
-                    <strong>API Server</strong>
-                    <span>The front door that receives every change.</span>
-                  </div>
-                  <div>
-                    <strong>etcd</strong>
-                    <span>The source of truth for cluster state.</span>
-                  </div>
-                </div>
-                <div class="control-row">
-                  <div>
-                    <strong>Scheduler</strong>
-                    <span>Picks the best node for new Pods.</span>
-                  </div>
-                  <div>
-                    <strong>Controllers</strong>
-                    <span>Continuously pull actual state back to desired state.</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="poster-panel">
-              <h3>Worker Nodes</h3>
-              <div class="worker-grid">
-                <article class="worker">
-                  <strong>Node A</strong>
-                  <span>kubelet + runtime + kube-proxy</span>
-                  <div class="pod-stack">
-                    <div class="pod-chip">web</div>
-                    <div class="pod-chip">api</div>
-                    <div class="pod-chip alt">v2</div>
-                  </div>
-                </article>
-                <article class="worker">
-                  <strong>Node B</strong>
-                  <span>Services route traffic here too</span>
-                  <div class="pod-stack">
-                    <div class="pod-chip">web</div>
-                    <div class="pod-chip">api</div>
-                    <div class="pod-chip pending">dns</div>
-                  </div>
-                </article>
-                <article class="worker">
-                  <strong>Node C</strong>
-                  <span>Stateful workloads need storage attached</span>
-                  <div class="pod-stack">
-                    <div class="pod-chip">db</div>
-                    <div class="pod-chip">job</div>
-                  </div>
-                </article>
-              </div>
-            </section>
-          </div>
-
-          <div class="poster-footer">
-            <div class="poster-stats">
-              <strong>Service</strong>
-              <span>Stable address while Pods churn underneath.</span>
-            </div>
-            <div class="poster-stats">
-              <strong>Probe + Events</strong>
-              <span>Health checks plus cluster signals tell you what broke.</span>
-            </div>
-            <div class="poster-stats">
-              <strong>Namespace</strong>
-              <span>Separate teams, apps, and experiments without separate clusters.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="guide-layer">
-    <div class="shell guide-grid">
-      <nav class="route-strip" aria-label="Quick study routes">
-        <a class="route-link" href="#roadmap">
-          <span>Start here</span>
-          <strong>Learn in order</strong>
-          <p>Use the roadmap when you want the full 0-to-hero path without skipping foundations.</p>
-        </a>
-        <a class="route-link" href="#command-atlas">
-          <span>Use it fast</span>
-          <strong>Jump to commands</strong>
-          <p>Open the command atlas when you need kubectl and kind actions with plain-English context.</p>
-        </a>
-        <a class="route-link" href="#labs">
-          <span>Get hands-on</span>
-          <strong>Run laptop labs</strong>
-          <p>Practice on your own machine with safe drills, guided setups, and explicit cleanup steps.</p>
-        </a>
-        <a class="route-link" href="#troubleshooting">
-          <span>Fix stuff</span>
-          <strong>Debug with a flow</strong>
-          <p>Follow the troubleshooting path when you want a calm order of operations during failures.</p>
-        </a>
-      </nav>
-
-      <div class="chapter-bar" aria-label="Chapter navigation">
-        <div class="chapter-state">
-          <span>Now reading</span>
-          <strong id="chapterState">Roadmap</strong>
-        </div>
-        <nav class="chapter-track">
-          <a class="chapter-link active" data-nav-target="quick-start" href="#quick-start">Quick Start</a>
-          <a class="chapter-link" data-nav-target="core-concepts" href="#core-concepts">Core Concepts</a>
-          <a class="chapter-link" data-nav-target="visual-explorer" href="#visual-explorer">Visual Explorer</a>
-          <a class="chapter-link" data-nav-target="command-atlas" href="#command-atlas">Commands</a>
-          <a class="chapter-link" data-nav-target="labs-basic" href="#labs-basic">Core Operations</a>
-          <a class="chapter-link" data-nav-target="labs-moderate" href="#labs-moderate">Infrastructure & State</a>
-          <a class="chapter-link" data-nav-target="labs-senior" href="#labs-senior">Advanced Orchestration</a>
-          <a class="chapter-link" data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
-          <a class="chapter-link" data-nav-target="simulator" href="#simulator">Simulator</a>
-          <a class="chapter-link" data-nav-target="cleanup" href="#cleanup">Cleanup</a>
-          <a class="chapter-link" data-nav-target="finish" href="#finish">Next Steps</a>
-        </nav>
-      </div>
-    </div>
-  </div>
-
-  <main class="shell page-grid">
-    <aside class="rail" aria-label="Page navigation">
-      <div class="rail-block">
-        <h2>On this page</h2>
-        <nav class="rail-links">
-          <a class="active" data-nav-target="quick-start" href="#quick-start">Quick Start</a>
-          <a data-nav-target="core-concepts" href="#core-concepts">Core Concepts</a>
-          <a data-nav-target="visual-explorer" href="#visual-explorer">Visual explorer</a>
-          <a data-nav-target="command-atlas" href="#command-atlas">Command atlas</a>
-          <a data-nav-target="labs-basic" href="#labs-basic">Core Operations</a>
-          <a data-nav-target="labs-moderate" href="#labs-moderate">Infrastructure & State</a>
-          <a data-nav-target="labs-senior" href="#labs-senior">Advanced Orchestration</a>
-          <a data-nav-target="troubleshooting" href="#troubleshooting">Troubleshooting</a>
-          <a data-nav-target="simulator" href="#simulator">Simulator</a>
-          <a data-nav-target="cleanup" href="#cleanup">Cleanup</a>
-          <a data-nav-target="finish" href="#finish">Next Steps</a>
-        </nav>
-      </div>
-
-      <div class="rail-block">
-        <h2>Study checklist</h2>
-        <div class="checklist">
-          <label class="check-item"><input type="checkbox" data-checkpoint="foundations" /> I understand the reconciliation loop and control plane.</label>
-          <label class="check-item"><input type="checkbox" data-checkpoint="workloads" /> I can select the right workload type for any application.</label>
-          <label class="check-item"><input type="checkbox" data-checkpoint="platform" /> I can configure persistence (PVCs) and ingress routing.</label>
-          <label class="check-item"><input type="checkbox" data-checkpoint="scheduling" /> I can control pod scheduling with node affinity and labels.</label>
-          <label class="check-item"><input type="checkbox" data-checkpoint="advanced" /> I can implement basic RBAC and sidecar patterns.</label>
-          <label class="check-item"><input type="checkbox" data-checkpoint="labs" /> I have completed at least one lab from each tier (Basic to Senior).</label>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <p class="progress-copy" id="progressCopy">0 / 6 complete</p>
-      </div>
-    </aside>
-
-    <div class="content">
-      <section class="section" id="quick-start">
-        <div class="section-label">Quick Start</div>
-        <h2>One-Script Environment Setup</h2>
-        <p class="section-intro">
-          Running Kubernetes locally requires Docker, kubectl, and Kind. We've created a fool-proof 
-          script to audit your dependencies and install missing tools automatically.
-        </p>
-
-        <div class="download-section" style="background: linear-gradient(180deg, #161b22 0%, #0d1117 100%); border: 1px solid var(--blue); border-radius: 12px; padding: 2rem; margin-top: 1rem;">
-          <h3 style="color: var(--blue); border-bottom:1px solid rgba(88,166,255,0.2); padding-bottom:10px; margin-bottom: 1.5rem;">
-            Automated Environment Audit
-          </h3>
-          <p style="color:var(--muted); margin-bottom: 1.5rem;">
-            This script works on <strong>macOS</strong>, <strong>Linux</strong>, and <strong>WSL (Windows)</strong>. 
-            It checks if you have the necessary tools and offers interactive installation if something is missing.
-          </p>
-
-          <div class="code-block" style="background: #05080d; border-radius: 8px; padding: 1.2rem; border: 1px solid var(--line);">
-            <div class="code-header" style="color: var(--muted); font-size: 0.8rem; margin-bottom: 0.8rem;"><span>Terminal</span></div>
-            <pre style="color: var(--blue); font-family: var(--font-mono); font-size: 0.95rem; margin: 0;"><code># Download and run the setup script
+    <!-- STEP 1: SETUP -->
+    <section id="setup">
+      <span class="step-number">Step 01</span>
+      <h2>Environment Setup</h2>
+      <p>Before you can run a cluster, you need <code>docker</code>, <code>kubectl</code>, and <code>kind</code>. Use this script to audit your machine and install what's missing.</p>
+      
+      <div class="code-block">
+        <pre><code># Download and run the setup script
 curl -fsSL https://raw.githubusercontent.com/bobsnadenica/tech-hub/main/setup_k8s.sh -o setup_k8s.sh
 chmod +x setup_k8s.sh
 ./setup_k8s.sh</code></pre>
-          </div>
-          
-          <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-            <a href="setup_k8s.sh" download class="sim-button" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-              Download setup_k8s.sh
-            </a>
-          </div>
+      </div>
+      <p>Once finished, verify your installation with: <code>kind version</code> and <code>kubectl version --client</code>.</p>
+    </section>
+
+    <!-- STEP 2: CONCEPTS -->
+    <section id="concepts">
+      <span class="step-number">Step 02</span>
+      <h2>The Mental Model</h2>
+      <p>Kubernetes is a <strong>reconciliation loop</strong>. You declare what you want (Desired State), and Kubernetes works to make it happen (Actual State).</p>
+      
+      <div class="grid-2">
+        <div class="panel">
+          <h3>The Brain (Control Plane)</h3>
+          <ul style="list-style: none; color: var(--muted); font-size: 0.95rem;">
+            <li style="margin-bottom: 0.5rem;"><strong>API Server:</strong> The front door for all commands.</li>
+            <li style="margin-bottom: 0.5rem;"><strong>etcd:</strong> The database that stores the cluster's truth.</li>
+            <li><strong>Scheduler:</strong> Decides which node gets which work.</li>
+          </ul>
         </div>
-      </section>
-      <section class="section" id="core-concepts">
-        <div class="section-label">Core Concepts</div>
-        <h2>The 60-Second Kubernetes Mental Model</h2>
-        <p class="section-intro">
-          Kubernetes is a distributed control system that keeps your application fleet close to the state you declared. 
-          You describe **intent** (YAML), and the cluster handles the **execution**.
-        </p>
-
-        <div class="flow-strip">
-          <div class="flow-step"><span>1</span>You apply a manifest (Intent).</div>
-          <div class="flow-step"><span>2</span>API Server validates & etcd stores it.</div>
-          <div class="flow-step"><span>3</span>Scheduler picks a Node for the Pod.</div>
-          <div class="flow-step"><span>4</span>Kubelet starts the containers.</div>
-          <div class="flow-step"><span>5</span>Controllers monitor & heal (Loop).</div>
-          <div class="flow-step"><span>6</span>Services provide stable access.</div>
+        <div class="panel">
+          <h3>The Muscle (Worker Nodes)</h3>
+          <ul style="list-style: none; color: var(--muted); font-size: 0.95rem;">
+            <li style="margin-bottom: 0.5rem;"><strong>Kubelet:</strong> The agent that runs containers on the node.</li>
+            <li><strong>Kube-Proxy:</strong> Handles the networking and routing.</li>
+          </ul>
         </div>
+      </div>
+    </section>
 
-        <div class="architecture-grid" style="margin-top: 2rem;">
-          <div class="panel">
-            <h3>Control Plane (The Brain)</h3>
-            <div class="stack-list">
-              <div class="stack-item"><strong>API Server</strong><p>The entry point for kubectl and controllers.</p></div>
-              <div class="stack-item"><strong>etcd</strong><p>Source of truth database for cluster state.</p></div>
-              <div class="stack-item"><strong>Scheduler</strong><p>Decides which node gets which Pod.</p></div>
-            </div>
-          </div>
-          <div class="panel">
-            <h3>Worker Nodes (The Muscle)</h3>
-            <div class="stack-list">
-              <div class="stack-item"><strong>Kubelet</strong><p>The node agent that ensures containers run.</p></div>
-              <div class="stack-item"><strong>Kube-Proxy</strong><p>Handles Service networking and routing.</p></div>
-              <div class="stack-item"><strong>Container Runtime</strong><p>Actually pulls images and runs containers.</p></div>
-            </div>
-          </div>
-        </div>
+    <!-- STEP 3: RESOURCES -->
+    <section id="resources">
+      <span class="step-number">Step 03</span>
+      <h2>Core Resources</h2>
+      <p>These are the building blocks you will use 90% of the time.</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Pod</code></td><td>The smallest unit; one or more containers.</td></tr>
+          <tr><td><code>Deployment</code></td><td>Manages Pods (scaling, rolling updates).</td></tr>
+          <tr><td><code>Service</code></td><td>A stable IP/DNS name to reach your Pods.</td></tr>
+          <tr><td><code>Namespace</code></td><td>A logical boundary to isolate projects.</td></tr>
+          <tr><td><code>ConfigMap</code></td><td>Injects configuration into your app.</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-        <div class="table-wrap" style="margin-top: 2rem;">
-          <table class="matrix-table">
-            <thead>
-              <tr>
-                <th>Object</th>
-                <th>Use it for...</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><code>Deployment</code></td><td>Stateless apps, scaling, and rolling updates.</td></tr>
-              <tr><td><code>StatefulSet</code></td><td>Databases needing stable identity and storage.</td></tr>
-              <tr><td><code>Service</code></td><td>Stable virtual IP and DNS name for Pods.</td></tr>
-              <tr><td><code>Ingress</code></td><td>External HTTP/HTTPS access to cluster services.</td></tr>
-              <tr><td><code>ConfigMap / Secret</code></td><td>Injecting configuration and sensitive data.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+    <!-- STEP 4: LABS -->
+    <section id="labs">
+      <span class="step-number">Step 04</span>
+      <h2>Practical Labs</h2>
+      <p>Work through these drills on your local machine to build muscle memory.</p>
 
-      <section class="section" id="visual-explorer">
-        <div class="section-label">Interactive Explorer</div>
-        <h2>Visual Command Path</h2>
-        <p class="section-intro">
-          Select a command to see how it moves through the cluster architecture. Understanding the
-          data flow helps you troubleshoot where things might be getting stuck.
-        </p>
-
-        <div class="explorer-grid">
-          <nav class="explorer-nav">
-            <button class="explorer-btn active" onclick="exploreCommand('apply')">
-              <strong>kubectl apply</strong>
-              <span>Update desired state</span>
-            </button>
-            <button class="explorer-btn" onclick="exploreCommand('get')">
-              <strong>kubectl get pods</strong>
-              <span>Fetch current state</span>
-            </button>
-            <button class="explorer-btn" onclick="exploreCommand('logs')">
-              <strong>kubectl logs</strong>
-              <span>Stream container output</span>
-            </button>
-            <button class="explorer-btn" onclick="exploreCommand('exec')">
-              <strong>kubectl exec</strong>
-              <span>Interactive shell access</span>
-            </button>
-            <button class="explorer-btn" onclick="exploreCommand('port-forward')">
-              <strong>kubectl port-forward</strong>
-              <span>Bridge local to cluster</span>
-            </button>
-          </nav>
-
-          <div class="explorer-viz">
-            <div class="viz-container">
-              <!-- Column 1: Client/Edge -->
-              <div style="display: grid; gap: 4rem;">
-                <div class="viz-node" id="node-client">
-                  <strong>Your Laptop</strong>
-                  <span>kubectl client</span>
-                </div>
-              </div>
-
-              <!-- Column 2: Control Plane -->
-              <div style="display: grid; gap: 2rem;">
-                <div class="viz-node" id="node-apiserver">
-                  <strong>API Server</strong>
-                  <span>The gateway</span>
-                </div>
-                <div class="viz-node" id="node-etcd">
-                  <strong>etcd</strong>
-                  <span>The database</span>
-                </div>
-                <div class="viz-node" id="node-controller">
-                  <strong>Controllers</strong>
-                  <span>The logic</span>
-                </div>
-              </div>
-
-              <!-- Column 3: Worker Node -->
-              <div style="display: grid; gap: 2rem;">
-                <div class="viz-node" id="node-kubelet">
-                  <strong>Kubelet</strong>
-                  <span>Node agent</span>
-                </div>
-                <div class="viz-node" id="node-pod">
-                  <strong>Pod / Container</strong>
-                  <span>Workload</span>
-                </div>
-              </div>
-
-              <!-- Static Arrows (simplified positions for now) -->
-              <!-- These will be styled/activated by JS -->
-            </div>
-            <div class="explorer-desc" id="explorerDesc">
-              <strong>kubectl apply:</strong> The client sends a YAML manifest to the <strong>API Server</strong>. The API Server validates it and stores the new desired state in <strong>etcd</strong>. The <strong>Controllers</strong> notice the change and instruct the <strong>Kubelet</strong> on a worker node to start the <strong>Pod</strong>.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="command-atlas">
-        <div class="section-label">Command atlas</div>
-        <h2>The kubectl and kind cheat sheet you will actually use</h2>
-        <p class="section-intro">
-          Search by keyword or filter by category. The point is not just to list commands, but to
-          explain what each one is for so you can reach for the right tool quickly under pressure.
-        </p>
-
-        <div class="atlas-toolbar">
-          <div class="search-row">
-            <input id="commandSearch" type="search" placeholder="Search commands, objects, or use cases" />
-            <div class="result-counter" id="commandCounter">33 rows</div>
-          </div>
-          <div class="chip-row">
-            <button class="chip active" data-command-filter="all">All</button>
-            <button class="chip" data-command-filter="setup">Setup</button>
-            <button class="chip" data-command-filter="observe">Observe</button>
-            <button class="chip" data-command-filter="workload">Workloads</button>
-            <button class="chip" data-command-filter="network">Networking</button>
-            <button class="chip" data-command-filter="config">Config</button>
-            <button class="chip" data-command-filter="debug">Debug</button>
-            <button class="chip" data-command-filter="cleanup">Cleanup</button>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="command-table">
-            <thead>
-              <tr>
-                <th>Command</th>
-                <th>Impact Zone</th>
-                <th>What it does</th>
-                <th>When to use it</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="command-row" data-category="setup" data-search="kind create cluster local bootstrap laptop">
-                <td><code>kind create cluster --name k8s-lab</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Creates a disposable local cluster with the name <code>k8s-lab</code>.</td>
-                <td>Best starting point for laptop practice if you want a clean reset path.</td>
-              </tr>
-              <tr class="command-row" data-category="setup observe" data-search="cluster info api server">
-                <td><code>kubectl cluster-info</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows the control plane endpoints and confirms kubectl can reach the cluster.</td>
-                <td>Run it immediately after cluster creation or when you think your context is wrong.</td>
-              </tr>
-              <tr class="command-row" data-category="observe" data-search="nodes wide workers">
-                <td><code>kubectl get nodes -o wide</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Lists worker nodes and adds extra detail like internal IP and runtime information.</td>
-                <td>Use it to confirm the cluster shape and whether nodes are Ready.</td>
-              </tr>
-              <tr class="command-row" data-category="setup" data-search="contexts config clusters switch">
-                <td><code>kubectl config get-contexts</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Shows every cluster context kubectl knows about.</td>
-                <td>Useful when you are juggling local, staging, and production clusters.</td>
-              </tr>
-              <tr class="command-row" data-category="setup" data-search="use context switch">
-                <td><code>kubectl config use-context &lt;name&gt;</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Switches kubectl to a different cluster context.</td>
-                <td>Use this before every serious change so you do not touch the wrong cluster.</td>
-              </tr>
-              <tr class="command-row" data-category="observe" data-search="namespaces get ns">
-                <td><code>kubectl get ns</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Lists namespaces.</td>
-                <td>Good for orientation and for checking whether your target namespace exists yet.</td>
-              </tr>
-              <tr class="command-row" data-category="setup" data-search="create namespace isolation">
-                <td><code>kubectl create namespace lab</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Creates a separate workspace called <code>lab</code>.</td>
-                <td>Use namespaces to keep experiments from mixing with other workloads.</td>
-              </tr>
-              <tr class="command-row" data-category="observe" data-search="pods all namespaces get pods -A">
-                <td><code>kubectl get pods -A</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows every Pod across every namespace.</td>
-                <td>Great when you do not yet know where the problem lives.</td>
-              </tr>
-              <tr class="command-row" data-category="debug" data-search="describe pod events scheduling">
-                <td><code>kubectl describe pod &lt;pod&gt; -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows detailed Pod information, conditions, and recent events.</td>
-                <td>First stop for <code>Pending</code>, restart loops, probe failures, and scheduling issues.</td>
-              </tr>
-              <tr class="command-row" data-category="debug" data-search="logs deployment tail">
-                <td><code>kubectl logs deploy/&lt;name&gt; -n &lt;ns&gt; --tail=100</code></td>
-                <td><span class="impact-badge impact-data">Data Plane</span></td>
-                <td>Shows recent logs from one Pod belonging to a Deployment.</td>
-                <td>Use it when an app is starting but behaving strangely.</td>
-              </tr>
-              <tr class="command-row" data-category="debug" data-search="follow logs container">
-                <td><code>kubectl logs pod/&lt;pod&gt; -c &lt;container&gt; -f -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-data">Data Plane</span></td>
-                <td>Streams logs from a specific container inside a Pod.</td>
-                <td>Use this for multi-container Pods or when you need live output during a test.</td>
-              </tr>
-              <tr class="command-row" data-category="debug" data-search="exec shell pod deployment">
-                <td><code>kubectl exec -it deploy/&lt;name&gt; -n &lt;ns&gt; -- sh</code></td>
-                <td><span class="impact-badge impact-data">Data Plane</span></td>
-                <td>Opens an interactive shell in one container from the Deployment.</td>
-                <td>Helpful for checking environment variables, DNS, mounted files, or app-local state.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="apply yaml manifest">
-                <td><code>kubectl apply -f app.yaml</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Creates or updates resources from a manifest file.</td>
-                <td>This is the declarative workhorse for repeatable changes.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="diff yaml manifest preview">
-                <td><code>kubectl diff -f app.yaml</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Shows what would change if you applied the manifest.</td>
-                <td>Use it before apply when you want a quick safety check.</td>
-              </tr>
-              <tr class="command-row" data-category="cleanup" data-search="delete manifest remove resources">
-                <td><code>kubectl delete -f app.yaml</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Deletes resources created from a manifest file.</td>
-                <td>Best cleanup option when you used a file to create the workload.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="scale deployment replicas">
-                <td><code>kubectl scale deploy/&lt;name&gt; --replicas=5 -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Changes the desired replica count of a Deployment.</td>
-                <td>Use it to test horizontal scaling and self-healing behavior.</td>
-              </tr>
-              <tr class="command-row" data-category="workload observe" data-search="rollout status deployment">
-                <td><code>kubectl rollout status deploy/&lt;name&gt; -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Watches a rollout until it completes or fails.</td>
-                <td>Use it after changing an image or applying a new Deployment spec.</td>
-              </tr>
-              <tr class="command-row" data-category="workload observe" data-search="rollout history revisions">
-                <td><code>kubectl rollout history deploy/&lt;name&gt; -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows rollout revisions for a Deployment.</td>
-                <td>Useful when you need to understand what changed before rolling back.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="rollout undo rollback">
-                <td><code>kubectl rollout undo deploy/&lt;name&gt; -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Rolls a Deployment back to the previous revision.</td>
-                <td>Use it when a new image or config change breaks the app.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="set image update deployment">
-                <td><code>kubectl set image deploy/&lt;name&gt; &lt;container&gt;=nginx:1.27 -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Updates the image for one container in a Deployment.</td>
-                <td>Fast way to trigger and observe a rollout during a lab or emergency fix.</td>
-              </tr>
-              <tr class="command-row" data-category="network observe" data-search="services ingress endpoints">
-                <td><code>kubectl get svc,endpoints,ingress -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Lists network entry points and the backend endpoints behind Services.</td>
-                <td>Use it when traffic does not reach your Pods.</td>
-              </tr>
-              <tr class="command-row" data-category="network" data-search="port forward local browser test">
-                <td><code>kubectl port-forward svc/&lt;name&gt; 8080:80 -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Maps a Service port to your local machine.</td>
-                <td>Best fast path for testing a cluster service from your browser without exposing it publicly.</td>
-              </tr>
-              <tr class="command-row" data-category="config observe" data-search="persistent volume claims pvc storage">
-                <td><code>kubectl get pvc -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows PersistentVolumeClaims and whether storage was bound successfully.</td>
-                <td>Run this whenever a stateful workload is stuck waiting for storage.</td>
-              </tr>
-              <tr class="command-row" data-category="config" data-search="configmap create literal env">
-                <td><code>kubectl create configmap app-config --from-literal=MODE=demo -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Creates a ConfigMap from inline key-value data.</td>
-                <td>Great for labs and for separating config from images.</td>
-              </tr>
-              <tr class="command-row" data-category="config" data-search="secret generic literal">
-                <td><code>kubectl create secret generic app-secret --from-literal=API_KEY=demo -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Creates a Secret from inline key-value data.</td>
-                <td>Use it for sensitive config that should not live in plain manifests.</td>
-              </tr>
-              <tr class="command-row" data-category="debug observe" data-search="events sort timeline">
-                <td><code>kubectl get events -A --sort-by=.metadata.creationTimestamp</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows cluster events in chronological order.</td>
-                <td>Excellent for spotting image pulls, scheduling failures, or probe flaps across namespaces.</td>
-              </tr>
-              <tr class="command-row" data-category="observe" data-search="top pod metrics server resource usage">
-                <td><code>kubectl top pod -n &lt;ns&gt;</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Shows CPU and memory usage for Pods if metrics-server is installed.</td>
-                <td>Use it to confirm resource pressure before changing requests or limits.</td>
-              </tr>
-              <tr class="command-row" data-category="observe config" data-search="explain yaml field help">
-                <td><code>kubectl explain deployment.spec.template.spec.containers</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Prints built-in documentation for a field path in the Kubernetes API.</td>
-                <td>One of the best ways to learn the schema without leaving your terminal.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="cordon node maintenance">
-                <td><code>kubectl cordon &lt;node&gt;</code></td>
-                <td><span class="impact-badge impact-worker">Worker</span></td>
-                <td>Marks a node unschedulable so no new Pods land there.</td>
-                <td>Use it before maintenance or while isolating a suspect node.</td>
-              </tr>
-              <tr class="command-row" data-category="workload debug" data-search="drain node evict maintenance">
-                <td><code>kubectl drain &lt;node&gt; --ignore-daemonsets --delete-emptydir-data</code></td>
-                <td><span class="impact-badge impact-worker">Worker</span></td>
-                <td>Evicts movable Pods from a node to prepare it for maintenance.</td>
-                <td>Use after cordoning when you need the workloads moved elsewhere.</td>
-              </tr>
-              <tr class="command-row" data-category="workload" data-search="uncordon node schedule resume">
-                <td><code>kubectl uncordon &lt;node&gt;</code></td>
-                <td><span class="impact-badge impact-worker">Worker</span></td>
-                <td>Makes the node schedulable again.</td>
-                <td>Use it after maintenance is complete.</td>
-              </tr>
-              <tr class="command-row" data-category="cleanup" data-search="delete namespace lab">
-                <td><code>kubectl delete namespace lab</code></td>
-                <td><span class="impact-badge impact-control">Control Plane</span></td>
-                <td>Deletes the namespace and everything inside it.</td>
-                <td>The safest large cleanup step for labs that were isolated inside one namespace.</td>
-              </tr>
-              <tr class="command-row" data-category="cleanup" data-search="kind delete cluster local remove">
-                <td><code>kind delete cluster --name k8s-lab</code></td>
-                <td><span class="impact-badge impact-local">Local</span></td>
-                <td>Removes the local kind cluster completely.</td>
-                <td>Use this when you want a full reset and no leftover local cluster state.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="muted-mini">Tip: pair <code>kubectl describe</code>, <code>kubectl logs</code>, and <code>kubectl get events</code> before you start guessing. Kubernetes usually tells you what it is unhappy about.</p>
-      </section>
-
-      <section class="section" id="labs-basic">
-        <div class="section-label">Core Operations</div>
-        <h2>Standard Cluster Drills</h2>
-        <p class="section-intro">Essential workflows for managing pods and deployments in any environment.</p>
-        
-        <div style="margin-bottom: 2rem; padding: 1.5rem; border: 1px solid var(--success); border-radius: 1.25rem; background: rgba(90, 215, 160, 0.05);">
-          <h3 style="color: var(--success); margin-bottom: 0.5rem;">🚀 Try Interactive Labs</h3>
-          <p style="color: var(--muted); margin-bottom: 1rem;">We've built downloadable scripts that spin up "broken" clusters for you to fix.</p>
-          <a href="labs.html" class="button primary" style="background: var(--success); color: #05101d;">Go to Interactive Labs</a>
-        </div>
-
-        <div class="lab-list">
-          <details class="lab" open>
-            <summary>
-              <div><span class="lab-kicker">Lab 0</span><h3>Bootstrap a Cluster</h3><p>Create a disposable local cluster using <code>kind</code>.</p></div>
-              <div class="lab-meta">5 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kind create cluster --name k8s-lab
-kubectl cluster-info
-kubectl create namespace lab
-kubectl config set-context --current --namespace=lab</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Goal</h4><p>Set up a safe arena for learning without touching production.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 1</span><h3>Deploy & Access</h3><p>Run your first app and reach it from your browser.</p></div>
-              <div class="lab-meta">10 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl create deployment web --image=nginx:alpine
+      <div class="lab">
+        <div class="lab-header"><h3>Lab 1: Bootstrap & Deploy</h3><span>10 min</span></div>
+        <div class="lab-content">
+          <p>Create a cluster and run your first application.</p>
+          <div class="code-block">
+            <pre><code>kind create cluster --name lab
+kubectl create deployment web --image=nginx:alpine
 kubectl expose deployment web --port=80 --type=ClusterIP
-kubectl port-forward svc/web 8080:80</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>The Service provides a stable name while Port-Forward bridges the cluster to your laptop.</p></div></aside>
-            </div>
-          </details>
+kubectl port-forward svc/web 8080:80</code></pre>
+          </div>
+          <p>Result: Visit <code>localhost:8080</code> in your browser to see Nginx.</p>
+        </div>
+      </div>
 
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 2</span><h3>Scale & Self-Heal</h3><p>Watch K8s fight to maintain your desired state.</p></div>
-              <div class="lab-meta">10 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl scale deployment web --replicas=3
+      <div class="lab">
+        <div class="lab-header"><h3>Lab 2: Scale & Heal</h3><span>5 min</span></div>
+        <div class="lab-content">
+          <p>Watch Kubernetes maintain your desired state.</p>
+          <div class="code-block">
+            <pre><code>kubectl scale deployment web --replicas=3
 kubectl get pods
-kubectl delete pod <name>
-kubectl get pods -w</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>K8s detects the missing Pod and immediately schedules a replacement.</p></div></aside>
-            </div>
-          </details>
+# Kill a pod and watch it restart:
+kubectl delete pod [pod-name]
+kubectl get pods -w</code></pre>
+          </div>
+        </div>
+      </div>
 
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 3</span><h3>Rollout & Rollback</h3><p>Update an app version and undo a mistake.</p></div>
-              <div class="lab-meta">15 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl set image deployment web nginx=nginx:1.27
+      <div class="lab">
+        <div class="lab-header"><h3>Lab 3: Rollout & Rollback</h3><span>10 min</span></div>
+        <div class="lab-content">
+          <p>Update your application version safely.</p>
+          <div class="code-block">
+            <pre><code>kubectl set image deployment web nginx=nginx:1.27
 kubectl rollout status deployment web
-kubectl set image deployment web nginx=nginx:broken-tag
-kubectl rollout undo deployment web</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>Deployment controllers manage the transition between versions for you.</p></div></aside>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <section class="section" id="labs-moderate">
-        <div class="section-label">Infrastructure & State</div>
-        <h2>Platform & Persistence Drills</h2>
-        <p class="section-intro">Workflows for managing configuration, internal networking, and stateful storage.</p>
-
-        <div class="lab-list">
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 4</span><h3>Config & Secrets</h3><p>Inject environment variables and sensitive data.</p></div>
-              <div class="lab-meta">10 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl create configmap app-env --from-literal=DEBUG=true
-kubectl create secret generic db-pass --from-literal=PASSWORD=p@ssword
-kubectl get cm,secret app-env db-pass -o yaml</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Goal</h4><p>Separate your code from your configuration.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 5</span><h3>Internal DNS</h3><p>How Pods find each other within the cluster.</p></div>
-              <div class="lab-meta">10 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl run tracer --image=busybox -it --rm -- nslookup web</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>Pods reach Services using standard DNS names, not volatile IPs.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 6</span><h3>Persistence (PVCs)</h3><p>Make data survive Pod restarts.</p></div>
-              <div class="lab-meta">15 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Apply</span></div><pre><code>apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: task-pv-claim
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 1Gi</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>A PVC allows you to request storage without knowing the underlying disk details.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 7</span><h3>Ingress Controller</h3><p>Route external traffic like a pro.</p></div>
-              <div class="lab-meta">20 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-# Wait for pods to be ready
-kubectl get pods -n ingress-nginx</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Goal</h4><p>Move beyond port-forwarding to standard HTTP/S routing.</p></div></aside>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <section class="section" id="labs-senior">
-        <div class="section-label">Advanced Orchestration</div>
-        <h2>Operator & Security Drills</h2>
-        <p class="section-intro">Patterns for advanced scheduling, multi-container pods, and workload identity.</p>
-
-        <div class="lab-list">
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 8</span><h3>Node Affinity</h3><p>Control exactly where your Pods land.</p></div>
-              <div class="lab-meta">15 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Step 1: Label Node</span></div><pre><code>kubectl label nodes <node-name> disktype=ssd
-# In Deployment YAML:
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: disktype
-          operator: In
-          values: [ssd]</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Goal</h4><p>Ensure high-IOPS apps only run on nodes with SSDs.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 9</span><h3>Sidecar Pattern</h3><p>Add a logging agent to your app Pod.</p></div>
-              <div class="lab-meta">15 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Pod Spec</span></div><pre><code>containers:
-- name: app
-  image: my-app
-- name: sidecar
-  image: fluentd</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Notice</h4><p>Containers in the same Pod share the same network (localhost) and storage volumes.</p></div></aside>
-            </div>
-          </details>
-
-          <details class="lab">
-            <summary>
-              <div><span class="lab-kicker">Lab 10</span><h3>RBAC (Role Based Access)</h3><p>Grant limited permissions to a workload.</p></div>
-              <div class="lab-meta">20 min</div>
-            </summary>
-            <div class="lab-body">
-              <div class="code-block"><div class="code-header"><span>Run</span></div><pre><code>kubectl create serviceaccount app-sa
-kubectl create role pod-reader --verb=get,list --resource=pods
-kubectl create rolebinding read-pods --role=pod-reader --serviceaccount=lab:app-sa</code></pre></div>
-              <aside class="lab-side"><div class="lab-box"><h4>Goal</h4><p>Follow the Principle of Least Privilege for your apps.</p></div></aside>
-            </div>
-          </details>
-        </div>
-      </section>
-
-
-      <section class="section" id="troubleshooting">
-        <div class="section-label">Troubleshooting</div>
-        <h2>A simple debugging flow beats panic every time</h2>
-        <p class="section-intro">
-          The mistake most beginners make is jumping straight into random fixes. Start with object
-          state, then events, then logs, then networking, then deeper runtime inspection. The order
-          matters because it cuts guesswork.
-        </p>
-
-        <div class="flow-grid">
-          <div class="flow-block">
-            <h3>60-second debug sequence</h3>
-            <div class="debug-sequence">
-              <div class="debug-step">
-                <span>1</span>
-                <div>
-                  <strong>Check the objects</strong>
-                  <p><code>kubectl get pods,svc,deploy -n app</code> tells you whether the problem is existence, readiness, or routing.</p>
-                </div>
-              </div>
-              <div class="debug-step">
-                <span>2</span>
-                <div>
-                  <strong>Describe before you guess</strong>
-                  <p><code>kubectl describe pod &lt;pod&gt; -n app</code> surfaces scheduling, image pull, probe, and mount errors.</p>
-                </div>
-              </div>
-              <div class="debug-step">
-                <span>3</span>
-                <div>
-                  <strong>Read logs</strong>
-                  <p><code>kubectl logs</code> tells you whether the app crashed, misconfigured itself, or simply never started.</p>
-                </div>
-              </div>
-              <div class="debug-step">
-                <span>4</span>
-                <div>
-                  <strong>Check the network path</strong>
-                  <p>Compare Services, endpoints, DNS, and port-forward results before assuming the app is broken.</p>
-                </div>
-              </div>
-              <div class="debug-step">
-                <span>5</span>
-                <div>
-                  <strong>Inspect from inside</strong>
-                  <p><code>kubectl exec</code> helps you verify files, env vars, service reachability, and DNS resolution from the workload itself.</p>
-                </div>
-              </div>
-              <div class="debug-step">
-                <span>6</span>
-                <div>
-                  <strong>Read events for timing</strong>
-                  <p><code>kubectl get events -A --sort-by=.metadata.creationTimestamp</code> often reveals the exact moment things started failing.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="symptoms">
-            <h3>Common signals and what they usually mean</h3>
-            <div class="table-wrap">
-              <table class="symptom-table">
-                <thead>
-                  <tr>
-                    <th>Signal</th>
-                    <th>Likely meaning</th>
-                    <th>First move</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><code>Pending</code></td>
-                    <td>The Pod has not been scheduled or cannot mount required resources.</td>
-                    <td><code>kubectl describe pod</code></td>
-                  </tr>
-                  <tr>
-                    <td><code>CrashLoopBackOff</code></td>
-                    <td>The container starts, fails, and keeps getting restarted.</td>
-                    <td><code>kubectl logs</code> and probe review</td>
-                  </tr>
-                  <tr>
-                    <td><code>ImagePullBackOff</code></td>
-                    <td>The runtime cannot pull the image, often due to a bad tag or auth issue.</td>
-                    <td>Check image name and registry credentials</td>
-                  </tr>
-                  <tr>
-                    <td><code>Ready 0/1</code></td>
-                    <td>The container is running but not healthy enough to receive traffic.</td>
-                    <td>Inspect readiness probes and app startup</td>
-                  </tr>
-                  <tr>
-                    <td>Service has no endpoints</td>
-                    <td>The selector does not match healthy Pods.</td>
-                    <td>Compare Service selector with Pod labels</td>
-                  </tr>
-                  <tr>
-                    <td><code>PVC Pending</code></td>
-                    <td>Storage has not been provisioned or bound yet.</td>
-                    <td>Check StorageClass and provisioner state</td>
-                  </tr>
-                  <tr>
-                    <td><code>OOMKilled</code></td>
-                    <td>The container exceeded its memory limit.</td>
-                    <td>Review memory usage and resource limits</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+# Undo a mistake:
+kubectl rollout undo deployment web</code></pre>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="section" id="simulator">
-        <div class="section-label">Interactive simulator</div>
-        <h2>Watch desired state, rollouts, self-healing, and node failure play out</h2>
-        <p class="section-intro">
-          You are the operator. Change the desired replica count, roll out a new version, kill Pods,
-          take a node offline, and watch the control loop push the cluster back toward the declared
-          state. Click any Pod to terminate it on purpose.
-        </p>
+    <!-- STEP 5: COMMANDS -->
+    <section id="commands">
+      <span class="step-number">Step 05</span>
+      <h2>Command Reference</h2>
+      <p>A searchable guide for common <code>kubectl</code> and <code>kind</code> actions.</p>
 
-        <div class="sim-shell">
-          <section class="sim-panel">
-            <div class="sim-controls">
-              <div class="stat-grid">
-                <div class="sim-stat"><span>Desired</span><strong id="simDesired">4</strong></div>
-                <div class="sim-stat"><span>Running</span><strong id="simRunning">0</strong></div>
-                <div class="sim-stat"><span>Pending</span><strong id="simPending">0</strong></div>
-                <div class="sim-stat"><span>Version target</span><strong id="simVersion">v1</strong></div>
-              </div>
-
-              <div class="range-wrap">
-                <label for="replicaSlider"><span>Desired replicas</span><strong id="replicaLabel">4</strong></label>
-                <input id="replicaSlider" type="range" min="0" max="9" value="4" />
-              </div>
-
-              <div class="sim-buttons">
-                <button class="sim-button success" id="rolloutBtn">Roll out v2</button>
-                <button class="sim-button warning" id="rollbackBtn">Rollback to v1</button>
-                <button class="sim-button danger" id="killRandomBtn">Kill random Pod</button>
-                <button class="sim-button" id="toggleNodeBtn">Fail node B</button>
-              </div>
-
-              <div>
-                <h3>Event log</h3>
-                <div class="sim-log" id="simLog"></div>
-              </div>
-            </div>
-          </section>
-
-          <section class="sim-panel">
-            <div class="sim-view">
-              <h3>Cluster view</h3>
-              <div class="cluster-canvas">
-                <article class="sim-node" id="sim-node-a">
-                  <header>
-                    <div>
-                      <strong>worker-a</strong>
-                      <span>capacity 3</span>
-                    </div>
-                    <span id="nodeStatusA">Ready</span>
-                  </header>
-                  <div class="sim-pods" id="simPodsA"></div>
-                </article>
-                <article class="sim-node" id="sim-node-b">
-                  <header>
-                    <div>
-                      <strong>worker-b</strong>
-                      <span>capacity 3</span>
-                    </div>
-                    <span id="nodeStatusB">Ready</span>
-                  </header>
-                  <div class="sim-pods" id="simPodsB"></div>
-                </article>
-                <article class="sim-node" id="sim-node-c">
-                  <header>
-                    <div>
-                      <strong>worker-c</strong>
-                      <span>capacity 3</span>
-                    </div>
-                    <span id="nodeStatusC">Ready</span>
-                  </header>
-                  <div class="sim-pods" id="simPodsC"></div>
-                </article>
-              </div>
-              <div class="pending-wrap">
-                <h4>Pending queue</h4>
-                <div class="pending-lane" id="simPendingLane"></div>
-              </div>
-            </div>
-          </section>
+      <div class="atlas-toolbar">
+        <input id="commandSearch" type="search" placeholder="Search commands (e.g. logs, deploy, delete)..." />
+        <div class="chip-row">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="setup">Setup</button>
+          <button class="chip" data-filter="observe">Observe</button>
+          <button class="chip" data-filter="debug">Debug</button>
+          <button class="chip" data-filter="workload">Workloads</button>
         </div>
-      </section>
+      </div>
 
-      <section class="section" id="cleanup">
-        <div class="section-label">Cleanup</div>
-        <h2>Always leave your local environment clean and boring</h2>
-        <p class="section-intro">
-          Good cleanup is part of learning. If you do not reset your namespaces, contexts, and local
-          clusters, the next lab becomes harder to trust. Reverse the creation order whenever
-          possible and delete at the highest safe boundary.
-        </p>
+      <div style="overflow-x: auto;">
+        <table id="commandTable">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Impact</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cmd-row" data-cat="setup">
+              <td><code>kind create cluster</code></td>
+              <td><span class="impact-badge impact-local">Local</span></td>
+              <td>Creates a local cluster.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="observe">
+              <td><code>kubectl get pods</code></td>
+              <td><span class="impact-badge impact-control">Control</span></td>
+              <td>Lists all pods in the current namespace.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="observe">
+              <td><code>kubectl get nodes</code></td>
+              <td><span class="impact-badge impact-control">Control</span></td>
+              <td>Shows cluster health and node status.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="debug">
+              <td><code>kubectl describe pod [name]</code></td>
+              <td><span class="impact-badge impact-control">Control</span></td>
+              <td>Deep dive into pod events and status.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="debug">
+              <td><code>kubectl logs [name]</code></td>
+              <td><span class="impact-badge impact-data">Data</span></td>
+              <td>Streams container logs.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="debug">
+              <td><code>kubectl exec -it [name] -- sh</code></td>
+              <td><span class="impact-badge impact-data">Data</span></td>
+              <td>Opens a shell inside a container.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="workload">
+              <td><code>kubectl apply -f [file.yaml]</code></td>
+              <td><span class="impact-badge impact-control">Control</span></td>
+              <td>Apply a configuration file.</td>
+            </tr>
+            <tr class="cmd-row" data-cat="workload">
+              <td><code>kubectl delete -f [file.yaml]</code></td>
+              <td><span class="impact-badge impact-control">Control</span></td>
+              <td>Remove resources defined in a file.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-        <div class="cleanup-grid">
-          <article class="cleanup-column">
-            <h3>Fast cleanup checklist</h3>
-            <ul>
-              <li>Stop any active <code>kubectl port-forward</code> session with <code>Ctrl+C</code>.</li>
-              <li>Delete the namespace if all lab resources live there: <code>kubectl delete namespace lab</code>.</li>
-              <li>Delete file-based resources with <code>kubectl delete -f file.yaml</code> when you used manifests.</li>
-              <li>Reset the active namespace if you changed it: <code>kubectl config set-context --current --namespace=default</code>.</li>
-              <li>Delete the whole local cluster when you want a guaranteed fresh start: <code>kind delete cluster --name k8s-lab</code>.</li>
-            </ul>
-          </article>
-          <article class="cleanup-column">
-            <h3>What not to forget</h3>
-            <ul>
-              <li>Secrets and ConfigMaps survive until you delete them. They do not disappear just because a Pod did.</li>
-              <li>Stateful workloads may leave PVCs behind even after the app is gone, depending on reclaim policy and storage backend.</li>
-              <li>Namespaces delete asynchronously. Wait until they are actually gone before assuming the cluster is clean.</li>
-              <li>Context mistakes are real. Run <code>kubectl config get-contexts</code> before a destructive command if you work with multiple clusters.</li>
-            </ul>
-          </article>
+    <!-- STEP 6: TROUBLESHOOTING & CLEANUP -->
+    <section id="troubleshooting">
+      <span class="step-number">Step 06</span>
+      <h2>Troubleshooting & Cleanup</h2>
+      
+      <div class="panel" style="margin-bottom: 2rem;">
+        <h3>The Debug Flow</h3>
+        <p style="margin-bottom: 0;">1. <code>get pods</code> (Is it running?) &rarr; 2. <code>describe pod</code> (What do events say?) &rarr; 3. <code>logs</code> (What does the app say?) &rarr; 4. <code>exec</code> (Inspect from inside).</p>
+      </div>
+
+      <div class="panel">
+        <h3>Cleanup</h3>
+        <p>When you're done, always clean up to save resources.</p>
+        <div class="code-block">
+          <pre><code># Delete the namespace
+kubectl delete namespace lab
+# Or delete the whole cluster
+kind delete cluster --name lab</code></pre>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="section" id="finish">
-        <div class="section-label">Next Steps</div>
-        <h2>Beyond the basics: Your production path</h2>
-        <p class="section-intro">
-          If you can manage the control plane, deploy applications, and handle rollbacks, you have
-          the foundation. The next stage involves scaling these patterns with automation and GitOps.
-        </p>
-
-        <div class="finish-grid">
-          <article class="panel">
-            <h3>Next practice targets</h3>
-            <ul>
-              <li>Add readiness and liveness probes to a real sample app.</li>
-              <li>Mount config through a ConfigMap and sensitive values through a Secret.</li>
-              <li>Run a StatefulSet with a PersistentVolumeClaim and verify data survives Pod replacement.</li>
-              <li>Introduce Helm after raw manifests feel readable.</li>
-              <li>Practice node maintenance with cordon, drain, and uncordon on a non-critical cluster.</li>
-            </ul>
-          </article>
-          <article class="panel">
-            <h3>Related pages in this hub</h3>
-            <p>Once this page feels comfortable, pair it with the surrounding topics so the full platform story clicks.</p>
-            <ul>
-              <li><a href="containers.html">Containers &amp; Docker</a> for the packaging layer underneath Kubernetes.</li>
-              <li><a href="helm.html">Helm</a> for templating and repeatable Kubernetes releases.</li>
-              <li><a href="cicd.html">CI/CD</a> for how manifests and images move into clusters safely.</li>
-              <li><a href="monitoring.html">Monitoring</a> for what to watch once your apps are running.</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <footer>
-        Kubernetes becomes much less intimidating once you stop treating it like a bucket of YAML and start treating it like an operating model for applications.
-      </footer>
-    </div>
-  </main>
+    <footer>
+      <p>Kubernetes is an operating model, not just a tool. Master the flow, not just the YAML.</p>
+    </footer>
+  </div>
 
   <script>
-    const progressKey = "kubernetes-zero-to-hero-progress";
-    const checkpoints = document.querySelectorAll("[data-checkpoint]");
-    const progressFill = document.getElementById("progressFill");
-    const progressCopy = document.getElementById("progressCopy");
+    const searchInput = document.getElementById('commandSearch');
+    const tableRows = document.querySelectorAll('.cmd-row');
+    const chips = document.querySelectorAll('.chip');
 
-    function loadChecklist() {
-      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
-      checkpoints.forEach((checkbox) => {
-        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+    function filterTable() {
+      const term = searchInput.value.toLowerCase();
+      const activeFilter = document.querySelector('.chip.active').dataset.filter;
+
+      tableRows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const category = row.dataset.cat;
+        const matchesSearch = text.includes(term);
+        const matchesFilter = activeFilter === 'all' || category === activeFilter;
+
+        row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
       });
-      updateChecklist();
     }
 
-    function updateChecklist() {
-      const saved = {};
-      let checkedCount = 0;
+    searchInput.addEventListener('input', filterTable);
 
-      checkpoints.forEach((checkbox) => {
-        saved[checkbox.dataset.checkpoint] = checkbox.checked;
-        if (checkbox.checked) checkedCount += 1;
-      });
-
-      localStorage.setItem(progressKey, JSON.stringify(saved));
-      const pct = (checkedCount / checkpoints.length) * 100;
-      progressFill.style.width = pct + "%";
-      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
-    }
-
-    checkpoints.forEach((checkbox) => {
-      checkbox.addEventListener("change", updateChecklist);
-    });
-
-    const chapterState = document.getElementById("chapterState");
-    const syncedNavLinks = Array.from(document.querySelectorAll("[data-nav-target]"));
-    const observedSections = Array.from(document.querySelectorAll(".section[id]"));
-    const navTargetState = new Map();
-
-    function setActiveNav(targetId) {
-      if (!targetId) return;
-
-      syncedNavLinks.forEach((link) => {
-        const isActive = link.dataset.navTarget === targetId;
-        link.classList.toggle("active", isActive);
-        if (isActive) {
-          link.setAttribute("aria-current", "true");
-        } else {
-          link.removeAttribute("aria-current");
-        }
-      });
-
-      const labelSource = syncedNavLinks.find((link) => link.dataset.navTarget === targetId);
-      if (labelSource && chapterState) {
-        chapterState.textContent = labelSource.textContent.trim();
-      }
-    }
-
-    function resolveVisibleSection() {
-      const rankedSections = observedSections
-        .map((section) => {
-          const rect = section.getBoundingClientRect();
-          return {
-            id: section.id,
-            ratio: navTargetState.get(section.id) || 0,
-            distance: Math.abs(rect.top - 180),
-            top: rect.top
-          };
-        })
-        .filter((section) => section.ratio > 0 || section.top < window.innerHeight * 0.55)
-        .sort((left, right) => {
-          if (right.ratio !== left.ratio) return right.ratio - left.ratio;
-          return left.distance - right.distance;
-        });
-
-      return rankedSections[0]?.id || observedSections[0]?.id || null;
-    }
-
-    if (observedSections.length > 0 && syncedNavLinks.length > 0) {
-      const navObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          navTargetState.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
-        });
-
-        const activeId = resolveVisibleSection();
-        if (activeId) {
-          setActiveNav(activeId);
-        }
-      }, {
-        rootMargin: "-18% 0px -62% 0px",
-        threshold: [0, 0.15, 0.35, 0.6, 0.9]
-      });
-
-      observedSections.forEach((section) => navObserver.observe(section));
-      syncedNavLinks.forEach((link) => {
-        link.addEventListener("click", () => setActiveNav(link.dataset.navTarget));
-      });
-
-      const hashId = window.location.hash.replace("#", "");
-      const initialId = observedSections.some((section) => section.id === hashId)
-        ? hashId
-        : observedSections[0].id;
-      setActiveNav(initialId);
-    }
-
-    const commandSearch = document.getElementById("commandSearch");
-    const commandCounter = document.getElementById("commandCounter");
-    const commandRows = Array.from(document.querySelectorAll(".command-row"));
-    const chips = Array.from(document.querySelectorAll("[data-command-filter]"));
-    let activeFilter = "all";
-
-    function filterCommands() {
-      const term = commandSearch.value.trim().toLowerCase();
-      let visible = 0;
-
-      commandRows.forEach((row) => {
-        const categories = row.dataset.category.split(" ");
-        const matchesFilter = activeFilter === "all" || categories.includes(activeFilter);
-        const text = row.textContent.toLowerCase() + " " + row.dataset.search.toLowerCase();
-        const matchesSearch = term === "" || text.includes(term);
-        const show = matchesFilter && matchesSearch;
-        row.hidden = !show;
-        if (show) visible += 1;
-      });
-
-      commandCounter.textContent = visible + " row" + (visible === 1 ? "" : "s");
-    }
-
-    chips.forEach((chip) => {
-      chip.addEventListener("click", () => {
-        activeFilter = chip.dataset.commandFilter;
-        chips.forEach((btn) => btn.classList.toggle("active", btn === chip));
-        filterCommands();
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        filterTable();
       });
     });
-
-    commandSearch.addEventListener("input", filterCommands);
-
-    /* VISUAL COMMAND EXPLORER LOGIC */
-    const explorerData = {
-      apply: {
-        nodes: ['node-client', 'node-apiserver', 'node-etcd', 'node-controller', 'node-kubelet', 'node-pod'],
-        desc: "<strong>kubectl apply:</strong> The client sends a YAML manifest to the <strong>API Server</strong>. The API Server validates it and stores the new desired state in <strong>etcd</strong>. The <strong>Controllers</strong> notice the change and instruct the <strong>Kubelet</strong> on a worker node to start the <strong>Pod</strong>."
-      },
-      get: {
-        nodes: ['node-client', 'node-apiserver', 'node-etcd'],
-        desc: "<strong>kubectl get pods:</strong> The client requests current state from the <strong>API Server</strong>. The API Server queries <strong>etcd</strong> (the source of truth) and returns the list of objects back to your terminal."
-      },
-      logs: {
-        nodes: ['node-client', 'node-apiserver', 'node-kubelet', 'node-pod'],
-        desc: "<strong>kubectl logs:</strong> The client connects to the <strong>API Server</strong>, which acts as a proxy. The API Server talks to the <strong>Kubelet</strong> on the node where the pod lives, and the Kubelet streams the container's stdout/stderr back to you."
-      },
-      exec: {
-        nodes: ['node-client', 'node-apiserver', 'node-kubelet', 'node-pod'],
-        desc: "<strong>kubectl exec:</strong> Similar to logs, the <strong>API Server</strong> proxies a persistent SPDY or HTTP/2 connection to the <strong>Kubelet</strong>, which then enters the container's namespaces to start an interactive shell process."
-      },
-      'port-forward': {
-        nodes: ['node-client', 'node-apiserver', 'node-kubelet', 'node-pod'],
-        desc: "<strong>kubectl port-forward:</strong> A tunnel is established between your <strong>Laptop</strong> and the <strong>API Server</strong>, then to the <strong>Kubelet</strong>, and finally to the target <strong>Pod</strong>. Traffic on your local port is tunneled directly into the pod's network namespace."
-      }
-    };
-
-    function exploreCommand(cmd) {
-      // Update buttons
-      document.querySelectorAll('.explorer-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${cmd}'`));
-      });
-
-      // Update description
-      const data = explorerData[cmd];
-      document.getElementById('explorerDesc').innerHTML = data.desc;
-
-      // Update nodes
-      document.querySelectorAll('.viz-node').forEach(node => {
-        node.classList.toggle('active', data.nodes.includes(node.id));
-      });
-    }
-
-    const nodes = [
-      { id: "a", name: "worker-a", capacity: 3, online: true, mountId: "simPodsA", cardId: "sim-node-a", statusId: "nodeStatusA" },
-      { id: "b", name: "worker-b", capacity: 3, online: true, mountId: "simPodsB", cardId: "sim-node-b", statusId: "nodeStatusB" },
-      { id: "c", name: "worker-c", capacity: 3, online: true, mountId: "simPodsC", cardId: "sim-node-c", statusId: "nodeStatusC" }
-    ];
-
-    let desiredReplicas = 4;
-    let currentVersion = "v1";
-    let rolloutTarget = null;
-    let pods = [];
-    let podCounter = 1;
-
-    const replicaSlider = document.getElementById("replicaSlider");
-    const replicaLabel = document.getElementById("replicaLabel");
-    const simDesired = document.getElementById("simDesired");
-    const simRunning = document.getElementById("simRunning");
-    const simPending = document.getElementById("simPending");
-    const simVersion = document.getElementById("simVersion");
-    const simPendingLane = document.getElementById("simPendingLane");
-    const simLog = document.getElementById("simLog");
-    const rolloutBtn = document.getElementById("rolloutBtn");
-    const rollbackBtn = document.getElementById("rollbackBtn");
-    const killRandomBtn = document.getElementById("killRandomBtn");
-    const toggleNodeBtn = document.getElementById("toggleNodeBtn");
-
-    function logEvent(message) {
-      const line = document.createElement("div");
-      line.textContent = "[control-loop] " + message;
-      simLog.prepend(line);
-      while (simLog.children.length > 14) {
-        simLog.removeChild(simLog.lastChild);
-      }
-    }
-
-    function nodeLoad(nodeId) {
-      return pods.filter((pod) => pod.nodeId === nodeId && pod.state === "Running").length;
-    }
-
-    function leastLoadedNode() {
-      const available = nodes
-        .filter((node) => node.online && nodeLoad(node.id) < node.capacity)
-        .sort((left, right) => nodeLoad(left.id) - nodeLoad(right.id));
-      return available[0] || null;
-    }
-
-    function spawnPod() {
-      const targetNode = leastLoadedNode();
-      const id = podCounter++;
-      const versionToSchedule = rolloutTarget || currentVersion;
-      if (targetNode) {
-        pods.push({ id, version: versionToSchedule, state: "Running", nodeId: targetNode.id });
-        logEvent("scheduled pod-" + id + " on " + targetNode.name + " with version " + versionToSchedule);
-      } else {
-        pods.push({ id, version: versionToSchedule, state: "Pending", nodeId: null });
-        logEvent("pod-" + id + " is Pending because no online node has free capacity");
-      }
-    }
-
-    function removePod(pod, reason) {
-      pods = pods.filter((item) => item.id !== pod.id);
-      logEvent("terminated pod-" + pod.id + " (" + reason + ")");
-    }
-
-    function reconcilePendingPods() {
-      const pending = pods.filter((pod) => pod.state === "Pending");
-      pending.forEach((pod) => {
-        const targetNode = leastLoadedNode();
-        if (!targetNode) return;
-        pod.state = "Running";
-        pod.nodeId = targetNode.id;
-        logEvent("moved pending pod-" + pod.id + " onto " + targetNode.name);
-      });
-    }
-
-    function handleRollout() {
-      if (!rolloutTarget) return;
-      const outdated = pods.find((pod) => pod.state === "Running" && pod.version !== rolloutTarget);
-      if (!outdated) {
-        currentVersion = rolloutTarget;
-        rolloutTarget = null;
-        logEvent("rollout complete, cluster now targets " + currentVersion);
-        return;
-      }
-
-      removePod(outdated, "rolling update");
-      currentVersion = rolloutTarget;
-    }
-
-    function reconcile() {
-      nodes.forEach((node) => {
-        if (!node.online) {
-          const stranded = pods.filter((pod) => pod.nodeId === node.id);
-          stranded.forEach((pod) => removePod(pod, node.name + " offline"));
-        }
-      });
-
-      while (pods.length > desiredReplicas) {
-        const pendingVictim = pods.slice().reverse().find((pod) => pod.state === "Pending");
-        const runningVictim = pods.slice().reverse().find((pod) => pod.state === "Running");
-        const victim = pendingVictim || runningVictim;
-        if (!victim) break;
-        removePod(victim, "scale down");
-      }
-
-      if (pods.length < desiredReplicas) {
-        spawnPod();
-      }
-
-      reconcilePendingPods();
-
-      if (rolloutTarget) {
-        handleRollout();
-      }
-
-      renderSimulator();
-    }
-
-    function renderNode(node) {
-      const mount = document.getElementById(node.mountId);
-      const card = document.getElementById(node.cardId);
-      const status = document.getElementById(node.statusId);
-      mount.innerHTML = "";
-      card.classList.toggle("offline", !node.online);
-      status.textContent = node.online ? "Ready" : "Offline";
-
-      pods
-        .filter((pod) => pod.nodeId === node.id && pod.state === "Running")
-        .forEach((pod) => {
-          const el = document.createElement("button");
-          el.className = "sim-pod" + (pod.version === "v2" ? " v2" : "");
-          el.textContent = "p" + pod.id;
-          el.title = "Click to terminate pod-" + pod.id;
-          el.addEventListener("click", () => removePod(pod, "manual kill"));
-          mount.appendChild(el);
-        });
-    }
-
-    function renderPending() {
-      simPendingLane.innerHTML = "";
-      pods
-        .filter((pod) => pod.state === "Pending")
-        .forEach((pod) => {
-          const el = document.createElement("div");
-          el.className = "sim-pod pending";
-          el.textContent = "p" + pod.id;
-          simPendingLane.appendChild(el);
-        });
-    }
-
-    function renderSimulator() {
-      const running = pods.filter((pod) => pod.state === "Running").length;
-      const pending = pods.filter((pod) => pod.state === "Pending").length;
-      replicaLabel.textContent = String(desiredReplicas);
-      simDesired.textContent = String(desiredReplicas);
-      simRunning.textContent = String(running);
-      simPending.textContent = String(pending);
-      simVersion.textContent = rolloutTarget || currentVersion;
-      nodes.forEach(renderNode);
-      renderPending();
-      toggleNodeBtn.textContent = nodes[1].online ? "Fail node B" : "Restore node B";
-    }
-
-    replicaSlider.addEventListener("input", () => {
-      desiredReplicas = Number(replicaSlider.value);
-      renderSimulator();
-      logEvent("desired replica count changed to " + desiredReplicas);
-    });
-
-    rolloutBtn.addEventListener("click", () => {
-      rolloutTarget = "v2";
-      logEvent("starting rollout to v2");
-    });
-
-    rollbackBtn.addEventListener("click", () => {
-      rolloutTarget = "v1";
-      logEvent("starting rollback to v1");
-    });
-
-    killRandomBtn.addEventListener("click", () => {
-      const livePods = pods.filter((pod) => pod.state === "Running");
-      if (livePods.length === 0) return;
-      const pod = livePods[Math.floor(Math.random() * livePods.length)];
-      removePod(pod, "chaos test");
-      renderSimulator();
-    });
-
-    toggleNodeBtn.addEventListener("click", () => {
-      nodes[1].online = !nodes[1].online;
-      logEvent(nodes[1].online ? "worker-b restored" : "worker-b failed");
-      renderSimulator();
-    });
-
-    loadChecklist();
-    filterCommands();
-    logEvent("cluster simulator initialized");
-    renderSimulator();
-    exploreCommand('apply');
-    setInterval(reconcile, 1100);
   </script>
 </body>
 </html>

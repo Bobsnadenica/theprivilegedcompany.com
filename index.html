@@ -168,6 +168,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 fetch_code() {
+  : > "$2"
   curl -L -sS -o "$2" -w "%{http_code} %{time_total}" --max-time 15 "$1" 2>/dev/null || printf "000 0"
 }
 
@@ -179,6 +180,10 @@ home_time="${home_stats##* }"
 headers="$(curl -I -L -sS --max-time 15 "$TARGET/" 2>/dev/null || true)"
 content_type="$(printf "%s\n" "$headers" | grep -i "^content-type:" | head -1 | cut -d: -f2- | xargs || true)"
 hsts="$(printf "%s\n" "$headers" | grep -iq "^strict-transport-security:" && echo present || echo missing)"
+csp="$(printf "%s\n" "$headers" | grep -iq "^content-security-policy:" && echo present || echo missing)"
+x_frame="$(printf "%s\n" "$headers" | grep -iq "^x-frame-options:" && echo present || echo missing)"
+x_content_type="$(printf "%s\n" "$headers" | grep -iq "^x-content-type-options:" && echo present || echo missing)"
+referrer_policy="$(printf "%s\n" "$headers" | grep -iq "^referrer-policy:" && echo present || echo missing)"
 title="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<title>\([^<]*\)<\/title>.*/\1/p" | head -1)"
 description="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<meta name=\"description\" content=\"\([^\"]*\)\".*/\1/p" | head -1)"
 
@@ -198,15 +203,40 @@ while IFS= read -r url && [ "$checked" -lt 10 ]; do
   case "$code" in 2*|3*) ;; *) broken=$((broken + 1));; esac
 done <<< "$sitemap_urls"
 
+sql_probe_stats="$(fetch_code "$TARGET/?tpc_probe=%27%22%29%3B--" "$TMP/sql-smoke.html")"
+script_close='</''script>'
+perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/sql-smoke.html" > "$TMP/sql-smoke-body.html" 2>/dev/null || cp "$TMP/sql-smoke.html" "$TMP/sql-smoke-body.html"
+sql_error="$(grep -Eiq "SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-[0-9]|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal" "$TMP/sql-smoke-body.html" && echo possible || echo clear)"
+
+exposed=0
+exposed_names=""
+for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/db.sql"; do
+  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$TARGET$path" 2>/dev/null || printf "000")"
+  case "$code" in
+    2*)
+      exposed=$((exposed + 1))
+      exposed_names="${exposed_names}${path} "
+      ;;
+  esac
+done
+
+missing_headers=0
+for header_state in "$hsts" "$csp" "$x_frame" "$x_content_type" "$referrer_policy"; do
+  [ "$header_state" = "missing" ] && missing_headers=$((missing_headers + 1))
+done
+
 printf "STATUS: %s in %ss\n" "$home_code" "$home_time"
 printf "CONTENT-TYPE: %s\n" "${content_type:-missing}"
 printf "TITLE: %s\n" "${title:-missing}"
 printf "DESCRIPTION: %s\n" "$(if [ -n "$description" ]; then printf "%s chars" "${#description}"; else printf "missing"; fi)"
 printf "HSTS: %s\n" "$hsts"
+printf "HARDENING HEADERS: %s missing of 5\n" "$missing_headers"
 printf "ROBOTS: HTTP %s\n" "$robots_code"
 printf "SITEMAP: HTTP %s, %s URLs\n" "$sitemap_code" "$url_count"
 printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"
-printf "\nReview only failures: non-2xx/3xx routes, missing metadata, missing HSTS, empty sitemap, or unreachable robots/sitemap.\n"</script>
+printf "SQLI SMOKE: %s SQL error leakage\n" "$sql_error"
+printf "EXPOSED FILES: %s%s\n" "$exposed" "$(if [ "$exposed" -gt 0 ]; then printf " (%s)" "$exposed_names"; fi)"
+printf "\nReview only failures: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, or unreachable robots/sitemap.\n"</script>
     <script type="module" src="script.js"></script>
 </body>
 </html>

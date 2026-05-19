@@ -220,6 +220,17 @@ const initHealthCheck = () => {
         return `${Math.round((bytes / 1024) * 10) / 10}KB`;
     };
 
+    const hasHeader = (response, name) => Boolean(response.headers.get(name));
+
+    const hasSqlErrorLeak = text => (
+        /SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-\d|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal/i
+    ).test(text);
+
+    const stripEmbeddedProbe = text => text.replace(
+        /<script type="text\/plain" id="probe-script-template">[\s\S]*?<\/script>/i,
+        ''
+    );
+
     const request = async (path, options = {}) => {
         const started = performance.now();
         const response = await fetch(targetPath(path), {
@@ -270,17 +281,21 @@ const initHealthCheck = () => {
 
     const buildProbeSummary = async () => {
         try {
-            const [home, robots, sitemap, fragments, directRoutes] = await Promise.all([
+            const sensitivePaths = ['/.env', '/.git/config', '/wp-config.php', '/config.php', '/backup.zip', '/db.sql'];
+            const [home, robots, sitemap, fragments, directRoutes, sqlSmoke, sensitiveFiles] = await Promise.all([
                 request('/', { method: 'HEAD' }),
                 request('/robots.txt'),
                 request('/sitemap.xml'),
                 Promise.all(routeEntries.map(async ([, route]) => request(`/views/${route.view}`, { method: 'HEAD' }))),
-                Promise.all(routeEntries.map(async ([key]) => ({ key, result: await request(`/${key}`, { method: 'HEAD' }) })))
+                Promise.all(routeEntries.map(async ([key]) => ({ key, result: await request(`/${key}`, { method: 'HEAD' }) }))),
+                request('/?tpc_probe=%27%22%29%3B--'),
+                Promise.all(sensitivePaths.map(async path => ({ path, result: await request(path, { method: 'HEAD' }) })))
             ]);
 
             const sitemapUrls = [...sitemap.text.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
             const missingFragments = fragments.filter(({ response }) => !response.ok).length;
             const directRouteIssues = directRoutes.filter(({ result }) => !result.response.ok).length;
+            const exposedFiles = sensitiveFiles.filter(({ result }) => result.response.status >= 200 && result.response.status < 300);
             const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
             const resources = performance.getEntriesByType('resource');
             const nav = performance.getEntriesByType('navigation')[0];
@@ -288,6 +303,17 @@ const initHealthCheck = () => {
             const mixedContent = [...document.querySelectorAll('[src], [href]')]
                 .map(el => el.getAttribute('src') || el.getAttribute('href'))
                 .filter(value => value && value.startsWith('http://'));
+            const hardeningHeaders = [
+                ['HSTS', 'strict-transport-security'],
+                ['CSP', 'content-security-policy'],
+                ['Frame guard', 'x-frame-options'],
+                ['No sniff', 'x-content-type-options'],
+                ['Referrer policy', 'referrer-policy']
+            ];
+            const missingHardeningHeaders = hardeningHeaders
+                .filter(([, header]) => !hasHeader(home.response, header))
+                .map(([label]) => label);
+            const sqlLeak = hasSqlErrorLeak(stripEmbeddedProbe(sqlSmoke.text));
 
             return [
                 {
@@ -326,9 +352,16 @@ const initHealthCheck = () => {
                 },
                 {
                     label: 'Security',
-                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}.`,
+                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; ${missingHardeningHeaders.length} hardening header${missingHardeningHeaders.length === 1 ? '' : 's'} missing.`,
                     updates: {
                         shield: window.isSecureContext ? 'SECURE' : 'LOCAL'
+                    }
+                },
+                {
+                    label: 'Vuln Smoke',
+                    summary: `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; missing headers: ${missingHardeningHeaders.length ? missingHardeningHeaders.join(', ') : 'none'}.`,
+                    updates: {
+                        errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }
                 }
             ];
