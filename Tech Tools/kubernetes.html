@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kubernetes: A Clear Path | Tech Knowledge Hub</title>
+  <title>Kubernetes: The Clear Path | Tech Knowledge Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
@@ -31,7 +31,7 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 850px;
       margin: 0 auto;
     }
 
@@ -143,8 +143,48 @@
     }
 
     .lab-header h3 { font-size: 1rem; }
-
     .lab-content { padding: 1.5rem; }
+
+    /* TAB SYSTEM */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .tab-btn {
+      padding: 0.75rem 1.25rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      border-radius: 8px 8px 0 0;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--blue); }
+    .tab-btn.active {
+      color: var(--text);
+      background: rgba(110, 168, 255, 0.1);
+      border-bottom: 2px solid var(--blue);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .scenarios-list { display: grid; gap: 1rem; }
+    .scenario-item {
+      padding: 1rem;
+      border-radius: 8px;
+      background: rgba(110, 168, 255, 0.05);
+      border-left: 3px solid var(--blue);
+    }
+    .scenario-item strong { display: block; margin-bottom: 0.25rem; color: var(--text); }
+    .scenario-item p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+    .scenario-item code { background: none; padding: 0; color: var(--blue); }
 
     .atlas-toolbar {
       margin-bottom: 1.5rem;
@@ -213,12 +253,11 @@
     <section id="setup">
       <span class="step-number">Step 01</span>
       <h2>Environment Setup</h2>
-      <p>Before you can run a cluster, you need <code>docker</code>, <code>kubectl</code>, and <code>kind</code>. Use this script to audit your machine and install what's missing.</p>
+      <p>Running a cluster requires <code>docker</code>, <code>kubectl</code>, and <code>kind</code>. Use the local setup script to audit your machine.</p>
       
       <div class="code-block">
-        <pre><code># Download and run the setup script
-curl -fsSL https://raw.githubusercontent.com/bobsnadenica/tech-hub/main/setup_k8s.sh -o setup_k8s.sh
-chmod +x setup_k8s.sh
+        <pre><code># Run the local setup script
+chmod +x ./setup_k8s.sh
 ./setup_k8s.sh</code></pre>
       </div>
       <p>Once finished, verify your installation with: <code>kind version</code> and <code>kubectl version --client</code>.</p>
@@ -320,12 +359,100 @@ kubectl rollout undo deployment web</code></pre>
       </div>
     </section>
 
-    <!-- STEP 5: COMMANDS -->
-    <section id="commands">
+    <!-- STEP 5: TROUBLESHOOTING TAB -->
+    <section id="troubleshooting">
       <span class="step-number">Step 05</span>
-      <h2>Command Reference</h2>
-      <p>A searchable guide for common <code>kubectl</code> and <code>kind</code> actions.</p>
+      <h2>How to Troubleshoot</h2>
+      <p>When things break, follow the standard flow: <strong>Get &rarr; Describe &rarr; Logs &rarr; Exec</strong>.</p>
 
+      <nav class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'pod-issues')">Pod Issues</button>
+        <button class="tab-btn" onclick="openTab(event, 'network-issues')">Network</button>
+        <button class="tab-btn" onclick="openTab(event, 'storage-issues')">Storage</button>
+        <button class="tab-btn" onclick="openTab(event, 'edge-cases')">Edge Cases</button>
+      </nav>
+
+      <div id="pod-issues" class="tab-content active">
+        <div class="scenarios-list">
+          <div class="scenario-item">
+            <strong>CrashLoopBackOff</strong>
+            <p>App starts then fails. Check <code>kubectl logs [pod]</code> for app-level errors or probe failures.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>ImagePullBackOff</strong>
+            <p>Incorrect tag or private registry auth issue. Run <code>kubectl describe pod</code> to see pull events.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>Pending (No Nodes)</strong>
+            <p>No resources available or taints/selectors mismatch. Check <code>describe pod</code> events for scheduling errors.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>OOMKilled</strong>
+            <p>Container exceeded its memory limit. Review <code>resources.limits</code> vs actual app usage.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="network-issues" class="tab-content">
+        <div class="scenarios-list">
+          <div class="scenario-item">
+            <strong>Service not reachable</strong>
+            <p>Verify label selectors: <code>kubectl get endpoints</code> should list Pod IPs. No endpoints = no traffic.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>DNS resolution failure</strong>
+            <p>Debug from inside: <code>kubectl exec -it [pod] -- nslookup my-service</code>. Checks CoreDNS health.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>Ingress 404/503</strong>
+            <p>404: Path/Host mismatch. 503: Backend Service or Pods are unhealthy. Check Ingress controller logs.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="storage-issues" class="tab-content">
+        <div class="scenarios-list">
+          <div class="scenario-item">
+            <strong>PVC stuck in Pending</strong>
+            <p>No matching <code>StorageClass</code> or provisioner is down. Run <code>kubectl describe pvc [name]</code>.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>Mount errors</strong>
+            <p>Volume is already used by another node (RWO) or path doesn't exist. Check node logs / events.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="edge-cases" class="tab-content">
+        <div class="scenarios-list">
+          <div class="scenario-item">
+            <strong>Node Pressure (Eviction)</strong>
+            <p>Node is out of disk or memory. K8s will evict low-priority Pods. <code>kubectl get nodes</code> shows status.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>RBAC Forbidden</strong>
+            <p>ServiceAccount lacks permissions. Debug with <code>kubectl auth can-i [verb] [resource]</code>.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>Zombie Pods</strong>
+            <p>Pods stuck in <code>Terminating</code>. Force delete with <code>--grace-period=0 --force</code> (use with caution).</p>
+          </div>
+          <div class="scenario-item">
+            <strong>HPA not scaling</strong>
+            <p>Missing resource requests or Metrics Server not installed. Run <code>kubectl get hpa</code> to see status.</p>
+          </div>
+          <div class="scenario-item">
+            <strong>Resource Quota reached</strong>
+            <p>Namespace limits hit. New Pods will be denied by the API. Check <code>kubectl get quota</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6: COMMANDS -->
+    <section id="commands">
+      <span class="step-number">Step 06</span>
+      <h2>Command Reference</h2>
       <div class="atlas-toolbar">
         <input id="commandSearch" type="search" placeholder="Search commands (e.g. logs, deploy, delete)..." />
         <div class="chip-row">
@@ -392,34 +519,27 @@ kubectl rollout undo deployment web</code></pre>
       </div>
     </section>
 
-    <!-- STEP 6: TROUBLESHOOTING & CLEANUP -->
-    <section id="troubleshooting">
-      <span class="step-number">Step 06</span>
-      <h2>Troubleshooting & Cleanup</h2>
-      
-      <div class="panel" style="margin-bottom: 2rem;">
-        <h3>The Debug Flow</h3>
-        <p style="margin-bottom: 0;">1. <code>get pods</code> (Is it running?) &rarr; 2. <code>describe pod</code> (What do events say?) &rarr; 3. <code>logs</code> (What does the app say?) &rarr; 4. <code>exec</code> (Inspect from inside).</p>
-      </div>
-
-      <div class="panel">
-        <h3>Cleanup</h3>
-        <p>When you're done, always clean up to save resources.</p>
-        <div class="code-block">
-          <pre><code># Delete the namespace
-kubectl delete namespace lab
-# Or delete the whole cluster
-kind delete cluster --name lab</code></pre>
-        </div>
-      </div>
-    </section>
-
     <footer>
       <p>Kubernetes is an operating model, not just a tool. Master the flow, not just the YAML.</p>
     </footer>
   </div>
 
   <script>
+    function openTab(evt, tabId) {
+      const tabcontents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabcontents.length; i++) {
+        tabcontents[i].style.display = "none";
+        tabcontents[i].classList.remove("active");
+      }
+      const tablinks = document.getElementsByClassName("tab-btn");
+      for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(tabId).style.display = "block";
+      document.getElementById(tabId).classList.add("active");
+      evt.currentTarget.className += " active";
+    }
+
     const searchInput = document.getElementById('commandSearch');
     const tableRows = document.querySelectorAll('.cmd-row');
     const chips = document.querySelectorAll('.chip');

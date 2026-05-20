@@ -13,7 +13,7 @@ const routes = {
     'manifest': {
         title: 'Services',
         view: 'manifest.html',
-        description: 'Explore ThePrivilegedCompany services for AI software, cloud architecture, automation, technical SEO, product launch, and private technical advisory.'
+        description: 'Explore ThePrivilegedCompany services for companies and individuals: data products, audits, consulting, websites, apps, SEO, marketing, training, and custom tools.'
     },
     'who-are-we': {
         title: 'Who We Are',
@@ -70,7 +70,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520h';
+const assetVersion = '20260520i';
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
