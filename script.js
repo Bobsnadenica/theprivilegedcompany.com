@@ -65,7 +65,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520e';
+const assetVersion = '20260520f';
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
