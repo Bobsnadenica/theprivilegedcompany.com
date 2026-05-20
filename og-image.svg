@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">ThePrivilegedCompany social preview</title>
+  <desc id="desc">Black and orange brand card for AI engineering, automation, and IT advisory.</desc>
+  <rect width="1200" height="630" fill="#030201"/>
+  <g opacity="0.22" stroke="#ff9d00" stroke-width="1">
+    <path d="M0 80h1200M0 160h1200M0 240h1200M0 320h1200M0 400h1200M0 480h1200M0 560h1200"/>
+    <path d="M80 0v630M160 0v630M240 0v630M320 0v630M400 0v630M480 0v630M560 0v630M640 0v630M720 0v630M800 0v630M880 0v630M960 0v630M1040 0v630M1120 0v630"/>
+  </g>
+  <g opacity="0.55">
+    <circle cx="910" cy="130" r="4" fill="#ff9d00"/>
+    <circle cx="980" cy="190" r="3" fill="#ffb13b"/>
+    <circle cx="1045" cy="115" r="5" fill="#ff9d00"/>
+    <circle cx="1080" cy="250" r="3" fill="#ffb13b"/>
+    <circle cx="865" cy="275" r="4" fill="#ff9d00"/>
+    <circle cx="1015" cy="340" r="5" fill="#ff9d00"/>
+    <path d="M910 130l70 60 65-75M980 190l100 60M865 275l150 65 65-90" fill="none" stroke="#ff9d00" stroke-width="1.5"/>
+  </g>
+  <rect x="72" y="72" width="1056" height="486" rx="8" fill="none" stroke="#ff9d00" stroke-opacity="0.5" stroke-width="2"/>
+  <text x="105" y="154" fill="#ff9d00" font-family="Georgia, serif" font-size="52" font-weight="700">TPC</text>
+  <text x="105" y="205" fill="#ffb13b" font-family="Arial, sans-serif" font-size="18" letter-spacing="8">THEPRIVILEGEDCOMPANY</text>
+  <text x="105" y="344" fill="#fff2df" font-family="Georgia, serif" font-size="82" font-weight="700">Build Anything</text>
+  <text x="110" y="414" fill="#d4934b" font-family="Arial, sans-serif" font-size="30">AI engineering, automation, cloud systems, SEO, and private IT advisory.</text>
+  <text x="110" y="498" fill="#ff9d00" font-family="Arial, sans-serif" font-size="22" letter-spacing="5">WWW.THEPRIVILEGEDCOMPANY.COM</text>
+</svg>

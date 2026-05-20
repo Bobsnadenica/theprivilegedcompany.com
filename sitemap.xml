@@ -1,27 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://theprivilegedcompany.com/</loc>
+    <loc>https://www.theprivilegedcompany.com/</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://theprivilegedcompany.com/data-engine</loc>
+    <loc>https://www.theprivilegedcompany.com/manifest</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.theprivilegedcompany.com/who-are-we</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://theprivilegedcompany.com/b2b</loc>
+    <loc>https://www.theprivilegedcompany.com/data-engine</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://theprivilegedcompany.com/personal-it</loc>
+    <loc>https://www.theprivilegedcompany.com/b2b</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://theprivilegedcompany.com/architecture</loc>
+    <loc>https://www.theprivilegedcompany.com/personal-it</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.theprivilegedcompany.com/architecture</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://theprivilegedcompany.com/Tech_Tools/index.html</loc>
+    <loc>https://www.theprivilegedcompany.com/faq</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.theprivilegedcompany.com/privacy</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>

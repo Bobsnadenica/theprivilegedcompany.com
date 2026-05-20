@@ -4,14 +4,52 @@
  */
 
 const routes = {
-    '': { title: 'Sovereign', view: 'home.html', isStatic: true },
-    'manifest': { title: 'Manifest', view: 'manifest.html' },
-    'who-are-we': { title: 'Pedigree', view: 'who-are-we.html' },
-    'data-engine': { title: 'Intelligence', view: 'data-engine.html' },
-    'b2b': { title: 'Architecture', view: 'b2b.html' },
-    'personal-it': { title: 'Private', view: 'personal-it.html' },
-    'privacy': { title: 'Protocol', view: 'privacy.html' },
-    'faq': { title: 'Knowledge', view: 'faq.html' }
+    '': {
+        title: 'AI Engineering, Automation & IT Advisory',
+        view: 'home.html',
+        isStatic: true,
+        description: 'ThePrivilegedCompany builds AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.'
+    },
+    'manifest': {
+        title: 'Services',
+        view: 'manifest.html',
+        description: 'Explore ThePrivilegedCompany services for AI software, cloud architecture, automation, technical SEO, product launch, and private technical advisory.'
+    },
+    'who-are-we': {
+        title: 'Who We Are',
+        view: 'who-are-we.html',
+        description: 'Meet ThePrivilegedCompany, a focused engineering firm for high-stakes software, cloud systems, technical SEO, and private digital problem solving.'
+    },
+    'data-engine': {
+        title: 'Data & Intelligence',
+        view: 'data-engine.html',
+        description: 'Data systems, analytics architecture, automation, and AI-amplified intelligence for clearer technical decisions and business outcomes.'
+    },
+    'b2b': {
+        title: 'Business Engineering',
+        view: 'b2b.html',
+        description: 'Enterprise engineering for scalable cloud systems, resilient web platforms, technical SEO, automation, and full-stack product delivery.'
+    },
+    'personal-it': {
+        title: 'Private IT Advisory',
+        view: 'personal-it.html',
+        description: 'Private technical advisory for individuals who need clear help with apps, websites, privacy, digital systems, and difficult technology problems.'
+    },
+    'architecture': {
+        title: 'Architecture',
+        view: 'architecture.html',
+        description: 'Interactive architecture planning for edge, compute, data, and security systems designed for reliable modern digital operations.'
+    },
+    'privacy': {
+        title: 'Privacy',
+        view: 'privacy.html',
+        description: 'Privacy and data handling details for ThePrivilegedCompany website visitors, clients, and technical advisory relationships.'
+    },
+    'faq': {
+        title: 'FAQ',
+        view: 'faq.html',
+        description: 'Answers to common questions about ThePrivilegedCompany services, engagement style, technical delivery, and advisory work.'
+    }
 };
 
 const hubView = document.getElementById('hub-view');
@@ -19,6 +57,27 @@ const dynamicView = document.getElementById('dynamic-view');
 const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
+const siteOrigin = 'https://www.theprivilegedcompany.com';
+
+const setMeta = (selector, attribute, value) => {
+    const tag = document.head.querySelector(selector);
+    if (tag) tag.setAttribute(attribute, value);
+};
+
+const updateSeo = (routeKey, route) => {
+    const path = routeKey ? `/${routeKey}` : '/';
+    const canonical = `${siteOrigin}${path}`;
+    const title = `ThePrivilegedCompany | ${route.title}`;
+
+    document.title = title;
+    setMeta('meta[name="description"]', 'content', route.description);
+    setMeta('link[rel="canonical"]', 'href', canonical);
+    setMeta('meta[property="og:title"]', 'content', title);
+    setMeta('meta[property="og:description"]', 'content', route.description);
+    setMeta('meta[property="og:url"]', 'content', canonical);
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    setMeta('meta[name="twitter:description"]', 'content', route.description);
+};
 
 /**
  * Normalizes the path to match route keys
@@ -68,7 +127,7 @@ const router = async () => {
         }
     }
 
-    document.title = `ThePrivilegedCompany | ${route.title}`;
+    updateSeo(key, route);
     window.scrollTo(0, 0);
 
     // End Transition Mask
@@ -327,6 +386,10 @@ const initHealthCheck = () => {
             const missingHardeningHeaders = hardeningHeaders
                 .filter(([, header]) => !hasHeader(home.response, header))
                 .map(([label]) => label);
+            const htmlPolicies = [
+                document.querySelector('meta[http-equiv="Content-Security-Policy" i]') ? 'meta CSP' : null,
+                document.querySelector('meta[name="referrer" i]') ? 'meta referrer' : null
+            ].filter(Boolean);
             const sqlLeak = hasSqlErrorLeak(stripEmbeddedProbe(sqlSmoke.text));
 
             return [
@@ -366,14 +429,14 @@ const initHealthCheck = () => {
                 },
                 {
                     label: 'Security',
-                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; ${missingHardeningHeaders.length} hardening header${missingHardeningHeaders.length === 1 ? '' : 's'} missing.`,
+                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
                     updates: {
                         shield: window.isSecureContext ? 'SECURE' : 'LOCAL'
                     }
                 },
                 {
                     label: 'Vuln Smoke',
-                    summary: `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; missing headers: ${missingHardeningHeaders.length ? missingHardeningHeaders.join(', ') : 'none'}.`,
+                    summary: `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `needed: ${missingHardeningHeaders.join(', ')}` : 'present'}.`,
                     updates: {
                         errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }

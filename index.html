@@ -3,8 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThePrivilegedCompany | AI-Amplified Engineering</title>
-    <meta name="description" content="ThePrivilegedCompany works with businesses and individuals to turn technical ideas, digital goals, and messy systems into clear, usable outcomes.">
+    <title>ThePrivilegedCompany | AI Engineering, Automation & IT Advisory</title>
+    <meta name="description" content="ThePrivilegedCompany builds AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="author" content="ThePrivilegedCompany">
+    <meta name="theme-color" content="#030201">
+    <meta name="color-scheme" content="dark">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+    <link rel="canonical" href="https://www.theprivilegedcompany.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ThePrivilegedCompany">
+    <meta property="og:title" content="ThePrivilegedCompany | AI Engineering, Automation & IT Advisory">
+    <meta property="og:description" content="AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
+    <meta property="og:url" content="https://www.theprivilegedcompany.com/">
+    <meta property="og:image" content="https://www.theprivilegedcompany.com/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ThePrivilegedCompany | AI Engineering, Automation & IT Advisory">
+    <meta name="twitter:description" content="AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
+    <meta name="twitter:image" content="https://www.theprivilegedcompany.com/og-image.png">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22none%22 stroke=%22%23ff9d00%22 stroke-width=%225%22/><circle cx=%2250%22 cy=%2250%22 r=%2210%22 fill=%22%23ff9d00%22/><path d=%22M50 5 L50 95 M5 50 L95 50%22 stroke=%22%23ff9d00%22 stroke-width=%222%22/></svg>">
 
@@ -14,6 +32,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ProfessionalService",
+        "@id": "https://www.theprivilegedcompany.com/#organization",
+        "name": "ThePrivilegedCompany",
+        "url": "https://www.theprivilegedcompany.com/",
+        "description": "AI-amplified software engineering, cloud architecture, automation, technical SEO, and private IT advisory.",
+        "email": "architect@theprivilegedcompany.com",
+        "areaServed": "Worldwide",
+        "serviceType": [
+            "AI software engineering",
+            "Cloud architecture",
+            "Automation",
+            "Technical SEO",
+            "Private IT advisory"
+        ],
+        "sameAs": []
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "@id": "https://www.theprivilegedcompany.com/#website",
+        "url": "https://www.theprivilegedcompany.com/",
+        "name": "ThePrivilegedCompany",
+        "publisher": {
+            "@id": "https://www.theprivilegedcompany.com/#organization"
+        },
+        "inLanguage": "en"
+    }
+    </script>
 </head>
 <body class="is-loading">
     <!-- Architectural Grid -->
@@ -161,7 +212,7 @@
     <script type="text/plain" id="probe-script-template">#!/usr/bin/env bash
 set -euo pipefail
 
-TARGET="${1:-https://theprivilegedcompany.com}"
+TARGET="${1:-https://www.theprivilegedcompany.com}"
 TARGET="${TARGET%/}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -185,6 +236,8 @@ x_content_type="$(printf "%s\n" "$headers" | grep -iq "^x-content-type-options:"
 referrer_policy="$(printf "%s\n" "$headers" | grep -iq "^referrer-policy:" && echo present || echo missing)"
 title="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<title>\([^<]*\)<\/title>.*/\1/p" | head -1)"
 description="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<meta name=\"description\" content=\"\([^\"]*\)\".*/\1/p" | head -1)"
+meta_csp="$(grep -Eiq "<meta[^>]+http-equiv=[\"']Content-Security-Policy[\"']" "$TMP/home.html" && echo present || echo missing)"
+meta_referrer="$(grep -Eiq "<meta[^>]+name=[\"']referrer[\"']" "$TMP/home.html" && echo present || echo missing)"
 
 robots_stats="$(fetch_code "$TARGET/robots.txt" "$TMP/robots.txt")"
 robots_code="${robots_stats%% *}"
@@ -220,16 +273,27 @@ for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" 
 done
 
 missing_headers=0
-for header_state in "$hsts" "$csp" "$x_frame" "$x_content_type" "$referrer_policy"; do
-  [ "$header_state" = "missing" ] && missing_headers=$((missing_headers + 1))
-done
+missing_header_names=""
+record_header() {
+  if [ "$2" = "missing" ]; then
+    missing_headers=$((missing_headers + 1))
+    missing_header_names="${missing_header_names}${1}, "
+  fi
+}
+record_header "HSTS" "$hsts"
+record_header "CSP" "$csp"
+record_header "Frame guard" "$x_frame"
+record_header "No sniff" "$x_content_type"
+record_header "Referrer policy" "$referrer_policy"
+missing_header_names="${missing_header_names%, }"
 
 printf "STATUS: %s in %ss\n" "$home_code" "$home_time"
 printf "CONTENT-TYPE: %s\n" "${content_type:-missing}"
 printf "TITLE: %s\n" "${title:-missing}"
 printf "DESCRIPTION: %s\n" "$(if [ -n "$description" ]; then printf "%s chars" "${#description}"; else printf "missing"; fi)"
 printf "HSTS: %s\n" "$hsts"
-printf "HARDENING HEADERS: %s missing of 5\n" "$missing_headers"
+printf "HARDENING HEADERS: %s missing of 5%s\n" "$missing_headers" "$(if [ "$missing_headers" -gt 0 ]; then printf " (%s)" "$missing_header_names"; fi)"
+printf "HTML POLICIES: CSP %s, referrer %s\n" "$meta_csp" "$meta_referrer"
 printf "ROBOTS: HTTP %s\n" "$robots_code"
 printf "SITEMAP: HTTP %s, %s URLs\n" "$sitemap_code" "$url_count"
 printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"

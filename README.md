@@ -29,6 +29,7 @@ The portal is structured around three core pillars:
 The portal is optimized for static hosting on GitHub Pages:
 - **Relative Path Resolution:** The router automatically detects subfolder deployments (e.g., `username.github.io/theprivilegedcompany/`) and adjusts fetch paths accordingly.
 - **SPA Fallback:** To support deep-linking on GitHub Pages, use the `404.html` fallback method (copy `index.html` to `404.html`).
+- **Security Headers:** The `_headers` and `_redirects` files are included for Cloudflare Pages and Netlify style hosts. GitHub Pages does not apply custom response headers from repository files, so HSTS, CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy must be configured at the CDN/proxy layer when using GitHub Pages.
 
 ## 📁 File Structure
 
