@@ -49,6 +49,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://www.theprivilegedcompany.com/contact</loc>
+    <lastmod>2026-05-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.theprivilegedcompany.com/privacy</loc>
     <lastmod>2026-05-20</lastmod>
     <changefreq>yearly</changefreq>

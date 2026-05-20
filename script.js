@@ -49,6 +49,11 @@ const routes = {
         title: 'FAQ',
         view: 'faq.html',
         description: 'Answers to common questions about ThePrivilegedCompany services, engagement style, technical delivery, and advisory work.'
+    },
+    'contact': {
+        title: 'Contact',
+        view: 'contact.html',
+        description: 'Contact ThePrivilegedCompany with your project details, contact information, timeline, and the outcome you want to build.'
     }
 };
 
@@ -65,7 +70,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520f';
+const assetVersion = '20260520h';
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
@@ -149,6 +154,7 @@ const router = async () => {
     new ScrambleText('[data-scramble]');
     initArchitectureCanvas();
     initTabs();
+    initContactForm();
 };
 
 /**
@@ -169,6 +175,47 @@ const initTabs = () => {
             const target = document.getElementById(`tab-${tab}`);
             if (target) target.style.display = 'block';
         });
+    });
+};
+
+const initContactForm = () => {
+    const form = document.getElementById('contact-form');
+    const status = document.getElementById('contact-form-status');
+    if (!form || !status) return;
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const data = new FormData(form);
+        const name = String(data.get('name') || '').trim();
+        const email = String(data.get('email') || '').trim();
+        const phone = String(data.get('phone') || '').trim();
+        const requestType = String(data.get('requestType') || '').trim();
+        const timeline = String(data.get('timeline') || '').trim();
+        const budget = String(data.get('budget') || '').trim();
+        const details = String(data.get('details') || '').trim();
+
+        const subject = encodeURIComponent(`Website inquiry from ${name}`);
+        const body = encodeURIComponent([
+            `Name: ${name}`,
+            `Email: ${email}`,
+            `Phone: ${phone}`,
+            `Looking for: ${requestType}`,
+            `Timeline: ${timeline || 'Not specified'}`,
+            `Budget / scope: ${budget || 'Not specified'}`,
+            '',
+            'Details:',
+            details
+        ].join('\n'));
+
+        status.textContent = 'Opening your email client with the request details.';
+        status.classList.add('is-visible');
+        window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
     });
 };
 

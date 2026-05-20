@@ -1,0 +1,101 @@
+<section class="monolith-view contact-view">
+    <header class="view-header reveal-mask">
+        <span class="label">Contact Protocol</span>
+        <h1 class="display-huge" data-scramble>Start the brief.</h1>
+        <p class="view-lead">Tell us what you are trying to build, fix, protect, or understand. The cleaner the brief, the faster we can tell you the right next move.</p>
+    </header>
+
+    <div class="contact-shell reveal-mask">
+        <form class="contact-form" id="contact-form">
+            <div class="field-grid">
+                <label>
+                    <span>Name</span>
+                    <input name="name" type="text" autocomplete="name" required placeholder="Your name">
+                </label>
+                <label>
+                    <span>Phone Number</span>
+                    <input name="phone" type="tel" autocomplete="tel" required placeholder="+1 555 0100">
+                </label>
+            </div>
+
+            <div class="field-grid">
+                <label>
+                    <span>Email</span>
+                    <input name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+                </label>
+                <label>
+                    <span>What Are You Looking For?</span>
+                    <select name="requestType" required>
+                        <option value="">Select one</option>
+                        <option>Website or app build</option>
+                        <option>Business automation</option>
+                        <option>Cloud / AWS architecture</option>
+                        <option>SEO and performance</option>
+                        <option>Private IT advisory</option>
+                        <option>Security / diagnostics</option>
+                        <option>Something unusual</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="field-grid">
+                <label>
+                    <span>Timeline</span>
+                    <select name="timeline">
+                        <option value="">Not sure yet</option>
+                        <option>ASAP</option>
+                        <option>This week</option>
+                        <option>This month</option>
+                        <option>1-3 months</option>
+                        <option>Exploring options</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Budget / Scope</span>
+                    <input name="budget" type="text" placeholder="Rough range or project size">
+                </label>
+            </div>
+
+            <label>
+                <span>Details</span>
+                <textarea name="details" required rows="7" placeholder="What is the goal, what is broken, and what would a good outcome look like?"></textarea>
+            </label>
+
+            <div class="contact-actions">
+                <button class="btn-hud" type="submit">Send Brief</button>
+                <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
+            </div>
+            <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
+        </form>
+    </div>
+</section>
+
+<style>
+    .contact-shell { width: min(920px, 100%); margin: 0 auto; border-top: 1px solid var(--c-dim); padding-top: clamp(2rem, 5vw, 4rem); }
+    .contact-form { display: grid; gap: 1.25rem; text-align: left; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+    .contact-form label { display: grid; gap: 0.6rem; }
+    .contact-form label span { color: var(--c-accent); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea { width: 100%; border: 1px solid rgba(255, 157, 0, 0.24); border-radius: 8px; background: rgba(5, 3, 1, 0.72); color: var(--c-fg); font: inherit; font-size: 0.95rem; padding: 0.95rem 1rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
+    .contact-form textarea { resize: vertical; min-height: 170px; line-height: 1.65; }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: rgba(255, 224, 190, 0.38); }
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus { border-color: var(--c-accent); background: rgba(8, 5, 2, 0.9); box-shadow: 0 0 0 3px rgba(255, 157, 0, 0.1); }
+    .contact-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .contact-form button { cursor: pointer; font: inherit; text-transform: uppercase; letter-spacing: 0.16em; }
+    .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
+    .contact-email:hover { color: var(--c-accent); }
+    .contact-form-status { min-height: 1.5rem; color: var(--c-accent-strong); font-size: 0.85rem; text-align: center; opacity: 0; transition: opacity 0.25s; }
+    .contact-form-status.is-visible { opacity: 1; }
+
+    @media (max-width: 720px) {
+        .field-grid { grid-template-columns: 1fr; }
+        .contact-actions { align-items: stretch; flex-direction: column; }
+        .contact-actions .btn-hud { width: 100%; }
+        .contact-email { text-align: center; }
+    }
+</style>
