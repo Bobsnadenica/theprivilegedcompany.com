@@ -269,7 +269,17 @@ body.has-custom-cursor #cursor-follower {
     min-height: 100vh;
     display: flex;
     align-items: center;
+    justify-content: center;
     padding: 7rem var(--gap) 4rem;
+    text-align: center;
+}
+
+.hero-content {
+    width: min(1080px, 100%);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .display-huge {
@@ -304,17 +314,18 @@ body.has-custom-cursor #cursor-follower {
 
 .hero-lead {
     font-size: clamp(1rem, 2vw, 1.5rem);
-    max-width: 600px;
+    max-width: 760px;
     color: var(--c-muted);
-    margin-top: 3rem;
+    margin: 3rem auto 0;
     font-weight: 300;
 }
 
 .hero-footer {
     margin-top: 6rem;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 .hero-stats {
@@ -392,13 +403,16 @@ body.has-custom-cursor #cursor-follower {
 .monolith-advert {
     padding: 10rem var(--gap);
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 760px);
     gap: var(--gap);
+    justify-content: center;
+    text-align: center;
     border-top: 1px solid var(--c-dim);
 }
 
 .advert-text {
-    max-width: 500px;
+    max-width: 760px;
+    margin-inline: auto;
 }
 
 .advert-text.reveal-mask {
@@ -425,11 +439,15 @@ body.has-custom-cursor #cursor-follower {
 .monolith-advert p {
     color: var(--c-muted);
     font-size: 1.1rem;
+    max-width: 720px;
+    margin-inline: auto;
 }
 
 .mission-cta {
     margin-top: 4rem;
     padding-bottom: 0.15rem;
+    display: flex;
+    justify-content: center;
 }
 
 /* Simulated Health Dashboard */
@@ -653,8 +671,10 @@ body.has-custom-cursor #cursor-follower {
 #main-footer {
     padding: 4rem var(--gap);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem 3rem;
     border-top: 1px solid var(--c-dim);
     font-size: 0.6rem;
     text-transform: uppercase;
@@ -662,11 +682,14 @@ body.has-custom-cursor #cursor-follower {
     color: var(--c-dim);
     background: var(--c-bg);
     position: relative;
+    text-align: center;
     z-index: 100;
 }
 
 .footer-right {
     display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 3rem;
 }
 
@@ -704,24 +727,36 @@ body.has-custom-cursor #cursor-follower {
     width: min(1180px, calc(100vw - (var(--gap) * 2)));
     margin: 0 auto;
     padding: clamp(8.75rem, 13vh, 11.5rem) 0 6rem;
+    text-align: center;
 }
 
 #dynamic-view .view-header {
+    max-width: 960px;
+    margin-inline: auto;
     margin-bottom: clamp(4rem, 8vw, 7rem);
 }
 
 #dynamic-view .view-lead {
     max-width: 720px;
-    margin-top: 2rem;
+    margin: 2rem auto 0;
     color: var(--c-muted);
     font-size: clamp(1.1rem, 2vw, 1.5rem);
 }
 
 #dynamic-view .info-block {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: clamp(2rem, 5vw, 4rem);
     padding: clamp(4rem, 8vw, 6rem) 0;
+    text-align: center;
     border-top: 1px solid var(--c-dim);
+}
+
+#dynamic-view .info-text,
+#dynamic-view .manifest-content {
+    max-width: 840px;
+    margin-inline: auto;
 }
 
 #dynamic-view .info-text h2 {
@@ -732,9 +767,31 @@ body.has-custom-cursor #cursor-follower {
 
 #dynamic-view .info-text p {
     max-width: 640px;
-    margin-bottom: 2rem;
+    margin: 0 auto 2rem;
     color: var(--c-muted);
     font-size: 1.1rem;
+}
+
+#dynamic-view .manifest-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#dynamic-view .manifest-content p {
+    margin-inline: auto;
+}
+
+#dynamic-view .tab-triggers,
+#dynamic-view .tech-stack,
+#dynamic-view .security-tier {
+    justify-content: center;
+}
+
+#dynamic-view .pedigree-list,
+#dynamic-view .detail-list {
+    max-width: 760px;
+    margin-inline: auto;
 }
 
 /* Mobile */
@@ -766,7 +823,7 @@ body.has-custom-cursor #cursor-follower {
     }
     .hero-footer {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 4rem;
     }
     .monolith-advert {
