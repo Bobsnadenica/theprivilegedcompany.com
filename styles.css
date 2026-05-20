@@ -236,6 +236,50 @@ body.has-custom-cursor #cursor-follower {
     box-shadow: 0 0 20px rgba(255, 157, 0, 0.22);
 }
 
+.hud-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.language-switcher {
+    min-height: 2.45rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid rgba(255, 157, 0, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 157, 0, 0.06);
+    padding: 0.45rem 0.55rem;
+    color: var(--c-accent);
+}
+
+.language-current-flag {
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.language-switcher select {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: #ffc57c;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    outline: none;
+    padding: 0 0.15rem;
+}
+
+.language-switcher select option {
+    background: #050301;
+    color: #ffc57c;
+}
+
 .hud-status {
     display: flex;
     align-items: center;
@@ -839,11 +883,15 @@ body.has-custom-cursor #cursor-follower {
 /* Mobile */
 @media (max-width: 1024px) {
     #main-hud {
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: auto minmax(0, 1fr) auto;
     }
 
     .hud-status {
         display: none;
+    }
+
+    .hud-actions {
+        justify-self: end;
     }
 
     .hud-nav {
@@ -890,6 +938,11 @@ body.has-custom-cursor #cursor-follower {
     .hud-nav {
         justify-self: stretch;
         width: 100%;
+    }
+
+    .hud-actions {
+        justify-self: stretch;
+        justify-content: flex-end;
     }
 
     .hud-nav ul {

@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20260520i">
+    <link rel="stylesheet" href="styles.css?v=20260520j">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -96,9 +96,18 @@
                 </ul>
             </nav>
 
-            <div class="hud-status">
-                <span class="status-pulse"></span>
-                <span class="status-text">System Active</span>
+            <div class="hud-actions">
+                <label class="language-switcher" data-i18n-ignore>
+                    <span class="language-current-flag" id="language-current-flag" aria-hidden="true">🇺🇸</span>
+                    <select id="language-select" aria-label="Language">
+                        <option value="en">EN</option>
+                        <option value="bg">BG</option>
+                    </select>
+                </label>
+                <div class="hud-status">
+                    <span class="status-pulse"></span>
+                    <span class="status-text">System Active</span>
+                </div>
             </div>
         </header>
 
@@ -302,6 +311,6 @@ printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"
 printf "SQLI SMOKE: %s SQL error leakage\n" "$sql_error"
 printf "EXPOSED FILES: %s%s\n" "$exposed" "$(if [ "$exposed" -gt 0 ]; then printf " (%s)" "$exposed_names"; fi)"
 printf "\nReview only failures: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, or unreachable robots/sitemap.\n"</script>
-    <script type="module" src="script.js?v=20260520i"></script>
+    <script type="module" src="script.js?v=20260520j"></script>
 </body>
 </html>

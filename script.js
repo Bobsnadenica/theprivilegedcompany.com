@@ -2,6 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
+import { languageMeta, translations } from './translations.js?v=20260520j';
 
 const routes = {
     '': {
@@ -70,7 +71,38 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520i';
+const assetVersion = '20260520j';
+const supportedLanguages = Object.keys(languageMeta);
+let currentLanguage = (() => {
+    try {
+        const stored = localStorage.getItem('tpc-language');
+        return supportedLanguages.includes(stored) ? stored : 'en';
+    } catch {
+        return 'en';
+    }
+})();
+
+const normalizeI18nKey = value => String(value || '').replace(/\s+/g, ' ').trim();
+
+const t = value => {
+    const key = normalizeI18nKey(value);
+    if (!key || currentLanguage === 'en') return value;
+    return translations[currentLanguage]?.text?.[key] || value;
+};
+
+const translateAttribute = value => {
+    const key = normalizeI18nKey(value);
+    if (!key || currentLanguage === 'en') return value;
+    return translations[currentLanguage]?.attrs?.[key] || translations[currentLanguage]?.text?.[key] || value;
+};
+
+const getCurrentRoute = () => {
+    const key = getRouteKey();
+    return {
+        key,
+        route: key === notFoundKey ? notFoundRoute : routes[key]
+    };
+};
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
@@ -80,17 +112,84 @@ const setMeta = (selector, attribute, value) => {
 const updateSeo = (routeKey, route) => {
     const path = routeKey === notFoundKey ? window.location.pathname : (routeKey ? `/${routeKey}` : '/');
     const canonical = `${siteOrigin}${path}`;
-    const title = `ThePrivilegedCompany | ${route.title}`;
+    const title = `ThePrivilegedCompany | ${t(route.title)}`;
+    const description = t(route.description);
 
     document.title = title;
-    setMeta('meta[name="description"]', 'content', route.description);
+    setMeta('meta[name="description"]', 'content', description);
     setMeta('meta[name="robots"]', 'content', routeKey === notFoundKey ? 'noindex, follow' : 'index, follow, max-image-preview:large');
     setMeta('link[rel="canonical"]', 'href', canonical);
     setMeta('meta[property="og:title"]', 'content', title);
-    setMeta('meta[property="og:description"]', 'content', route.description);
+    setMeta('meta[property="og:description"]', 'content', description);
     setMeta('meta[property="og:url"]', 'content', canonical);
     setMeta('meta[name="twitter:title"]', 'content', title);
-    setMeta('meta[name="twitter:description"]', 'content', route.description);
+    setMeta('meta[name="twitter:description"]', 'content', description);
+};
+
+const applyTranslations = (root = document) => {
+    document.documentElement.lang = currentLanguage;
+
+    const select = document.getElementById('language-select');
+    const flag = document.getElementById('language-current-flag');
+    if (select) {
+        select.value = currentLanguage;
+        select.setAttribute('aria-label', translateAttribute('Language'));
+    }
+    if (flag) flag.textContent = languageMeta[currentLanguage]?.flag || languageMeta.en.flag;
+
+    const textNodes = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            const parent = node.parentElement;
+            if (!parent || !normalizeI18nKey(node.nodeValue)) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('script, style, svg, canvas, [data-i18n-ignore]')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+        }
+    });
+
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    textNodes.forEach(node => {
+        if (!node.__i18nSource) node.__i18nSource = node.nodeValue;
+        const source = node.__i18nSource;
+        const key = normalizeI18nKey(source);
+        const translated = currentLanguage === 'en' ? key : t(key);
+        if (translated === key && currentLanguage !== 'en') return;
+
+        const leading = source.match(/^\s*/)?.[0] || '';
+        const trailing = source.match(/\s*$/)?.[0] || '';
+        node.nodeValue = `${leading}${translated}${trailing}`;
+    });
+
+    root.querySelectorAll?.('[placeholder], [aria-label], [title]').forEach(element => {
+        ['placeholder', 'aria-label', 'title'].forEach(attr => {
+            if (!element.hasAttribute(attr)) return;
+            const dataKey = `i18n${attr.replace(/-([a-z])/g, (_, char) => char.toUpperCase())}`;
+            if (!element.dataset[dataKey]) element.dataset[dataKey] = element.getAttribute(attr);
+            element.setAttribute(attr, translateAttribute(element.dataset[dataKey]));
+        });
+    });
+};
+
+const setLanguage = lang => {
+    if (!supportedLanguages.includes(lang)) return;
+    currentLanguage = lang;
+    try {
+        localStorage.setItem('tpc-language', lang);
+    } catch {
+        // Storage can be blocked; the page still switches for the current session.
+    }
+    applyTranslations();
+    const { key, route } = getCurrentRoute();
+    updateSeo(key, route);
+};
+
+const initLanguageSwitcher = () => {
+    const select = document.getElementById('language-select');
+    if (!select || select.dataset.bound) return;
+    select.dataset.bound = 'true';
+    select.addEventListener('change', event => setLanguage(event.target.value));
+    applyTranslations();
 };
 
 /**
@@ -108,8 +207,7 @@ const getRouteKey = () => {
  * SPA Router with Cinematic Transitions
  */
 const router = async () => {
-    const key = getRouteKey();
-    const route = key === notFoundKey ? notFoundRoute : routes[key];
+    const { key, route } = getCurrentRoute();
     
     // Start Transition Mask
     transitionMask.classList.add('is-active');
@@ -144,6 +242,7 @@ const router = async () => {
 
     updateSeo(key, route);
     window.scrollTo(0, 0);
+    applyTranslations();
 
     // End Transition Mask
     transitionMask.classList.remove('is-active');
@@ -200,20 +299,21 @@ const initContactForm = () => {
         const budget = String(data.get('budget') || '').trim();
         const details = String(data.get('details') || '').trim();
 
-        const subject = encodeURIComponent(`Website inquiry from ${name}`);
+        const subjectPrefix = currentLanguage === 'bg' ? `${t('Website inquiry from')} ` : 'Website inquiry from ';
+        const subject = encodeURIComponent(`${subjectPrefix}${name}`);
         const body = encodeURIComponent([
-            `Name: ${name}`,
-            `Email: ${email}`,
-            `Phone: ${phone}`,
-            `Looking for: ${requestType}`,
-            `Timeline: ${timeline || 'Not specified'}`,
-            `Budget / scope: ${budget || 'Not specified'}`,
+            `${t('Name:')} ${name}`,
+            `${t('Email:')} ${email}`,
+            `${t('Phone:')} ${phone}`,
+            `${t('Looking for:')} ${requestType}`,
+            `${t('Timeline:')} ${timeline || t('Not specified')}`,
+            `${t('Budget / scope:')} ${budget || t('Not specified')}`,
             '',
-            'Details:',
+            t('Details:'),
             details
         ].join('\n'));
 
-        status.textContent = 'Opening your email client with the request details.';
+        status.textContent = t('Opening your email client with the request details.');
         status.classList.add('is-visible');
         window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
     });
@@ -244,6 +344,7 @@ const initArchitectureCanvas = () => {
                     <p style="font-size: 1.2rem; color: var(--c-fg); line-height: 1.4;">${info.body}</p>
                 </div>
             `;
+            applyTranslations(details);
         });
     });
 };
@@ -262,8 +363,7 @@ class ScrambleText {
         this.elements.forEach(el => {
             if (el.dataset.scrambled) return;
             el.dataset.scrambled = "true";
-            const originalText = el.textContent;
-            el.addEventListener('mouseenter', () => this.scramble(el, originalText));
+            el.addEventListener('mouseenter', () => this.scramble(el, el.textContent));
         });
     }
 
@@ -417,7 +517,7 @@ const initHealthCheck = () => {
 
         const dot = document.createElement('span');
         dot.className = 'status-dot pulse';
-        target.replaceChildren(dot, document.createTextNode(` ${value}`));
+        target.replaceChildren(dot, document.createTextNode(` ${t(value)}`));
 
         setTimeout(() => {
             dot.classList.remove('pulse');
@@ -438,6 +538,7 @@ const initHealthCheck = () => {
 
         entry.append(command, output);
         logEl.append(entry);
+        applyTranslations(entry);
     };
 
     const buildProbeSummary = async () => {
@@ -483,12 +584,16 @@ const initHealthCheck = () => {
             return [
                 {
                     label: 'Response',
-                    summary: `${home.response.status} ${home.response.ok ? 'OK' : 'check'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`,
+                    summary: currentLanguage === 'bg'
+                        ? `${home.response.status} ${home.response.ok ? 'ОК' : 'провери'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`
+                        : `${home.response.status} ${home.response.ok ? 'OK' : 'check'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`,
                     updates: { http: `${home.response.status} ${home.response.ok ? 'OK' : 'CHECK'}` }
                 },
                 {
                     label: 'Crawl Files',
-                    summary: `robots ${robots.response.status}; sitemap ${sitemap.response.status} with ${sitemapUrls.length} URL${sitemapUrls.length === 1 ? '' : 's'}.`,
+                    summary: currentLanguage === 'bg'
+                        ? `robots ${robots.response.status}; sitemap ${sitemap.response.status} с ${sitemapUrls.length} URL адрес${sitemapUrls.length === 1 ? '' : 'а'}.`
+                        : `robots ${robots.response.status}; sitemap ${sitemap.response.status} with ${sitemapUrls.length} URL${sitemapUrls.length === 1 ? '' : 's'}.`,
                     updates: {
                         traffic: `${sitemapUrls.length} URLS`,
                         seo: robots.response.ok ? 'ROBOTS OK' : 'ROBOTS?'
@@ -496,7 +601,9 @@ const initHealthCheck = () => {
                 },
                 {
                     label: 'Routes',
-                    summary: `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.`,
+                    summary: currentLanguage === 'bg'
+                        ? `${routeEntries.length - missingFragments}/${routeEntries.length} view фрагмента са достъпни; ${directRouteIssues} директни маршрута имат нужда от fallback.`
+                        : `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.`,
                     updates: {
                         cache: `${routeEntries.length - missingFragments}/${routeEntries.length}`,
                         errors: directRouteIssues ? 'FALLBACK' : 'CLEAR'
@@ -504,12 +611,16 @@ const initHealthCheck = () => {
                 },
                 {
                     label: 'Metadata',
-                    summary: `Title present; description ${metaDescription ? `${metaDescription.length} chars` : 'missing'}.`,
+                    summary: currentLanguage === 'bg'
+                        ? `Title е наличен; description ${metaDescription ? `${metaDescription.length} символа` : 'липсва'}.`
+                        : `Title present; description ${metaDescription ? `${metaDescription.length} chars` : 'missing'}.`,
                     updates: { seo: metaDescription ? 'META OK' : 'META?' }
                 },
                 {
                     label: 'Speed',
-                    summary: `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB transferred.`,
+                    summary: currentLanguage === 'bg'
+                        ? `Зареждане ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB трансфер.`
+                        : `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB transferred.`,
                     updates: {
                         assets: `${resources.length} ASSETS`,
                         latency: `${Math.round((nav?.domainLookupEnd || 0) - (nav?.domainLookupStart || 0))}/${nav?.secureConnectionStart ? Math.round((nav.connectEnd || 0) - nav.secureConnectionStart) : 0}MS`
@@ -517,14 +628,18 @@ const initHealthCheck = () => {
                 },
                 {
                     label: 'Security',
-                    summary: `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
+                    summary: currentLanguage === 'bg'
+                        ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} mixed-content URL адреса; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
+                        : `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
                     updates: {
                         shield: window.isSecureContext ? 'SECURE' : 'LOCAL'
                     }
                 },
                 {
                     label: 'Vuln Smoke',
-                    summary: `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `needed: ${missingHardeningHeaders.join(', ')}` : 'present'}.`,
+                    summary: currentLanguage === 'bg'
+                        ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; deploy headers ${missingHardeningHeaders.length ? `нужни: ${missingHardeningHeaders.join(', ')}` : 'налични'}.`
+                        : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `needed: ${missingHardeningHeaders.join(', ')}` : 'present'}.`,
                     updates: {
                         errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }
@@ -545,7 +660,7 @@ const initHealthCheck = () => {
         diagnosticsRunning = true;
         logEl.replaceChildren();
         commandEl.textContent = 'copy website-probe.sh';
-        outputEl.textContent = 'One portable script. Run it with: bash website-probe.sh https://example.com';
+        outputEl.textContent = t('One portable script. Run it with: bash website-probe.sh https://example.com');
 
         const summaries = await buildProbeSummary();
         summaries.forEach(summary => {
@@ -554,7 +669,7 @@ const initHealthCheck = () => {
         });
 
         commandEl.textContent = `example target: ${targetOrigin}`;
-        outputEl.textContent = 'The script reports only status, metadata, crawl files, route health, speed, and security signals.';
+        outputEl.textContent = t('The script reports only status, metadata, crawl files, route health, speed, and security signals.');
         diagnosticsRunning = false;
         diagnosticsHasRun = true;
     };
@@ -587,7 +702,7 @@ const initHealthCheck = () => {
         }
 
         if (copied) {
-            copyStatus.textContent = 'Copied';
+            copyStatus.textContent = t('Copied');
             copyBtn.classList.add('copied');
             setTimeout(() => {
                 copyStatus.textContent = '';
@@ -596,7 +711,7 @@ const initHealthCheck = () => {
             return;
         }
 
-        copyStatus.textContent = 'Copy blocked';
+        copyStatus.textContent = t('Copy blocked');
         setTimeout(() => {
             copyStatus.textContent = '';
         }, 1800);
@@ -953,8 +1068,8 @@ window.addEventListener('popstate', router);
 document.addEventListener('DOMContentLoaded', () => {
     new QuantumWeb('bg-canvas');
     initCursor();
+    initLanguageSwitcher();
     initMagnetic();
     initHealthCheck();
-    new ScrambleText('[data-scramble]');
     router();
 });
