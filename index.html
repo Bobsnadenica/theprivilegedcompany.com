@@ -30,7 +30,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20260520">
+    <link rel="stylesheet" href="styles.css?v=20260520d">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -138,63 +138,66 @@
             <div id="dynamic-view" class="view-container" style="display: none;"></div>
         </main>
 
-        <!-- System Health Dashboard -->
-        <div id="health-dashboard" class="minimized">
-            <button class="health-header" id="health-header-toggle" type="button" aria-expanded="false" aria-controls="health-grid-content">
-                <span class="health-title">System Diagnostics</span>
-                <span class="health-toggle-meta">
-                    <span class="status-pulse"></span>
-                    <span class="health-chevron" aria-hidden="true">&#9660;</span>
-                </span>
-            </button>
-            <div class="health-body" id="health-grid-content">
-                <div class="health-terminal" aria-live="polite">
-                    <div class="terminal-line command-line">
-                        <span class="terminal-prompt">$</span>
-                        <span id="diagnostic-command">website-probe.sh --example</span>
+        <!-- Website Diagnostics Dock -->
+        <div class="diagnostic-dock" id="diagnostic-dock">
+            <div id="health-dashboard" class="minimized">
+                <button class="health-header" id="health-header-toggle" type="button" aria-expanded="false" aria-controls="health-grid-content">
+                    <span class="health-title">Website Diagnostics</span>
+                    <span class="health-toggle-meta">
+                        <span class="status-pulse"></span>
+                        <span class="health-chevron" aria-hidden="true">&#9660;</span>
+                    </span>
+                </button>
+                <div class="health-body" id="health-grid-content">
+                    <div class="health-terminal" aria-live="polite">
+                        <div class="terminal-line command-line">
+                            <span class="terminal-prompt">$</span>
+                            <span id="diagnostic-command">website-probe.sh --example</span>
+                        </div>
+                        <div class="terminal-line terminal-output" id="diagnostic-output">Open the panel to copy the probe script and see the useful checks.</div>
+                        <div class="probe-actions">
+                            <button class="copy-probe-btn" id="copy-probe-script" type="button">Copy Script</button>
+                            <span class="copy-probe-status" id="copy-probe-status" aria-live="polite"></span>
+                        </div>
+                        <div class="diagnostic-log" id="diagnostic-log"></div>
                     </div>
-                    <div class="terminal-line terminal-output" id="diagnostic-output">Open the panel to copy the probe script and see the useful checks.</div>
-                    <div class="probe-actions">
-                        <button class="copy-probe-btn" id="copy-probe-script" type="button">Copy Script</button>
-                        <span class="copy-probe-status" id="copy-probe-status" aria-live="polite"></span>
-                    </div>
-                    <div class="diagnostic-log" id="diagnostic-log"></div>
-                </div>
-                <div class="health-grid">
-                    <div class="health-node">
-                        <span class="node-label">Response</span>
-                        <span class="node-status" id="status-http"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Sitemap</span>
-                        <span class="node-status" id="status-traffic"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Robots</span>
-                        <span class="node-status" id="status-seo"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Security</span>
-                        <span class="node-status" id="status-shield"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Load</span>
-                        <span class="node-status" id="status-assets"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">DNS + TLS</span>
-                        <span class="node-status" id="status-latency"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Routes</span>
-                        <span class="node-status" id="status-cache"><span class="status-dot"></span> STANDBY</span>
-                    </div>
-                    <div class="health-node">
-                        <span class="node-label">Exposure</span>
-                        <span class="node-status" id="status-errors"><span class="status-dot"></span> STANDBY</span>
+                    <div class="health-grid">
+                        <div class="health-node">
+                            <span class="node-label">Response</span>
+                            <span class="node-status" id="status-http"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Sitemap</span>
+                            <span class="node-status" id="status-traffic"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Robots</span>
+                            <span class="node-status" id="status-seo"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Security</span>
+                            <span class="node-status" id="status-shield"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Load</span>
+                            <span class="node-status" id="status-assets"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">DNS + TLS</span>
+                            <span class="node-status" id="status-latency"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Routes</span>
+                            <span class="node-status" id="status-cache"><span class="status-dot"></span> STANDBY</span>
+                        </div>
+                        <div class="health-node">
+                            <span class="node-label">Exposure</span>
+                            <span class="node-status" id="status-errors"><span class="status-dot"></span> STANDBY</span>
+                        </div>
                     </div>
                 </div>
             </div>
+            <a href="Tech_Tools/index.html" class="tech-tools-shortcut" aria-label="Open tool suite">Tool Suite</a>
         </div>
 
         <footer id="main-footer">
@@ -299,6 +302,6 @@ printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"
 printf "SQLI SMOKE: %s SQL error leakage\n" "$sql_error"
 printf "EXPOSED FILES: %s%s\n" "$exposed" "$(if [ "$exposed" -gt 0 ]; then printf " (%s)" "$exposed_names"; fi)"
 printf "\nReview only failures: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, or unreachable robots/sitemap.\n"</script>
-    <script type="module" src="script.js?v=20260520"></script>
+    <script type="module" src="script.js?v=20260520d"></script>
 </body>
 </html>

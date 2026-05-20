@@ -58,6 +58,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
+const assetVersion = '20260520d';
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
@@ -117,7 +118,7 @@ const router = async () => {
         dynamicView.style.display = 'block';
         
         try {
-            const response = await fetch(`views/${route.view}`);
+            const response = await fetch(`views/${route.view}?v=${assetVersion}`, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Status ${response.status}`);
             const html = await response.text();
             dynamicView.innerHTML = html;

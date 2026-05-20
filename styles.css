@@ -450,23 +450,37 @@ body.has-custom-cursor #cursor-follower {
     justify-content: center;
 }
 
-/* Simulated Health Dashboard */
-#health-dashboard {
+/* Website Diagnostics Dock */
+.diagnostic-dock {
     position: fixed;
-    bottom: 2rem;
-    left: var(--gap);
+    bottom: 1rem;
+    left: 1rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    max-width: calc(100vw - 2rem);
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.diagnostic-dock > * {
+    pointer-events: auto;
+}
+
+#health-dashboard {
+    position: static;
     width: min(460px, calc(100vw - 2rem));
     max-height: min(78vh, 720px);
     background: rgba(5, 3, 1, 0.88);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 157, 0, 0.34);
     padding: 1.2rem;
-    z-index: 1000;
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.52), 0 0 34px rgba(255, 157, 0, 0.1);
 }
 
 #health-dashboard.minimized {
-    width: min(300px, calc(100vw - 2rem));
+    width: max-content;
+    max-width: 100%;
 }
 
 #health-dashboard.minimized .health-body {
@@ -520,6 +534,34 @@ body.has-custom-cursor #cursor-follower {
 
 .health-header:hover .health-chevron {
     color: var(--c-accent);
+}
+
+.tech-tools-shortcut {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 57px;
+    padding: 0 1rem;
+    border: 1px solid rgba(255, 157, 0, 0.34);
+    background: rgba(5, 3, 1, 0.84);
+    backdrop-filter: blur(15px);
+    color: var(--c-accent);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42), 0 0 22px rgba(255, 157, 0, 0.08);
+    transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.25s;
+}
+
+.tech-tools-shortcut:hover {
+    background: var(--c-accent);
+    border-color: var(--c-accent);
+    color: #050301;
+    transform: translateY(-2px);
 }
 
 .health-body {
@@ -984,9 +1026,12 @@ body.has-custom-cursor #cursor-follower {
         padding: 2rem 0 0;
     }
 
+    .diagnostic-dock {
+        right: 1rem;
+        flex-wrap: wrap-reverse;
+    }
+
     #health-dashboard {
-        left: 1rem;
-        bottom: 1rem;
         width: calc(100vw - 2rem);
         max-height: min(72vh, 620px);
     }
