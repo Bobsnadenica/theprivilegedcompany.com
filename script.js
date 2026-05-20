@@ -268,13 +268,44 @@ const initHealthCheck = () => {
         fallback.value = value;
         fallback.setAttribute('readonly', '');
         fallback.style.position = 'fixed';
-        fallback.style.inset = '0 auto auto 0';
-        fallback.style.width = '1px';
-        fallback.style.height = '1px';
+        fallback.style.top = '0';
+        fallback.style.left = '0';
+        fallback.style.width = '2rem';
+        fallback.style.height = '2rem';
         fallback.style.opacity = '0';
+        fallback.style.pointerEvents = 'none';
         document.body.append(fallback);
+        fallback.focus({ preventScroll: true });
         fallback.select();
+        fallback.setSelectionRange(0, value.length);
         const copied = document.execCommand('copy');
+        fallback.remove();
+        return copied;
+    };
+
+    const copyFromHiddenSelection = value => {
+        const fallback = document.createElement('pre');
+        fallback.textContent = value;
+        fallback.setAttribute('contenteditable', 'true');
+        fallback.style.position = 'fixed';
+        fallback.style.top = '0';
+        fallback.style.left = '0';
+        fallback.style.width = '2rem';
+        fallback.style.height = '2rem';
+        fallback.style.opacity = '0';
+        fallback.style.pointerEvents = 'none';
+        fallback.style.whiteSpace = 'pre';
+        document.body.append(fallback);
+
+        const range = document.createRange();
+        range.selectNodeContents(fallback);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        fallback.focus({ preventScroll: true });
+
+        const copied = document.execCommand('copy');
+        selection.removeAllRanges();
         fallback.remove();
         return copied;
     };
@@ -471,16 +502,31 @@ const initHealthCheck = () => {
         diagnosticsHasRun = true;
     };
 
-    const copyProbeScript = async () => {
-        let copied = copyFromHiddenTextarea(probeScript);
+    let lastCopyAttempt = 0;
 
-        if (!copied && navigator.clipboard?.writeText) {
+    const copyProbeScript = async event => {
+        event?.preventDefault();
+
+        const now = Date.now();
+        if (now - lastCopyAttempt < 350) return;
+        lastCopyAttempt = now;
+
+        let copied = false;
+        if (window.isSecureContext && navigator.clipboard?.writeText) {
             try {
                 await navigator.clipboard.writeText(probeScript);
                 copied = true;
             } catch {
                 copied = false;
             }
+        }
+
+        if (!copied) {
+            copied = copyFromHiddenTextarea(probeScript);
+        }
+
+        if (!copied) {
+            copied = copyFromHiddenSelection(probeScript);
         }
 
         if (copied) {
