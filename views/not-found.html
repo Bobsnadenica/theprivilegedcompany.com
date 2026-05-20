@@ -1,0 +1,24 @@
+<section class="monolith-view not-found-view">
+    <header class="view-header reveal-mask">
+        <span class="label">404 / Portal Missed</span>
+        <h1 class="display-huge" data-scramble>Page Not Found.</h1>
+        <p class="view-lead">We asked the server for this page. It checked the logs, adjusted its tie, and said: "Never heard of her."</p>
+    </header>
+
+    <div class="not-found-panel reveal-mask">
+        <span class="not-found-code">ERR_WHERE_DID_IT_GO</span>
+        <p>The page may have moved, retired quietly, or been promoted into infrastructure. The good news: the rest of the site still has a pulse.</p>
+        <div class="not-found-actions">
+            <a href="/" class="btn-hud" data-link>Return Home</a>
+            <a href="/manifest" class="btn-hud" data-link>View Services</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .not-found-view { min-height: 100vh; }
+    .not-found-panel { width: min(760px, 100%); margin: 0 auto; border-top: 1px solid var(--c-dim); border-bottom: 1px solid var(--c-dim); padding: clamp(2rem, 5vw, 4rem) 0; }
+    .not-found-code { display: inline-flex; margin-bottom: 1.25rem; color: var(--c-accent); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+    .not-found-panel p { max-width: 580px; margin: 0 auto; color: var(--c-muted); font-size: 1.05rem; line-height: 1.8; }
+    .not-found-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
+</style>

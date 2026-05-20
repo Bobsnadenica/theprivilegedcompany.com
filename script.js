@@ -52,13 +52,20 @@ const routes = {
     }
 };
 
+const notFoundKey = '__not_found__';
+const notFoundRoute = {
+    title: '404',
+    view: 'not-found.html',
+    description: 'This page did not make it through the portal. Return to ThePrivilegedCompany home, services, or website diagnostics.'
+};
+
 const hubView = document.getElementById('hub-view');
 const dynamicView = document.getElementById('dynamic-view');
 const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520d';
+const assetVersion = '20260520e';
 
 const setMeta = (selector, attribute, value) => {
     const tag = document.head.querySelector(selector);
@@ -66,12 +73,13 @@ const setMeta = (selector, attribute, value) => {
 };
 
 const updateSeo = (routeKey, route) => {
-    const path = routeKey ? `/${routeKey}` : '/';
+    const path = routeKey === notFoundKey ? window.location.pathname : (routeKey ? `/${routeKey}` : '/');
     const canonical = `${siteOrigin}${path}`;
     const title = `ThePrivilegedCompany | ${route.title}`;
 
     document.title = title;
     setMeta('meta[name="description"]', 'content', route.description);
+    setMeta('meta[name="robots"]', 'content', routeKey === notFoundKey ? 'noindex, follow' : 'index, follow, max-image-preview:large');
     setMeta('link[rel="canonical"]', 'href', canonical);
     setMeta('meta[property="og:title"]', 'content', title);
     setMeta('meta[property="og:description"]', 'content', route.description);
@@ -87,7 +95,8 @@ const getRouteKey = () => {
     const path = window.location.pathname;
     const parts = path.split('/').filter(p => p !== '' && p !== 'index.html');
     const lastPart = parts[parts.length - 1] || '';
-    return routes.hasOwnProperty(lastPart) ? lastPart : '';
+    if (!lastPart) return '';
+    return routes.hasOwnProperty(lastPart) ? lastPart : notFoundKey;
 };
 
 /**
@@ -95,7 +104,7 @@ const getRouteKey = () => {
  */
 const router = async () => {
     const key = getRouteKey();
-    const route = routes[key];
+    const route = key === notFoundKey ? notFoundRoute : routes[key];
     
     // Start Transition Mask
     transitionMask.classList.add('is-active');
