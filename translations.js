@@ -46,9 +46,11 @@ export const translations = {
             "Copy blocked": "Копирането е блокирано",
             "Opening your email client with the request details.": "Отваряме имейл клиента с детайлите на запитването.",
             "Website inquiry from": "Запитване от сайта от",
+            "Inquiry about": "Запитване за",
             "Name:": "Име:",
             "Email:": "Имейл:",
             "Phone:": "Телефон:",
+            "Service:": "Услуга:",
             "Looking for:": "Търси:",
             "Timeline:": "Срок:",
             "Budget / scope:": "Бюджет / обхват:",
@@ -132,6 +134,7 @@ export const translations = {
             "Budget / Scope": "Бюджет / обхват",
             "Details": "Детайли",
             "Send Brief": "Изпрати бриф",
+            "Selected Service": "Избрана услуга",
 
             "Empirical Intelligence": "Емпирична интелигентност",
             "The Data Engine.": "Двигателят за данни.",
@@ -235,6 +238,7 @@ export const translations = {
             "Protection": "Защита",
             "Scam & Funnel Awareness": "Осъзнатост за измами и funnels",
             "Training that explains common online traps, multi-level marketing models, fake funnels, predatory offers, and suspicious digital promises.": "Обучение, което обяснява чести онлайн капани, multi-level marketing модели, фалшиви funnels, хищнически оферти и съмнителни дигитални обещания.",
+            "Start a brief": "Започнете бриф",
             "Ready to initiate?": "Готови ли сте да започнем?",
 
             "404 / Portal Missed": "404 / порталът пропусна",

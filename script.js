@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260520j';
+import { languageMeta, translations } from './translations.js?v=20260520k';
 
 const routes = {
     '': {
@@ -71,7 +71,29 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520j';
+const assetVersion = '20260520k';
+const serviceRequestTypes = {
+    'Licensed Market Intelligence': 'Company data or market intelligence',
+    'Technical Audits': 'Systems / process audit',
+    'Team & Process Audits': 'Systems / process audit',
+    'Consulting & Embedded Expertise': 'Consulting or advisory',
+    'Everyday Tooling': 'Business automation or custom tools',
+    'SEO Optimization': 'SEO and performance',
+    'Website Building & Management': 'Website or app build',
+    'Mobile & Web Applications': 'Website or app build',
+    'Marketing Support': 'Marketing or social media',
+    'Staff Enablement': 'Training / academy',
+    'Custom Daily Tools': 'Business automation or custom tools',
+    'Website Building': 'Website or app build',
+    'App Building': 'Website or app build',
+    'Career Consulting': 'Career consulting',
+    'Tech Training': 'Training / academy',
+    'Learn Any Tech Topic': 'Training / academy',
+    'Social Media Management': 'Marketing or social media',
+    'Advertisement Support': 'Marketing or social media',
+    'Scam & Funnel Awareness': 'Scam or fraud awareness'
+};
+const knownServiceNames = Object.keys(serviceRequestTypes);
 const supportedLanguages = Object.keys(languageMeta);
 let currentLanguage = (() => {
     try {
@@ -94,6 +116,24 @@ const translateAttribute = value => {
     const key = normalizeI18nKey(value);
     if (!key || currentLanguage === 'en') return value;
     return translations[currentLanguage]?.attrs?.[key] || translations[currentLanguage]?.text?.[key] || value;
+};
+
+const getSourceText = element => {
+    if (!element) return '';
+    const nodes = [];
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            return normalizeI18nKey(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+    });
+    while (walker.nextNode()) nodes.push(walker.currentNode.__i18nSource || walker.currentNode.nodeValue);
+    return normalizeI18nKey(nodes.join(' '));
+};
+
+const getSelectedServiceName = () => {
+    const params = new URLSearchParams(window.location.search);
+    const service = normalizeI18nKey(params.get('service'));
+    return knownServiceNames.includes(service) ? service : '';
 };
 
 const getCurrentRoute = () => {
@@ -137,12 +177,22 @@ const applyTranslations = (root = document) => {
     }
     if (flag) flag.textContent = languageMeta[currentLanguage]?.flag || languageMeta.en.flag;
 
+    const sourceElements = [
+        ...(root.nodeType === Node.ELEMENT_NODE && root.matches?.('[data-i18n-source]') ? [root] : []),
+        ...(root.querySelectorAll?.('[data-i18n-source]') || [])
+    ];
+
+    sourceElements.forEach(element => {
+        const source = element.dataset.i18nSource;
+        if (source) element.textContent = t(source);
+    });
+
     const textNodes = [];
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
             const parent = node.parentElement;
             if (!parent || !normalizeI18nKey(node.nodeValue)) return NodeFilter.FILTER_REJECT;
-            if (parent.closest('script, style, svg, canvas, [data-i18n-ignore]')) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('script, style, svg, canvas, [data-i18n-ignore], [data-i18n-source]')) return NodeFilter.FILTER_REJECT;
             return NodeFilter.FILTER_ACCEPT;
         }
     });
@@ -253,6 +303,7 @@ const router = async () => {
     new ScrambleText('[data-scramble]');
     initArchitectureCanvas();
     initTabs();
+    initServiceCards();
     initContactForm();
 };
 
@@ -277,10 +328,66 @@ const initTabs = () => {
     });
 };
 
+const initServiceCards = () => {
+    document.querySelectorAll('.service-card').forEach(card => {
+        const heading = card.querySelector('h3');
+        const serviceName = getSourceText(heading);
+        if (!serviceRequestTypes[serviceName]) return;
+
+        card.dataset.serviceName = serviceName;
+        card.setAttribute('role', 'link');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', currentLanguage === 'bg'
+            ? `Започнете бриф за ${t(serviceName)}`
+            : `Start a brief for ${serviceName}`
+        );
+
+        let cta = card.querySelector('.service-card-cta');
+        if (!cta) {
+            cta = document.createElement('small');
+            cta.className = 'service-card-cta';
+            cta.dataset.i18nSource = 'Start a brief';
+            card.append(cta);
+        }
+        cta.textContent = t('Start a brief');
+
+        if (card.dataset.serviceBound) return;
+        card.dataset.serviceBound = 'true';
+
+        const openContact = () => {
+            const target = new URL('contact', window.location.origin);
+            target.searchParams.set('service', serviceName);
+            history.pushState(null, null, `${target.pathname}${target.search}`);
+            router();
+        };
+
+        card.addEventListener('click', openContact);
+        card.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            openContact();
+        });
+    });
+};
+
 const initContactForm = () => {
     const form = document.getElementById('contact-form');
     const status = document.getElementById('contact-form-status');
+    const serviceContext = document.getElementById('contact-service-context');
+    const serviceValue = document.getElementById('contact-service-value');
+    const serviceInput = document.getElementById('contact-service-name');
     if (!form || !status) return;
+
+    const selectedService = getSelectedServiceName();
+    if (selectedService && serviceContext && serviceValue && serviceInput) {
+        serviceContext.hidden = false;
+        serviceInput.value = selectedService;
+        serviceValue.dataset.i18nSource = selectedService;
+        serviceValue.textContent = t(selectedService);
+
+        const requestType = serviceRequestTypes[selectedService];
+        if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
+    }
 
     form.addEventListener('submit', event => {
         event.preventDefault();
@@ -295,18 +402,22 @@ const initContactForm = () => {
         const email = String(data.get('email') || '').trim();
         const phone = String(data.get('phone') || '').trim();
         const requestType = String(data.get('requestType') || '').trim();
+        const serviceName = String(data.get('serviceName') || '').trim();
         const timeline = String(data.get('timeline') || '').trim();
         const budget = String(data.get('budget') || '').trim();
         const details = String(data.get('details') || '').trim();
 
-        const subjectPrefix = currentLanguage === 'bg' ? `${t('Website inquiry from')} ` : 'Website inquiry from ';
-        const subject = encodeURIComponent(`${subjectPrefix}${name}`);
+        const subject = encodeURIComponent(serviceName
+            ? `${t('Inquiry about')}: ${t(serviceName)} - ${name}`
+            : `${t('Website inquiry from')} ${name}`
+        );
         const body = encodeURIComponent([
             `${t('Name:')} ${name}`,
             `${t('Email:')} ${email}`,
             `${t('Phone:')} ${phone}`,
-            `${t('Looking for:')} ${requestType}`,
-            `${t('Timeline:')} ${timeline || t('Not specified')}`,
+            `${t('Service:')} ${serviceName ? t(serviceName) : t('Not specified')}`,
+            `${t('Looking for:')} ${requestType ? t(requestType) : t('Not specified')}`,
+            `${t('Timeline:')} ${timeline ? t(timeline) : t('Not specified')}`,
             `${t('Budget / scope:')} ${budget || t('Not specified')}`,
             '',
             t('Details:'),
