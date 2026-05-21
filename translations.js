@@ -53,7 +53,7 @@ export const translations = {
             "Service:": "Услуга:",
             "Looking for:": "Търси:",
             "Timeline:": "Срок:",
-            "Budget / scope:": "Бюджет / обхват:",
+            "Budget:": "Бюджет:",
             "Details:": "Детайли:",
             "Not specified": "Не е посочено",
             "One portable script. Run it with: bash website-probe.sh https://example.com": "Един преносим скрипт. Стартирайте го с: bash website-probe.sh https://example.com",
@@ -131,7 +131,7 @@ export const translations = {
             "This month": "Този месец",
             "1-3 months": "1-3 месеца",
             "Exploring options": "Проучвам варианти",
-            "Budget / Scope": "Бюджет / обхват",
+            "Budget": "Бюджет",
             "Details": "Детайли",
             "Send Brief": "Изпрати бриф",
             "Selected Service": "Избрана услуга",
@@ -294,7 +294,7 @@ export const translations = {
             "Your name": "Вашето име",
             "+1 555 0100": "+359 888 000 000",
             "you@example.com": "you@example.com",
-            "Rough range or project size": "Ориентировъчен диапазон или размер на проекта",
+            "How much do you expect it to cost?": "Колко очаквате да струва?",
             "What is the goal, what is broken, and what would a good outcome look like?": "Каква е целта, какво е счупено и как би изглеждал добър резултат?",
             "Language": "Език"
         }

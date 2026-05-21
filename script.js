@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260520k';
+import { languageMeta, translations } from './translations.js?v=20260521a';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260520k';
+const assetVersion = '20260521a';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -418,7 +418,7 @@ const initContactForm = () => {
             `${t('Service:')} ${serviceName ? t(serviceName) : t('Not specified')}`,
             `${t('Looking for:')} ${requestType ? t(requestType) : t('Not specified')}`,
             `${t('Timeline:')} ${timeline ? t(timeline) : t('Not specified')}`,
-            `${t('Budget / scope:')} ${budget || t('Not specified')}`,
+            `${t('Budget:')} ${budget || t('Not specified')}`,
             '',
             t('Details:'),
             details
