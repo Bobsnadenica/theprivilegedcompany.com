@@ -1,9 +1,4 @@
 import { config, isApiConfigured } from "./config";
-import {
-  getDemoConsultantBySlug,
-  getFilteredDemoConsultants,
-  mergeConsultantLists
-} from "./demo-data";
 import { getCvUploadContentType, getDocumentUploadContentType } from "./uploads";
 import type {
   AdminConsultantDetail,
@@ -163,40 +158,20 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 export const api = {
-  async listConsultants(filters: { query?: string; city?: string } = {}) {
+  async listConsultants(filters: { query?: string; city?: string } = {}): Promise<ConsultantProfile[]> {
+    requireBackend();
     const params = new URLSearchParams();
     if (filters.query) params.set("query", filters.query);
     if (filters.city) params.set("city", filters.city);
     const queryString = params.toString();
-    const demoConsultants = getFilteredDemoConsultants(filters);
 
-    if (!isApiConfigured) {
-      return demoConsultants;
-    }
-
-    try {
-      const payload = await request<
-        { items: ConsultantProfile[]; nextCursor?: string | null } | ConsultantProfile[]
-      >(`/consultants${queryString ? `?${queryString}` : ""}`);
-      const consultants = Array.isArray(payload) ? payload : payload.items;
-
-      return mergeConsultantLists(consultants, demoConsultants);
-    } catch (error) {
-      if (demoConsultants.length) {
-        return demoConsultants;
-      }
-
-      throw error;
-    }
+    const payload = await request<
+      { items: ConsultantProfile[]; nextCursor?: string | null } | ConsultantProfile[]
+    >(`/consultants${queryString ? `?${queryString}` : ""}`);
+    return Array.isArray(payload) ? payload : payload.items;
   },
 
   async getConsultant(slug: string) {
-    const demoConsultant = getDemoConsultantBySlug(slug);
-
-    if (demoConsultant) {
-      return demoConsultant;
-    }
-
     requireBackend();
     return request<ConsultantProfile>(`/consultants/${slug}`);
   },

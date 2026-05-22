@@ -748,14 +748,6 @@ function AvatarMedia({
   );
 }
 
-function DemoAccountBadge({ kind = "profile" }: { kind?: "profile" | "user" }) {
-  return (
-    <span className="demo-account-badge">
-      {kind === "user" ? "AI тестов потребител" : "AI тестов профил"}
-    </span>
-  );
-}
-
 function CoverMedia({
   src,
   name,
@@ -1620,7 +1612,6 @@ export function ConsultantPage() {
   const bookingCtaTo = user ? "/dashboard" : "/auth?tab=register";
   const visibleAvailability = getUpcomingAvailabilitySlots(consultant.availability, 12);
   const availabilityCalendar = groupAvailabilityByDay(visibleAvailability);
-  const isDemoConsultant = Boolean(consultant.isDemo);
   const themeStyle = getConsultantThemeStyle(consultant);
   const hasTheme = hasConsultantTheme(consultant);
   const profileSummary =
@@ -1668,10 +1659,6 @@ export function ConsultantPage() {
     event.preventDefault();
     setMessage("");
     setError("");
-
-    if (isDemoConsultant) {
-      return;
-    }
 
     if (isConsultantViewer) {
       setError(
@@ -1888,15 +1875,7 @@ export function ConsultantPage() {
               </p>
             </header>
 
-            {isDemoConsultant ? (
-              <div className="panel panel--subtle role-guard-panel">
-                <strong>Заявките за този профил ще бъдат активни скоро.</strong>
-                <p>
-                  Профилът вече е публикуван в каталога, а резервациите ще станат
-                  достъпни след следващата активация на графика.
-                </p>
-              </div>
-            ) : visibleAvailability.length ? (
+            {visibleAvailability.length ? (
               <div className="availability-calendar" id="availability-calendar">
                 {availabilityCalendar.map((day) => (
                   <article className="availability-calendar__day" key={day.key}>
@@ -1944,7 +1923,7 @@ export function ConsultantPage() {
                   {user ? "Отвори таблото си" : "Отвори профила си"}
                 </Link>
               </div>
-            ) : !isDemoConsultant && visibleAvailability.length ? (
+            ) : visibleAvailability.length ? (
               <>
                 <label>
                   Кратка бележка <span className="form-note">(по избор)</span>
@@ -1985,7 +1964,7 @@ export function ConsultantPage() {
             {message ? <div className="panel panel--success">{message}</div> : null}
             {error ? <div className="panel panel--error">{error}</div> : null}
 
-            {!isConsultantViewer && !isDemoConsultant ? (
+            {!isConsultantViewer ? (
               <button
                 className="primary-button"
                 type="submit"
@@ -4976,7 +4955,6 @@ function ConsultantCard({
               {formatConsultantTypeLabel(getConsultantProfileType(consultant))}
             </span>
             {consultant.featured ? <span className="status-badge">Подбран</span> : null}
-            {consultant.isDemo ? <DemoAccountBadge /> : null}
             {match ? <span className="plan-pill">{match.score}%</span> : null}
           </div>
         </div>

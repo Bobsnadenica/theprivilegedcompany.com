@@ -1,3 +1,50 @@
+# =========================================================================
+# OS / editor noise
+# =========================================================================
+.DS_Store
+**/.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+*.iml
+
+# =========================================================================
+# Node / JavaScript
+# =========================================================================
+# Dependencies — reproducible via `npm install`. Note: the Lambda zip
+# packaged by Terraform reads from backend/api/ on disk, so node_modules
+# must EXIST on disk before `terraform apply`, but doesn't need to be in git.
+node_modules/
+**/node_modules/
+
+# Build output (Vite). Deployed artifacts live in dev/career/index.html
+# and dev/career/assets/ — those are kept tracked deliberately so GitHub
+# Pages can serve them.
+dev/career/dist/
+
+# Logs / debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# =========================================================================
+# Environment files
+# =========================================================================
+# .env.production IS tracked deliberately — VITE_* variables are baked into
+# the public client bundle, so the values (Cognito IDs, public API URL,
+# region) are not secret. Only local overrides are ignored.
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+
+# =========================================================================
+# Terraform
+# =========================================================================
 # Local .terraform directories
 .terraform/
 

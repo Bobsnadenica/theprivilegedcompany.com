@@ -27,15 +27,9 @@ async function copyBuildOutput({ keepDist }) {
   await cp(path.join(distDir, "index.html"), deployIndexPath);
 
   const filesToCopy = ["manifest.json", "sw.js", "favicon.svg"];
-  const directoriesToCopy = ["demo-avatars"];
 
   for (const file of filesToCopy) {
     await copyIfExists(path.join(distDir, file), path.join(projectDir, file));
-  }
-
-  for (const dir of directoriesToCopy) {
-    await rm(path.join(projectDir, dir), { recursive: true, force: true });
-    await copyIfExists(path.join(distDir, dir), path.join(projectDir, dir), { recursive: true });
   }
 
   if (!keepDist) {

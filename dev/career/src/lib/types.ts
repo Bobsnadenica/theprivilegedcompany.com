@@ -59,7 +59,6 @@ export interface UploadedDocument {
 export interface ConsultantProfile {
   consultantId: string;
   ownerUserId: string;
-  isDemo?: boolean;
   profileType?: ConsultantProfileType;
   theme?: ConsultantProfileTheme;
   profileStatus?: ConsultantProfileStatus | "active";
@@ -97,7 +96,6 @@ export interface UserProfile {
   userId: string;
   email: string;
   name: string;
-  isDemo?: boolean;
   role: UserRole;
   plan: PlanTier;
   avatarUrl?: string;
