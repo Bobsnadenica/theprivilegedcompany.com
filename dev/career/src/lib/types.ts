@@ -49,16 +49,20 @@ export interface AdminConsultantSummary {
   statusSelfApproved: boolean;
 }
 
+export type DocumentCategory = "cv" | "certificate" | "portfolio" | "other";
+
 export interface UploadedDocument {
   fileName: string;
   storageKey: string;
   uploadedAt: string;
+  category?: DocumentCategory;
   downloadUrl?: string;
 }
 
 export interface ConsultantProfile {
   consultantId: string;
   ownerUserId: string;
+  isExample?: boolean;
   profileType?: ConsultantProfileType;
   theme?: ConsultantProfileTheme;
   profileStatus?: ConsultantProfileStatus | "active";

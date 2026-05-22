@@ -46,10 +46,11 @@ type UpdateProfileInput = Partial<
     | "goals"
     | "preferredSessionModes"
     | "plan"
-    | "cvDocument"
     | "documents"
   >
->;
+> & {
+  cvDocument?: UploadedDocument | null;
+};
 
 type UpdateConsultantInput = Partial<
   Pick<

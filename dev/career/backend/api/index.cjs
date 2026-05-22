@@ -616,6 +616,16 @@ function assertOwnedStorageKey(value, fallback, allowedPrefixes, label = "storag
   return storageKey;
 }
 
+const DOCUMENT_CATEGORIES = new Set(["cv", "certificate", "portfolio", "other"]);
+
+function normalizeDocumentCategory(value, fallback) {
+  const next = String(value || "").trim().toLowerCase();
+  if (DOCUMENT_CATEGORIES.has(next)) return next;
+  const prev = String(fallback || "").trim().toLowerCase();
+  if (DOCUMENT_CATEGORIES.has(prev)) return prev;
+  return "other";
+}
+
 function normalizeCvDocument(value, fallback, userId) {
   if (typeof value === "undefined") {
     return fallback ?? null;
@@ -639,6 +649,7 @@ function normalizeCvDocument(value, fallback, userId) {
   return {
     fileName: sanitizeFileName(value.fileName || fallback?.fileName || "cv"),
     storageKey,
+    category: "cv",
     uploadedAt:
       normalizeText(value.uploadedAt, fallback?.uploadedAt || "", 40) ||
       new Date().toISOString()
@@ -679,6 +690,7 @@ function normalizeUserDocuments(value, fallback, userId) {
     sanitized.push({
       fileName: sanitizeFileName(item.fileName || previous?.fileName || "document"),
       storageKey,
+      category: normalizeDocumentCategory(item.category, previous?.category),
       uploadedAt:
         normalizeText(item.uploadedAt, previous?.uploadedAt || "", 40) ||
         previous?.uploadedAt ||
