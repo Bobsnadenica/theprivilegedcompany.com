@@ -1,8 +1,8 @@
-const CACHE_NAME = 'careerlane-v2';
+const CACHE_NAME = 'careerlane-v3';
 const ASSETS = [
-  '/career/',
-  '/career/index.html',
-  '/career/manifest.json'
+  '/dev/career/',
+  '/dev/career/index.html',
+  '/dev/career/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -33,11 +33,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(async () => {
-        const cached = await caches.match('/career/');
+        const cached = await caches.match('/dev/career/');
         if (cached) {
           return cached;
         }
-        const indexCached = await caches.match('/career/index.html');
+        const indexCached = await caches.match('/dev/career/index.html');
         if (indexCached) {
           return indexCached;
         }
