@@ -165,6 +165,85 @@ async function getConsultantBySlug(slug) {
   return result.Items?.[0] || null;
 }
 
+const SLUG_CLAIM_PREFIX = "slug-claim#";
+
+function slugClaimId(slug) {
+  return `${SLUG_CLAIM_PREFIX}${slug}`;
+}
+
+class SlugConflictError extends Error {
+  constructor(slug) {
+    super(`Slug already in use: ${slug}`);
+    this.name = "SlugConflictError";
+    this.slug = slug;
+  }
+}
+
+async function putConsultantWithSlugClaim({ consultant, previousSlug = null }) {
+  const transactItems = [];
+  const now = new Date().toISOString();
+
+  if (consultant.slug && consultant.slug !== previousSlug) {
+    transactItems.push({
+      Put: {
+        TableName: env.consultantsTable,
+        Item: {
+          consultantId: slugClaimId(consultant.slug),
+          ownerUserId: consultant.ownerUserId,
+          claimedAt: now
+        },
+        ConditionExpression: "attribute_not_exists(consultantId)"
+      }
+    });
+  }
+
+  transactItems.push({
+    Put: {
+      TableName: env.consultantsTable,
+      Item: consultant
+    }
+  });
+
+  if (previousSlug && previousSlug !== consultant.slug) {
+    transactItems.push({
+      Delete: {
+        TableName: env.consultantsTable,
+        Key: { consultantId: slugClaimId(previousSlug) }
+      }
+    });
+  }
+
+  try {
+    await dynamo.send(new TransactWriteCommand({ TransactItems: transactItems }));
+  } catch (error) {
+    if (error.name === "TransactionCanceledException") {
+      throw new SlugConflictError(consultant.slug);
+    }
+    throw error;
+  }
+}
+
+async function putConsultantDraftWithUniqueSlug(draft) {
+  let attempt = 0;
+  let candidate = { ...draft };
+
+  while (attempt < 5) {
+    try {
+      await putConsultantWithSlugClaim({ consultant: candidate });
+      return candidate;
+    } catch (error) {
+      if (!(error instanceof SlugConflictError)) {
+        throw error;
+      }
+      attempt += 1;
+      const suffix = randomUUID().slice(0, 6);
+      candidate = { ...candidate, slug: `${draft.slug}-${suffix}` };
+    }
+  }
+
+  throw new SlugConflictError(draft.slug);
+}
+
 async function getConsultantByOwner(ownerUserId) {
   const result = await dynamo.send(
     new QueryCommand({
@@ -674,19 +753,26 @@ function validateUploadRequest({ kind, contentType, fileSize }) {
   return null;
 }
 
-async function getSignedObjectUrl(storageKey) {
+async function getSignedObjectUrl(storageKey, options = {}) {
   if (!storageKey) {
     return "";
   }
 
-  return getSignedUrl(
-    s3,
-    new GetObjectCommand({
-      Bucket: env.cvBucket,
-      Key: storageKey
-    }),
-    { expiresIn: 3600 }
-  );
+  const isDocument = options.purpose === "document";
+  const commandInput = {
+    Bucket: env.cvBucket,
+    Key: storageKey
+  };
+
+  if (isDocument) {
+    const baseName = storageKey.split("/").pop() || "document";
+    const safeName = baseName.replace(/"/g, "");
+    commandInput.ResponseContentDisposition = `attachment; filename="${safeName}"`;
+  }
+
+  return getSignedUrl(s3, new GetObjectCommand(commandInput), {
+    expiresIn: isDocument ? 900 : 3600
+  });
 }
 
 async function deleteS3Object(storageKey) {
@@ -790,12 +876,14 @@ async function decorateUserMedia(user) {
   const [avatarUrl, cvDownloadUrl, documents] = await Promise.all([
     user.avatarStorageKey ? getSignedObjectUrl(user.avatarStorageKey) : Promise.resolve(""),
     user.cvDocument?.storageKey
-      ? getSignedObjectUrl(user.cvDocument.storageKey)
+      ? getSignedObjectUrl(user.cvDocument.storageKey, { purpose: "document" })
       : Promise.resolve(""),
     Promise.all(
       (Array.isArray(user.documents) ? user.documents : []).map(async (item) => ({
         ...item,
-        downloadUrl: item.storageKey ? await getSignedObjectUrl(item.storageKey) : ""
+        downloadUrl: item.storageKey
+          ? await getSignedObjectUrl(item.storageKey, { purpose: "document" })
+          : ""
       }))
     )
   ]);
@@ -831,11 +919,78 @@ const INITIAL_CONSULTANT_VISIBILITY = {
   profileStatus: "pending"
 };
 
+function isConsultantRecord(item) {
+  if (!item || typeof item.consultantId !== "string") return false;
+  return !item.consultantId.startsWith(SLUG_CLAIM_PREFIX);
+}
+
 function isVisibleConsultant(consultant) {
-  if (!consultant) return false;
+  if (!isConsultantRecord(consultant)) return false;
   if (consultant.isPublic === false) return false;
   const status = consultant.profileStatus || "approved";
   return VISIBLE_CONSULTANT_STATUSES.has(status);
+}
+
+const LIST_PAGE_SIZE = 24;
+const LIST_MAX_PAGE_SIZE = 100;
+const LIST_MAX_SCAN_PAGES = 5;
+const LIST_SCAN_PAGE_LIMIT = 100;
+
+function encodeCursor(key) {
+  if (!key) return null;
+  return Buffer.from(JSON.stringify(key), "utf8").toString("base64url");
+}
+
+function decodeCursor(cursor) {
+  if (!cursor) return undefined;
+  try {
+    const parsed = JSON.parse(Buffer.from(String(cursor), "base64url").toString("utf8"));
+    return parsed && typeof parsed === "object" ? parsed : undefined;
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function parsePageSize(value, fallback = LIST_PAGE_SIZE) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(parsed, LIST_MAX_PAGE_SIZE);
+}
+
+async function scanWithFilter({ tableName, filter, pageSize, startKey }) {
+  const collected = [];
+  let exclusiveStartKey = startKey;
+  let lastEvaluatedKey = null;
+  let scanned = 0;
+
+  while (scanned < LIST_MAX_SCAN_PAGES) {
+    const result = await dynamo.send(
+      new ScanCommand({
+        TableName: tableName,
+        Limit: LIST_SCAN_PAGE_LIMIT,
+        ExclusiveStartKey: exclusiveStartKey
+      })
+    );
+    scanned += 1;
+
+    for (const item of result.Items || []) {
+      if (filter(item)) {
+        collected.push(item);
+        if (collected.length >= pageSize) {
+          lastEvaluatedKey = result.LastEvaluatedKey || null;
+          return { items: collected, lastEvaluatedKey };
+        }
+      }
+    }
+
+    exclusiveStartKey = result.LastEvaluatedKey;
+    if (!exclusiveStartKey) {
+      lastEvaluatedKey = null;
+      return { items: collected, lastEvaluatedKey };
+    }
+  }
+
+  return { items: collected, lastEvaluatedKey: exclusiveStartKey };
 }
 
 function normalizeConsultantStatus(value) {
@@ -898,46 +1053,41 @@ async function listConsultants(event) {
   const city = String(event.queryStringParameters?.city || "")
     .trim()
     .toLowerCase();
+  const pageSize = parsePageSize(event.queryStringParameters?.limit);
+  const startKey = decodeCursor(event.queryStringParameters?.cursor);
 
-  const result = await dynamo.send(
-    new ScanCommand({
-      TableName: env.consultantsTable
-    })
-  );
-
-  const items = (result.Items || []).filter((item) => {
-    if (!isVisibleConsultant(item)) {
-      return false;
+  const { items, lastEvaluatedKey } = await scanWithFilter({
+    tableName: env.consultantsTable,
+    pageSize,
+    startKey,
+    filter: (item) => {
+      if (!isVisibleConsultant(item)) return false;
+      const matchesQuery =
+        !query ||
+        item.name?.toLowerCase().includes(query) ||
+        item.headline?.toLowerCase().includes(query) ||
+        item.experienceSummary?.toLowerCase().includes(query) ||
+        (item.specializations || []).join(" ").toLowerCase().includes(query) ||
+        (item.tags || []).join(" ").toLowerCase().includes(query) ||
+        (item.experienceHighlights || []).join(" ").toLowerCase().includes(query) ||
+        (item.educationHighlights || []).join(" ").toLowerCase().includes(query) ||
+        (item.consultationTopics || []).join(" ").toLowerCase().includes(query) ||
+        (item.idealFor || []).join(" ").toLowerCase().includes(query);
+      const matchesCity = !city || item.city?.toLowerCase().includes(city);
+      return matchesQuery && matchesCity;
     }
-
-    const matchesQuery =
-      !query ||
-      item.name?.toLowerCase().includes(query) ||
-      item.headline?.toLowerCase().includes(query) ||
-      item.experienceSummary?.toLowerCase().includes(query) ||
-      (item.specializations || []).join(" ").toLowerCase().includes(query) ||
-      (item.tags || []).join(" ").toLowerCase().includes(query) ||
-      (item.experienceHighlights || []).join(" ").toLowerCase().includes(query) ||
-      (item.educationHighlights || []).join(" ").toLowerCase().includes(query) ||
-      (item.consultationTopics || []).join(" ").toLowerCase().includes(query) ||
-      (item.idealFor || []).join(" ").toLowerCase().includes(query);
-    const matchesCity = !city || item.city?.toLowerCase().includes(city);
-    return matchesQuery && matchesCity;
   });
 
   const orderedItems = [...items].sort((left, right) => {
     if (left.featured !== right.featured) {
       return left.featured ? -1 : 1;
     }
-
     if ((right.reviewCount || 0) !== (left.reviewCount || 0)) {
       return (right.reviewCount || 0) - (left.reviewCount || 0);
     }
-
     if ((right.rating || 0) !== (left.rating || 0)) {
       return (right.rating || 0) - (left.rating || 0);
     }
-
     return String(left.name || "").localeCompare(String(right.name || ""), "bg");
   });
 
@@ -945,9 +1095,14 @@ async function listConsultants(event) {
     orderedItems.map((item) => decorateConsultantMedia(item))
   );
 
-  return response(200, decoratedItems.map(stripSensitiveConsultantFields), {
-    "Cache-Control": "public, max-age=60, stale-while-revalidate=300"
-  });
+  return response(
+    200,
+    {
+      items: decoratedItems.map(stripSensitiveConsultantFields),
+      nextCursor: encodeCursor(lastEvaluatedKey)
+    },
+    { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" }
+  );
 }
 
 async function getConsultant(event) {
@@ -1030,21 +1185,17 @@ async function bootstrapUser(event) {
     const existingConsultant = await getConsultantByOwner(claims.sub);
 
     if (!existingConsultant) {
-      await dynamo.send(
-        new PutCommand({
-          TableName: env.consultantsTable,
-          Item: createConsultantDraft({
-            userId: claims.sub,
-            name: nextUser.name,
-            email: claims.email || body.email || "",
-            plan: nextUser.plan,
-            profileType: requestedConsultantProfileType || "consultant",
-            city: nextUser.city,
-            headline: nextUser.headline,
-            avatarUrl: nextUser.avatarUrl
-          })
-        })
-      );
+      const draft = createConsultantDraft({
+        userId: claims.sub,
+        name: nextUser.name,
+        email: claims.email || body.email || "",
+        plan: nextUser.plan,
+        profileType: requestedConsultantProfileType || "consultant",
+        city: nextUser.city,
+        headline: nextUser.headline,
+        avatarUrl: nextUser.avatarUrl
+      });
+      await putConsultantDraftWithUniqueSlug(draft);
     } else {
       await dynamo.send(
         new PutCommand({
@@ -1205,16 +1356,7 @@ async function updateMyConsultant(event) {
   const requestedTheme = normalizeConsultantTheme(body.theme, baseConsultant.theme || "");
 
   const normalizedSlug = body.slug ? normalizeSlug(body.slug, baseConsultant.slug) : null;
-
-  if (normalizedSlug && current && normalizedSlug !== current.slug) {
-    const existingSlug = await getConsultantBySlug(normalizedSlug);
-    if (
-      existingSlug &&
-      (!current || existingSlug.consultantId !== current.consultantId)
-    ) {
-      return badRequest("This slug is already in use.");
-    }
-  }
+  const previousSlug = current?.slug || null;
 
   const { mapImageUrl, ...baseConsultantWithoutDeprecatedMedia } = baseConsultant;
 
@@ -1307,12 +1449,17 @@ async function updateMyConsultant(event) {
     baseConsultant.nextAvailable || ""
   );
 
-  await dynamo.send(
-    new PutCommand({
-      TableName: env.consultantsTable,
-      Item: nextConsultant
-    })
-  );
+  try {
+    await putConsultantWithSlugClaim({
+      consultant: nextConsultant,
+      previousSlug
+    });
+  } catch (error) {
+    if (error instanceof SlugConflictError) {
+      return badRequest("This slug is already in use.");
+    }
+    throw error;
+  }
 
   return response(200, await decorateConsultantMedia(nextConsultant));
 }
@@ -1695,13 +1842,16 @@ async function listBookings(event) {
 async function listConsultantsForAdmin(event) {
   requireAdmin(event);
 
-  const result = await dynamo.send(
-    new ScanCommand({
-      TableName: env.consultantsTable
-    })
-  );
+  const pageSize = parsePageSize(event.queryStringParameters?.limit);
+  const startKey = decodeCursor(event.queryStringParameters?.cursor);
 
-  const consultants = result.Items || [];
+  const { items: consultants, lastEvaluatedKey } = await scanWithFilter({
+    tableName: env.consultantsTable,
+    pageSize,
+    startKey,
+    filter: isConsultantRecord
+  });
+
   const ownerIds = Array.from(
     new Set(consultants.map((item) => item.ownerUserId).filter(Boolean))
   );
@@ -1766,7 +1916,11 @@ async function listConsultantsForAdmin(event) {
     return String(left.name || "").localeCompare(String(right.name || ""), "bg");
   });
 
-  return response(200, items, { "Cache-Control": "no-store" });
+  return response(
+    200,
+    { items, nextCursor: encodeCursor(lastEvaluatedKey) },
+    { "Cache-Control": "no-store" }
+  );
 }
 
 async function getConsultantForAdmin(event) {

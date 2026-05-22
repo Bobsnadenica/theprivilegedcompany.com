@@ -175,9 +175,10 @@ export const api = {
     }
 
     try {
-      const consultants = await request<ConsultantProfile[]>(
-        `/consultants${queryString ? `?${queryString}` : ""}`
-      );
+      const payload = await request<
+        { items: ConsultantProfile[]; nextCursor?: string | null } | ConsultantProfile[]
+      >(`/consultants${queryString ? `?${queryString}` : ""}`);
+      const consultants = Array.isArray(payload) ? payload : payload.items;
 
       return mergeConsultantLists(consultants, demoConsultants);
     } catch (error) {
@@ -341,11 +342,10 @@ export const api = {
   },
 
   async adminListConsultants(token: string) {
-    return request<AdminConsultantSummary[]>(
-      "/admin/consultants",
-      undefined,
-      token
-    );
+    const payload = await request<
+      { items: AdminConsultantSummary[]; nextCursor?: string | null } | AdminConsultantSummary[]
+    >("/admin/consultants", undefined, token);
+    return Array.isArray(payload) ? payload : payload.items;
   },
 
   async adminGetConsultant(token: string, consultantId: string) {

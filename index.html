@@ -2,6 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // SPA fallback restore: 404.html redirects unknown paths to /?/orig-path
+        // so GitHub Pages deep-linking works. Restore the original URL before the router runs.
+        (function (l) {
+            if (l.search.charAt(1) === '/') {
+                var decoded = l.search.slice(1).split('&').map(function (part) {
+                    return part.replace(/~and~/g, '&');
+                }).join('?');
+                window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+            }
+        }(window.location));
+    </script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThePrivilegedCompany | AI Engineering, Automation & IT Advisory</title>
     <meta name="description" content="ThePrivilegedCompany builds AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">

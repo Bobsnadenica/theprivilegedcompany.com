@@ -2,437 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // GitHub Pages SPA fallback: rewrite /unknown/path to /?/unknown/path so
+        // index.html can restore it via history.replaceState. The replace happens
+        // before the body paints, so users typically never see this page when the
+        // path is actually a valid SPA route (e.g. /contact, /manifest).
+        (function (l) {
+            var siteRoot = '/';
+            var path = l.pathname.slice(siteRoot.length).replace(/&/g, '~and~');
+            var query = l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '';
+            l.replace(l.protocol + '//' + l.host + siteRoot + '?/' + path + query + l.hash);
+        }(window.location));
+    </script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThePrivilegedCompany | AI Engineering, Automation & IT Advisory</title>
-    <meta name="description" content="ThePrivilegedCompany builds AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
-    <meta name="robots" content="index, follow, max-image-preview:large">
-    <meta name="author" content="ThePrivilegedCompany">
+    <meta name="robots" content="noindex, follow">
     <meta name="theme-color" content="#030201">
     <meta name="color-scheme" content="dark">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <link rel="canonical" href="https://www.theprivilegedcompany.com/">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="ThePrivilegedCompany">
-    <meta property="og:title" content="ThePrivilegedCompany | AI Engineering, Automation & IT Advisory">
-    <meta property="og:description" content="AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
-    <meta property="og:url" content="https://www.theprivilegedcompany.com/">
-    <meta property="og:image" content="https://www.theprivilegedcompany.com/og-image.png">
-    <meta property="og:image:type" content="image/png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ThePrivilegedCompany | AI Engineering, Automation & IT Advisory">
-    <meta name="twitter:description" content="AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.">
-    <meta name="twitter:image" content="https://www.theprivilegedcompany.com/og-image.png">
-    
+    <title>404 - Page Not Found | ThePrivilegedCompany</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22none%22 stroke=%22%23ff9d00%22 stroke-width=%225%22/><circle cx=%2250%22 cy=%2250%22 r=%2210%22 fill=%22%23ff9d00%22/><path d=%22M50 5 L50 95 M5 50 L95 50%22 stroke=%22%23ff9d00%22 stroke-width=%222%22/></svg>">
-
-    <!-- Typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="styles.css?v=20260520k">
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "ProfessionalService",
-        "@id": "https://www.theprivilegedcompany.com/#organization",
-        "name": "ThePrivilegedCompany",
-        "url": "https://www.theprivilegedcompany.com/",
-        "description": "AI-amplified software engineering, cloud architecture, automation, technical SEO, and private IT advisory.",
-        "email": "contactus@theprivilegedcompany.com",
-        "areaServed": "Worldwide",
-        "serviceType": [
-            "AI software engineering",
-            "Cloud architecture",
-            "Automation",
-            "Technical SEO",
-            "Private IT advisory"
-        ],
-        "sameAs": []
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "@id": "https://www.theprivilegedcompany.com/#website",
-        "url": "https://www.theprivilegedcompany.com/",
-        "name": "ThePrivilegedCompany",
-        "publisher": {
-            "@id": "https://www.theprivilegedcompany.com/#organization"
-        },
-        "inLanguage": "en"
-    }
-    </script>
+    <style>
+        :root {
+            color-scheme: dark;
+            --c-bg: #080808;
+            --c-ink: #f5f5f5;
+            --c-muted: #888;
+            --c-accent: #ff9d00;
+            --c-dim: #1f1f1f;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: var(--c-bg);
+            color: var(--c-ink);
+            font-family: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        main {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: clamp(1.5rem, 5vw, 4rem);
+        }
+        .card {
+            width: min(620px, 100%);
+            text-align: center;
+            border-top: 1px solid var(--c-dim);
+            border-bottom: 1px solid var(--c-dim);
+            padding: clamp(2rem, 6vw, 4rem) 0;
+        }
+        .tag {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--c-accent);
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+        h1 {
+            margin: 0 0 1rem;
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+        p {
+            margin: 0 auto 2rem;
+            max-width: 460px;
+            color: var(--c-muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        a.btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.85rem 1.6rem;
+            border: 1px solid var(--c-dim);
+            border-radius: 999px;
+            color: var(--c-ink);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+        a.btn:hover { border-color: var(--c-accent); color: var(--c-accent); }
+        a.btn.primary { border-color: var(--c-accent); color: var(--c-accent); }
+        a.btn.primary:hover { background: var(--c-accent); color: #000; }
+        .logo {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            color: var(--c-ink);
+            text-decoration: none;
+        }
+    </style>
 </head>
-<body class="is-loading">
-    <!-- Architectural Grid -->
-    <div class="grid-overlay"></div>
-    
-    <!-- Atmospheric Physics -->
-    <canvas id="bg-canvas"></canvas>
-    
-    <!-- Transition Mask -->
-    <div id="transition-mask"></div>
-
-    <!-- Custom Cursor -->
-    <div id="cursor"></div>
-    <div id="cursor-follower"></div>
-
-    <div id="app-shell">
-        <header id="main-hud">
-            <div class="hud-logo">
-                <a href="./" data-link data-magnetic aria-label="ThePrivilegedCompany Home">
-                    <span class="logo-mark">TPC</span>
-                    <span class="logo-full">THEPRIVILEGEDCOMPANY</span>
-                </a>
+<body>
+    <a class="logo" href="/">TPC</a>
+    <main>
+        <div class="card">
+            <span class="tag">404 / Portal Missed</span>
+            <h1>Page Not Found</h1>
+            <p>We asked the server for this page. It checked the logs, adjusted its tie, and said: &ldquo;Never heard of her.&rdquo;</p>
+            <div class="actions">
+                <a class="btn primary" href="/">Return Home</a>
+                <a class="btn" href="/manifest">View Services</a>
             </div>
-            
-            <nav class="hud-nav">
-                <ul id="main-nav">
-                    <li><a href="manifest" data-link><span class="nav-idx">01</span> Services</a></li>
-                    <li><a href="who-are-we" data-link><span class="nav-idx">02</span> Who are we</a></li>
-                    <li><a href="contact" data-link class="btn-hud">Contact</a></li>
-                </ul>
-            </nav>
-
-            <div class="hud-actions">
-                <label class="language-switcher" data-i18n-ignore>
-                    <span class="language-current-flag" id="language-current-flag" aria-hidden="true">🇺🇸</span>
-                    <select id="language-select" aria-label="Language">
-                        <option value="en">EN</option>
-                        <option value="bg">BG</option>
-                    </select>
-                </label>
-                <div class="hud-status">
-                    <span class="status-pulse"></span>
-                    <span class="status-text">System Active</span>
-                </div>
-            </div>
-        </header>
-
-        <main id="app-root">
-            <div id="hub-view" class="view-container">
-                <section class="monolith-hero">
-                    <div class="hero-content">
-                        <div class="reveal-mask hero-title-mask">
-                            <h1 class="display-huge" data-scramble>Build Anything</h1>
-                        </div>
-                        <div class="reveal-mask">
-                            <p class="hero-lead">We work with businesses and individuals to turn technical ideas, digital goals, and messy systems into clear, usable outcomes.</p>
-                        </div>
-                        <div class="hero-footer reveal-mask">
-                            <div class="hero-cta">
-                                <a href="manifest" data-link class="magnetic-btn">
-                                    <span class="btn-text">Services</span>
-                                    <svg viewBox="0 0 100 100" class="btn-circle"><circle cx="50" cy="50" r="48" /></svg>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                
-                <section class="monolith-advert">
-                    <div class="advert-text reveal-mask">
-                        <span class="label">The Mission</span>
-                        <h2 data-scramble>From idea to shipped.</h2>
-                        <p>We turn rough technical goals into clear plans, working systems, and practical guidance. Whether you arrive as an individual or a business, we help decide what matters, build what is needed, and explain the path without noise.</p>
-                        <div class="mission-cta">
-                            <a href="who-are-we" data-link class="btn-hud">Who We Are</a>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            
-            <div id="dynamic-view" class="view-container" style="display: none;"></div>
-        </main>
-
-        <!-- Website Diagnostics Dock -->
-        <div class="diagnostic-dock" id="diagnostic-dock">
-            <div id="health-dashboard" class="minimized">
-                <button class="health-header" id="health-header-toggle" type="button" aria-expanded="false" aria-controls="health-grid-content">
-                    <span class="health-title">Website Diagnostics</span>
-                    <span class="health-toggle-meta">
-                        <span class="status-pulse"></span>
-                        <span class="health-chevron" aria-hidden="true">&#9660;</span>
-                    </span>
-                </button>
-                <div class="health-body" id="health-grid-content">
-                    <div class="health-terminal" aria-live="polite">
-                        <div class="terminal-line command-line">
-                            <span class="terminal-prompt">$</span>
-                            <span id="diagnostic-command">website-probe.sh --example</span>
-                        </div>
-                        <div class="terminal-line terminal-output" id="diagnostic-output">Open the panel to copy the probe script and see the useful checks.</div>
-                        <div class="probe-actions">
-                            <button class="copy-probe-btn" id="copy-probe-script" type="button">Copy Script</button>
-                            <span class="copy-probe-status" id="copy-probe-status" aria-live="polite"></span>
-                        </div>
-                        <div class="diagnostic-log" id="diagnostic-log"></div>
-                    </div>
-                    <div class="health-grid">
-                        <div class="health-node">
-                            <span class="node-label">Response</span>
-                            <span class="node-status" id="status-http"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Sitemap</span>
-                            <span class="node-status" id="status-traffic"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Robots</span>
-                            <span class="node-status" id="status-seo"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Security</span>
-                            <span class="node-status" id="status-shield"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Load</span>
-                            <span class="node-status" id="status-assets"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">DNS + TLS</span>
-                            <span class="node-status" id="status-latency"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Routes</span>
-                            <span class="node-status" id="status-cache"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                        <div class="health-node">
-                            <span class="node-label">Exposure</span>
-                            <span class="node-status" id="status-errors"><span class="status-dot"></span> STANDBY</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <a href="Tech%20Tools/index.html" class="tech-tools-shortcut" aria-label="Open tool suite">Tool Suite</a>
         </div>
-
-        <footer id="main-footer">
-            <div class="footer-left">
-                <p>&copy; 2026 ThePrivilegedCompany / Sovereign AI Engineering / 1+AI.</p>
-            </div>
-            <div class="footer-right">
-                <a href="privacy" data-link data-magnetic>Privacy Protocol</a>
-                <a href="faq" data-link data-magnetic>Knowledge Base</a>
-            </div>
-        </footer>
-    </div>
-
-    <script type="text/plain" id="probe-script-template">#!/usr/bin/env bash
-set -euo pipefail
-
-TARGET="${1:-https://www.theprivilegedcompany.com}"
-TARGET="${TARGET%/}"
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
-
-need() { command -v "$1" >/dev/null 2>&1; }
-section() { printf "\n== %s ==\n" "$1"; }
-kv() { printf "%-20s %s\n" "$1:" "$2"; }
-
-if ! need curl; then
-  printf "curl is required for this probe.\n"
-  exit 1
-fi
-
-parse_target() {
-  if need python3; then
-    python3 - "$TARGET" <<'PY'
-import sys
-from urllib.parse import urlparse
-raw = sys.argv[1]
-if "://" not in raw:
-    raw = "https://" + raw
-u = urlparse(raw)
-scheme = u.scheme or "https"
-host = u.hostname or ""
-port = u.port or (443 if scheme == "https" else 80)
-base = f"{scheme}://{host}"
-if (scheme == "https" and port != 443) or (scheme == "http" and port != 80):
-    base += f":{port}"
-print(scheme)
-print(host)
-print(port)
-print(base)
-PY
-  else
-    raw="$TARGET"
-    case "$raw" in *://*) scheme="${raw%%://*}"; rest="${raw#*://}" ;; *) scheme="https"; rest="$raw" ;; esac
-    hostport="${rest%%/*}"
-    host="${hostport%%:*}"
-    port="${hostport#*:}"
-    [ "$port" = "$hostport" ] && { [ "$scheme" = "https" ] && port="443" || port="80"; }
-    printf "%s\n%s\n%s\n%s://%s\n" "$scheme" "$host" "$port" "$scheme" "$hostport"
-  fi
-}
-
-parse_target > "$TMP/target.txt"
-SCHEME="$(sed -n '1p' "$TMP/target.txt")"
-HOST="$(sed -n '2p' "$TMP/target.txt")"
-PORT="$(sed -n '3p' "$TMP/target.txt")"
-BASE="$(sed -n '4p' "$TMP/target.txt")"
-
-if [ -z "$HOST" ]; then
-  printf "Could not parse target host from: %s\n" "$TARGET"
-  exit 1
-fi
-
-fetch_code() {
-  : > "$2"
-  result="$(curl -L -sS -o "$2" -w "%{http_code} %{time_total} %{url_effective}" --max-time 20 "$1" 2>/dev/null || true)"
-  printf "%s" "${result:-000 0 -}"
-}
-
-header_value() {
-  printf "%s\n" "$headers" | tr -d '\r' | grep -i "^$1:" | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//' || true
-}
-
-header_state() {
-  printf "%s\n" "$headers" | grep -iq "^$1:" && echo present || echo missing
-}
-
-printf "Website probe: %s\n" "$BASE"
-printf "Host: %s | Scheme: %s | Port: %s\n" "$HOST" "$SCHEME" "$PORT"
-printf "Permission: run only against websites you own or are allowed to test.\n"
-
-section "HTTP"
-home_stats="$(fetch_code "$BASE/" "$TMP/home.html")"
-home_code="$(printf "%s" "$home_stats" | awk '{print $1}')"
-home_time="$(printf "%s" "$home_stats" | awk '{print $2}')"
-home_final="$(printf "%s" "$home_stats" | cut -d' ' -f3-)"
-headers="$(curl -I -L -sS --max-time 20 "$BASE/" 2>/dev/null || true)"
-content_type="$(header_value content-type)"
-server_header="$(header_value server)"
-cache_header="$(header_value cache-control)"
-kv "Status" "$home_code in ${home_time}s"
-kv "Final URL" "$home_final"
-kv "Content-Type" "${content_type:-missing}"
-kv "Server" "${server_header:-not disclosed}"
-kv "Cache-Control" "${cache_header:-missing}"
-
-section "DNS"
-if printf "%s" "$HOST" | grep -Eq '^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$)'; then
-  kv "DNS" "skipped for local/IP target"
-elif need dig; then
-  kv "A" "$(dig +short A "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
-  kv "AAAA" "$(dig +short AAAA "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
-  kv "CNAME" "$(dig +short CNAME "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
-  kv "NS" "$(dig +short NS "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
-  kv "CAA" "$(dig +short CAA "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
-elif need nslookup; then
-  nslookup "$HOST" 2>/dev/null | sed -n 's/^Address: /A: /p' | head -5
-else
-  kv "DNS tools" "dig/nslookup not installed"
-fi
-
-section "TLS"
-if [ "$SCHEME" = "https" ] || [ "$PORT" = "443" ]; then
-  if need openssl; then
-    cert_info="$(printf "" | openssl s_client -servername "$HOST" -connect "$HOST:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates -fingerprint -sha256 2>/dev/null || true)"
-    if [ -n "$cert_info" ]; then
-      printf "%s\n" "$cert_info" | sed 's/^/  /'
-    else
-      kv "Certificate" "not readable"
-    fi
-  else
-    kv "Certificate" "openssl not installed"
-  fi
-else
-  kv "Certificate" "skipped for non-HTTPS target"
-fi
-
-section "SEO + CRAWL"
-title="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<title>\([^<]*\)<\/title>.*/\1/p" | head -1)"
-description="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<meta name=\"description\" content=\"\([^\"]*\)\".*/\1/p" | head -1)"
-robots_stats="$(fetch_code "$BASE/robots.txt" "$TMP/robots.txt")"
-robots_code="$(printf "%s" "$robots_stats" | awk '{print $1}')"
-sitemap_stats="$(fetch_code "$BASE/sitemap.xml" "$TMP/sitemap.xml")"
-sitemap_code="$(printf "%s" "$sitemap_stats" | awk '{print $1}')"
-sitemap_urls="$(grep -Eo "<loc>[^<]+" "$TMP/sitemap.xml" | sed "s#<loc>##" || true)"
-url_count="$(printf "%s\n" "$sitemap_urls" | sed "/^$/d" | wc -l | tr -d " ")"
-kv "Title" "${title:-missing}"
-if [ -n "$description" ]; then kv "Description" "${#description} chars"; else kv "Description" "missing"; fi
-kv "Robots" "HTTP $robots_code"
-kv "Sitemap" "HTTP $sitemap_code, $url_count URLs"
-
-checked=0
-broken=0
-while IFS= read -r url && [ "$checked" -lt 20 ]; do
-  [ -z "$url" ] && continue
-  checked=$((checked + 1))
-  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 12 "$url" 2>/dev/null || true)"
-  code="${code:-000}"
-  case "$code" in 2*|3*) ;; *) broken=$((broken + 1)); printf "  route attention: %s -> %s\n" "$code" "$url";; esac
-done <<< "$sitemap_urls"
-kv "Route sample" "$checked checked, $broken need attention"
-
-section "HEADERS"
-hsts="$(header_state strict-transport-security)"
-csp="$(header_state content-security-policy)"
-x_frame="$(header_state x-frame-options)"
-x_content_type="$(header_state x-content-type-options)"
-referrer_policy="$(header_state referrer-policy)"
-permissions_policy="$(header_state permissions-policy)"
-missing_headers=0
-missing_header_names=""
-record_header() {
-  if [ "$2" = "missing" ]; then
-    missing_headers=$((missing_headers + 1))
-    missing_header_names="${missing_header_names}${1}, "
-  fi
-}
-record_header "HSTS" "$hsts"
-record_header "CSP" "$csp"
-record_header "Frame guard" "$x_frame"
-record_header "No sniff" "$x_content_type"
-record_header "Referrer policy" "$referrer_policy"
-record_header "Permissions policy" "$permissions_policy"
-missing_header_names="${missing_header_names%, }"
-kv "HSTS" "$hsts"
-kv "CSP" "$csp"
-kv "Frame guard" "$x_frame"
-kv "No sniff" "$x_content_type"
-kv "Referrer policy" "$referrer_policy"
-kv "Permissions policy" "$permissions_policy"
-kv "Missing" "$missing_headers of 6${missing_header_names:+ ($missing_header_names)}"
-
-section "EXPOSURE SMOKE"
-sql_probe_stats="$(fetch_code "$BASE/?tpc_probe=%27%22%29%3B--" "$TMP/sql-smoke.html")"
-script_close='</''script>'
-perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/sql-smoke.html" > "$TMP/sql-smoke-body.html" 2>/dev/null || cp "$TMP/sql-smoke.html" "$TMP/sql-smoke-body.html"
-sql_error="$(grep -Eiq "SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-[0-9]|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal" "$TMP/sql-smoke-body.html" && echo possible || echo clear)"
-exposed=0
-exposed_names=""
-for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/db.sql" "/.DS_Store"; do
-  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$BASE$path" 2>/dev/null || true)"
-  code="${code:-000}"
-  case "$code" in
-    2*)
-      exposed=$((exposed + 1))
-      exposed_names="${exposed_names}${path} "
-      ;;
-  esac
-done
-kv "SQL error leakage" "$sql_error"
-kv "Sensitive files" "$exposed${exposed_names:+ ($exposed_names)}"
-
-section "NMAP WEB PORTS"
-if need nmap; then
-  printf "Running narrow nmap check: common web ports only (80,443,8080,8443). No vuln scripts.\n"
-  nmap -Pn -T2 -sT -sV --version-light --max-retries 2 --host-timeout 45s -p 80,443,8080,8443 --open "$HOST" 2>/dev/null | sed -n '/PORT/,/Nmap done/p' || printf "nmap check failed or timed out.\n"
-else
-  printf "nmap not installed. Optional: install nmap to see open web ports and light service fingerprints.\n"
-fi
-
-section "SUMMARY"
-kv "HTTP" "$home_code"
-kv "Routes" "$checked checked, $broken attention"
-kv "Headers" "$missing_headers missing"
-kv "SQLi smoke" "$sql_error"
-kv "Sensitive files" "$exposed exposed"
-printf "\nReview failures only: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, TLS certificate issues, unexpected open web ports.\n"</script>
-    <script type="module" src="script.js?v=20260521b"></script>
+    </main>
 </body>
 </html>
