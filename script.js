@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260521a';
+import { languageMeta, translations } from './translations.js?v=20260521b';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260521a';
+const assetVersion = '20260521b';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -754,6 +754,15 @@ const initHealthCheck = () => {
                     updates: {
                         errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }
+                },
+                {
+                    label: 'External Probe',
+                    summary: currentLanguage === 'bg'
+                        ? 'Копираният скрипт добавя DNS, TLS сертификат, redirect, sitemap link checks, sensitive-file checks, SQL error smoke и optional nmap проверка само на web ports 80/443/8080/8443.'
+                        : 'Copied script adds DNS, TLS certificate, redirect, sitemap link checks, sensitive-file checks, SQL error smoke, and optional nmap checks limited to web ports 80/443/8080/8443.',
+                    updates: {
+                        latency: 'DNS/TLS'
+                    }
                 }
             ];
         } catch (error) {
@@ -780,7 +789,7 @@ const initHealthCheck = () => {
         });
 
         commandEl.textContent = `example target: ${targetOrigin}`;
-        outputEl.textContent = t('The script reports only status, metadata, crawl files, route health, speed, and security signals.');
+        outputEl.textContent = t('The script reports status, metadata, DNS, TLS, crawl files, route health, security headers, exposure smoke, and optional nmap web-port signals.');
         diagnosticsRunning = false;
         diagnosticsHasRun = true;
     };

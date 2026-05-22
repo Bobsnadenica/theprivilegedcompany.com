@@ -58,6 +58,8 @@ export const translations = {
             "Not specified": "Не е посочено",
             "One portable script. Run it with: bash website-probe.sh https://example.com": "Един преносим скрипт. Стартирайте го с: bash website-probe.sh https://example.com",
             "The script reports only status, metadata, crawl files, route health, speed, and security signals.": "Скриптът показва само статус, метаданни, crawl файлове, здраве на маршрутите, скорост и сигнали за сигурност.",
+            "The script reports status, metadata, DNS, TLS, crawl files, route health, security headers, exposure smoke, and optional nmap web-port signals.": "Скриптът показва статус, метаданни, DNS, TLS, crawl файлове, здраве на маршрути, security headers, exposure smoke и optional nmap сигнали само за web ports.",
+            "External Probe": "Външна проверка",
             "Crawl Files": "Crawl файлове",
             "Metadata": "Метаданни",
             "Speed": "Скорост",

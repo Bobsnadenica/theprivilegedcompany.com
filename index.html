@@ -228,61 +228,153 @@ TARGET="${TARGET%/}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-fetch_code() {
-  : > "$2"
-  curl -L -sS -o "$2" -w "%{http_code} %{time_total}" --max-time 15 "$1" 2>/dev/null || printf "000 0"
+need() { command -v "$1" >/dev/null 2>&1; }
+section() { printf "\n== %s ==\n" "$1"; }
+kv() { printf "%-20s %s\n" "$1:" "$2"; }
+
+if ! need curl; then
+  printf "curl is required for this probe.\n"
+  exit 1
+fi
+
+parse_target() {
+  if need python3; then
+    python3 - "$TARGET" <<'PY'
+import sys
+from urllib.parse import urlparse
+raw = sys.argv[1]
+if "://" not in raw:
+    raw = "https://" + raw
+u = urlparse(raw)
+scheme = u.scheme or "https"
+host = u.hostname or ""
+port = u.port or (443 if scheme == "https" else 80)
+base = f"{scheme}://{host}"
+if (scheme == "https" and port != 443) or (scheme == "http" and port != 80):
+    base += f":{port}"
+print(scheme)
+print(host)
+print(port)
+print(base)
+PY
+  else
+    raw="$TARGET"
+    case "$raw" in *://*) scheme="${raw%%://*}"; rest="${raw#*://}" ;; *) scheme="https"; rest="$raw" ;; esac
+    hostport="${rest%%/*}"
+    host="${hostport%%:*}"
+    port="${hostport#*:}"
+    [ "$port" = "$hostport" ] && { [ "$scheme" = "https" ] && port="443" || port="80"; }
+    printf "%s\n%s\n%s\n%s://%s\n" "$scheme" "$host" "$port" "$scheme" "$hostport"
+  fi
 }
 
-printf "Website probe: %s\n\n" "$TARGET"
+parse_target > "$TMP/target.txt"
+SCHEME="$(sed -n '1p' "$TMP/target.txt")"
+HOST="$(sed -n '2p' "$TMP/target.txt")"
+PORT="$(sed -n '3p' "$TMP/target.txt")"
+BASE="$(sed -n '4p' "$TMP/target.txt")"
 
-home_stats="$(fetch_code "$TARGET/" "$TMP/home.html")"
-home_code="${home_stats%% *}"
-home_time="${home_stats##* }"
-headers="$(curl -I -L -sS --max-time 15 "$TARGET/" 2>/dev/null || true)"
-content_type="$(printf "%s\n" "$headers" | grep -i "^content-type:" | head -1 | cut -d: -f2- | xargs || true)"
-hsts="$(printf "%s\n" "$headers" | grep -iq "^strict-transport-security:" && echo present || echo missing)"
-csp="$(printf "%s\n" "$headers" | grep -iq "^content-security-policy:" && echo present || echo missing)"
-x_frame="$(printf "%s\n" "$headers" | grep -iq "^x-frame-options:" && echo present || echo missing)"
-x_content_type="$(printf "%s\n" "$headers" | grep -iq "^x-content-type-options:" && echo present || echo missing)"
-referrer_policy="$(printf "%s\n" "$headers" | grep -iq "^referrer-policy:" && echo present || echo missing)"
+if [ -z "$HOST" ]; then
+  printf "Could not parse target host from: %s\n" "$TARGET"
+  exit 1
+fi
+
+fetch_code() {
+  : > "$2"
+  result="$(curl -L -sS -o "$2" -w "%{http_code} %{time_total} %{url_effective}" --max-time 20 "$1" 2>/dev/null || true)"
+  printf "%s" "${result:-000 0 -}"
+}
+
+header_value() {
+  printf "%s\n" "$headers" | tr -d '\r' | grep -i "^$1:" | head -1 | cut -d: -f2- | sed 's/^[[:space:]]*//' || true
+}
+
+header_state() {
+  printf "%s\n" "$headers" | grep -iq "^$1:" && echo present || echo missing
+}
+
+printf "Website probe: %s\n" "$BASE"
+printf "Host: %s | Scheme: %s | Port: %s\n" "$HOST" "$SCHEME" "$PORT"
+printf "Permission: run only against websites you own or are allowed to test.\n"
+
+section "HTTP"
+home_stats="$(fetch_code "$BASE/" "$TMP/home.html")"
+home_code="$(printf "%s" "$home_stats" | awk '{print $1}')"
+home_time="$(printf "%s" "$home_stats" | awk '{print $2}')"
+home_final="$(printf "%s" "$home_stats" | cut -d' ' -f3-)"
+headers="$(curl -I -L -sS --max-time 20 "$BASE/" 2>/dev/null || true)"
+content_type="$(header_value content-type)"
+server_header="$(header_value server)"
+cache_header="$(header_value cache-control)"
+kv "Status" "$home_code in ${home_time}s"
+kv "Final URL" "$home_final"
+kv "Content-Type" "${content_type:-missing}"
+kv "Server" "${server_header:-not disclosed}"
+kv "Cache-Control" "${cache_header:-missing}"
+
+section "DNS"
+if printf "%s" "$HOST" | grep -Eq '^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$)'; then
+  kv "DNS" "skipped for local/IP target"
+elif need dig; then
+  kv "A" "$(dig +short A "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+  kv "AAAA" "$(dig +short AAAA "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+  kv "CNAME" "$(dig +short CNAME "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+  kv "NS" "$(dig +short NS "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+  kv "CAA" "$(dig +short CAA "$HOST" 2>/dev/null | tr '\n' ' ' | sed 's/[[:space:]]*$//' || true)"
+elif need nslookup; then
+  nslookup "$HOST" 2>/dev/null | sed -n 's/^Address: /A: /p' | head -5
+else
+  kv "DNS tools" "dig/nslookup not installed"
+fi
+
+section "TLS"
+if [ "$SCHEME" = "https" ] || [ "$PORT" = "443" ]; then
+  if need openssl; then
+    cert_info="$(printf "" | openssl s_client -servername "$HOST" -connect "$HOST:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates -fingerprint -sha256 2>/dev/null || true)"
+    if [ -n "$cert_info" ]; then
+      printf "%s\n" "$cert_info" | sed 's/^/  /'
+    else
+      kv "Certificate" "not readable"
+    fi
+  else
+    kv "Certificate" "openssl not installed"
+  fi
+else
+  kv "Certificate" "skipped for non-HTTPS target"
+fi
+
+section "SEO + CRAWL"
 title="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<title>\([^<]*\)<\/title>.*/\1/p" | head -1)"
 description="$(tr "\n" " " < "$TMP/home.html" | sed -n "s/.*<meta name=\"description\" content=\"\([^\"]*\)\".*/\1/p" | head -1)"
-meta_csp="$(grep -Eiq "<meta[^>]+http-equiv=[\"']Content-Security-Policy[\"']" "$TMP/home.html" && echo present || echo missing)"
-meta_referrer="$(grep -Eiq "<meta[^>]+name=[\"']referrer[\"']" "$TMP/home.html" && echo present || echo missing)"
-
-robots_stats="$(fetch_code "$TARGET/robots.txt" "$TMP/robots.txt")"
-robots_code="${robots_stats%% *}"
-sitemap_stats="$(fetch_code "$TARGET/sitemap.xml" "$TMP/sitemap.xml")"
-sitemap_code="${sitemap_stats%% *}"
+robots_stats="$(fetch_code "$BASE/robots.txt" "$TMP/robots.txt")"
+robots_code="$(printf "%s" "$robots_stats" | awk '{print $1}')"
+sitemap_stats="$(fetch_code "$BASE/sitemap.xml" "$TMP/sitemap.xml")"
+sitemap_code="$(printf "%s" "$sitemap_stats" | awk '{print $1}')"
 sitemap_urls="$(grep -Eo "<loc>[^<]+" "$TMP/sitemap.xml" | sed "s#<loc>##" || true)"
 url_count="$(printf "%s\n" "$sitemap_urls" | sed "/^$/d" | wc -l | tr -d " ")"
+kv "Title" "${title:-missing}"
+if [ -n "$description" ]; then kv "Description" "${#description} chars"; else kv "Description" "missing"; fi
+kv "Robots" "HTTP $robots_code"
+kv "Sitemap" "HTTP $sitemap_code, $url_count URLs"
 
 checked=0
 broken=0
-while IFS= read -r url && [ "$checked" -lt 10 ]; do
+while IFS= read -r url && [ "$checked" -lt 20 ]; do
   [ -z "$url" ] && continue
   checked=$((checked + 1))
-  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 10 "$url" 2>/dev/null || printf "000")"
-  case "$code" in 2*|3*) ;; *) broken=$((broken + 1));; esac
+  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 12 "$url" 2>/dev/null || true)"
+  code="${code:-000}"
+  case "$code" in 2*|3*) ;; *) broken=$((broken + 1)); printf "  route attention: %s -> %s\n" "$code" "$url";; esac
 done <<< "$sitemap_urls"
+kv "Route sample" "$checked checked, $broken need attention"
 
-sql_probe_stats="$(fetch_code "$TARGET/?tpc_probe=%27%22%29%3B--" "$TMP/sql-smoke.html")"
-script_close='</''script>'
-perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/sql-smoke.html" > "$TMP/sql-smoke-body.html" 2>/dev/null || cp "$TMP/sql-smoke.html" "$TMP/sql-smoke-body.html"
-sql_error="$(grep -Eiq "SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-[0-9]|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal" "$TMP/sql-smoke-body.html" && echo possible || echo clear)"
-
-exposed=0
-exposed_names=""
-for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/db.sql"; do
-  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$TARGET$path" 2>/dev/null || printf "000")"
-  case "$code" in
-    2*)
-      exposed=$((exposed + 1))
-      exposed_names="${exposed_names}${path} "
-      ;;
-  esac
-done
-
+section "HEADERS"
+hsts="$(header_state strict-transport-security)"
+csp="$(header_state content-security-policy)"
+x_frame="$(header_state x-frame-options)"
+x_content_type="$(header_state x-content-type-options)"
+referrer_policy="$(header_state referrer-policy)"
+permissions_policy="$(header_state permissions-policy)"
 missing_headers=0
 missing_header_names=""
 record_header() {
@@ -296,21 +388,51 @@ record_header "CSP" "$csp"
 record_header "Frame guard" "$x_frame"
 record_header "No sniff" "$x_content_type"
 record_header "Referrer policy" "$referrer_policy"
+record_header "Permissions policy" "$permissions_policy"
 missing_header_names="${missing_header_names%, }"
+kv "HSTS" "$hsts"
+kv "CSP" "$csp"
+kv "Frame guard" "$x_frame"
+kv "No sniff" "$x_content_type"
+kv "Referrer policy" "$referrer_policy"
+kv "Permissions policy" "$permissions_policy"
+kv "Missing" "$missing_headers of 6${missing_header_names:+ ($missing_header_names)}"
 
-printf "STATUS: %s in %ss\n" "$home_code" "$home_time"
-printf "CONTENT-TYPE: %s\n" "${content_type:-missing}"
-printf "TITLE: %s\n" "${title:-missing}"
-printf "DESCRIPTION: %s\n" "$(if [ -n "$description" ]; then printf "%s chars" "${#description}"; else printf "missing"; fi)"
-printf "HSTS: %s\n" "$hsts"
-printf "HARDENING HEADERS: %s missing of 5%s\n" "$missing_headers" "$(if [ "$missing_headers" -gt 0 ]; then printf " (%s)" "$missing_header_names"; fi)"
-printf "HTML POLICIES: CSP %s, referrer %s\n" "$meta_csp" "$meta_referrer"
-printf "ROBOTS: HTTP %s\n" "$robots_code"
-printf "SITEMAP: HTTP %s, %s URLs\n" "$sitemap_code" "$url_count"
-printf "ROUTES: %s checked, %s need attention\n" "$checked" "$broken"
-printf "SQLI SMOKE: %s SQL error leakage\n" "$sql_error"
-printf "EXPOSED FILES: %s%s\n" "$exposed" "$(if [ "$exposed" -gt 0 ]; then printf " (%s)" "$exposed_names"; fi)"
-printf "\nReview only failures: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, or unreachable robots/sitemap.\n"</script>
-    <script type="module" src="script.js?v=20260521a"></script>
+section "EXPOSURE SMOKE"
+sql_probe_stats="$(fetch_code "$BASE/?tpc_probe=%27%22%29%3B--" "$TMP/sql-smoke.html")"
+script_close='</''script>'
+perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/sql-smoke.html" > "$TMP/sql-smoke-body.html" 2>/dev/null || cp "$TMP/sql-smoke.html" "$TMP/sql-smoke-body.html"
+sql_error="$(grep -Eiq "SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-[0-9]|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal" "$TMP/sql-smoke-body.html" && echo possible || echo clear)"
+exposed=0
+exposed_names=""
+for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/db.sql" "/.DS_Store"; do
+  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$BASE$path" 2>/dev/null || true)"
+  code="${code:-000}"
+  case "$code" in
+    2*)
+      exposed=$((exposed + 1))
+      exposed_names="${exposed_names}${path} "
+      ;;
+  esac
+done
+kv "SQL error leakage" "$sql_error"
+kv "Sensitive files" "$exposed${exposed_names:+ ($exposed_names)}"
+
+section "NMAP WEB PORTS"
+if need nmap; then
+  printf "Running narrow nmap check: common web ports only (80,443,8080,8443). No vuln scripts.\n"
+  nmap -Pn -T2 -sT -sV --version-light --max-retries 2 --host-timeout 45s -p 80,443,8080,8443 --open "$HOST" 2>/dev/null | sed -n '/PORT/,/Nmap done/p' || printf "nmap check failed or timed out.\n"
+else
+  printf "nmap not installed. Optional: install nmap to see open web ports and light service fingerprints.\n"
+fi
+
+section "SUMMARY"
+kv "HTTP" "$home_code"
+kv "Routes" "$checked checked, $broken attention"
+kv "Headers" "$missing_headers missing"
+kv "SQLi smoke" "$sql_error"
+kv "Sensitive files" "$exposed exposed"
+printf "\nReview failures only: non-2xx/3xx routes, missing metadata, SQL error leakage, exposed files, missing hardening headers, empty sitemap, TLS certificate issues, unexpected open web ports.\n"</script>
+    <script type="module" src="script.js?v=20260521b"></script>
 </body>
 </html>
