@@ -442,6 +442,7 @@ resource "aws_lambda_function" "api" {
   source_code_hash               = data.archive_file.api.output_base64sha256
   architectures                  = ["arm64"]
   timeout                        = 29
+  memory_size                    = 512
   reserved_concurrent_executions = var.lambda_reserved_concurrency
 
   environment {
