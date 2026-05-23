@@ -396,7 +396,7 @@ async function sendEmail({ to, subject, text }) {
   }
 }
 
-async function sendBookingCreatedEmails({ consultantOwner, consultant, client, booking }) {
+async function sendBookingRequestedEmails({ consultantOwner, consultant, client, booking }) {
   const when = formatBookingDateTimeBg(booking.scheduledAt);
   const noteLine = booking.note ? `\n\nБележка от потребителя:\n${booking.note}` : "";
 
@@ -406,14 +406,15 @@ async function sendBookingCreatedEmails({ consultantOwner, consultant, client, b
     tasks.push(
       sendEmail({
         to: consultantOwner.email,
-        subject: `Нова резервация от ${client.name || client.email}`,
+        subject: `Нова заявка за консултация от ${client.name || client.email}`,
         text:
           `Здравей, ${consultantOwner.name || consultant.name},\n\n` +
-          `${client.name || client.email} (${client.email}) резервира консултация с теб.\n\n` +
+          `${client.name || client.email} (${client.email}) заяви консултация с теб.\n\n` +
           `Час: ${when}\n` +
           `Продължителност: ${consultant.sessionLengthMinutes || 60} минути\n` +
-          `Статус: потвърдена (можеш да я откажеш от таблото си, ако не можеш да я поемеш)${noteLine}\n\n` +
-          `Виж резервациите си в таблото: ${env.appUrl}#/dashboard`
+          `Статус: чака потвърждение${noteLine}\n\n` +
+          `Отвори таблото си, за да приемеш или откажеш заявката:\n` +
+          `${env.appUrl}#/dashboard`
       })
     );
   }
@@ -422,20 +423,77 @@ async function sendBookingCreatedEmails({ consultantOwner, consultant, client, b
     tasks.push(
       sendEmail({
         to: client.email,
-        subject: `Резервацията ти с ${consultant.name} е потвърдена`,
+        subject: `Заявката ти за консултация с ${consultant.name} е изпратена`,
         text:
           `Здравей, ${client.name || ""},\n\n` +
-          `Резервацията ти с ${consultant.name} е потвърдена.\n\n` +
+          `Заявката ти за консултация с ${consultant.name} е изпратена и чака потвърждение.\n\n` +
           `Час: ${when}\n` +
           `Продължителност: ${consultant.sessionLengthMinutes || 60} минути\n` +
           `Формат: ${(consultant.sessionModes || []).join(", ") || "Онлайн"}\n\n` +
-          `Ако консултантът не може да поеме часа, ще получиш отделно известие.\n\n` +
-          `Виж резервациите си в таблото: ${env.appUrl}#/dashboard`
+          `Ще получиш отделно известие, когато консултантът приеме или откаже заявката.\n\n` +
+          `Виж заявките си в таблото: ${env.appUrl}#/dashboard`
       })
     );
   }
 
   await Promise.allSettled(tasks);
+}
+
+async function sendBookingAcceptedEmails({ consultantOwner, consultant, client, booking }) {
+  const when = formatBookingDateTimeBg(booking.scheduledAt);
+
+  const tasks = [];
+
+  if (client?.email) {
+    tasks.push(
+      sendEmail({
+        to: client.email,
+        subject: `${consultant.name} потвърди резервацията ти`,
+        text:
+          `Здравей, ${client.name || ""},\n\n` +
+          `${consultant.name} потвърди заявката ти за консултация.\n\n` +
+          `Час: ${when}\n` +
+          `Продължителност: ${consultant.sessionLengthMinutes || 60} минути\n` +
+          `Формат: ${(consultant.sessionModes || []).join(", ") || "Онлайн"}\n\n` +
+          `Ще получиш напомняне 24 часа преди срещата.\n\n` +
+          `Табло: ${env.appUrl}#/dashboard`
+      })
+    );
+  }
+
+  if (consultantOwner?.email) {
+    tasks.push(
+      sendEmail({
+        to: consultantOwner.email,
+        subject: `Потвърди консултация с ${booking.clientName || "потребител"}`,
+        text:
+          `Здравей, ${consultantOwner.name || consultant.name},\n\n` +
+          `Ти потвърди заявката за консултация:\n\n` +
+          `Час: ${when}\n` +
+          `Потребител: ${booking.clientName || ""} (${booking.clientEmail || ""})\n` +
+          (booking.note ? `Бележка: ${booking.note}\n` : "") +
+          `\nЩе получиш напомняне 24 часа преди срещата.\n\n` +
+          `Табло: ${env.appUrl}#/dashboard`
+      })
+    );
+  }
+
+  await Promise.allSettled(tasks);
+}
+
+async function sendBookingDeclinedEmail({ recipient, consultant, booking, reason = "" }) {
+  if (!recipient?.email) return;
+  const when = formatBookingDateTimeBg(booking.scheduledAt);
+  const reasonLine = reason ? `\nПричина: ${reason}\n` : "";
+  await sendEmail({
+    to: recipient.email,
+    subject: `${consultant.name} не може да поеме заявката ти`,
+    text:
+      `Здравей, ${recipient.name || ""},\n\n` +
+      `${consultant.name} не може да поеме заявката ти за консултация на ${when}.${reasonLine}\n\n` +
+      `Часът отново е свободен в системата и може да избереш друг подходящ слот или друг консултант:\n` +
+      `${env.appUrl}#/consultants`
+  });
 }
 
 async function sendBookingReminderEmails({ consultantOwner, consultant, client, booking }) {
@@ -1640,7 +1698,7 @@ async function createBooking(event) {
     clientName: user.name || "",
     clientEmail: user.email || "",
     scheduledAt: normalizedScheduledAt,
-    status: "confirmed",
+    status: "pending",
     note: String(body.note || "").trim().slice(0, 1200),
     createdAt: new Date().toISOString()
   };
@@ -1684,7 +1742,7 @@ async function createBooking(event) {
 
   try {
     const consultantOwner = await getUserBySub(consultant.ownerUserId);
-    await sendBookingCreatedEmails({
+    await sendBookingRequestedEmails({
       consultantOwner,
       consultant,
       client: user,
@@ -1697,7 +1755,146 @@ async function createBooking(event) {
   return response(201, booking);
 }
 
-async function cancelBooking(event) {
+async function loadBookingAndConsultant(bookingId) {
+  const bookingResult = await dynamo.send(
+    new GetCommand({
+      TableName: env.bookingsTable,
+      Key: { bookingId }
+    })
+  );
+  const booking = bookingResult.Item;
+  if (!booking) return { booking: null, consultant: null };
+
+  const consultantResult = await dynamo.send(
+    new GetCommand({
+      TableName: env.consultantsTable,
+      Key: { consultantId: booking.consultantId }
+    })
+  );
+  return { booking, consultant: consultantResult.Item || null };
+}
+
+async function acceptBooking({ claims, bookingId }) {
+  const { booking, consultant } = await loadBookingAndConsultant(bookingId);
+
+  if (!booking) return notFound("Booking not found.");
+  if (!consultant) return notFound("Consultant not found.");
+  if (consultant.ownerUserId !== claims.sub) {
+    return forbidden("Only the consultant can accept this booking.");
+  }
+  if (booking.status === "confirmed") {
+    return response(200, booking);
+  }
+  if (booking.status !== "pending") {
+    return badRequest("Only pending bookings can be accepted.");
+  }
+
+  const now = new Date().toISOString();
+
+  await dynamo.send(
+    new UpdateCommand({
+      TableName: env.bookingsTable,
+      Key: { bookingId },
+      UpdateExpression: "SET #s = :confirmed, decidedAt = :now",
+      ConditionExpression: "#s = :pending",
+      ExpressionAttributeNames: { "#s": "status" },
+      ExpressionAttributeValues: {
+        ":confirmed": "confirmed",
+        ":pending": "pending",
+        ":now": now
+      }
+    })
+  );
+
+  const updated = { ...booking, status: "confirmed", decidedAt: now };
+
+  try {
+    const consultantOwner = await getUserBySub(consultant.ownerUserId);
+    const client = await getUserBySub(booking.clientId);
+    await sendBookingAcceptedEmails({
+      consultantOwner,
+      consultant,
+      client: client || { email: booking.clientEmail, name: booking.clientName },
+      booking: updated
+    });
+  } catch (error) {
+    console.error("[booking] accept email failure", error?.message || error);
+  }
+
+  return response(200, updated);
+}
+
+async function declineBooking({ claims, bookingId, reason }) {
+  const { booking, consultant } = await loadBookingAndConsultant(bookingId);
+
+  if (!booking) return notFound("Booking not found.");
+  if (!consultant) return notFound("Consultant not found.");
+  if (consultant.ownerUserId !== claims.sub) {
+    return forbidden("Only the consultant can decline this booking.");
+  }
+  if (booking.status === "declined") {
+    return response(200, booking);
+  }
+  if (booking.status !== "pending") {
+    return badRequest("Only pending bookings can be declined.");
+  }
+
+  const now = new Date().toISOString();
+  const trimmedReason = String(reason || "").trim().slice(0, 600);
+  const nextBookedSlots = Array.isArray(consultant.bookedSlots)
+    ? consultant.bookedSlots.filter((slot) => slot !== booking.scheduledAt)
+    : [];
+
+  const declineUpdate = {
+    TableName: env.bookingsTable,
+    Key: { bookingId },
+    UpdateExpression: "SET #s = :declined, decidedAt = :now" + (trimmedReason ? ", declineReason = :reason" : ""),
+    ConditionExpression: "#s = :pending",
+    ExpressionAttributeNames: { "#s": "status" },
+    ExpressionAttributeValues: trimmedReason
+      ? { ":declined": "declined", ":pending": "pending", ":now": now, ":reason": trimmedReason }
+      : { ":declined": "declined", ":pending": "pending", ":now": now }
+  };
+
+  await dynamo.send(
+    new TransactWriteCommand({
+      TransactItems: [
+        { Update: declineUpdate },
+        {
+          Update: {
+            TableName: env.consultantsTable,
+            Key: { consultantId: consultant.consultantId },
+            UpdateExpression: "SET bookedSlots = :slots",
+            ExpressionAttributeValues: { ":slots": nextBookedSlots }
+          }
+        }
+      ]
+    })
+  );
+
+  const updated = {
+    ...booking,
+    status: "declined",
+    decidedAt: now,
+    ...(trimmedReason ? { declineReason: trimmedReason } : {})
+  };
+
+  try {
+    const client = await getUserBySub(booking.clientId);
+    await sendBookingDeclinedEmail({
+      recipient: client || { email: booking.clientEmail, name: booking.clientName },
+      consultant,
+      booking: updated,
+      reason: trimmedReason
+    });
+  } catch (error) {
+    console.error("[booking] decline email failure", error?.message || error);
+  }
+
+  return response(200, updated);
+}
+
+async function updateBookingStatus(event) {
   const claims = requireAuth(event);
   const bookingId = event.pathParameters?.bookingId;
   const body = parseBody(event);
@@ -1707,8 +1904,16 @@ async function cancelBooking(event) {
     return badRequest("bookingId is required.");
   }
 
+  if (requestedStatus === "confirmed") {
+    return acceptBooking({ claims, bookingId });
+  }
+
+  if (requestedStatus === "declined") {
+    return declineBooking({ claims, bookingId, reason: body.reason });
+  }
+
   if (requestedStatus !== "cancelled") {
-    return badRequest("Only cancellation is supported here.");
+    return badRequest("status must be one of: confirmed, declined, cancelled.");
   }
 
   const bookingResult = await dynamo.send(
@@ -2075,7 +2280,7 @@ exports.handler = async (event) => {
     const bookingStatusMatch = /^\/bookings\/([^/]+)\/status$/.exec(path);
     if (method === "PATCH" && bookingStatusMatch) {
       event.pathParameters = { ...(event.pathParameters || {}), bookingId: bookingStatusMatch[1] };
-      return cancelBooking(event);
+      return updateBookingStatus(event);
     }
 
     if (method === "GET" && path === "/admin/consultants") return listConsultantsForAdmin(event);

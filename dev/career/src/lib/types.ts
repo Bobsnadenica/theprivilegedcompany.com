@@ -1,6 +1,6 @@
 export type UserRole = "client" | "consultant";
 export type PlanTier = "free" | "pro";
-export type BookingStatus = "requested" | "confirmed" | "cancelled";
+export type BookingStatus = "pending" | "confirmed" | "declined" | "cancelled";
 export type ConsultantProfileType = "consultant" | "mentor";
 export type ConsultantProfileTheme = "violet" | "sky" | "rose" | "mint" | "amber";
 export type ConsultantMediaKind = "avatar" | "hero";
@@ -134,6 +134,8 @@ export interface Booking {
   status: BookingStatus;
   note?: string;
   createdAt: string;
+  decidedAt?: string;
+  declineReason?: string;
   cancelledAt?: string;
   cancelledBy?: "consultant" | "client";
 }

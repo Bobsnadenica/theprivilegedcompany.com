@@ -232,6 +232,27 @@ export const api = {
     );
   },
 
+  async acceptBooking(token: string, bookingId: string) {
+    return request<Booking>(
+      `/bookings/${encodeURIComponent(bookingId)}/status`,
+      { method: "PATCH", body: JSON.stringify({ status: "confirmed" }) },
+      token
+    );
+  },
+
+  async declineBooking(token: string, bookingId: string, reason?: string) {
+    return request<Booking>(
+      `/bookings/${encodeURIComponent(bookingId)}/status`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(
+          reason ? { status: "declined", reason } : { status: "declined" }
+        )
+      },
+      token
+    );
+  },
+
   async createCvUpload(token: string, file: File) {
     const contentType = getCvUploadContentType(file);
 

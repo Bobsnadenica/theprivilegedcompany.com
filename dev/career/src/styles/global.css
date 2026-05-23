@@ -587,6 +587,7 @@ main {
   background: #ecfdf5;
 }
 
+.status-badge--pending,
 .status-badge--requested {
   color: #92400e;
   border-color: #fcd34d;
@@ -597,6 +598,12 @@ main {
   color: #166534;
   border-color: #86efac;
   background: #ecfdf5;
+}
+
+.status-badge--declined {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff7ed;
 }
 
 .status-badge--cancelled,

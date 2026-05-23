@@ -48,6 +48,9 @@ pnpm-debug.log*
 # Local .terraform directories
 .terraform/
 
+# Terraform archive_file scratch output (regenerated on every apply)
+.terraform-build/
+
 # .tfstate files
 *.tfstate
 *.tfstate.*

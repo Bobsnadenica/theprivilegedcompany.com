@@ -335,8 +335,9 @@ function hasConsultantTheme(consultant: ConsultantProfile) {
 
 function formatBookingStatusLabel(status: Booking["status"]) {
   if (status === "confirmed") return "Потвърдена";
-  if (status === "cancelled") return "Отказана";
-  return "Заявена";
+  if (status === "declined") return "Отказана от консултанта";
+  if (status === "cancelled") return "Отменена";
+  return "Чака потвърждение";
 }
 
 function getNextBooking(bookings: Booking[]) {
@@ -1835,7 +1836,7 @@ export function ConsultantPage() {
                   />
                 </svg>
               </div>
-              <p className="eyebrow">Резервация изпратена</p>
+              <p className="eyebrow">Заявката е изпратена</p>
               <h2>Запазихме часа ти с {consultant.name}</h2>
               <dl className="booking-success__facts">
                 <div>
@@ -1855,8 +1856,10 @@ export function ConsultantPage() {
                 </div>
               </dl>
               <p className="booking-success__hint">
-                Изпратихме потвърждение и ще ти напомним преди срещата. Можеш да
-                проследиш статуса от таблото си.
+                Часът е резервиран и чака потвърждение от консултанта. Изпратихме
+                имейл и на двамата — щом{" "}
+                {consultant.name} приеме или откаже, ще получиш отделно
+                известие. Можеш да следиш статуса от таблото си.
               </p>
               <div className="booking-success__actions">
                 <Link className="primary-button" to="/dashboard">
@@ -2969,6 +2972,7 @@ export function DashboardPage() {
   const [dashboardLoading, setDashboardLoading] = useState(false);
   const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
+  const [decidingBookingId, setDecidingBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -3109,6 +3113,51 @@ export function DashboardPage() {
       setError(value instanceof Error ? value.message : "Неуспешно отказване.");
     } finally {
       setCancellingBookingId(null);
+    }
+  }
+
+  async function acceptBookingAction(bookingId: string) {
+    if (!token || decidingBookingId) return;
+    setDecidingBookingId(bookingId);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await api.acceptBooking(token, bookingId);
+      setBookings((current) =>
+        current.map((item) => (item.bookingId === bookingId ? updated : item))
+      );
+      setMessage("Заявката е приета. Потребителят е уведомен по имейл.");
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно потвърждение.");
+    } finally {
+      setDecidingBookingId(null);
+    }
+  }
+
+  async function declineBookingAction(bookingId: string) {
+    if (!token || decidingBookingId) return;
+    const reasonRaw =
+      typeof window !== "undefined"
+        ? window.prompt(
+            "Защо отказваш заявката? (по избор — ще бъде показано на потребителя)",
+            ""
+          )
+        : "";
+    if (reasonRaw === null) return;
+    const reason = String(reasonRaw || "").trim();
+    setDecidingBookingId(bookingId);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await api.declineBooking(token, bookingId, reason || undefined);
+      setBookings((current) =>
+        current.map((item) => (item.bookingId === bookingId ? updated : item))
+      );
+      setMessage("Заявката е отказана. Потребителят е уведомен по имейл.");
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно отказване на заявката.");
+    } finally {
+      setDecidingBookingId(null);
     }
   }
 
@@ -4812,9 +4861,14 @@ export function DashboardPage() {
               );
 
             const renderBookingItem = (booking: Booking) => {
+              const isPending = booking.status === "pending";
+              const isConfirmed = booking.status === "confirmed";
               const isCancelled = booking.status === "cancelled";
+              const isDeclined = booking.status === "declined";
               const isPast = new Date(booking.scheduledAt).getTime() < now;
-              const canCancel = !isCancelled && !isPast;
+              const canCancel = (isPending || isConfirmed) && !isPast;
+              const canDecide = consultantView && isPending && !isPast;
+              const isDeciding = decidingBookingId === booking.bookingId;
               return (
                 <article className="booking-item" key={booking.bookingId}>
                   <div className="booking-item__main">
@@ -4830,6 +4884,9 @@ export function DashboardPage() {
                     {booking.note ? (
                       <p className="booking-item__note">„{booking.note}"</p>
                     ) : null}
+                    {isDeclined && booking.declineReason ? (
+                      <p className="form-note">Причина: {booking.declineReason}</p>
+                    ) : null}
                     {isCancelled && booking.cancelledBy ? (
                       <p className="form-note">
                         {booking.cancelledBy === "consultant"
@@ -4842,7 +4899,26 @@ export function DashboardPage() {
                     <span className={`status-badge status-badge--${booking.status}`}>
                       {formatBookingStatusLabel(booking.status)}
                     </span>
-                    {canCancel ? (
+                    {canDecide ? (
+                      <>
+                        <button
+                          className="primary-button"
+                          type="button"
+                          disabled={isDeciding}
+                          onClick={() => acceptBookingAction(booking.bookingId)}
+                        >
+                          {isDeciding ? "Записваме..." : "Приеми"}
+                        </button>
+                        <button
+                          className="ghost-button"
+                          type="button"
+                          disabled={isDeciding}
+                          onClick={() => declineBookingAction(booking.bookingId)}
+                        >
+                          Откажи
+                        </button>
+                      </>
+                    ) : canCancel ? (
                       <button
                         className="ghost-button"
                         type="button"
