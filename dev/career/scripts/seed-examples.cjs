@@ -76,6 +76,7 @@ const examples = [
     featured: true,
     rating: 4.9,
     reviewCount: 47,
+    avatarUrl: "https://randomuser.me/api/portraits/women/44.jpg",
     availability: slotsForDays([1, 2, 4, 7, 9], [10, 14, 17])
   },
   {
@@ -105,6 +106,7 @@ const examples = [
     featured: true,
     rating: 4.8,
     reviewCount: 63,
+    avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg",
     availability: slotsForDays([1, 3, 5, 8, 10, 12], [9, 13, 18, 20])
   },
   {
@@ -134,6 +136,7 @@ const examples = [
     featured: false,
     rating: 4.7,
     reviewCount: 31,
+    avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
     availability: slotsForDays([2, 4, 6, 9, 11], [11, 15, 19])
   },
   {
@@ -163,6 +166,7 @@ const examples = [
     featured: true,
     rating: 4.9,
     reviewCount: 52,
+    avatarUrl: "https://randomuser.me/api/portraits/men/52.jpg",
     availability: slotsForDays([1, 3, 6, 8, 11], [10, 16, 19])
   },
   {
@@ -192,6 +196,7 @@ const examples = [
     featured: false,
     rating: 4.8,
     reviewCount: 38,
+    avatarUrl: "https://randomuser.me/api/portraits/women/26.jpg",
     availability: slotsForDays([2, 4, 5, 7, 10], [12, 17, 20])
   },
   {
@@ -224,6 +229,7 @@ const examples = [
     featured: true,
     rating: 5.0,
     reviewCount: 24,
+    avatarUrl: "https://randomuser.me/api/portraits/men/77.jpg",
     availability: slotsForDays([1, 5, 8, 12], [11, 16])
   },
   {
@@ -253,6 +259,7 @@ const examples = [
     featured: false,
     rating: 4.7,
     reviewCount: 29,
+    avatarUrl: "https://randomuser.me/api/portraits/women/8.jpg",
     availability: slotsForDays([2, 3, 6, 9, 13], [10, 14, 18])
   },
   {
@@ -282,6 +289,7 @@ const examples = [
     featured: false,
     rating: 4.9,
     reviewCount: 33,
+    avatarUrl: "https://randomuser.me/api/portraits/men/14.jpg",
     availability: slotsForDays([1, 4, 7, 10, 13], [9, 14, 19])
   },
   {
@@ -311,6 +319,7 @@ const examples = [
     featured: false,
     rating: 4.6,
     reviewCount: 22,
+    avatarUrl: "https://randomuser.me/api/portraits/women/79.jpg",
     availability: slotsForDays([3, 5, 8, 11, 14], [10, 15, 19])
   },
   {
@@ -340,6 +349,7 @@ const examples = [
     featured: false,
     rating: 4.8,
     reviewCount: 41,
+    avatarUrl: "https://randomuser.me/api/portraits/men/41.jpg",
     availability: slotsForDays([1, 2, 5, 7, 10, 12], [11, 16, 20])
   }
 ];
