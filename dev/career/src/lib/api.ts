@@ -253,6 +253,54 @@ export const api = {
     );
   },
 
+  async rescheduleBooking(token: string, bookingId: string, scheduledAt: string) {
+    return request<Booking>(
+      `/bookings/${encodeURIComponent(bookingId)}/reschedule`,
+      { method: "PATCH", body: JSON.stringify({ scheduledAt }) },
+      token
+    );
+  },
+
+  async submitBookingReview(
+    token: string,
+    bookingId: string,
+    rating: number,
+    comment?: string
+  ) {
+    return request<{
+      booking: Booking;
+      consultant: { consultantId: string; rating: number; reviewCount: number };
+    }>(
+      `/bookings/${encodeURIComponent(bookingId)}/review`,
+      { method: "POST", body: JSON.stringify({ rating, comment }) },
+      token
+    );
+  },
+
+  bookingIcsUrl(bookingId: string) {
+    return `${config.apiBaseUrl}/bookings/${encodeURIComponent(bookingId)}/ics`;
+  },
+
+  async exportMyData(token: string) {
+    // Returns the raw text (JSON dump); caller turns it into a Blob download.
+    requireBackend();
+    const response = await fetch(`${config.apiBaseUrl}/me/data-export`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      throw new Error(`Data export failed: HTTP ${response.status}`);
+    }
+    return response.text();
+  },
+
+  async deleteMyAccount(token: string) {
+    return request<{ deleted: boolean; anonymizedBookings: number; note: string }>(
+      "/me",
+      { method: "DELETE" },
+      token
+    );
+  },
+
   async createCvUpload(token: string, file: File) {
     const contentType = getCvUploadContentType(file);
 

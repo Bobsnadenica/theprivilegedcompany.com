@@ -6367,6 +6367,200 @@ textarea {
   border: 1px solid rgba(100, 116, 139, 0.18);
 }
 
+/* ─── Modals ────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 80;
+  padding: 16px;
+}
+
+.modal-card {
+  width: min(540px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+}
+
+.modal-card__head {
+  display: grid;
+  gap: 4px;
+}
+
+.modal-card__head h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+
+.modal-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ─── Star rating input ─────────────────────────────────────────────── */
+.rating-input {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.rating-input__star {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 1.6rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 120ms ease, transform 120ms ease;
+}
+
+.rating-input__star:hover {
+  transform: scale(1.08);
+}
+
+.rating-input__star--active {
+  color: #f59e0b;
+}
+
+/* ─── Reschedule slot grid ──────────────────────────────────────────── */
+.reschedule-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* ─── Public consultant reviews list ────────────────────────────────── */
+.consultant-reviews__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.consultant-reviews__item {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.consultant-reviews__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.consultant-reviews__stars {
+  color: #f59e0b;
+  letter-spacing: 2px;
+  font-size: 0.95rem;
+}
+
+.consultant-reviews__item p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+/* ─── Dashboard privacy panel ───────────────────────────────────────── */
+.privacy-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.privacy-actions strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.privacy-actions--danger {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(254, 242, 242, 0.6);
+}
+
+.ghost-button--danger {
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.ghost-button--danger:hover {
+  background: #fef2f2;
+}
+
+/* ─── Cookie consent banner ─────────────────────────────────────────── */
+.cookie-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 70;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.cookie-banner__copy strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cookie-banner__copy p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.cookie-banner__copy a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.cookie-banner__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .cookie-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
 .example-badge {
   display: inline-flex;
   align-items: center;

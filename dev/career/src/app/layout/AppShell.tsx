@@ -417,6 +417,65 @@ export default function AppShell() {
           </div>
         </div>
       </footer>
+      <CookieConsentBanner />
+    </div>
+  );
+}
+
+const COOKIE_CONSENT_KEY = "careerlane.cookieConsent";
+
+function CookieConsentBanner() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(COOKIE_CONSENT_KEY);
+      if (!stored) setVisible(true);
+    } catch {
+      // localStorage unavailable (e.g. private mode) — render banner anyway.
+      setVisible(true);
+    }
+  }, []);
+
+  const persist = (value: "accepted" | "rejected") => {
+    try {
+      window.localStorage.setItem(
+        COOKIE_CONSENT_KEY,
+        JSON.stringify({ value, at: new Date().toISOString() })
+      );
+    } catch {
+      /* ignore */
+    }
+    setVisible(false);
+  };
+
+  if (!visible) return null;
+
+  return (
+    <div className="cookie-banner" role="dialog" aria-live="polite" aria-label="Бисквитки">
+      <div className="cookie-banner__copy">
+        <strong>Използваме бисквитки</strong>
+        <p>
+          Запазваме само необходимото за вход и сесия. Не използваме рекламни тракери. Виж{" "}
+          <Link to="/legal">правната ни страница</Link> за детайли.
+        </p>
+      </div>
+      <div className="cookie-banner__actions">
+        <button
+          className="ghost-button"
+          type="button"
+          onClick={() => persist("rejected")}
+        >
+          Само необходимите
+        </button>
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => persist("accepted")}
+        >
+          Приемам
+        </button>
+      </div>
     </div>
   );
 }

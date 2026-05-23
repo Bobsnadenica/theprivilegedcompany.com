@@ -83,6 +83,8 @@ export interface ConsultantProfile {
   featured: boolean;
   rating: number;
   reviewCount: number;
+  ratingSum?: number;
+  recentReviews?: ConsultantReviewItem[];
   nextAvailable: string;
   avatarUrl: string;
   heroUrl: string;
@@ -138,6 +140,24 @@ export interface Booking {
   declineReason?: string;
   cancelledAt?: string;
   cancelledBy?: "consultant" | "client";
+  rescheduleCount?: number;
+  rescheduledAt?: string;
+  rescheduledBy?: "consultant" | "client";
+  review?: BookingReview;
+}
+
+export interface BookingReview {
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface ConsultantReviewItem {
+  bookingId: string;
+  clientName: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
 }
 
 export interface AuthUser {

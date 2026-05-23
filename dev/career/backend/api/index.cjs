@@ -1,6 +1,7 @@
 const { randomUUID } = require("node:crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {
+  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -481,6 +482,59 @@ async function sendBookingAcceptedEmails({ consultantOwner, consultant, client, 
   await Promise.allSettled(tasks);
 }
 
+async function sendBookingRescheduledEmails({
+  consultantOwner,
+  consultant,
+  client,
+  booking,
+  previousScheduledAt,
+  rescheduledBy,
+  needsReConfirmation
+}) {
+  const newWhen = formatBookingDateTimeBg(booking.scheduledAt);
+  const oldWhen = formatBookingDateTimeBg(previousScheduledAt);
+  const actorLabel = rescheduledBy === "consultant" ? "консултантът" : "потребителят";
+  const tasks = [];
+
+  if (client?.email) {
+    const clientSubject =
+      rescheduledBy === "consultant"
+        ? `${consultant.name} промени часа на резервацията ти`
+        : "Преместихме часа на твоята резервация";
+    const clientBody =
+      `Здравей, ${client.name || ""},\n\n` +
+      `Часът на резервацията ти с ${consultant.name} е променен.\n\n` +
+      `Старо време: ${oldWhen}\n` +
+      `Ново време: ${newWhen}\n\n` +
+      (needsReConfirmation
+        ? `Тъй като часът беше потвърден преди, ${consultant.name} ще трябва да приеме новия час. Ще получиш отделно известие при потвърждение.\n\n`
+        : `Резервацията остава с актуален статус.\n\n`) +
+      `Табло: ${env.appUrl}#/dashboard`;
+    tasks.push(sendEmail({ to: client.email, subject: clientSubject, text: clientBody }));
+  }
+
+  if (consultantOwner?.email) {
+    const consultantSubject =
+      rescheduledBy === "client"
+        ? `Преместен час за консултация от ${booking.clientName || "потребител"}`
+        : "Преместване на твоя резервация";
+    const consultantBody =
+      `Здравей, ${consultantOwner.name || consultant.name},\n\n` +
+      `${actorLabel === "консултантът" ? "Ти" : actorLabel} премести часа за консултация с ${booking.clientName || "потребител"}.\n\n` +
+      `Старо време: ${oldWhen}\n` +
+      `Ново време: ${newWhen}\n\n` +
+      (needsReConfirmation
+        ? `Новият час чака твоето потвърждение. Отвори таблото си, за да приемеш или откажеш.\n\n`
+        : `Резервацията е актуализирана.\n\n`) +
+      `Табло: ${env.appUrl}#/dashboard`;
+    tasks.push(
+      sendEmail({ to: consultantOwner.email, subject: consultantSubject, text: consultantBody })
+    );
+  }
+
+  await Promise.allSettled(tasks);
+}
+
 async function sendBookingDeclinedEmail({ recipient, consultant, booking, reason = "" }) {
   if (!recipient?.email) return;
   const when = formatBookingDateTimeBg(booking.scheduledAt);
@@ -894,6 +948,47 @@ function stripSensitiveConsultantFields(consultant) {
   return cleaned;
 }
 
+function computeAggregateRating(consultant) {
+  const sum = Number(consultant?.ratingSum);
+  const count = Number(consultant?.reviewCount) || 0;
+  if (Number.isFinite(sum) && count > 0) {
+    return Math.round((sum / count) * 10) / 10;
+  }
+  // Legacy rows (seeded examples) carry a static rating field.
+  return Number(consultant?.rating) || 0;
+}
+
+async function getRecentConsultantReviews(consultantId, limit = 10) {
+  if (!consultantId) return [];
+  const result = await dynamo.send(
+    new QueryCommand({
+      TableName: env.bookingsTable,
+      IndexName: "consultant-index",
+      KeyConditionExpression: "consultantId = :c",
+      ExpressionAttributeValues: { ":c": consultantId },
+      ProjectionExpression:
+        "bookingId, clientName, #r",
+      ExpressionAttributeNames: { "#r": "review" },
+      Limit: 100
+    })
+  );
+  return (result.Items || [])
+    .filter((item) => item.review && item.review.rating)
+    .sort(
+      (a, b) =>
+        new Date(b.review.createdAt).getTime() -
+        new Date(a.review.createdAt).getTime()
+    )
+    .slice(0, limit)
+    .map((item) => ({
+      bookingId: item.bookingId,
+      clientName: item.clientName || "Потребител",
+      rating: Number(item.review.rating) || 0,
+      comment: String(item.review.comment || "").slice(0, 600),
+      createdAt: item.review.createdAt
+    }));
+}
+
 async function decorateConsultantMedia(consultant) {
   if (!consultant) {
     return consultant;
@@ -933,6 +1028,8 @@ async function decorateConsultantMedia(consultant) {
     workApproach: consultant.workApproach || "",
     availability,
     nextAvailable: getNextAvailableSlot(availability, consultant.nextAvailable || ""),
+    rating: computeAggregateRating(consultant),
+    reviewCount: Number(consultant.reviewCount) || 0,
     avatarUrl: avatarUrl || consultant.avatarUrl,
     heroUrl: heroUrl || consultant.heroUrl
   };
@@ -1188,9 +1285,14 @@ async function getConsultant(event) {
     return notFound("Consultant profile not found.");
   }
 
+  const [decorated, recentReviews] = await Promise.all([
+    decorateConsultantMedia(consultant),
+    getRecentConsultantReviews(consultant.consultantId, 10)
+  ]);
+
   return response(
     200,
-    stripSensitiveConsultantFields(await decorateConsultantMedia(consultant)),
+    stripSensitiveConsultantFields({ ...decorated, recentReviews }),
     {
       "Cache-Control": "public, max-age=120, stale-while-revalidate=600"
     }
@@ -1289,6 +1391,152 @@ async function bootstrapUser(event) {
   }
 
   return response(200, await decorateUserMedia(nextUser));
+}
+
+async function exportMyData(event) {
+  const claims = requireAuth(event);
+
+  const [user, consultant, clientBookings] = await Promise.all([
+    getUserBySub(claims.sub),
+    getConsultantByOwner(claims.sub),
+    dynamo.send(
+      new QueryCommand({
+        TableName: env.bookingsTable,
+        IndexName: "client-index",
+        KeyConditionExpression: "clientId = :id",
+        ExpressionAttributeValues: { ":id": claims.sub }
+      })
+    )
+  ]);
+
+  let consultantBookings = { Items: [] };
+  if (consultant) {
+    consultantBookings = await dynamo.send(
+      new QueryCommand({
+        TableName: env.bookingsTable,
+        IndexName: "consultant-index",
+        KeyConditionExpression: "consultantId = :c",
+        ExpressionAttributeValues: { ":c": consultant.consultantId }
+      })
+    );
+  }
+
+  const exportPayload = {
+    exportedAt: new Date().toISOString(),
+    cognitoSub: claims.sub,
+    email: claims.email || user?.email || "",
+    profile: user || null,
+    consultantProfile: consultant || null,
+    bookingsAsClient: clientBookings.Items || [],
+    bookingsAsConsultant: consultantBookings.Items || [],
+    notes: [
+      "Този файл съдържа цялата информация, която CareerLane съхранява за теб.",
+      "Документите (CV, сертификати) се пазят в S3 и могат да бъдат свалени през активни линкове в профила.",
+      "За искане за пълно изтриване използвай функцията 'Изтрий профила' в таблото."
+    ]
+  };
+
+  return {
+    statusCode: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Disposition": `attachment; filename="careerlane-export-${claims.sub}.json"`,
+      "Access-Control-Allow-Origin": env.allowedOrigin,
+      "Cache-Control": "no-store"
+    },
+    body: JSON.stringify(exportPayload, null, 2)
+  };
+}
+
+async function deleteMyAccount(event) {
+  const claims = requireAuth(event);
+  const user = await getUserBySub(claims.sub);
+
+  // Collect all storage keys to scrub from S3.
+  const storageKeysToDelete = new Set();
+  if (user?.avatarStorageKey) storageKeysToDelete.add(user.avatarStorageKey);
+  if (user?.cvDocument?.storageKey) storageKeysToDelete.add(user.cvDocument.storageKey);
+  for (const doc of Array.isArray(user?.documents) ? user.documents : []) {
+    if (doc.storageKey) storageKeysToDelete.add(doc.storageKey);
+  }
+
+  const consultant = await getConsultantByOwner(claims.sub);
+  if (consultant) {
+    if (consultant.avatarStorageKey) storageKeysToDelete.add(consultant.avatarStorageKey);
+    if (consultant.heroStorageKey) storageKeysToDelete.add(consultant.heroStorageKey);
+  }
+
+  // Anonymize bookings the user was the client on (we keep them for the consultant's history).
+  const clientBookings = await dynamo.send(
+    new QueryCommand({
+      TableName: env.bookingsTable,
+      IndexName: "client-index",
+      KeyConditionExpression: "clientId = :id",
+      ExpressionAttributeValues: { ":id": claims.sub }
+    })
+  );
+  await Promise.allSettled(
+    (clientBookings.Items || []).map((booking) =>
+      dynamo.send(
+        new UpdateCommand({
+          TableName: env.bookingsTable,
+          Key: { bookingId: booking.bookingId },
+          UpdateExpression:
+            "SET clientName = :n, clientEmail = :e, anonymizedAt = :now REMOVE note",
+          ExpressionAttributeValues: {
+            ":n": "[Изтрит потребител]",
+            ":e": "",
+            ":now": new Date().toISOString()
+          }
+        })
+      )
+    )
+  );
+
+  // If the user is a consultant, hide their public profile and free remaining slots.
+  if (consultant) {
+    await dynamo.send(
+      new UpdateCommand({
+        TableName: env.consultantsTable,
+        Key: { consultantId: consultant.consultantId },
+        UpdateExpression:
+          "SET isPublic = :false, profileStatus = :rejected, anonymizedAt = :now, " +
+          "#n = :placeholder, bio = :empty, headline = :empty",
+        ExpressionAttributeNames: { "#n": "name" },
+        ExpressionAttributeValues: {
+          ":false": false,
+          ":rejected": "rejected",
+          ":now": new Date().toISOString(),
+          ":placeholder": "[Изтрит профил]",
+          ":empty": ""
+        }
+      })
+    );
+  }
+
+  // Delete the user row outright; profile is gone from this point.
+  await dynamo.send(
+    new DeleteCommand({
+      TableName: env.usersTable,
+      Key: { userId: claims.sub }
+    })
+  );
+
+  // Best-effort S3 scrub. Don't fail the request if some objects can't be deleted.
+  await Promise.allSettled(
+    Array.from(storageKeysToDelete).map((key) => deleteS3Object(key))
+  );
+
+  // We don't delete the Cognito identity here (no IAM permission granted, see infra/terraform/main.tf).
+  // The user should be logged out client-side; if they sign up again with the same email,
+  // Cognito will issue a fresh sub and they'll bootstrap a brand-new profile.
+
+  return response(200, {
+    deleted: true,
+    anonymizedBookings: (clientBookings.Items || []).length,
+    cognitoSubRetained: true,
+    note: "Излизаш от профила си. Запазихме само анонимизирана история на резервациите."
+  });
 }
 
 async function getMeProfile(event) {
@@ -1894,6 +2142,162 @@ async function declineBooking({ claims, bookingId, reason }) {
   return response(200, updated);
 }
 
+async function rescheduleBooking(event) {
+  const claims = requireAuth(event);
+  const bookingId = event.pathParameters?.bookingId;
+  const body = parseBody(event);
+
+  if (!bookingId) return badRequest("bookingId is required.");
+
+  const newScheduledAt = new Date(String(body.scheduledAt || ""));
+  if (Number.isNaN(newScheduledAt.getTime())) {
+    return badRequest("scheduledAt must be a valid ISO date.");
+  }
+  if (newScheduledAt.getTime() <= Date.now() + 5 * 60 * 1000) {
+    return badRequest("The new time must be in the future.");
+  }
+
+  const { booking, consultant } = await loadBookingAndConsultant(bookingId);
+  if (!booking) return notFound("Booking not found.");
+  if (!consultant) return notFound("Consultant not found.");
+
+  const isClient = booking.clientId === claims.sub;
+  const isConsultantOwner = consultant.ownerUserId === claims.sub;
+  if (!isClient && !isConsultantOwner) {
+    return forbidden("Not allowed to reschedule this booking.");
+  }
+
+  if (booking.status !== "pending" && booking.status !== "confirmed") {
+    return badRequest("Only pending or confirmed bookings can be rescheduled.");
+  }
+
+  const oldScheduledAt = booking.scheduledAt;
+  const normalizedNew = newScheduledAt.toISOString();
+  if (normalizedNew === oldScheduledAt) {
+    return badRequest("Новият час е същият като текущия.");
+  }
+
+  const availability = normalizeAvailabilitySlots(consultant.availability || [], []);
+  if (!availability.includes(normalizedNew)) {
+    return badRequest("The new slot is not in the consultant's availability.");
+  }
+
+  // Check the new slot isn't already taken by another booking
+  const existingBookings = await dynamo.send(
+    new QueryCommand({
+      TableName: env.bookingsTable,
+      IndexName: "consultant-index",
+      KeyConditionExpression: "consultantId = :consultantId",
+      ExpressionAttributeValues: { ":consultantId": consultant.consultantId }
+    })
+  );
+  const sessionMs =
+    (Number(consultant.sessionLengthMinutes) || 60) * 60 * 1000;
+  const newStart = newScheduledAt.getTime();
+  const newEnd = newStart + sessionMs;
+  const hasConflict = (existingBookings.Items || []).some((item) => {
+    if (item.bookingId === bookingId) return false;
+    if (item.status === "cancelled" || item.status === "declined") return false;
+    const start = new Date(item.scheduledAt).getTime();
+    if (Number.isNaN(start)) return false;
+    const end = start + sessionMs;
+    return newStart < end && start < newEnd;
+  });
+  if (hasConflict) {
+    return badRequest(
+      "Този час се припокрива с друга активна резервация. Избери различен."
+    );
+  }
+
+  // Client-initiated reschedule of a confirmed booking → back to pending (consultant must re-accept).
+  // Consultant-initiated reschedule keeps current status (or pending stays pending).
+  const nextStatus =
+    isClient && booking.status === "confirmed" ? "pending" : booking.status;
+
+  const currentBookedSlots = Array.isArray(consultant.bookedSlots)
+    ? consultant.bookedSlots
+    : [];
+  const nextBookedSlots = currentBookedSlots.filter((s) => s !== oldScheduledAt);
+  if (!nextBookedSlots.includes(normalizedNew)) {
+    nextBookedSlots.push(normalizedNew);
+  }
+
+  const now = new Date().toISOString();
+  const rescheduledBy = isConsultantOwner ? "consultant" : "client";
+
+  try {
+    await dynamo.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Update: {
+              TableName: env.bookingsTable,
+              Key: { bookingId },
+              UpdateExpression:
+                "SET scheduledAt = :new, #s = :status, rescheduledAt = :now, rescheduledBy = :actor, " +
+                "rescheduleCount = if_not_exists(rescheduleCount, :zero) + :one",
+              ConditionExpression:
+                "(#s = :pending OR #s = :confirmed) AND scheduledAt = :oldAt",
+              ExpressionAttributeNames: { "#s": "status" },
+              ExpressionAttributeValues: {
+                ":new": normalizedNew,
+                ":oldAt": oldScheduledAt,
+                ":status": nextStatus,
+                ":pending": "pending",
+                ":confirmed": "confirmed",
+                ":now": now,
+                ":actor": rescheduledBy,
+                ":zero": 0,
+                ":one": 1
+              }
+            }
+          },
+          {
+            Update: {
+              TableName: env.consultantsTable,
+              Key: { consultantId: consultant.consultantId },
+              UpdateExpression: "SET bookedSlots = :slots",
+              ExpressionAttributeValues: { ":slots": nextBookedSlots }
+            }
+          }
+        ]
+      })
+    );
+  } catch (error) {
+    if (error.name === "TransactionCanceledException") {
+      return badRequest("Booking state changed; please refresh and try again.");
+    }
+    throw error;
+  }
+
+  const updated = {
+    ...booking,
+    scheduledAt: normalizedNew,
+    status: nextStatus,
+    rescheduledAt: now,
+    rescheduledBy,
+    rescheduleCount: (Number(booking.rescheduleCount) || 0) + 1
+  };
+
+  try {
+    const consultantOwner = await getUserBySub(consultant.ownerUserId);
+    const client = await getUserBySub(booking.clientId);
+    await sendBookingRescheduledEmails({
+      consultantOwner,
+      consultant,
+      client: client || { email: booking.clientEmail, name: booking.clientName },
+      booking: updated,
+      previousScheduledAt: oldScheduledAt,
+      rescheduledBy,
+      needsReConfirmation: nextStatus === "pending"
+    });
+  } catch (error) {
+    console.error("[booking] reschedule email failure", error?.message || error);
+  }
+
+  return response(200, updated);
+}
+
 async function updateBookingStatus(event) {
   const claims = requireAuth(event);
   const bookingId = event.pathParameters?.bookingId;
@@ -2011,6 +2415,200 @@ async function updateBookingStatus(event) {
   }
 
   return response(200, updated);
+}
+
+function formatIcsTimestamp(date) {
+  // VCALENDAR DTSTART/DTEND in UTC: YYYYMMDDTHHMMSSZ
+  return (
+    date.getUTCFullYear().toString().padStart(4, "0") +
+    (date.getUTCMonth() + 1).toString().padStart(2, "0") +
+    date.getUTCDate().toString().padStart(2, "0") +
+    "T" +
+    date.getUTCHours().toString().padStart(2, "0") +
+    date.getUTCMinutes().toString().padStart(2, "0") +
+    date.getUTCSeconds().toString().padStart(2, "0") +
+    "Z"
+  );
+}
+
+function icsEscape(value) {
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function foldIcsLine(line) {
+  // RFC 5545 §3.1: lines should not exceed 75 octets — fold with CRLF + space.
+  if (line.length <= 75) return line;
+  const chunks = [];
+  let i = 0;
+  while (i < line.length) {
+    chunks.push((i === 0 ? "" : " ") + line.slice(i, i + 73));
+    i += 73;
+  }
+  return chunks.join("\r\n");
+}
+
+function buildIcsForBooking({ booking, consultant }) {
+  const start = new Date(booking.scheduledAt);
+  const sessionMs = (Number(consultant.sessionLengthMinutes) || 60) * 60 * 1000;
+  const end = new Date(start.getTime() + sessionMs);
+  const now = new Date();
+  const uid = `${booking.bookingId}@careerlane`;
+
+  const description =
+    `Резервация през CareerLane.\n` +
+    `Консултант: ${consultant.name}\n` +
+    `Формат: ${(consultant.sessionModes || []).join(", ") || "Онлайн"}\n` +
+    (booking.note ? `Бележка: ${booking.note}\n` : "") +
+    `Табло: ${env.appUrl}#/dashboard`;
+
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//CareerLane//Booking//BG",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${icsEscape(uid)}`,
+    `DTSTAMP:${formatIcsTimestamp(now)}`,
+    `DTSTART:${formatIcsTimestamp(start)}`,
+    `DTEND:${formatIcsTimestamp(end)}`,
+    `SUMMARY:${icsEscape(`Консултация с ${consultant.name}`)}`,
+    `DESCRIPTION:${icsEscape(description)}`,
+    `STATUS:${booking.status === "confirmed" ? "CONFIRMED" : "TENTATIVE"}`,
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ];
+  return lines.map(foldIcsLine).join("\r\n");
+}
+
+async function downloadBookingIcs(event) {
+  const claims = requireAuth(event);
+  const bookingId = event.pathParameters?.bookingId;
+  if (!bookingId) return badRequest("bookingId is required.");
+
+  const { booking, consultant } = await loadBookingAndConsultant(bookingId);
+  if (!booking) return notFound("Booking not found.");
+  if (!consultant) return notFound("Consultant not found.");
+
+  const isOwner =
+    booking.clientId === claims.sub || consultant.ownerUserId === claims.sub;
+  if (!isOwner) return forbidden("Not allowed.");
+
+  const ics = buildIcsForBooking({ booking, consultant });
+  return {
+    statusCode: 200,
+    headers: {
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": `attachment; filename="careerlane-${bookingId}.ics"`,
+      "Access-Control-Allow-Origin": env.allowedOrigin,
+      "Cache-Control": "no-store"
+    },
+    body: ics
+  };
+}
+
+async function submitReview(event) {
+  const claims = requireAuth(event);
+  const bookingId = event.pathParameters?.bookingId;
+  const body = parseBody(event);
+
+  if (!bookingId) return badRequest("bookingId is required.");
+
+  const rating = Number(body.rating);
+  if (
+    !Number.isFinite(rating) ||
+    rating < 1 ||
+    rating > 5 ||
+    rating !== Math.round(rating)
+  ) {
+    return badRequest("rating must be an integer between 1 and 5.");
+  }
+  const comment = String(body.comment || "").trim().slice(0, 600);
+
+  const { booking, consultant } = await loadBookingAndConsultant(bookingId);
+  if (!booking) return notFound("Booking not found.");
+  if (!consultant) return notFound("Consultant not found.");
+  if (booking.clientId !== claims.sub) {
+    return forbidden("Only the client can submit a review.");
+  }
+  if (booking.status !== "confirmed") {
+    return badRequest("Only confirmed bookings can be reviewed.");
+  }
+  if (booking.review) {
+    return badRequest("This booking already has a review.");
+  }
+
+  const sessionMs =
+    (Number(consultant.sessionLengthMinutes) || 60) * 60 * 1000;
+  const sessionEnd = new Date(booking.scheduledAt).getTime() + sessionMs;
+  if (sessionEnd > Date.now()) {
+    return badRequest("Сесията още не е приключила. Изчакай края ѝ, за да оставиш отзив.");
+  }
+
+  const review = {
+    rating,
+    comment,
+    createdAt: new Date().toISOString()
+  };
+
+  const priorRating = Number(consultant.rating) || 0;
+  const priorCount = Number(consultant.reviewCount) || 0;
+  const legacySum = priorRating * priorCount;
+
+  try {
+    await dynamo.send(
+      new TransactWriteCommand({
+        TransactItems: [
+          {
+            Update: {
+              TableName: env.bookingsTable,
+              Key: { bookingId },
+              UpdateExpression: "SET #r = :review",
+              ConditionExpression: "attribute_not_exists(#r) AND #s = :confirmed",
+              ExpressionAttributeNames: { "#r": "review", "#s": "status" },
+              ExpressionAttributeValues: {
+                ":review": review,
+                ":confirmed": "confirmed"
+              }
+            }
+          },
+          {
+            Update: {
+              TableName: env.consultantsTable,
+              Key: { consultantId: consultant.consultantId },
+              UpdateExpression:
+                "SET ratingSum = if_not_exists(ratingSum, :legacySum) + :newRating, " +
+                "reviewCount = if_not_exists(reviewCount, :zero) + :one",
+              ExpressionAttributeValues: {
+                ":legacySum": legacySum,
+                ":newRating": rating,
+                ":zero": 0,
+                ":one": 1
+              }
+            }
+          }
+        ]
+      })
+    );
+  } catch (error) {
+    if (error.name === "TransactionCanceledException") {
+      return badRequest("Booking is no longer eligible for review.");
+    }
+    throw error;
+  }
+
+  return response(200, {
+    booking: { ...booking, review },
+    consultant: {
+      consultantId: consultant.consultantId,
+      reviewCount: priorCount + 1,
+      rating: Math.round(((legacySum + rating) / (priorCount + 1)) * 10) / 10
+    }
+  });
 }
 
 async function listBookings(event) {
@@ -2272,6 +2870,8 @@ exports.handler = async (event) => {
     if (method === "GET" && /^\/consultants\/[^/]+$/.test(path)) return getConsultant(event);
     if (method === "POST" && path === "/auth/bootstrap") return bootstrapUser(event);
     if (method === "GET" && path === "/me/profile") return getMeProfile(event);
+    if (method === "GET" && path === "/me/data-export") return exportMyData(event);
+    if (method === "DELETE" && path === "/me") return deleteMyAccount(event);
     if (method === "PUT" && path === "/me/profile") return updateMeProfile(event);
     if (method === "POST" && path === "/me/cv/upload-url") return createUploadUrl(event);
     if (method === "GET" && path === "/bookings") return listBookings(event);
@@ -2281,6 +2881,24 @@ exports.handler = async (event) => {
     if (method === "PATCH" && bookingStatusMatch) {
       event.pathParameters = { ...(event.pathParameters || {}), bookingId: bookingStatusMatch[1] };
       return updateBookingStatus(event);
+    }
+
+    const bookingReviewMatch = /^\/bookings\/([^/]+)\/review$/.exec(path);
+    if (method === "POST" && bookingReviewMatch) {
+      event.pathParameters = { ...(event.pathParameters || {}), bookingId: bookingReviewMatch[1] };
+      return submitReview(event);
+    }
+
+    const bookingRescheduleMatch = /^\/bookings\/([^/]+)\/reschedule$/.exec(path);
+    if (method === "PATCH" && bookingRescheduleMatch) {
+      event.pathParameters = { ...(event.pathParameters || {}), bookingId: bookingRescheduleMatch[1] };
+      return rescheduleBooking(event);
+    }
+
+    const bookingIcsMatch = /^\/bookings\/([^/]+)\/ics$/.exec(path);
+    if (method === "GET" && bookingIcsMatch) {
+      event.pathParameters = { ...(event.pathParameters || {}), bookingId: bookingIcsMatch[1] };
+      return downloadBookingIcs(event);
     }
 
     if (method === "GET" && path === "/admin/consultants") return listConsultantsForAdmin(event);

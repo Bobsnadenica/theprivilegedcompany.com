@@ -1819,6 +1819,30 @@ export function ConsultantPage() {
                   </div>
                 </section>
               ) : null}
+
+              {(consultant.recentReviews || []).length ? (
+                <section className="consultant-expertise__block consultant-reviews">
+                  <h3>
+                    Отзиви ({consultant.reviewCount}) ·{" "}
+                    <span className="rating-pill">{consultant.rating.toFixed(1)}</span>
+                  </h3>
+                  <ul className="consultant-reviews__list">
+                    {(consultant.recentReviews || []).map((review) => (
+                      <li key={review.bookingId} className="consultant-reviews__item">
+                        <div className="consultant-reviews__head">
+                          <strong>{review.clientName}</strong>
+                          <span className="consultant-reviews__stars" aria-label={`${review.rating} от 5 звезди`}>
+                            {"★".repeat(review.rating)}
+                            <span aria-hidden="true">{"☆".repeat(5 - review.rating)}</span>
+                          </span>
+                        </div>
+                        {review.comment ? <p>„{review.comment}"</p> : null}
+                        <span className="form-note">{formatDate(review.createdAt)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
             </article>
           </div>
 
@@ -2956,7 +2980,7 @@ async function fetchProfileWithRetry(token: string) {
 }
 
 export function DashboardPage() {
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [consultantProfile, setConsultantProfile] = useState<ConsultantProfile | null>(null);
@@ -2973,6 +2997,13 @@ export function DashboardPage() {
   const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [decidingBookingId, setDecidingBookingId] = useState<string | null>(null);
+  const [reviewModalBooking, setReviewModalBooking] = useState<Booking | null>(null);
+  const [rescheduleModalBooking, setRescheduleModalBooking] = useState<Booking | null>(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
+  const [accountActionLoading, setAccountActionLoading] = useState<
+    "export" | "delete" | null
+  >(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -3158,6 +3189,130 @@ export function DashboardPage() {
       setError(value instanceof Error ? value.message : "Неуспешно отказване на заявката.");
     } finally {
       setDecidingBookingId(null);
+    }
+  }
+
+  async function submitReviewAction(rating: number, comment: string) {
+    if (!token || !reviewModalBooking) return;
+    setReviewSubmitting(true);
+    setError("");
+    setMessage("");
+    try {
+      const result = await api.submitBookingReview(
+        token,
+        reviewModalBooking.bookingId,
+        rating,
+        comment
+      );
+      setBookings((current) =>
+        current.map((item) =>
+          item.bookingId === reviewModalBooking.bookingId ? result.booking : item
+        )
+      );
+      setReviewModalBooking(null);
+      setMessage("Благодарим за отзива.");
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно изпращане на отзив.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
+
+  async function rescheduleAction(newScheduledAt: string) {
+    if (!token || !rescheduleModalBooking) return;
+    setRescheduleSubmitting(true);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await api.rescheduleBooking(
+        token,
+        rescheduleModalBooking.bookingId,
+        newScheduledAt
+      );
+      setBookings((current) =>
+        current.map((item) =>
+          item.bookingId === rescheduleModalBooking.bookingId ? updated : item
+        )
+      );
+      setRescheduleModalBooking(null);
+      setMessage(
+        updated.status === "pending"
+          ? "Часът е преместен. Консултантът ще трябва да го потвърди отново."
+          : "Часът е преместен."
+      );
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно преместване.");
+    } finally {
+      setRescheduleSubmitting(false);
+    }
+  }
+
+  async function downloadBookingIcs(bookingId: string) {
+    if (!token) return;
+    setError("");
+    try {
+      const url = api.bookingIcsUrl(bookingId);
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `careerlane-${bookingId}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно сваляне на .ics файла.");
+    }
+  }
+
+  async function exportMyDataAction() {
+    if (!token || accountActionLoading) return;
+    setAccountActionLoading("export");
+    setError("");
+    setMessage("");
+    try {
+      const text = await api.exportMyData(token);
+      const blob = new Blob([text], { type: "application/json" });
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `careerlane-export.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(objectUrl);
+      setMessage("Свалихме копие на данните ти.");
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешен експорт.");
+    } finally {
+      setAccountActionLoading(null);
+    }
+  }
+
+  async function deleteMyAccountAction() {
+    if (!token || accountActionLoading) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        "Това действие е необратимо. Профилът ти ще бъде изтрит, файловете ти ще бъдат премахнати, а резервациите анонимизирани. Продължаваме ли?"
+      )
+    ) {
+      return;
+    }
+    setAccountActionLoading("delete");
+    setError("");
+    setMessage("");
+    try {
+      await api.deleteMyAccount(token);
+      await logout();
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно изтриване.");
+      setAccountActionLoading(null);
     }
   }
 
@@ -4865,9 +5020,17 @@ export function DashboardPage() {
               const isConfirmed = booking.status === "confirmed";
               const isCancelled = booking.status === "cancelled";
               const isDeclined = booking.status === "declined";
-              const isPast = new Date(booking.scheduledAt).getTime() < now;
+              const startMs = new Date(booking.scheduledAt).getTime();
+              const isPast = startMs < now;
+              const sessionLengthMs =
+                (consultantProfile?.sessionLengthMinutes || 60) * 60 * 1000;
+              const sessionEnded = startMs + sessionLengthMs < now;
               const canCancel = (isPending || isConfirmed) && !isPast;
+              const canReschedule = (isPending || isConfirmed) && !isPast;
               const canDecide = consultantView && isPending && !isPast;
+              const canDownloadIcs = isConfirmed && !isPast;
+              const canReview =
+                !consultantView && isConfirmed && sessionEnded && !booking.review;
               const isDeciding = decidingBookingId === booking.bookingId;
               return (
                 <article className="booking-item" key={booking.bookingId}>
@@ -4894,6 +5057,13 @@ export function DashboardPage() {
                           : "Отказана от потребителя"}
                       </p>
                     ) : null}
+                    {booking.review ? (
+                      <p className="form-note">
+                        Отзив: {"★".repeat(booking.review.rating)}
+                        {"☆".repeat(5 - booking.review.rating)}
+                        {booking.review.comment ? ` — „${booking.review.comment}"` : ""}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="booking-item__actions">
                     <span className={`status-badge status-badge--${booking.status}`}>
@@ -4918,7 +5088,35 @@ export function DashboardPage() {
                           Откажи
                         </button>
                       </>
-                    ) : canCancel ? (
+                    ) : null}
+                    {canReschedule ? (
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        onClick={() => setRescheduleModalBooking(booking)}
+                      >
+                        Премести часа
+                      </button>
+                    ) : null}
+                    {canDownloadIcs ? (
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        onClick={() => downloadBookingIcs(booking.bookingId)}
+                      >
+                        Добави в календара
+                      </button>
+                    ) : null}
+                    {canReview ? (
+                      <button
+                        className="primary-button"
+                        type="button"
+                        onClick={() => setReviewModalBooking(booking)}
+                      >
+                        Остави отзив
+                      </button>
+                    ) : null}
+                    {!canDecide && canCancel ? (
                       <button
                         className="ghost-button"
                         type="button"
@@ -5013,9 +5211,250 @@ export function DashboardPage() {
               </section>
             );
           })()}
+
+          <section className="panel form-stack" id="privacy">
+            <header className="dashboard-form-head">
+              <p className="eyebrow">Поверителност</p>
+              <h2>Контрол върху твоите данни.</h2>
+            </header>
+            <div className="privacy-actions">
+              <div>
+                <strong>Свали копие на данните си</strong>
+                <p className="form-note">
+                  Получаваш JSON файл с профила, резервациите и метаданните за качените документи.
+                </p>
+              </div>
+              <button
+                className="ghost-button"
+                type="button"
+                onClick={exportMyDataAction}
+                disabled={accountActionLoading !== null}
+              >
+                {accountActionLoading === "export" ? "Подготвяме..." : "Свали данните"}
+              </button>
+            </div>
+            <div className="privacy-actions privacy-actions--danger">
+              <div>
+                <strong>Изтрий профила</strong>
+                <p className="form-note">
+                  Профилът ти, файловете ти и публичният консултантски профил (ако има) ще бъдат
+                  премахнати. Резервациите се запазват анонимизирани, за да остане историята на
+                  консултантите.
+                </p>
+              </div>
+              <button
+                className="ghost-button ghost-button--danger"
+                type="button"
+                onClick={deleteMyAccountAction}
+                disabled={accountActionLoading !== null}
+              >
+                {accountActionLoading === "delete" ? "Изтриваме..." : "Изтрий профила ми"}
+              </button>
+            </div>
+          </section>
         </div>
       </div>
+
+      {reviewModalBooking ? (
+        <ReviewModal
+          booking={reviewModalBooking}
+          submitting={reviewSubmitting}
+          onClose={() => setReviewModalBooking(null)}
+          onSubmit={submitReviewAction}
+        />
+      ) : null}
+      {rescheduleModalBooking ? (
+        <RescheduleModal
+          booking={rescheduleModalBooking}
+          consultant={consultantProfile}
+          dashboardMatchedConsultants={dashboardMatchedConsultants}
+          submitting={rescheduleSubmitting}
+          onClose={() => setRescheduleModalBooking(null)}
+          onSubmit={rescheduleAction}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function ReviewModal({
+  booking,
+  submitting,
+  onClose,
+  onSubmit
+}: {
+  booking: Booking;
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: (rating: number, comment: string) => void | Promise<void>;
+}) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-card">
+        <header className="modal-card__head">
+          <p className="eyebrow">Отзив</p>
+          <h2>Оцени сесията с {booking.consultantName}</h2>
+        </header>
+        <div className="rating-input" role="radiogroup" aria-label="Оценка">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`rating-input__star ${
+                rating >= value ? "rating-input__star--active" : ""
+              }`}
+              onClick={() => setRating(value)}
+              aria-checked={rating === value}
+              role="radio"
+              aria-label={`${value} ${value === 1 ? "звезда" : "звезди"}`}
+            >
+              {rating >= value ? "★" : "☆"}
+            </button>
+          ))}
+        </div>
+        <label>
+          Коментар <span className="form-note">(по избор)</span>
+          <textarea
+            rows={4}
+            value={comment}
+            maxLength={600}
+            placeholder="Какво беше полезно в сесията?"
+            onChange={(event) => setComment(event.target.value)}
+          />
+        </label>
+        <div className="modal-card__actions">
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Отказ
+          </button>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => onSubmit(rating, comment.trim())}
+            disabled={submitting}
+          >
+            {submitting ? "Изпращаме..." : "Изпрати отзив"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RescheduleModal({
+  booking,
+  consultant,
+  dashboardMatchedConsultants,
+  submitting,
+  onClose,
+  onSubmit
+}: {
+  booking: Booking;
+  consultant: ConsultantProfile | null;
+  dashboardMatchedConsultants: Array<{ consultant: ConsultantProfile; match?: MatchInsight | null }>;
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: (newScheduledAt: string) => void | Promise<void>;
+}) {
+  const resolvedConsultant =
+    consultant && consultant.consultantId === booking.consultantId
+      ? consultant
+      : dashboardMatchedConsultants.find(
+          (entry) => entry.consultant.consultantId === booking.consultantId
+        )?.consultant || null;
+
+  const availableSlots = resolvedConsultant
+    ? getUpcomingAvailabilitySlots(resolvedConsultant.availability, 24).filter(
+        (slot) => slot !== booking.scheduledAt
+      )
+    : [];
+
+  const [selected, setSelected] = useState("");
+  const [manualValue, setManualValue] = useState("");
+  const inputId = `reschedule-${booking.bookingId}`;
+
+  const handleSubmit = () => {
+    const chosen = selected || (manualValue ? new Date(manualValue).toISOString() : "");
+    if (!chosen) return;
+    return onSubmit(chosen);
+  };
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-card">
+        <header className="modal-card__head">
+          <p className="eyebrow">Преместване</p>
+          <h2>Избери нов час за резервацията</h2>
+          <p className="section-caption">
+            Текущ час: {formatDate(booking.scheduledAt)}
+          </p>
+        </header>
+
+        {availableSlots.length ? (
+          <div className="reschedule-slot-grid" role="radiogroup">
+            {availableSlots.map((slot) => (
+              <button
+                key={slot}
+                type="button"
+                className={`slot-button ${selected === slot ? "slot-button--active" : ""}`}
+                onClick={() => {
+                  setSelected(slot);
+                  setManualValue("");
+                }}
+                aria-checked={selected === slot}
+                role="radio"
+              >
+                {formatAvailabilityDayLabel(slot)}, {formatAvailabilityTimeLabel(slot)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="form-note">
+            Няма открити публикувани часове за този консултант. Можеш да предложиш конкретен час
+            по-долу — ще бъде записан само ако консултантът го има в графика си.
+          </p>
+        )}
+
+        <label htmlFor={inputId}>
+          Или въведи конкретен час
+          <input
+            id={inputId}
+            type="datetime-local"
+            value={manualValue}
+            onChange={(event) => {
+              setManualValue(event.target.value);
+              setSelected("");
+            }}
+          />
+        </label>
+
+        <div className="modal-card__actions">
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Отказ
+          </button>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={handleSubmit}
+            disabled={submitting || (!selected && !manualValue)}
+          >
+            {submitting ? "Местим..." : "Премести"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
