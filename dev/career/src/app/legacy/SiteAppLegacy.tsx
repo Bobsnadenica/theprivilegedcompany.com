@@ -459,6 +459,46 @@ function applySuggestedFieldValue(
   control.focus();
 }
 
+const AVAILABILITY_WEEKDAYS = [
+  { value: 1, short: "Пон" },
+  { value: 2, short: "Вто" },
+  { value: 3, short: "Сря" },
+  { value: 4, short: "Чет" },
+  { value: 5, short: "Пет" },
+  { value: 6, short: "Съб" },
+  { value: 0, short: "Нед" }
+] as const;
+
+const AVAILABILITY_HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 08:00 – 20:00
+
+function generateAvailabilityPattern({
+  weekdays,
+  hours,
+  weeksAhead
+}: {
+  weekdays: number[];
+  hours: number[];
+  weeksAhead: number;
+}): string[] {
+  const slots: string[] = [];
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const totalDays = Math.max(1, weeksAhead) * 7;
+  for (let offset = 0; offset < totalDays; offset += 1) {
+    const day = new Date(start);
+    day.setDate(day.getDate() + offset);
+    if (!weekdays.includes(day.getDay())) continue;
+    for (const hour of hours) {
+      const slot = new Date(day);
+      slot.setHours(hour, 0, 0, 0);
+      if (slot.getTime() > now.getTime()) {
+        slots.push(slot.toISOString());
+      }
+    }
+  }
+  return slots;
+}
+
 function buildAvailabilityPreset(daysAhead: number, hour: number): {
   label: string;
   value: string;
@@ -2989,6 +3029,10 @@ export function DashboardPage() {
   const [consultantAvailability, setConsultantAvailability] = useState<string[]>([]);
   const [availabilityDate, setAvailabilityDate] = useState(getRelativeDateInputValue(1));
   const [availabilityTime, setAvailabilityTime] = useState("09:00");
+  const [patternWeekdays, setPatternWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [patternHours, setPatternHours] = useState<number[]>([10, 14]);
+  const [patternWeeksAhead, setPatternWeeksAhead] = useState(4);
+  const [showSingleSlotForm, setShowSingleSlotForm] = useState(false);
   const [activeProfileSection, setActiveProfileSection] = useState("identity");
   const [activeConsultantSection, setActiveConsultantSection] = useState("presentation");
   const [message, setMessage] = useState("");
@@ -3780,6 +3824,54 @@ export function DashboardPage() {
     setConsultantAvailability((current) => current.filter((item) => item !== slot));
   }
 
+  function addAvailabilitySlots(slots: string[]) {
+    if (!slots.length) return;
+    setError("");
+    setMessage("");
+    setConsultantAvailability((current) => {
+      const merged = new Set(current);
+      for (const slot of slots) merged.add(slot);
+      return getUpcomingAvailabilitySlots(Array.from(merged));
+    });
+  }
+
+  function clearAllAvailability() {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm("Сигурен ли си, че искаш да изтриеш всички свободни часове?")
+    ) {
+      return;
+    }
+    setConsultantAvailability([]);
+  }
+
+  function togglePatternWeekday(value: number) {
+    setPatternWeekdays((current) =>
+      current.includes(value) ? current.filter((v) => v !== value) : [...current, value].sort()
+    );
+  }
+
+  function togglePatternHour(value: number) {
+    setPatternHours((current) =>
+      current.includes(value) ? current.filter((v) => v !== value) : [...current, value].sort((a, b) => a - b)
+    );
+  }
+
+  const patternPreview = useMemo(
+    () =>
+      generateAvailabilityPattern({
+        weekdays: patternWeekdays,
+        hours: patternHours,
+        weeksAhead: patternWeeksAhead
+      }),
+    [patternWeekdays, patternHours, patternWeeksAhead]
+  );
+
+  const patternNewSlots = useMemo(
+    () => patternPreview.filter((slot) => !consultantAvailability.includes(slot)),
+    [patternPreview, consultantAvailability]
+  );
+
   function moveProfileSection(direction: -1 | 1) {
     const nextIndex = activeProfileSectionIndex + direction;
 
@@ -3844,14 +3936,17 @@ export function DashboardPage() {
 
           <nav className="dashboard-sidebar__nav" aria-label="Секции в таблото">
             <a href="#overview">Преглед</a>
-            <a href="#profile-basics">Основен профил</a>
-            <a href="#documents">Документи</a>
             {profile.role === "consultant" ? (
               <a href="#consultant-profile">Публичен профил</a>
             ) : (
-              <a href="#matches">Подходящи консултанти</a>
+              <a href="#profile-basics">Основен профил</a>
             )}
+            <a href="#documents">Документи</a>
+            {profile.role !== "consultant" ? (
+              <a href="#matches">Подходящи консултанти</a>
+            ) : null}
             <a href="#sessions">Сесии</a>
+            <a href="#privacy">Поверителност</a>
           </nav>
 
           <p className="form-note">{membershipNote}</p>
@@ -3991,6 +4086,7 @@ export function DashboardPage() {
             </section>
           ) : null}
 
+          {profile.role !== "consultant" ? (
           <form className="panel form-stack" id="profile-basics" noValidate onSubmit={saveProfile}>
             <header className="dashboard-form-head">
               <p className="eyebrow">Основен профил</p>
@@ -4389,6 +4485,7 @@ export function DashboardPage() {
               </button>
             </div>
           </form>
+          ) : null}
 
           <section className="panel form-stack" id="documents">
             <header className="dashboard-form-head">
@@ -4867,8 +4964,8 @@ export function DashboardPage() {
                       <div>
                         <strong>Свободни часове</strong>
                         <p>
-                          Показвай само реални часове, в които можеш да поемеш нова
-                          консултация.
+                          Избери дни и часове наведнъж — пиши седмичен график вместо да добавяш по
+                          един слот.
                         </p>
                       </div>
                       <span
@@ -4884,48 +4981,148 @@ export function DashboardPage() {
                       </span>
                     </div>
 
-                    <div className="availability-composer__controls">
-                      <label>
-                        Дата
-                        <input
-                          type="date"
-                          value={availabilityDate}
-                          min={getRelativeDateInputValue(0)}
-                          onChange={(event) => setAvailabilityDate(event.target.value)}
-                        />
-                      </label>
-                      <label>
-                        Час
-                        <input
-                          type="time"
-                          value={availabilityTime}
-                          onChange={(event) => setAvailabilityTime(event.target.value)}
-                        />
-                      </label>
-                      <button
-                        className="ghost-button"
-                        type="button"
-                        onClick={addManualAvailabilitySlot}
-                      >
-                        Добави слот
-                      </button>
-                    </div>
+                    <div className="availability-pattern">
+                      <div className="availability-pattern__row">
+                        <span className="availability-pattern__label">Дни от седмицата</span>
+                        <div className="availability-pattern__chips">
+                          {AVAILABILITY_WEEKDAYS.map((day) => {
+                            const active = patternWeekdays.includes(day.value);
+                            return (
+                              <button
+                                key={day.value}
+                                type="button"
+                                className={`pattern-chip ${active ? "pattern-chip--active" : ""}`}
+                                onClick={() => togglePatternWeekday(day.value)}
+                                aria-pressed={active}
+                              >
+                                {day.short}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
 
-                    <div className="answer-suggestions">
-                      <span className="answer-suggestions__label">Бързи предложения</span>
-                      <div className="answer-suggestions__grid">
-                        {availabilityPresetOptions.map((option) => (
-                          <button
-                            className="suggestion-pill"
-                            key={option.value}
-                            type="button"
-                            onClick={() => addAvailabilitySlot(option.value)}
+                      <div className="availability-pattern__row">
+                        <span className="availability-pattern__label">Часове</span>
+                        <div className="availability-pattern__chips">
+                          {AVAILABILITY_HOURS.map((hour) => {
+                            const active = patternHours.includes(hour);
+                            return (
+                              <button
+                                key={hour}
+                                type="button"
+                                className={`pattern-chip ${active ? "pattern-chip--active" : ""}`}
+                                onClick={() => togglePatternHour(hour)}
+                                aria-pressed={active}
+                              >
+                                {String(hour).padStart(2, "0")}:00
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="availability-pattern__row availability-pattern__row--inline">
+                        <label className="availability-pattern__weeks">
+                          За колко седмици напред
+                          <select
+                            value={patternWeeksAhead}
+                            onChange={(event) =>
+                              setPatternWeeksAhead(Number(event.target.value))
+                            }
                           >
-                            {option.label}
+                            {[1, 2, 4, 6, 8, 12].map((n) => (
+                              <option key={n} value={n}>
+                                {n} {n === 1 ? "седмица" : "седмици"}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <div className="availability-pattern__summary">
+                          <strong>
+                            {patternPreview.length} слота · {patternNewSlots.length} нови
+                          </strong>
+                          <p className="form-note">
+                            Само бъдещи часове. Дубликатите се пропускат автоматично.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="availability-pattern__actions">
+                        <button
+                          className="primary-button"
+                          type="button"
+                          onClick={() => addAvailabilitySlots(patternPreview)}
+                          disabled={!patternNewSlots.length}
+                        >
+                          Добави {patternNewSlots.length} нови слота
+                        </button>
+                        {consultantAvailability.length ? (
+                          <button
+                            className="ghost-button ghost-button--danger"
+                            type="button"
+                            onClick={clearAllAvailability}
+                          >
+                            Изчисти всички
                           </button>
-                        ))}
+                        ) : null}
                       </div>
                     </div>
+
+                    <details className="availability-single">
+                      <summary
+                        onClick={(event) => {
+                          // Default `details` toggle still fires; we just keep state in sync
+                          // for any UI that depends on it (none today, but reserved).
+                          setShowSingleSlotForm((value) => !value);
+                          // Allow the default behaviour to handle the open/close visuals.
+                          void event;
+                        }}
+                      >
+                        Добави един час ръчно
+                      </summary>
+                      <div className="availability-composer__controls">
+                        <label>
+                          Дата
+                          <input
+                            type="date"
+                            value={availabilityDate}
+                            min={getRelativeDateInputValue(0)}
+                            onChange={(event) => setAvailabilityDate(event.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Час
+                          <input
+                            type="time"
+                            value={availabilityTime}
+                            onChange={(event) => setAvailabilityTime(event.target.value)}
+                          />
+                        </label>
+                        <button
+                          className="ghost-button"
+                          type="button"
+                          onClick={addManualAvailabilitySlot}
+                        >
+                          Добави слот
+                        </button>
+                      </div>
+                      <div className="answer-suggestions">
+                        <span className="answer-suggestions__label">Бързи предложения</span>
+                        <div className="answer-suggestions__grid">
+                          {availabilityPresetOptions.map((option) => (
+                            <button
+                              className="suggestion-pill"
+                              key={option.value}
+                              type="button"
+                              onClick={() => addAvailabilitySlot(option.value)}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </details>
 
                     {consultantAvailability.length ? (
                       <div className="availability-list">

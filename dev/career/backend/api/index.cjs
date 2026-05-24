@@ -1779,6 +1779,29 @@ async function updateMyConsultant(event) {
     throw error;
   }
 
+  // Keep the user-account display fields in sync so dashboard greetings,
+  // emails and matched-consultant cards reflect the consultant's latest profile.
+  try {
+    await dynamo.send(
+      new UpdateCommand({
+        TableName: env.usersTable,
+        Key: { userId: claims.sub },
+        UpdateExpression:
+          "SET #n = :name, headline = :headline, city = :city, avatarUrl = :avatarUrl, updatedAt = :now",
+        ExpressionAttributeNames: { "#n": "name" },
+        ExpressionAttributeValues: {
+          ":name": nextConsultant.name,
+          ":headline": nextConsultant.headline,
+          ":city": nextConsultant.city,
+          ":avatarUrl": nextConsultant.avatarUrl,
+          ":now": new Date().toISOString()
+        }
+      })
+    );
+  } catch (error) {
+    console.error("[consultant] user-sync failure", error?.message || error);
+  }
+
   return response(200, await decorateConsultantMedia(nextConsultant));
 }
 

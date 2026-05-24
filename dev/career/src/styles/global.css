@@ -6367,6 +6367,119 @@ textarea {
   border: 1px solid rgba(100, 116, 139, 0.18);
 }
 
+/* ─── Availability weekly-pattern picker ────────────────────────────── */
+.availability-pattern {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(247, 251, 255, 0.6);
+}
+
+.availability-pattern__row {
+  display: grid;
+  gap: 10px;
+}
+
+.availability-pattern__row--inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.availability-pattern__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.availability-pattern__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pattern-chip {
+  min-width: 56px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.pattern-chip:hover {
+  border-color: var(--border-strong);
+}
+
+.pattern-chip--active {
+  border-color: #0a66c2;
+  background: rgba(10, 102, 194, 0.08);
+  color: #0a66c2;
+}
+
+.availability-pattern__weeks {
+  display: grid;
+  gap: 4px;
+}
+
+.availability-pattern__weeks select {
+  min-width: 160px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: white;
+  font-size: 0.92rem;
+}
+
+.availability-pattern__summary strong {
+  display: block;
+}
+
+.availability-pattern__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.availability-single {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.availability-single summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  list-style: none;
+}
+
+.availability-single summary::-webkit-details-marker {
+  display: none;
+}
+
+.availability-single summary::before {
+  content: "▸ ";
+  display: inline-block;
+  margin-right: 4px;
+  transition: transform 120ms ease;
+}
+
+.availability-single[open] summary::before {
+  content: "▾ ";
+}
+
 /* ─── Modals ────────────────────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;
