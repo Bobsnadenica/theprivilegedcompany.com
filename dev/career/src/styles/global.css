@@ -1224,7 +1224,7 @@ main {
   color: var(--text);
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
   width: 100%;
@@ -1241,6 +1241,15 @@ select {
     box-shadow 180ms ease,
     background-color 180ms ease,
     transform 180ms ease;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
 }
 
 input::placeholder,
@@ -5580,24 +5589,48 @@ textarea {
 .auth-terms {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin: 4px 0 0;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(247, 250, 253, 0.7);
   font-size: 0.9rem;
+  font-weight: 400;
   color: var(--text-soft);
-  line-height: 1.5;
+  line-height: 1.55;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.auth-terms:hover {
+  border-color: var(--border-strong);
+}
+
+.auth-terms:has(input:checked) {
+  border-color: #b9d7f6;
+  background: rgba(235, 244, 254, 0.7);
 }
 
 .auth-terms input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin: 2px 0 0;
-  accent-color: var(--primary);
+  margin-top: 3px;
   flex-shrink: 0;
+}
+
+.auth-terms span {
+  flex: 1;
 }
 
 .auth-terms a {
   color: var(--primary-dark);
   font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(10, 102, 194, 0.32);
+  text-underline-offset: 2px;
+}
+
+.auth-terms a:hover {
+  text-decoration-color: currentColor;
 }
 
 .social-auth {
