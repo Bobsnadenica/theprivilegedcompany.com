@@ -3032,7 +3032,6 @@ export function DashboardPage() {
   const [patternWeekdays, setPatternWeekdays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [patternHours, setPatternHours] = useState<number[]>([10, 14]);
   const [patternWeeksAhead, setPatternWeeksAhead] = useState(4);
-  const [showSingleSlotForm, setShowSingleSlotForm] = useState(false);
   const [activeProfileSection, setActiveProfileSection] = useState("identity");
   const [activeConsultantSection, setActiveConsultantSection] = useState("presentation");
   const [message, setMessage] = useState("");
@@ -3109,6 +3108,25 @@ export function DashboardPage() {
   useEffect(() => {
     setConsultantAvailability(getUpcomingAvailabilitySlots(consultantProfile?.availability || []));
   }, [consultantProfile]);
+
+  // NOTE: All hooks (useState/useEffect/useMemo) must live above the early
+  // returns below. The Rules of Hooks require a consistent hook count on
+  // every render — calling a hook only when `profile` is non-null would
+  // make React's internal cursor desync and crash the route.
+  const patternPreview = useMemo(
+    () =>
+      generateAvailabilityPattern({
+        weekdays: patternWeekdays,
+        hours: patternHours,
+        weeksAhead: patternWeeksAhead
+      }),
+    [patternWeekdays, patternHours, patternWeeksAhead]
+  );
+
+  const patternNewSlots = useMemo(
+    () => patternPreview.filter((slot) => !consultantAvailability.includes(slot)),
+    [patternPreview, consultantAvailability]
+  );
 
   if (loading || !user) {
     return (
@@ -3856,21 +3874,6 @@ export function DashboardPage() {
       current.includes(value) ? current.filter((v) => v !== value) : [...current, value].sort((a, b) => a - b)
     );
   }
-
-  const patternPreview = useMemo(
-    () =>
-      generateAvailabilityPattern({
-        weekdays: patternWeekdays,
-        hours: patternHours,
-        weeksAhead: patternWeeksAhead
-      }),
-    [patternWeekdays, patternHours, patternWeeksAhead]
-  );
-
-  const patternNewSlots = useMemo(
-    () => patternPreview.filter((slot) => !consultantAvailability.includes(slot)),
-    [patternPreview, consultantAvailability]
-  );
 
   function moveProfileSection(direction: -1 | 1) {
     const nextIndex = activeProfileSectionIndex + direction;
@@ -5070,17 +5073,7 @@ export function DashboardPage() {
                     </div>
 
                     <details className="availability-single">
-                      <summary
-                        onClick={(event) => {
-                          // Default `details` toggle still fires; we just keep state in sync
-                          // for any UI that depends on it (none today, but reserved).
-                          setShowSingleSlotForm((value) => !value);
-                          // Allow the default behaviour to handle the open/close visuals.
-                          void event;
-                        }}
-                      >
-                        Добави един час ръчно
-                      </summary>
+                      <summary>Добави един час ръчно</summary>
                       <div className="availability-composer__controls">
                         <label>
                           Дата
