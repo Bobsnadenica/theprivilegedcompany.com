@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525c';
+import { languageMeta, translations } from './translations.js?v=20260525d';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525c';
+const assetVersion = '20260525d';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -548,6 +548,22 @@ class AnagramText {
     constructor(selector) {
         this.elements = document.querySelectorAll(selector);
         this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.pairs = [
+            ['SECURE', 'RESCUE'],
+            ['TRACE', 'REACT'],
+            ['LISTEN', 'SILENT'],
+            ['ALERT', 'ALTER'],
+            ['LOGIN', 'LINGO'],
+            ['ROUTE', 'OUTER'],
+            ['STATE', 'TASTE'],
+            ['SCOPE', 'COPES'],
+            ['SEARCH', 'CHASER'],
+            ['SIGNAL', 'ALIGNS'],
+            ['BINARY', 'BRAINY'],
+            ['STREAM', 'MASTER'],
+            ['CLOUD', 'COULD']
+        ].map(([primary, alternate]) => ({ primary, alternate }));
+        this.nextPairIndex = this.elements.length;
         this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         this.init();
     }
@@ -556,15 +572,15 @@ class AnagramText {
         this.elements.forEach((el, index) => {
             if (el.dataset.anagramBound) return;
 
-            const primary = normalizeI18nKey(el.textContent).toUpperCase();
-            const alternate = normalizeI18nKey(el.dataset.anagram).toUpperCase();
-            if (!primary || !alternate) return;
+            const initialPrimary = normalizeI18nKey(el.textContent).toUpperCase();
+            const initialAlternate = normalizeI18nKey(el.dataset.anagram).toUpperCase();
+            const initialPair = this.pairs.find(pair => pair.primary === initialPrimary && pair.alternate === initialAlternate)
+                || this.pairs[index % this.pairs.length];
 
             el.dataset.anagramBound = 'true';
-            el.dataset.anagramPrimary = primary;
-            el.dataset.anagramCurrent = primary;
-            el.style.setProperty('--anagram-width', `${Math.max(primary.length, alternate.length)}ch`);
-            el.setAttribute('aria-label', `${primary} / ${alternate}`);
+            el.dataset.anagramPhase = 'primary';
+            this.applyPair(el, initialPair);
+            el.textContent = initialPair.primary;
 
             if (this.reducedMotion) return;
 
@@ -574,22 +590,51 @@ class AnagramText {
                     return;
                 }
 
-                const current = el.dataset.anagramCurrent || primary;
-                const target = current === primary ? alternate : primary;
-                this.scramble(el, target);
+                if (el.dataset.anagramPhase === 'primary') {
+                    this.scramble(el, el.dataset.anagramAlternate, 'alternate');
+                    return;
+                }
+
+                const nextPair = this.getNextPair(el);
+                this.applyPair(el, nextPair);
+                this.scramble(el, nextPair.primary, 'primary');
             };
 
             const delay = 1800 + index * 420;
             el.anagramTimer = setTimeout(() => {
                 run();
-                el.anagramTimer = setInterval(run, 5200 + index * 260);
+                el.anagramTimer = setInterval(run, 4800 + index * 340);
             }, delay);
 
             el.addEventListener('mouseenter', run);
         });
     }
 
-    scramble(el, target) {
+    applyPair(el, pair) {
+        el.dataset.anagramPrimary = pair.primary;
+        el.dataset.anagramAlternate = pair.alternate;
+        el.dataset.anagram = pair.alternate;
+        el.style.setProperty('--anagram-width', `${Math.max(pair.primary.length, pair.alternate.length)}ch`);
+        el.setAttribute('aria-label', `${pair.primary} / ${pair.alternate}`);
+    }
+
+    getNextPair(el) {
+        const activePrimaries = new Set([...this.elements]
+            .filter(other => other !== el)
+            .map(other => other.dataset.anagramPrimary)
+            .filter(Boolean)
+        );
+
+        for (let i = 0; i < this.pairs.length; i += 1) {
+            const pair = this.pairs[this.nextPairIndex % this.pairs.length];
+            this.nextPairIndex += 1;
+            if (!activePrimaries.has(pair.primary)) return pair;
+        }
+
+        return this.pairs[this.nextPairIndex++ % this.pairs.length];
+    }
+
+    scramble(el, target, phase) {
         if (el.anagramAnimating) return;
         el.anagramAnimating = true;
         el.classList.add('is-twitching');
@@ -609,6 +654,7 @@ class AnagramText {
                 clearInterval(interval);
                 el.textContent = target;
                 el.dataset.anagramCurrent = target;
+                el.dataset.anagramPhase = phase;
                 el.anagramAnimating = false;
                 el.classList.remove('is-twitching');
             }
