@@ -459,6 +459,15 @@ function applySuggestedFieldValue(
   control.focus();
 }
 
+// HashRouter owns the URL fragment, so `<a href="#section">` would be
+// interpreted as a route ("/section" → 404). Scroll programmatically instead.
+function scrollToDashboardSection(id: string) {
+  if (typeof document === "undefined") return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 const AVAILABILITY_WEEKDAYS = [
   { value: 1, short: "Пон" },
   { value: 2, short: "Вто" },
@@ -3938,18 +3947,32 @@ export function DashboardPage() {
           </dl>
 
           <nav className="dashboard-sidebar__nav" aria-label="Секции в таблото">
-            <a href="#overview">Преглед</a>
+            <button type="button" onClick={() => scrollToDashboardSection("overview")}>
+              Преглед
+            </button>
             {profile.role === "consultant" ? (
-              <a href="#consultant-profile">Публичен профил</a>
+              <button type="button" onClick={() => scrollToDashboardSection("consultant-profile")}>
+                Публичен профил
+              </button>
             ) : (
-              <a href="#profile-basics">Основен профил</a>
+              <button type="button" onClick={() => scrollToDashboardSection("profile-basics")}>
+                Основен профил
+              </button>
             )}
-            <a href="#documents">Документи</a>
+            <button type="button" onClick={() => scrollToDashboardSection("documents")}>
+              Документи
+            </button>
             {profile.role !== "consultant" ? (
-              <a href="#matches">Подходящи консултанти</a>
+              <button type="button" onClick={() => scrollToDashboardSection("matches")}>
+                Подходящи консултанти
+              </button>
             ) : null}
-            <a href="#sessions">Сесии</a>
-            <a href="#privacy">Поверителност</a>
+            <button type="button" onClick={() => scrollToDashboardSection("sessions")}>
+              Сесии
+            </button>
+            <button type="button" onClick={() => scrollToDashboardSection("privacy")}>
+              Поверителност
+            </button>
           </nav>
 
           <p className="form-note">{membershipNote}</p>

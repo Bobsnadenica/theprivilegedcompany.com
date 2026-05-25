@@ -1277,8 +1277,11 @@ input[type="file"] {
   display: block;
   width: 100%;
   max-width: 100%;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 12px;
   line-height: 1.4;
+  font-size: 0.9rem;
   box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1286,18 +1289,18 @@ input[type="file"] {
 }
 
 input[type="file"]::file-selector-button {
-  margin-right: 12px;
-  padding: 10px 14px;
+  margin-right: 10px;
+  padding: 6px 12px;
   border: 1px solid rgba(182, 198, 216, 0.9);
-  border-radius: 12px;
+  border-radius: 8px;
   background: white;
   color: var(--text-soft);
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition:
     border-color 180ms ease,
-    background-color 180ms ease,
-    transform 180ms ease;
+    background-color 180ms ease;
 }
 
 input[type="file"]::file-selector-button:hover {
@@ -6222,22 +6225,29 @@ textarea {
   padding-top: 12px;
 }
 
-.dashboard-sidebar__nav a {
+.dashboard-sidebar__nav a,
+.dashboard-sidebar__nav button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
   gap: 10px;
   padding: 8px 12px;
   margin: 0 -4px;
+  border: none;
   border-radius: 10px;
+  background: transparent;
   color: var(--text);
   font-size: 0.92rem;
   font-weight: 600;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
   transition: background-color 160ms ease, color 160ms ease;
 }
 
-.dashboard-sidebar__nav a::after {
+.dashboard-sidebar__nav a::after,
+.dashboard-sidebar__nav button::after {
   content: "→";
   color: var(--muted);
   font-weight: 800;
@@ -6246,13 +6256,17 @@ textarea {
 }
 
 .dashboard-sidebar__nav a:hover,
-.dashboard-sidebar__nav a:focus-visible {
+.dashboard-sidebar__nav a:focus-visible,
+.dashboard-sidebar__nav button:hover,
+.dashboard-sidebar__nav button:focus-visible {
   background: var(--primary-soft);
   color: var(--primary-dark);
 }
 
 .dashboard-sidebar__nav a:hover::after,
-.dashboard-sidebar__nav a:focus-visible::after {
+.dashboard-sidebar__nav a:focus-visible::after,
+.dashboard-sidebar__nav button:hover::after,
+.dashboard-sidebar__nav button:focus-visible::after {
   color: var(--primary-dark);
   transform: translateX(3px);
 }
