@@ -306,6 +306,8 @@ install_package() {
     dig:pacman) pkg="bind" ;;
     dig:choco) pkg="bind-toolsonly" ;;
     dig:winget) return 1 ;;
+    whois:choco) pkg="whois" ;;
+    whois:winget) return 1 ;;
     openssl:choco) pkg="openssl" ;;
     openssl:winget) return 1 ;;
     nmap:winget) pkg="Nmap.Nmap" ;;
@@ -374,6 +376,7 @@ if ! ensure_tool curl required; then
 fi
 ensure_tool openssl optional || true
 ensure_tool dig optional || true
+ensure_tool whois optional || true
 ensure_tool nmap optional || true
 
 parse_target() {
@@ -412,6 +415,17 @@ SCHEME="$(sed -n '1p' "$TMP/target.txt")"
 HOST="$(sed -n '2p' "$TMP/target.txt")"
 PORT="$(sed -n '3p' "$TMP/target.txt")"
 BASE="$(sed -n '4p' "$TMP/target.txt")"
+DOMAIN="$(printf "%s" "$HOST" | awk -F. '
+  {
+    n=NF
+    if (n < 2) { print $0; next }
+    sld=tolower($(n-1)); tld=tolower($n)
+    if (length(tld)==2 && sld ~ /^(co|com|net|org|ac|edu|gov|ltd|plc|me)$/ && n >= 3) {
+      print $(n-2)"."$(n-1)"."$n
+    } else {
+      print $(n-1)"."$n
+    }
+  }')"
 
 if [ -z "$HOST" ]; then
   printf "Could not parse target host from: %s\n" "$TARGET"
@@ -459,6 +473,79 @@ elif need nslookup; then
   [ "$ns_count" -gt 0 ] && add_status "DNS" "OK" "$ns_count address lines from nslookup" || add_status "DNS" "WARN" "nslookup returned no address"
 else
   add_status "DNS" "WARN" "dig/nslookup not installed"
+fi
+
+domain_field() {
+  grep -Eim1 "$1" "$TMP/whois.txt" | cut -d: -f2- | trim || true
+}
+
+domain_fields() {
+  grep -Ei "$1" "$TMP/whois.txt" | cut -d: -f2- | trim | sort -u | head -6 | awk 'BEGIN{sep=""} {printf "%s%s", sep, $0; sep=", "} END{print ""}' || true
+}
+
+rdap_field() {
+  grep -Eom1 "\"$1\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" "$TMP/rdap.json" | sed -E "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"([^\"]+)\".*/\1/" || true
+}
+
+rdap_bool_field() {
+  grep -Eom1 "\"$1\"[[:space:]]*:[[:space:]]*(true|false)" "$TMP/rdap.json" | sed -E "s/.*\"$1\"[[:space:]]*:[[:space:]]*(true|false).*/\1/" || true
+}
+
+rdap_event_date() {
+  label="$1"
+  awk -v label="$label" '
+    $0 ~ "\"eventAction\"" && $0 ~ label { found=1 }
+    found && $0 ~ "\"eventDate\"" {
+      gsub(/.*"eventDate"[[:space:]]*:[[:space:]]*"/, "")
+      gsub(/".*/, "")
+      print
+      exit
+    }
+  ' "$TMP/rdap.json" || true
+}
+
+if printf "%s" "$HOST" | grep -Eq '^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$)'; then
+  add_status "DOMAIN INFO" "SKIP" "local/IP target"
+elif need whois; then
+  whois "$DOMAIN" > "$TMP/whois.txt" 2>/dev/null || true
+  registrar="$(domain_field "^(Registrar|Sponsoring Registrar):")"
+  owner="$(domain_field "^(Registrant Organization|Registrant Name|Registrant):")"
+  country="$(domain_field "^(Registrant Country|Country):")"
+  created="$(domain_field "^(Creation Date|Created On|Registered On|Domain Registration Date):")"
+  expires="$(domain_field "^(Registry Expiry Date|Registrar Registration Expiration Date|Expiration Date|Expiry Date|paid-till):")"
+  updated="$(domain_field "^(Updated Date|Last Updated On|Last Modified|changed):")"
+  nameservers="$(domain_fields "^(Name Server|Nameserver|nserver):")"
+  dnssec="$(domain_field "^(DNSSEC):")"
+  add_status "DOMAIN" "INFO" "$DOMAIN"
+  [ -n "$registrar" ] && add_status "DOMAIN REGISTRAR" "OK" "$registrar" || add_status "DOMAIN REGISTRAR" "INFO" "not public in WHOIS"
+  [ -n "$owner" ] && add_status "DOMAIN OWNER" "INFO" "$owner" || add_status "DOMAIN OWNER" "INFO" "not public/redacted"
+  domain_dates=""
+  [ -n "$created" ] && domain_dates="${domain_dates}created $created; "
+  [ -n "$expires" ] && domain_dates="${domain_dates}expires $expires; "
+  [ -n "$updated" ] && domain_dates="${domain_dates}updated $updated; "
+  [ -n "$country" ] && domain_dates="${domain_dates}country $country; "
+  [ -n "$dnssec" ] && domain_dates="${domain_dates}dnssec $dnssec; "
+  [ -n "$domain_dates" ] && add_status "DOMAIN DATES" "INFO" "${domain_dates%; }" || add_status "DOMAIN DATES" "INFO" "not public in WHOIS"
+  [ -n "$nameservers" ] && add_status "DOMAIN NS" "INFO" "$nameservers" || add_status "DOMAIN NS" "INFO" "not public in WHOIS"
+elif curl -fL -sS --max-time 12 "https://rdap.org/domain/$DOMAIN" -o "$TMP/rdap.json" 2>/dev/null; then
+  registrar="$(rdap_field "name")"
+  created="$(rdap_event_date registration)"
+  expires="$(rdap_event_date expiration)"
+  updated="$(rdap_event_date last)"
+  dnssec="$(rdap_bool_field "delegationSigned")"
+  nameservers="$(grep -Eo '"ldhName"[[:space:]]*:[[:space:]]*"[^"]+"' "$TMP/rdap.json" | sed -E 's/.*"ldhName"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/' | sort -u | head -6 | awk 'BEGIN{sep=""} {printf "%s%s", sep, $0; sep=", "} END{print ""}' || true)"
+  add_status "DOMAIN" "INFO" "$DOMAIN"
+  [ -n "$registrar" ] && add_status "DOMAIN REGISTRAR" "INFO" "$registrar" || add_status "DOMAIN REGISTRAR" "INFO" "not public in RDAP"
+  add_status "DOMAIN OWNER" "INFO" "not public/redacted"
+  domain_dates=""
+  [ -n "$created" ] && domain_dates="${domain_dates}created $created; "
+  [ -n "$expires" ] && domain_dates="${domain_dates}expires $expires; "
+  [ -n "$updated" ] && domain_dates="${domain_dates}updated $updated; "
+  [ -n "$dnssec" ] && domain_dates="${domain_dates}dnssec $dnssec; "
+  [ -n "$domain_dates" ] && add_status "DOMAIN DATES" "INFO" "${domain_dates%; }" || add_status "DOMAIN DATES" "INFO" "not public in RDAP"
+  [ -n "$nameservers" ] && add_status "DOMAIN NS" "INFO" "$nameservers" || add_status "DOMAIN NS" "INFO" "not public in RDAP"
+else
+  add_status "DOMAIN INFO" "WARN" "whois missing and RDAP lookup failed"
 fi
 
 if [ "$SCHEME" = "https" ] || [ "$PORT" = "443" ]; then
@@ -570,7 +657,7 @@ else
   printf "No urgent issues found in the probe scope.\n"
 fi
 
-printf "\nScope: HTTP, redirects, DNS, TLS, robots, sitemap, sampled sitemap links, metadata, security headers, sensitive-file smoke, SQL error smoke, and optional nmap web-port check.\n"</script>
+printf "\nScope: HTTP, redirects, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled sitemap links, metadata, security headers, sensitive-file smoke, SQL error smoke, and optional nmap web-port check.\n"</script>
     <script type="module" src="script.js?v=20260525n"></script>
 </body>
 </html>

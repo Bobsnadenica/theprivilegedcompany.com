@@ -58,6 +58,7 @@ export interface UploadedDocument {
   category?: DocumentCategory;
   sizeBytes?: number;
   downloadUrl?: string;
+  sharedWithConsultantIds?: string[];
 }
 
 export interface ConsultantProfile {
@@ -133,6 +134,7 @@ export interface Booking {
   clientId: string;
   clientName?: string;
   clientEmail?: string;
+  clientSharedDocuments?: UploadedDocument[];
   scheduledAt: string;
   sessionLengthMinutes?: number;
   status: BookingStatus;

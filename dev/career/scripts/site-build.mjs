@@ -1,4 +1,5 @@
 import { cp, mkdir, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as viteBuild } from "vite";
@@ -8,6 +9,7 @@ const projectDir = path.resolve(scriptDir, "..");
 const distDir = path.join(projectDir, "dist");
 const distAssetsDir = path.join(distDir, "assets");
 const rootAssetsDir = path.join(projectDir, "assets");
+const rootAdvertisementDir = path.join(rootAssetsDir, "advertisement");
 const deployIndexPath = path.join(projectDir, "index.html");
 
 async function cleanDir(dirPath) {
@@ -22,8 +24,19 @@ async function copyIfExists(sourcePath, targetPath, options) {
 }
 
 async function copyBuildOutput({ keepDist }) {
+  const preservedAdvertisementDir = path.join(distDir, "__advertisement-preserve");
+
+  if (existsSync(rootAdvertisementDir)) {
+    await cp(rootAdvertisementDir, preservedAdvertisementDir, { recursive: true });
+  }
+
   await cleanDir(rootAssetsDir);
   await cp(distAssetsDir, rootAssetsDir, { recursive: true });
+
+  if (existsSync(preservedAdvertisementDir)) {
+    await cp(preservedAdvertisementDir, rootAdvertisementDir, { recursive: true });
+  }
+
   await cp(path.join(distDir, "index.html"), deployIndexPath);
 
   const filesToCopy = ["manifest.json", "sw.js", "favicon.svg"];

@@ -186,6 +186,52 @@ Status: Completed for this slice.
 - Add regression coverage for homepage hero rendering, directory cards, and role-specific auth preselection.
 - Decide whether to enable React Router v7 future flags during a routing maintenance pass.
 
+## Active Slice: Profile Documents And Public Profile Fixes
+
+Started: 2026-05-25
+
+Scope:
+
+- Remove duplicated public-profile CTA copy from approved consultant profile state.
+- Add a compact progress indicator for profile completion.
+- Make saved consultant/mentor availability easier to open, review, and manage without long page expansion.
+- Fix uploaded document download permissions and keep documents private per user.
+- Add explicit sharing so a user can share uploaded files with a consultant or mentor, who can then see the shared files in that user's profile context.
+- Ensure uploaded consultant top banner/cover media renders on the public profile.
+- Make upload controls smaller and more professional.
+- Fix profile photo thumbnail persistence after logout/login.
+- Add stronger confirmations and scheduled deletion behavior for profile deletion.
+- Reduce empty space on public consultant profiles and test the advertisement assets in `assets/advertisement/`.
+
+Status: Completed for this slice.
+
+Change log:
+
+- 2026-05-25: Removed the duplicate approved-profile public page CTA by keeping the status banner informational and leaving the overview CTA as the single public-page action.
+- 2026-05-25: Added profile completion progress bars/step indicators in the dashboard sidebar and overview.
+- 2026-05-25: Made consultant availability summary controls clickable and routed them to the saved availability editor.
+- 2026-05-25: Changed document downloads to request a fresh owner-only signed URL on click, avoiding stale/expired download links.
+- 2026-05-25: Added per-document sharing metadata (`sharedWithConsultantIds`) and UI controls so users can explicitly share individual documents with selected consultants/mentors.
+- 2026-05-25: Added shared user documents to consultant booking/session cards when the client has granted access.
+- 2026-05-25: Rendered uploaded consultant top banners on the public profile hero.
+- 2026-05-25: Tightened upload field sizing and file input styling across profile/document upload controls.
+- 2026-05-25: Fixed consultant avatar persistence by syncing `avatarStorageKey` back to the user profile when consultant media is saved.
+- 2026-05-25: Prevented temporary signed media URLs from being saved back into profile records when an uploaded media storage key already exists.
+- 2026-05-25: Replaced immediate destructive profile deletion with a multi-confirmation modal and 7-day scheduled deletion flow, processed by the existing scheduled Lambda path.
+- 2026-05-25: Bounded long saved availability lists with an internal scroll area so many slots do not stretch the whole page.
+- 2026-05-25: Removed the empty public-profile hero column, added banner media, and added a profile-side advertisement card using `assets/advertisement/`.
+- 2026-05-25: Updated the build script so `assets/advertisement/` survives deploy artifact rebuilds.
+- 2026-05-25: Updated privacy copy to reflect explicit document sharing and scheduled deletion.
+
+QA notes:
+
+- `npm run build` passes.
+- `node --check backend/api/index.cjs` passes.
+- In-app browser public-profile QA passed against a local mock API for `#/consultants/ivan-todorov-startup-mentor`:
+  - desktop: banner fills the hero width, no empty right column, advertisement media renders, booking panel exists, no framework overlay.
+  - mobile 390px: banner/profile stack cleanly, text remains inside the card, no framework overlay.
+- Live deployed profile still shows the old UI until the new build is deployed.
+
 ## Recovery Note: Local Site Not Loading
 
 Date: 2026-05-11

@@ -19,6 +19,10 @@ import {
 } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
+import advertisementOneVideoUrl from "../../../assets/advertisement/1.mp4";
+import advertisementTwoVideoUrl from "../../../assets/advertisement/2.mp4";
+import advertisementThreeImageUrl from "../../../assets/advertisement/3.jpg";
+import advertisementFourImageUrl from "../../../assets/advertisement/4.jpg";
 import {
   clearPendingBootstrap,
   readPendingBootstrap,
@@ -122,6 +126,36 @@ const homeRoleChoices = [
     ctaTo: "/auth?tab=register&role=consultant"
   }
 ] as const;
+
+const profileAdvertisementAssets = [
+  {
+    type: "video",
+    src: advertisementOneVideoUrl,
+    poster: advertisementThreeImageUrl
+  },
+  {
+    type: "video",
+    src: advertisementTwoVideoUrl,
+    poster: advertisementFourImageUrl
+  },
+  {
+    type: "image",
+    src: advertisementThreeImageUrl
+  },
+  {
+    type: "image",
+    src: advertisementFourImageUrl
+  }
+] as const;
+
+function stableIndexFromText(value: string, length: number) {
+  if (!length) return 0;
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash % length;
+}
 
 const authRoleChoices: Record<
   UserRole,
@@ -1764,6 +1798,16 @@ export function ConsultantPage() {
             className={`profile-stage__main ${hasTheme ? "profile-stage__main--themed" : ""}`}
             style={themeStyle}
           >
+            {consultant.heroUrl ? (
+              <CoverMedia
+                className="profile-stage__cover"
+                src={consultant.heroUrl}
+                name={`${consultant.name} банер`}
+                eyebrow="Публичен профил"
+                title={consultant.name}
+                subtitle={consultant.headline}
+              />
+            ) : null}
             <div className="profile-stage__content">
               <AvatarMedia
                 className="profile-stage__avatar"
@@ -1894,6 +1938,7 @@ export function ConsultantPage() {
 
           <aside className="profile-aside-stack" aria-label="Информация и резервация">
             <ProfileSnapshotCard consultant={consultant} />
+            <ConsultantAdvertisement consultant={consultant} />
 
           {confirmedBooking ? (
             <div className="panel booking-success" role="status" aria-live="polite">
@@ -2122,6 +2167,40 @@ function HowItWorksCard() {
         </li>
       </ol>
     </section>
+  );
+}
+
+function ConsultantAdvertisement({ consultant }: { consultant: ConsultantProfile }) {
+  const asset =
+    profileAdvertisementAssets[
+      stableIndexFromText(consultant.slug || consultant.consultantId, profileAdvertisementAssets.length)
+    ];
+
+  return (
+    <aside className="panel profile-ad-card" aria-label="Партньорско съдържание">
+      <div className="profile-ad-card__media">
+        {asset.type === "video" ? (
+          <video
+            src={asset.src}
+            poster={asset.poster}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <img src={asset.src} alt="" loading="lazy" decoding="async" />
+        )}
+      </div>
+      <div className="profile-ad-card__copy">
+        <p className="eyebrow">CareerLane Select</p>
+        <strong>Подготви следващия си професионален ход.</strong>
+        <span>
+          Използвай сесията с {consultant.name} за CV, интервю или стратегическо
+          позициониране.
+        </span>
+      </div>
+    </aside>
   );
 }
 
@@ -3112,6 +3191,7 @@ export function DashboardPage() {
   const [rescheduleModalBooking, setRescheduleModalBooking] = useState<Booking | null>(null);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [rescheduleSubmitting, setRescheduleSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [accountActionLoading, setAccountActionLoading] = useState<
     "export" | "delete" | null
   >(null);
@@ -3444,19 +3524,13 @@ export function DashboardPage() {
 
   async function deleteMyAccountAction() {
     if (!token || accountActionLoading) return;
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(
-        "Това действие е необратимо. Профилът ти ще бъде изтрит, файловете ти ще бъдат премахнати, а резервациите анонимизирани. Продължаваме ли?"
-      )
-    ) {
-      return;
-    }
     setAccountActionLoading("delete");
     setError("");
     setMessage("");
     try {
-      await api.deleteMyAccount(token);
+      const result = await api.deleteMyAccount(token);
+      setMessage(result.note || "Профилът е насрочен за изтриване.");
+      setDeleteConfirmOpen(false);
       await logout();
     } catch (value) {
       setError(value instanceof Error ? value.message : "Неуспешно изтриване.");
@@ -3472,14 +3546,15 @@ export function DashboardPage() {
     const formData = new FormData(event.currentTarget);
     const avatarLink = String(formData.get("avatarUrl") || "").trim();
     const avatarFile = formData.get("avatarFile");
-    let avatarUrl = avatarLink || profile.avatarUrl || "";
     let avatarStorageKey = avatarLink ? "" : profile.avatarStorageKey;
+    let avatarUrl = avatarLink || (avatarStorageKey ? "" : profile.avatarUrl || "");
 
     try {
       if (avatarFile instanceof File && avatarFile.name) {
         const avatarUpload = await api.createUserAvatarUpload(token, avatarFile);
         await uploadFileToSignedUrl(avatarUpload.uploadUrl, avatarFile, "профилната снимка");
         avatarStorageKey = avatarUpload.storageKey;
+        avatarUrl = "";
       }
 
       const updated = await api.updateMyProfile(token, {
@@ -3575,6 +3650,47 @@ export function DashboardPage() {
     }
   }
 
+  async function downloadDocument(storageKey: string, fileName: string) {
+    if (!token) return;
+    setError("");
+    setMessage("");
+    try {
+      const result = await api.getMyDocumentDownloadUrl(token, storageKey);
+      const link = document.createElement("a");
+      link.href = result.downloadUrl;
+      link.download = fileName || "document";
+      link.rel = "noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно сваляне на документа.");
+    }
+  }
+
+  async function updateDocumentSharing(storageKey: string, sharedWithConsultantIds: string[]) {
+    setError("");
+    setMessage("");
+    try {
+      const updateSharedIds = (doc: UploadedDocument) =>
+        doc.storageKey === storageKey ? { ...doc, sharedWithConsultantIds } : doc;
+      const isCurrentCv = profile.cvDocument?.storageKey === storageKey;
+      const updated = isCurrentCv
+        ? await api.updateMyProfile(token, {
+            cvDocument: profile.cvDocument
+              ? updateSharedIds(profile.cvDocument)
+              : profile.cvDocument
+          })
+        : await api.updateMyProfile(token, {
+            documents: (profile.documents || []).map(updateSharedIds)
+          });
+      setProfile(updated);
+      setMessage("Достъпът до документа е обновен.");
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно обновяване на споделянето.");
+    }
+  }
+
   async function saveConsultantProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -3587,10 +3703,10 @@ export function DashboardPage() {
       const avatarFile = formData.get("avatarFile");
       const heroFile = formData.get("heroFile");
       const availability = getUpcomingAvailabilitySlots(consultantAvailability);
-      let avatarUrl = avatarLink || consultantProfile?.avatarUrl || "";
-      let heroUrl = heroLink || consultantProfile?.heroUrl || "";
       let avatarStorageKey = avatarLink ? "" : consultantProfile?.avatarStorageKey;
       let heroStorageKey = heroLink ? "" : consultantProfile?.heroStorageKey;
+      let avatarUrl = avatarLink || (avatarStorageKey ? "" : consultantProfile?.avatarUrl || "");
+      let heroUrl = heroLink || (heroStorageKey ? "" : consultantProfile?.heroUrl || "");
 
       async function uploadConsultantMedia(
         fileValue: FormDataEntryValue | null,
@@ -3619,10 +3735,12 @@ export function DashboardPage() {
 
       if (avatarUpload) {
         avatarStorageKey = avatarUpload.storageKey;
+        avatarUrl = "";
       }
 
       if (heroUpload) {
         heroStorageKey = heroUpload.storageKey;
+        heroUrl = "";
       }
 
       const displayName = String(formData.get("displayName") || consultantProfile?.name || "");
@@ -3682,6 +3800,18 @@ export function DashboardPage() {
 
       setConsultantProfile(updated);
       setConsultantAvailability(getUpcomingAvailabilitySlots(updated.availability || []));
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              name: updated.name || current.name,
+              headline: updated.headline || current.headline,
+              city: updated.city || current.city,
+              avatarUrl: updated.avatarUrl || current.avatarUrl,
+              avatarStorageKey: updated.avatarStorageKey || current.avatarStorageKey
+            }
+          : current
+      );
       setMessage("Консултантският профил е обновен.");
     } catch (value) {
       setError(value instanceof Error ? value.message : "Неуспешно записване.");
@@ -3909,6 +4039,11 @@ export function DashboardPage() {
     setActiveConsultantSection(consultantSetupSections[nextIndex].id);
   }
 
+  function openConsultantAvailabilitySection() {
+    setActiveConsultantSection("booking");
+    window.setTimeout(() => scrollToDashboardSection("consultant-profile"), 0);
+  }
+
   return (
     <section className="section">
       <div className={`container dashboard-grid dashboard-grid--${profile.role}`}>
@@ -3934,11 +4069,22 @@ export function DashboardPage() {
           <dl className="dashboard-sidebar__stats">
             <div>
               <dt>Завършеност</dt>
-              <dd>{profileCompletion}%</dd>
+              <dd>
+                <span>{profileCompletion}%</span>
+                <ProfileCompletionMeter value={profileCompletion} compact />
+              </dd>
             </div>
             {profile.role === "consultant" ? (
               <div>
-                <dt>Свободни часове</dt>
+                <dt>
+                  <button
+                    className="dashboard-stat-link"
+                    type="button"
+                    onClick={openConsultantAvailabilitySection}
+                  >
+                    Свободни часове
+                  </button>
+                </dt>
                 <dd>{consultantAvailability.length}</dd>
               </div>
             ) : (
@@ -4036,6 +4182,7 @@ export function DashboardPage() {
               <article className="summary-card">
                 <span className="plan-pill">Завършеност</span>
                 <strong>{profileCompletion}%</strong>
+                <ProfileCompletionMeter value={profileCompletion} />
                 <p>
                   {profileCompletion >= 80
                     ? "Готово за публикуване."
@@ -4043,7 +4190,11 @@ export function DashboardPage() {
                 </p>
               </article>
               {profile.role === "consultant" ? (
-                <article className="summary-card">
+                <button
+                  className="summary-card summary-card--button"
+                  type="button"
+                  onClick={openConsultantAvailabilitySection}
+                >
                   <span className="plan-pill">Свободни часове</span>
                   <strong>
                     {consultantNextAvailable ? formatDate(consultantNextAvailable) : "Няма добавени"}
@@ -4053,7 +4204,7 @@ export function DashboardPage() {
                       ? `${consultantAvailability.length} активни слота`
                       : "Добави поне няколко часа."}
                   </p>
-                </article>
+                </button>
               ) : (
                 <article className="summary-card">
                   <span className="plan-pill">Следваща сесия</span>
@@ -4540,6 +4691,10 @@ export function DashboardPage() {
             <header className="dashboard-form-head">
               <p className="eyebrow">Документи</p>
               <h2>Дръж всички материали на едно място.</h2>
+              <p className="section-caption">
+                Файловете са лични за акаунта ти. Споделяш конкретен документ само с избран
+                консултант или ментор.
+              </p>
             </header>
 
             <div className="documents-zone">
@@ -4562,7 +4717,10 @@ export function DashboardPage() {
               <UserDocumentList
                 cvDocument={profile.cvDocument}
                 documents={profile.documents || []}
+                shareTargets={profile.role === "client" ? directoryConsultants : []}
+                onDownload={downloadDocument}
                 onRemove={removeDocument}
+                onShareChange={updateDocumentSharing}
               />
             </div>
           </section>
@@ -5159,22 +5317,28 @@ export function DashboardPage() {
                     </details>
 
                     {consultantAvailability.length ? (
-                      <div className="availability-list">
-                        {consultantAvailability.map((slot) => (
-                          <article className="availability-item" key={slot}>
-                            <div>
-                              <strong>{formatAvailabilityDayLabel(slot)}</strong>
-                              <p>{formatAvailabilityTimeLabel(slot)}</p>
-                            </div>
-                            <button
-                              className="text-button"
-                              type="button"
-                              onClick={() => removeAvailabilitySlot(slot)}
-                            >
-                              Премахни
-                            </button>
-                          </article>
-                        ))}
+                      <div className="availability-saved">
+                        <div className="availability-saved__head">
+                          <strong>Запазени свободни часове</strong>
+                          <span>{consultantAvailability.length} общо</span>
+                        </div>
+                        <div className="availability-list availability-list--saved">
+                          {consultantAvailability.map((slot) => (
+                            <article className="availability-item" key={slot}>
+                              <div>
+                                <strong>{formatAvailabilityDayLabel(slot)}</strong>
+                                <p>{formatAvailabilityTimeLabel(slot)}</p>
+                              </div>
+                              <button
+                                className="text-button"
+                                type="button"
+                                onClick={() => removeAvailabilitySlot(slot)}
+                              >
+                                Премахни
+                              </button>
+                            </article>
+                          ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="panel panel--subtle">
@@ -5323,6 +5487,24 @@ export function DashboardPage() {
                       <p className="form-note">
                         Срокът за отзив е изтекъл (60 дни след сесията).
                       </p>
+                    ) : null}
+                    {consultantView && (booking.clientSharedDocuments || []).length ? (
+                      <div className="booking-shared-documents">
+                        <strong>Документи, споделени от потребителя</strong>
+                        <div className="booking-shared-documents__list">
+                          {(booking.clientSharedDocuments || []).map((doc) => (
+                            <a
+                              className="ghost-button"
+                              href={doc.downloadUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              key={doc.storageKey}
+                            >
+                              {doc.fileName}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                   <div className="booking-item__actions">
@@ -5505,10 +5687,10 @@ export function DashboardPage() {
               <button
                 className="ghost-button ghost-button--danger"
                 type="button"
-                onClick={deleteMyAccountAction}
+                onClick={() => setDeleteConfirmOpen(true)}
                 disabled={accountActionLoading !== null}
               >
-                {accountActionLoading === "delete" ? "Изтриваме..." : "Изтрий профила ми"}
+                {accountActionLoading === "delete" ? "Насрочваме..." : "Изтрий профила ми"}
               </button>
             </div>
           </section>
@@ -5531,6 +5713,13 @@ export function DashboardPage() {
           submitting={rescheduleSubmitting}
           onClose={() => setRescheduleModalBooking(null)}
           onSubmit={rescheduleAction}
+        />
+      ) : null}
+      {deleteConfirmOpen ? (
+        <DeleteProfileModal
+          submitting={accountActionLoading === "delete"}
+          onClose={() => setDeleteConfirmOpen(false)}
+          onConfirm={deleteMyAccountAction}
         />
       ) : null}
     </section>
@@ -5614,6 +5803,78 @@ function NotificationsPanel({
         ))}
       </ul>
     </section>
+  );
+}
+
+function DeleteProfileModal({
+  submitting,
+  onClose,
+  onConfirm
+}: {
+  submitting: boolean;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
+}) {
+  const [acknowledgedPrivateData, setAcknowledgedPrivateData] = useState(false);
+  const [acknowledgedSchedule, setAcknowledgedSchedule] = useState(false);
+  const [confirmationText, setConfirmationText] = useState("");
+  const canConfirm =
+    acknowledgedPrivateData &&
+    acknowledgedSchedule &&
+    confirmationText.trim().toUpperCase() === "ИЗТРИЙ";
+
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-card delete-profile-modal">
+        <header className="modal-card__head">
+          <p className="eyebrow">Изтриване на профил</p>
+          <h2>Насрочване на автоматично изтриване</h2>
+          <p className="section-caption">
+            Публичният профил се скрива веднага. Файловете и данните се изтриват
+            автоматично след 7 дни.
+          </p>
+        </header>
+        <div className="delete-profile-modal__checks">
+          <label>
+            <input
+              type="checkbox"
+              checked={acknowledgedPrivateData}
+              onChange={(event) => setAcknowledgedPrivateData(event.target.checked)}
+            />
+            Разбирам, че качените файлове и профилните данни ще бъдат премахнати.
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={acknowledgedSchedule}
+              onChange={(event) => setAcknowledgedSchedule(event.target.checked)}
+            />
+            Разбирам, че резервациите се запазват само като анонимизирана история.
+          </label>
+        </div>
+        <label>
+          Напиши ИЗТРИЙ, за да потвърдиш
+          <input
+            value={confirmationText}
+            onChange={(event) => setConfirmationText(event.target.value)}
+            placeholder="ИЗТРИЙ"
+          />
+        </label>
+        <div className="modal-card__actions">
+          <button className="ghost-button" type="button" onClick={onClose} disabled={submitting}>
+            Назад
+          </button>
+          <button
+            className="ghost-button ghost-button--danger"
+            type="button"
+            onClick={onConfirm}
+            disabled={!canConfirm || submitting}
+          >
+            {submitting ? "Насрочваме..." : "Насрочи изтриване"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -6033,19 +6294,64 @@ function formatBytes(bytes?: number) {
 
 const USER_DOCUMENT_QUOTA_BYTES = 50 * 1024 * 1024;
 
+function ProfileCompletionMeter({
+  value,
+  compact = false
+}: {
+  value: number;
+  compact?: boolean;
+}) {
+  const normalized = Math.max(0, Math.min(100, Math.round(value)));
+  const steps = [20, 40, 60, 80, 100];
+
+  return (
+    <div
+      className={`profile-completion-meter ${
+        compact ? "profile-completion-meter--compact" : ""
+      }`}
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={normalized}
+    >
+      <div className="profile-completion-meter__bar">
+        <span style={{ width: `${normalized}%` }} />
+      </div>
+      <div className="profile-completion-meter__steps" aria-hidden="true">
+        {steps.map((step) => (
+          <span
+            className={normalized >= step ? "profile-completion-meter__step--done" : ""}
+            key={step}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function UserDocumentList({
   cvDocument,
   documents,
-  onRemove
+  shareTargets = [],
+  onDownload,
+  onRemove,
+  onShareChange
 }: {
   cvDocument?: UploadedDocument | null;
   documents: UploadedDocument[];
+  shareTargets?: ConsultantProfile[];
+  onDownload: (storageKey: string, fileName: string) => Promise<void> | void;
   onRemove: (storageKey: string) => Promise<void> | void;
+  onShareChange: (storageKey: string, sharedWithConsultantIds: string[]) => Promise<void> | void;
 }) {
+  const [shareDrafts, setShareDrafts] = useState<Record<string, string>>({});
   const merged = [
     ...(cvDocument ? [cvDocument] : []),
     ...(documents || [])
   ];
+  const shareTargetById = new Map(
+    shareTargets.map((consultant) => [consultant.consultantId, consultant])
+  );
 
   const usedBytes = merged.reduce(
     (total, doc) => total + (Number(doc.sizeBytes) || 0),
@@ -6088,6 +6394,13 @@ function UserDocumentList({
         {merged.map((doc) => {
           const icon = getFileTypeIcon(doc.fileName);
           const size = formatBytes(doc.sizeBytes);
+          const sharedIds = Array.isArray(doc.sharedWithConsultantIds)
+            ? doc.sharedWithConsultantIds
+            : [];
+          const shareDraft = shareDrafts[doc.storageKey] || "";
+          const availableShareTargets = shareTargets.filter(
+            (consultant) => !sharedIds.includes(consultant.consultantId)
+          );
           return (
             <li className="profile-documents__item" key={doc.storageKey}>
               <div className="profile-documents__main">
@@ -6107,16 +6420,13 @@ function UserDocumentList({
                 </div>
               </div>
               <div className="profile-documents__actions">
-                {doc.downloadUrl ? (
-                  <a
-                    className="ghost-button"
-                    href={doc.downloadUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Отвори
-                  </a>
-                ) : null}
+                <button
+                  className="ghost-button"
+                  type="button"
+                  onClick={() => onDownload(doc.storageKey, doc.fileName)}
+                >
+                  Свали
+                </button>
                 <button
                   className="ghost-button"
                   type="button"
@@ -6125,6 +6435,78 @@ function UserDocumentList({
                   Премахни
                 </button>
               </div>
+              {shareTargets.length || sharedIds.length ? (
+                <div className="profile-documents__sharing">
+                  <div className="profile-documents__share-head">
+                    <span>Споделяне</span>
+                    <strong>
+                      {sharedIds.length
+                        ? `${sharedIds.length} ${sharedIds.length === 1 ? "профил" : "профила"}`
+                        : "Личен документ"}
+                    </strong>
+                  </div>
+                  {sharedIds.length ? (
+                    <div className="profile-documents__shared-list">
+                      {sharedIds.map((consultantId) => {
+                        const target = shareTargetById.get(consultantId);
+                        return (
+                          <span className="profile-documents__shared-chip" key={consultantId}>
+                            {target?.name || "Консултант"}
+                            <button
+                              type="button"
+                              aria-label="Премахни достъпа"
+                              onClick={() =>
+                                onShareChange(
+                                  doc.storageKey,
+                                  sharedIds.filter((item) => item !== consultantId)
+                                )
+                              }
+                            >
+                              ×
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                  {availableShareTargets.length ? (
+                    <div className="profile-documents__share-control">
+                      <select
+                        value={shareDraft}
+                        onChange={(event) =>
+                          setShareDrafts((current) => ({
+                            ...current,
+                            [doc.storageKey]: event.target.value
+                          }))
+                        }
+                        aria-label={`Избери консултант за ${doc.fileName}`}
+                      >
+                        <option value="">Избери консултант или ментор</option>
+                        {availableShareTargets.map((consultant) => (
+                          <option key={consultant.consultantId} value={consultant.consultantId}>
+                            {consultant.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        disabled={!shareDraft}
+                        onClick={() => {
+                          if (!shareDraft) return;
+                          onShareChange(doc.storageKey, [...sharedIds, shareDraft]);
+                          setShareDrafts((current) => ({
+                            ...current,
+                            [doc.storageKey]: ""
+                          }));
+                        }}
+                      >
+                        Сподели
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </li>
           );
         })}
@@ -6198,9 +6580,6 @@ function ConsultantStatusBanner({ consultant }: { consultant: ConsultantProfile 
           <strong>Профилът е одобрен и публичен.</strong>
           <p>Виден е в каталога и приема резервации.</p>
         </div>
-        <Link className="ghost-button" to={`/consultants/${consultant.slug}`}>
-          Виж публичната страница
-        </Link>
       </div>
     );
   }

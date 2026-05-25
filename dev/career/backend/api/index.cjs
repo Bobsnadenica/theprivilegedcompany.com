@@ -47,6 +47,7 @@ const ALLOWED_DOCUMENT_TYPES = new Set([
 const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024;
 const MAX_USER_TOTAL_DOCUMENT_BYTES = 50 * 1024 * 1024;
 const MAX_USER_DOCUMENTS = 50;
+const ACCOUNT_DELETION_DELAY_DAYS = 7;
 const CONSULTANT_PROFILE_STATUSES = new Set(["pending", "approved", "rejected"]);
 const VISIBLE_CONSULTANT_STATUSES = new Set(["approved", "active"]);
 const ADMIN_GROUP = "admin";
@@ -809,6 +810,29 @@ function normalizeDocumentCategory(value, fallback) {
   return "other";
 }
 
+function normalizeSharedConsultantIds(value, fallback = []) {
+  const source = typeof value === "undefined" ? fallback : value;
+
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  const seen = new Set();
+  const ids = [];
+
+  for (const item of source) {
+    const id = String(item || "").trim();
+    if (!id || !id.startsWith("consultant-") || seen.has(id)) {
+      continue;
+    }
+    seen.add(id);
+    ids.push(id);
+    if (ids.length >= 50) break;
+  }
+
+  return ids;
+}
+
 function normalizeCvDocument(value, fallback, userId) {
   if (typeof value === "undefined") {
     return fallback ?? null;
@@ -839,6 +863,10 @@ function normalizeCvDocument(value, fallback, userId) {
     fileName: sanitizeFileName(value.fileName || fallback?.fileName || "cv"),
     storageKey,
     category: "cv",
+    sharedWithConsultantIds: normalizeSharedConsultantIds(
+      value.sharedWithConsultantIds,
+      fallback?.sharedWithConsultantIds
+    ),
     ...(sizeBytes ? { sizeBytes } : {}),
     uploadedAt:
       normalizeText(value.uploadedAt, fallback?.uploadedAt || "", 40) ||
@@ -887,6 +915,10 @@ function normalizeUserDocuments(value, fallback, userId) {
       fileName: sanitizeFileName(item.fileName || previous?.fileName || "document"),
       storageKey,
       category: normalizeDocumentCategory(item.category, previous?.category),
+      sharedWithConsultantIds: normalizeSharedConsultantIds(
+        item.sharedWithConsultantIds,
+        previous?.sharedWithConsultantIds
+      ),
       ...(itemSize ? { sizeBytes: itemSize } : {}),
       uploadedAt:
         normalizeText(item.uploadedAt, previous?.uploadedAt || "", 40) ||
@@ -1007,6 +1039,7 @@ const PUBLIC_CONSULTANT_HIDDEN_FIELDS = [
   "statusUpdatedBy",
   "statusUpdatedByEmail",
   "statusSelfApproved",
+  "deletionScheduledAt",
   "avatarStorageKey",
   "heroStorageKey"
 ];
@@ -1554,8 +1587,8 @@ async function exportMyData(event) {
     bookingsAsConsultant: consultantBookings.Items || [],
     notes: [
       "Този файл съдържа цялата информация, която CareerLane съхранява за теб.",
-      "Документите (CV, сертификати) се пазят в S3 и могат да бъдат свалени през активни линкове в профила.",
-      "За искане за пълно изтриване използвай функцията 'Изтрий профила' в таблото."
+      "Документите (CV, сертификати) се пазят в S3 и се свалят чрез временни линкове, генерирани при поискване.",
+      "За искане за пълно изтриване използвай функцията 'Изтрий профила' в таблото. Тя насрочва автоматично изтриване след 7 дни."
     ]
   };
 
@@ -1571,9 +1604,8 @@ async function exportMyData(event) {
   };
 }
 
-async function deleteMyAccount(event) {
-  const claims = requireAuth(event);
-  const user = await getUserBySub(claims.sub);
+async function purgeUserAccount(userId) {
+  const user = await getUserBySub(userId);
 
   // Collect all storage keys to scrub from S3.
   const storageKeysToDelete = new Set();
@@ -1583,7 +1615,7 @@ async function deleteMyAccount(event) {
     if (doc.storageKey) storageKeysToDelete.add(doc.storageKey);
   }
 
-  const consultant = await getConsultantByOwner(claims.sub);
+  const consultant = await getConsultantByOwner(userId);
   if (consultant) {
     if (consultant.avatarStorageKey) storageKeysToDelete.add(consultant.avatarStorageKey);
     if (consultant.heroStorageKey) storageKeysToDelete.add(consultant.heroStorageKey);
@@ -1595,7 +1627,7 @@ async function deleteMyAccount(event) {
       TableName: env.bookingsTable,
       IndexName: "client-index",
       KeyConditionExpression: "clientId = :id",
-      ExpressionAttributeValues: { ":id": claims.sub }
+      ExpressionAttributeValues: { ":id": userId }
     })
   );
   await Promise.allSettled(
@@ -1641,7 +1673,7 @@ async function deleteMyAccount(event) {
   await dynamo.send(
     new DeleteCommand({
       TableName: env.usersTable,
-      Key: { userId: claims.sub }
+      Key: { userId }
     })
   );
 
@@ -1650,15 +1682,107 @@ async function deleteMyAccount(event) {
     Array.from(storageKeysToDelete).map((key) => deleteS3Object(key))
   );
 
-  // We don't delete the Cognito identity here (no IAM permission granted, see infra/terraform/main.tf).
-  // The user should be logged out client-side; if they sign up again with the same email,
-  // Cognito will issue a fresh sub and they'll bootstrap a brand-new profile.
-
-  return response(200, {
+  return {
     deleted: true,
     anonymizedBookings: (clientBookings.Items || []).length,
+    cognitoSubRetained: true
+  };
+}
+
+async function processScheduledDeletions() {
+  const nowIso = new Date().toISOString();
+  const { items } = await scanWithFilter({
+    tableName: env.usersTable,
+    pageSize: 25,
+    filter: (item) =>
+      Boolean(item?.deletionEffectiveAt) &&
+      String(item.deletionEffectiveAt) <= nowIso
+  });
+
+  let processed = 0;
+  for (const item of items) {
+    try {
+      await purgeUserAccount(item.userId);
+      processed += 1;
+    } catch (error) {
+      console.error("[deletion] scheduled purge failed", {
+        userId: item?.userId,
+        error: error?.message || error
+      });
+    }
+  }
+
+  return { processed };
+}
+
+async function deleteMyAccount(event) {
+  const claims = requireAuth(event);
+  const user = await getUserBySub(claims.sub);
+
+  if (!user) {
+    return notFound("Profile not found.");
+  }
+
+  const alreadyScheduledAt = user.deletionScheduledAt || "";
+  const alreadyEffectiveAt = user.deletionEffectiveAt || "";
+
+  if (alreadyScheduledAt && alreadyEffectiveAt) {
+    return response(200, {
+      deleted: false,
+      deletionScheduledAt: alreadyScheduledAt,
+      deletionEffectiveAt: alreadyEffectiveAt,
+      note: "Изтриването вече е насрочено."
+    });
+  }
+
+  const now = new Date();
+  const deletionScheduledAt = now.toISOString();
+  const deletionEffectiveAt = new Date(
+    now.getTime() + ACCOUNT_DELETION_DELAY_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  await dynamo.send(
+    new UpdateCommand({
+      TableName: env.usersTable,
+      Key: { userId: claims.sub },
+      UpdateExpression:
+        "SET deletionScheduledAt = :scheduledAt, deletionEffectiveAt = :effectiveAt, " +
+        "updatedAt = :scheduledAt",
+      ExpressionAttributeValues: {
+        ":scheduledAt": deletionScheduledAt,
+        ":effectiveAt": deletionEffectiveAt
+      }
+    })
+  );
+
+  const consultant = await getConsultantByOwner(claims.sub);
+
+  if (consultant) {
+    await dynamo.send(
+      new UpdateCommand({
+        TableName: env.consultantsTable,
+        Key: { consultantId: consultant.consultantId },
+        UpdateExpression:
+          "SET isPublic = :false, profileStatus = :rejected, " +
+          "deletionScheduledAt = :scheduledAt, updatedAt = :scheduledAt",
+        ExpressionAttributeValues: {
+          ":false": false,
+          ":rejected": "rejected",
+          ":scheduledAt": deletionScheduledAt
+        }
+      })
+    );
+  }
+
+  // We don't delete the Cognito identity here (no IAM permission granted, see infra/terraform/main.tf).
+  // The scheduled purge removes app data and S3 files after the grace window.
+  return response(200, {
+    deleted: false,
+    deletionScheduledAt,
+    deletionEffectiveAt,
+    publicProfileHidden: Boolean(consultant),
     cognitoSubRetained: true,
-    note: "Излизаш от профила си. Запазихме само анонимизирана история на резервациите."
+    note: `Профилът е насрочен за автоматично изтриване след ${ACCOUNT_DELETION_DELAY_DAYS} дни.`
   });
 }
 
@@ -1671,6 +1795,40 @@ async function getMeProfile(event) {
   }
 
   return response(200, await decorateUserMedia(user));
+}
+
+function getStoredUserDocuments(user) {
+  return [
+    ...(user?.cvDocument ? [user.cvDocument] : []),
+    ...(Array.isArray(user?.documents) ? user.documents : [])
+  ].filter((item) => item?.storageKey);
+}
+
+async function createMyDocumentDownloadUrl(event) {
+  const claims = requireAuth(event);
+  const body = parseBody(event);
+  const storageKey = String(body.storageKey || "").trim();
+
+  if (!storageKey) {
+    return badRequest("storageKey is required.");
+  }
+
+  const user = await getUserBySub(claims.sub);
+
+  if (!user) {
+    return notFound("Profile not found.");
+  }
+
+  const document = getStoredUserDocuments(user).find((item) => item.storageKey === storageKey);
+
+  if (!document) {
+    return forbidden("Document is not owned by this user.");
+  }
+
+  return response(200, {
+    downloadUrl: await getSignedObjectUrl(document.storageKey, { purpose: "document" }),
+    expiresIn: 900
+  });
 }
 
 async function updateMeProfile(event) {
@@ -1924,13 +2082,15 @@ async function updateMyConsultant(event) {
         TableName: env.usersTable,
         Key: { userId: claims.sub },
         UpdateExpression:
-          "SET #n = :name, headline = :headline, city = :city, avatarUrl = :avatarUrl, updatedAt = :now",
+          "SET #n = :name, headline = :headline, city = :city, " +
+          "avatarUrl = :avatarUrl, avatarStorageKey = :avatarStorageKey, updatedAt = :now",
         ExpressionAttributeNames: { "#n": "name" },
         ExpressionAttributeValues: {
           ":name": nextConsultant.name,
           ":headline": nextConsultant.headline,
           ":city": nextConsultant.city,
           ":avatarUrl": nextConsultant.avatarUrl,
+          ":avatarStorageKey": nextConsultant.avatarStorageKey || "",
           ":now": new Date().toISOString()
         }
       })
@@ -3001,7 +3161,36 @@ async function listBookings(event) {
       })
     );
 
-    return response(200, result.Items || []);
+    const bookings = result.Items || [];
+    const clientIds = Array.from(new Set(bookings.map((item) => item.clientId).filter(Boolean)));
+    const sharedByClient = new Map();
+
+    await Promise.all(
+      clientIds.map(async (clientId) => {
+        const client = await getUserBySub(clientId);
+        const sharedDocuments = await Promise.all(
+          getStoredUserDocuments(client)
+            .filter((doc) =>
+              normalizeSharedConsultantIds(doc.sharedWithConsultantIds).includes(
+                consultant.consultantId
+              )
+            )
+            .map(async (doc) => ({
+              ...doc,
+              downloadUrl: await getSignedObjectUrl(doc.storageKey, { purpose: "document" })
+            }))
+        );
+        sharedByClient.set(clientId, sharedDocuments);
+      })
+    );
+
+    return response(
+      200,
+      bookings.map((booking) => ({
+        ...booking,
+        clientSharedDocuments: sharedByClient.get(booking.clientId) || []
+      }))
+    );
   }
 
   const result = await dynamo.send(
@@ -3217,7 +3406,9 @@ exports.handler = async (event) => {
       event?.source === "aws.events" ||
       event?.["detail-type"] === "Scheduled Event"
     ) {
-      return sendDueReminders();
+      const deletionSweep = await processScheduledDeletions();
+      const reminders = await sendDueReminders();
+      return { deletionSweep, reminders };
     }
 
     if (event.requestContext?.http?.method === "OPTIONS") {
@@ -3239,6 +3430,7 @@ exports.handler = async (event) => {
     if (method === "GET" && path === "/me/notifications") return getMyNotifications(event);
     if (method === "POST" && path === "/me/notifications/mark-read") return markMyNotificationsRead(event);
     if (method === "PUT" && path === "/me/profile") return updateMeProfile(event);
+    if (method === "POST" && path === "/me/documents/download-url") return createMyDocumentDownloadUrl(event);
     if (method === "POST" && path === "/me/cv/upload-url") return createUploadUrl(event);
     if (method === "GET" && path === "/bookings") return listBookings(event);
     if (method === "POST" && path === "/bookings") return createBooking(event);

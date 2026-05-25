@@ -295,9 +295,23 @@ export const api = {
   },
 
   async deleteMyAccount(token: string) {
-    return request<{ deleted: boolean; anonymizedBookings: number; note: string }>(
+    return request<{
+      deleted: boolean;
+      deletionScheduledAt?: string;
+      deletionEffectiveAt?: string;
+      publicProfileHidden?: boolean;
+      note: string;
+    }>(
       "/me",
       { method: "DELETE" },
+      token
+    );
+  },
+
+  async getMyDocumentDownloadUrl(token: string, storageKey: string) {
+    return request<{ downloadUrl: string; expiresIn: number }>(
+      "/me/documents/download-url",
+      { method: "POST", body: JSON.stringify({ storageKey }) },
       token
     );
   },
