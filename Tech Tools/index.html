@@ -648,12 +648,12 @@
     </section>
 
     <div id="no-results" class="hidden">
-      <p class="ai-prompt">No local topics found. Press <span class="kbd">Enter</span> to ask AI.</p>
+      <p class="ai-prompt">No local topics found. Press <span class="kbd">Enter</span> for a search tip.</p>
       
       <div id="ai-result-card" class="ai-card">
         <div class="ai-header">
-          <span class="ai-badge">AI Assistant</span>
-          <span style="font-size: 0.85rem; color: var(--text-secondary)">Generated via ChatGPT</span>
+          <span class="ai-badge">Search Assistant</span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary)">Local guidance</span>
         </div>
         <div id="ai-content-body" class="ai-content"></div>
       </div>
@@ -667,7 +667,7 @@
 
   <script>
     // --- CONFIGURATION ---
-    const AI_ENDPOINT = "https://k33c65f323cz4usrtbn32guhs40jvrvt.lambda-url.eu-central-1.on.aws/"; 
+    const AI_ENDPOINT = (window.TPC_TOOL_AI_ENDPOINT || "").trim();
     // ---------------------
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -732,7 +732,7 @@
         }
       });
 
-      // AI Logic (Enter Key)
+      // Optional assistant logic (Enter Key)
       searchInput.addEventListener('keydown', async (e) => {
         // Only trigger if Enter is pressed, no local results are shown, and there is text
         if (e.key === 'Enter' && !noResults.classList.contains('hidden') && searchInput.value.trim() !== "") {
@@ -742,7 +742,13 @@
           
           // Show Loading UI
           aiCard.classList.add('visible');
-          aiContent.innerHTML = '<span class="loading-pulse">Consulting the neural network...</span>';
+          aiContent.innerHTML = '<span class="loading-pulse">Checking the local index...</span>';
+
+          if (!AI_ENDPOINT) {
+            aiContent.textContent = `No local topic matched "${searchInput.value.trim()}". Try a shorter keyword like DNS, API, cache, Linux, SQL, Docker, or security.`;
+            isSearchingAI = false;
+            return;
+          }
           
           try {
             const res = await fetch(AI_ENDPOINT, {
@@ -756,10 +762,10 @@
             if (data.answer) {
               aiContent.textContent = data.answer;
             } else {
-              aiContent.textContent = "Error: Could not retrieve answer from AI.";
+              aiContent.textContent = "No assistant answer was returned.";
             }
           } catch (err) {
-            aiContent.textContent = "Connection failed. Check your API endpoint.";
+            aiContent.textContent = "Assistant connection failed. Local links remain available.";
           } finally {
             isSearchingAI = false;
           }

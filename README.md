@@ -27,9 +27,10 @@ The portal is structured around three core pillars:
 
 ### GitHub Pages Optimization
 The portal is optimized for static hosting on GitHub Pages:
-- **Relative Path Resolution:** The router automatically detects subfolder deployments (e.g., `username.github.io/theprivilegedcompany/`) and adjusts fetch paths accordingly.
-- **SPA Fallback:** To support deep-linking on GitHub Pages, use the `404.html` fallback method (copy `index.html` to `404.html`).
-- **Security Headers:** The `_headers` and `_redirects` files are included for Cloudflare Pages and Netlify style hosts. GitHub Pages does not apply custom response headers from repository files, so HSTS, CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy must be configured at the CDN/proxy layer when using GitHub Pages.
+- **Route Shells:** Static route folders such as `/contact/`, `/manifest/`, and `/who-are-we/` are generated from `index.html` with `node scripts/sync-route-pages.mjs` so GitHub Pages can return `200` for direct route refreshes.
+- **SPA Fallback:** `404.html` remains as a fallback for truly unknown paths and routes them into the SPA not-found view.
+- **Security Headers:** The `_headers` file is included for Cloudflare Pages and Netlify style hosts. GitHub Pages does not apply custom response headers from repository files, so HSTS, CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy must be configured at the CDN/proxy layer when using GitHub Pages.
+- **Contact Form:** The public contact form posts to FormSubmit for `contactus@theprivilegedcompany.com` and falls back to `mailto:` if the endpoint is blocked. The first production submission may require FormSubmit email verification.
 
 ## 📁 File Structure
 
@@ -45,7 +46,9 @@ The portal is optimized for static hosting on GitHub Pages:
 │   ├── personal-it.html # Private Advisory
 │   ├── who-are-we.html  # Sovereign Pedigree
 │   └── architecture.html # Interactive Canvas
-└── Tech_Tools/         # Legacy/External Tool Suite (Linked)
+├── scripts/
+│   └── sync-route-pages.mjs # Regenerates GitHub Pages route shells
+└── Tech Tools/         # Legacy/External Tool Suite (Linked)
 ```
 
 ## 🛠 Features

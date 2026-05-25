@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260521b';
+import { languageMeta, translations } from './translations.js?v=20260525a';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260521b';
+const assetVersion = '20260525a';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -376,6 +376,7 @@ const initContactForm = () => {
     const serviceContext = document.getElementById('contact-service-context');
     const serviceValue = document.getElementById('contact-service-value');
     const serviceInput = document.getElementById('contact-service-name');
+    const subjectInput = document.getElementById('contact-email-subject');
     if (!form || !status) return;
 
     const selectedService = getSelectedServiceName();
@@ -389,7 +390,7 @@ const initContactForm = () => {
         if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
     }
 
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
         event.preventDefault();
 
         if (!form.checkValidity()) {
@@ -407,26 +408,65 @@ const initContactForm = () => {
         const budget = String(data.get('budget') || '').trim();
         const details = String(data.get('details') || '').trim();
 
-        const subject = encodeURIComponent(serviceName
-            ? `${t('Inquiry about')}: ${t(serviceName)} - ${name}`
-            : `${t('Website inquiry from')} ${name}`
-        );
-        const body = encodeURIComponent([
-            `${t('Name:')} ${name}`,
-            `${t('Email:')} ${email}`,
-            `${t('Phone:')} ${phone}`,
-            `${t('Service:')} ${serviceName ? t(serviceName) : t('Not specified')}`,
-            `${t('Looking for:')} ${requestType ? t(requestType) : t('Not specified')}`,
-            `${t('Timeline:')} ${timeline ? t(timeline) : t('Not specified')}`,
-            `${t('Budget:')} ${budget || t('Not specified')}`,
+        const subjectText = serviceName
+            ? `Inquiry about: ${serviceName} - ${name}`
+            : `Website inquiry from ${name}`;
+        const bodyText = [
+            `Name: ${name}`,
+            `Email: ${email}`,
+            `Phone: ${phone}`,
+            `Service: ${serviceName || 'Not specified'}`,
+            `Looking for: ${requestType || 'Not specified'}`,
+            `Timeline: ${timeline || 'Not specified'}`,
+            `Budget: ${budget || 'Not specified'}`,
             '',
-            t('Details:'),
+            'Details:',
             details
-        ].join('\n'));
+        ].join('\n');
+        const subject = encodeURIComponent(subjectText);
+        const body = encodeURIComponent(bodyText);
+        const submitButton = form.querySelector('button[type="submit"]');
 
-        status.textContent = t('Opening your email client with the request details.');
+        if (data.get('_honey')) {
+            status.textContent = t('Brief received. We will get back to you soon.');
+            status.classList.add('is-visible');
+            return;
+        }
+
+        if (subjectInput) subjectInput.value = subjectText;
+
+        const payload = new FormData(form);
+        payload.set('_subject', subjectText);
+        payload.set('message', bodyText);
+
+        status.textContent = t('Sending your brief securely...');
         status.classList.add('is-visible');
-        window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { Accept: 'application/json' },
+                body: payload
+            });
+
+            if (!response.ok) throw new Error(`Contact endpoint returned ${response.status}`);
+
+            status.textContent = t('Brief sent. We will get back to you soon.');
+            form.reset();
+
+            if (selectedService && serviceInput) {
+                serviceInput.value = selectedService;
+                const requestTypeForService = serviceRequestTypes[selectedService];
+                if (requestTypeForService && form.elements.requestType) form.elements.requestType.value = requestTypeForService;
+            }
+        } catch (error) {
+            console.warn('Contact endpoint unavailable; falling back to email client.', error);
+            status.textContent = t('Automatic send was blocked. Opening your email client as a fallback.');
+            window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
     });
 };
 
@@ -690,6 +730,12 @@ const initHealthCheck = () => {
                 document.querySelector('meta[http-equiv="Content-Security-Policy" i]') ? 'meta CSP' : null,
                 document.querySelector('meta[name="referrer" i]') ? 'meta referrer' : null
             ].filter(Boolean);
+            const serverHeader = getHeader(home.response, 'server', '');
+            const githubPagesHeaderNote = /github/i.test(serverHeader) && missingHardeningHeaders.length
+                ? (currentLanguage === 'bg'
+                    ? 'GitHub Pages не прилага custom response headers; нужен е CDN/proxy слой.'
+                    : 'GitHub Pages does not apply custom response headers; use a CDN/proxy layer.')
+                : '';
             const sqlLeak = hasSqlErrorLeak(stripEmbeddedProbe(sqlSmoke.text));
 
             return [
@@ -740,17 +786,17 @@ const initHealthCheck = () => {
                 {
                     label: 'Security',
                     summary: currentLanguage === 'bg'
-                        ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} mixed-content URL адреса; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
-                        : `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
+                        ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} mixed-content URL адреса; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`
+                        : `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`,
                     updates: {
-                        shield: window.isSecureContext ? 'SECURE' : 'LOCAL'
+                        shield: missingHardeningHeaders.length ? (htmlPolicies.length ? 'HTML POLICY' : 'CHECK') : 'SECURE'
                     }
                 },
                 {
                     label: 'Vuln Smoke',
                     summary: currentLanguage === 'bg'
-                        ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; deploy headers ${missingHardeningHeaders.length ? `нужни: ${missingHardeningHeaders.join(', ')}` : 'налични'}.`
-                        : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; deploy headers ${missingHardeningHeaders.length ? `needed: ${missingHardeningHeaders.join(', ')}` : 'present'}.`,
+                        ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; response headers ${missingHardeningHeaders.length ? `липсват: ${missingHardeningHeaders.join(', ')}` : 'налични'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
+                        : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `missing: ${missingHardeningHeaders.join(', ')}` : 'present'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
                     updates: {
                         errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }

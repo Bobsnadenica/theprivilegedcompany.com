@@ -34,9 +34,12 @@ pnpm-debug.log*
 # =========================================================================
 # Environment files
 # =========================================================================
-# .env.production IS tracked deliberately — VITE_* variables are baked into
-# the public client bundle, so the values (Cognito IDs, public API URL,
-# region) are not secret. Only local overrides are ignored.
+# Keep environment files out of git. Even public VITE_* values can reveal
+# deploy topology and should live in local/hosting configuration instead.
+.env
+.env.production
+**/.env
+**/.env.production
 .env.local
 .env.*.local
 .env.development
