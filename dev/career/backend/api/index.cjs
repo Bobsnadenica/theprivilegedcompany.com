@@ -1969,6 +1969,7 @@ async function createBooking(event) {
     clientName: user.name || "",
     clientEmail: user.email || "",
     scheduledAt: normalizedScheduledAt,
+    sessionLengthMinutes,
     status: "pending",
     note: String(body.note || "").trim().slice(0, 1200),
     createdAt: new Date().toISOString()
@@ -2555,21 +2556,56 @@ async function submitReview(event) {
   const { booking, consultant } = await loadBookingAndConsultant(bookingId);
   if (!booking) return notFound("Booking not found.");
   if (!consultant) return notFound("Consultant not found.");
+
+  // Only the original client of the booking can review it.
   if (booking.clientId !== claims.sub) {
     return forbidden("Only the client can submit a review.");
   }
+
+  // Hard whitelist on status: the booking must be a confirmed session (both
+  // parties committed via accept). Pending / declined / cancelled all block.
   if (booking.status !== "confirmed") {
+    if (booking.status === "pending") {
+      return badRequest("Резервацията още не е потвърдена от консултанта.");
+    }
+    if (booking.status === "declined") {
+      return badRequest("Консултантът е отказал тази заявка — не може да оставиш отзив.");
+    }
+    if (booking.status === "cancelled") {
+      return badRequest("Резервацията е отменена — не може да оставиш отзив.");
+    }
     return badRequest("Only confirmed bookings can be reviewed.");
   }
+
   if (booking.review) {
-    return badRequest("This booking already has a review.");
+    return badRequest("Вече си оставил отзив за тази сесия.");
   }
 
-  const sessionMs =
-    (Number(consultant.sessionLengthMinutes) || 60) * 60 * 1000;
-  const sessionEnd = new Date(booking.scheduledAt).getTime() + sessionMs;
-  if (sessionEnd > Date.now()) {
-    return badRequest("Сесията още не е приключила. Изчакай края ѝ, за да оставиш отзив.");
+  // Session-end uses the SNAPSHOT length stored on the booking when it was
+  // created, so the eligibility window can't shift if the consultant edits
+  // their session length later. Fall back to the consultant's current value
+  // for legacy bookings created before the snapshot was introduced.
+  const sessionLengthMinutes =
+    Number(booking.sessionLengthMinutes) > 0
+      ? Number(booking.sessionLengthMinutes)
+      : Number(consultant.sessionLengthMinutes) > 0
+        ? Number(consultant.sessionLengthMinutes)
+        : 60;
+  const sessionStartMs = new Date(booking.scheduledAt).getTime();
+  const sessionEndMs = sessionStartMs + sessionLengthMinutes * 60 * 1000;
+  const now = Date.now();
+
+  if (sessionEndMs > now) {
+    return badRequest(
+      "Сесията още не е приключила. Можеш да оставиш отзив след края ѝ."
+    );
+  }
+
+  // Review window: 60 days after session end. Prevents stale reviews from
+  // showing up months/years later and skewing the active rating.
+  const REVIEW_WINDOW_MS = 60 * 24 * 60 * 60 * 1000;
+  if (now - sessionEndMs > REVIEW_WINDOW_MS) {
+    return badRequest("Срокът за отзив е изтекъл (60 дни след сесията).");
   }
 
   const review = {

@@ -133,6 +133,7 @@ export interface Booking {
   clientName?: string;
   clientEmail?: string;
   scheduledAt: string;
+  sessionLengthMinutes?: number;
   status: BookingStatus;
   note?: string;
   createdAt: string;

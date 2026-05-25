@@ -5289,15 +5289,34 @@ export function DashboardPage() {
               const isDeclined = booking.status === "declined";
               const startMs = new Date(booking.scheduledAt).getTime();
               const isPast = startMs < now;
-              const sessionLengthMs =
-                (consultantProfile?.sessionLengthMinutes || 60) * 60 * 1000;
-              const sessionEnded = startMs + sessionLengthMs < now;
+              // Prefer the snapshot stored on the booking; fall back to the
+              // logged-in consultant's profile (for legacy bookings created
+              // before the snapshot was introduced). Default to 60 if both
+              // are missing.
+              const sessionLengthMinutes =
+                booking.sessionLengthMinutes ||
+                consultantProfile?.sessionLengthMinutes ||
+                60;
+              const sessionLengthMs = sessionLengthMinutes * 60 * 1000;
+              const sessionEndMs = startMs + sessionLengthMs;
+              const sessionEnded = sessionEndMs < now;
+              const REVIEW_WINDOW_MS = 60 * 24 * 60 * 60 * 1000;
+              const reviewWindowOpen =
+                isConfirmed && sessionEnded && now - sessionEndMs <= REVIEW_WINDOW_MS;
               const canCancel = (isPending || isConfirmed) && !isPast;
               const canReschedule = (isPending || isConfirmed) && !isPast;
               const canDecide = consultantView && isPending && !isPast;
               const canDownloadIcs = isConfirmed && !isPast;
               const canReview =
-                !consultantView && isConfirmed && sessionEnded && !booking.review;
+                !consultantView && reviewWindowOpen && !booking.review;
+              const reviewPendingHint =
+                !consultantView && isConfirmed && !sessionEnded && !booking.review;
+              const reviewExpiredHint =
+                !consultantView &&
+                isConfirmed &&
+                sessionEnded &&
+                !booking.review &&
+                now - sessionEndMs > REVIEW_WINDOW_MS;
               const isDeciding = decidingBookingId === booking.bookingId;
               return (
                 <article className="booking-item" key={booking.bookingId}>
@@ -5329,6 +5348,16 @@ export function DashboardPage() {
                         Отзив: {"★".repeat(booking.review.rating)}
                         {"☆".repeat(5 - booking.review.rating)}
                         {booking.review.comment ? ` — „${booking.review.comment}"` : ""}
+                      </p>
+                    ) : null}
+                    {reviewPendingHint ? (
+                      <p className="form-note">
+                        Възможност за отзив след {formatDate(new Date(sessionEndMs).toISOString())}.
+                      </p>
+                    ) : null}
+                    {reviewExpiredHint ? (
+                      <p className="form-note">
+                        Срокът за отзив е изтекъл (60 дни след сесията).
                       </p>
                     ) : null}
                   </div>
