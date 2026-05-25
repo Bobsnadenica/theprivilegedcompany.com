@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525a';
+import { languageMeta, translations } from './translations.js?v=20260525c';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525a';
+const assetVersion = '20260525c';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -301,6 +301,7 @@ const router = async () => {
     // Re-init view specific logic
     initMagnetic();
     new ScrambleText('[data-scramble]');
+    new AnagramText('[data-anagram]');
     initArchitectureCanvas();
     initTabs();
     initServiceCards();
@@ -537,6 +538,83 @@ class ScrambleText {
             }
             iteration += 1 / 2;
         }, 30);
+    }
+}
+
+/**
+ * Anagram Pulse Engine
+ */
+class AnagramText {
+    constructor(selector) {
+        this.elements = document.querySelectorAll(selector);
+        this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.init();
+    }
+
+    init() {
+        this.elements.forEach((el, index) => {
+            if (el.dataset.anagramBound) return;
+
+            const primary = normalizeI18nKey(el.textContent).toUpperCase();
+            const alternate = normalizeI18nKey(el.dataset.anagram).toUpperCase();
+            if (!primary || !alternate) return;
+
+            el.dataset.anagramBound = 'true';
+            el.dataset.anagramPrimary = primary;
+            el.dataset.anagramCurrent = primary;
+            el.style.setProperty('--anagram-width', `${Math.max(primary.length, alternate.length)}ch`);
+            el.setAttribute('aria-label', `${primary} / ${alternate}`);
+
+            if (this.reducedMotion) return;
+
+            const run = () => {
+                if (!el.isConnected) {
+                    clearTimeout(el.anagramTimer);
+                    return;
+                }
+
+                const current = el.dataset.anagramCurrent || primary;
+                const target = current === primary ? alternate : primary;
+                this.scramble(el, target);
+            };
+
+            const delay = 1800 + index * 420;
+            el.anagramTimer = setTimeout(() => {
+                run();
+                el.anagramTimer = setInterval(run, 5200 + index * 260);
+            }, delay);
+
+            el.addEventListener('mouseenter', run);
+        });
+    }
+
+    scramble(el, target) {
+        if (el.anagramAnimating) return;
+        el.anagramAnimating = true;
+        el.classList.add('is-twitching');
+
+        const source = normalizeI18nKey(el.textContent).toUpperCase();
+        const maxLength = Math.max(source.length, target.length);
+        let iteration = 0;
+
+        const interval = setInterval(() => {
+            el.textContent = Array.from({ length: maxLength }, (_, index) => {
+                if (index < iteration && target[index]) return target[index];
+                if (!target[index]) return '';
+                return this.chars[Math.floor(Math.random() * this.chars.length)];
+            }).join('');
+
+            if (iteration >= maxLength) {
+                clearInterval(interval);
+                el.textContent = target;
+                el.dataset.anagramCurrent = target;
+                el.anagramAnimating = false;
+                el.classList.remove('is-twitching');
+            }
+
+            iteration += 1;
+        }, 34);
     }
 }
 

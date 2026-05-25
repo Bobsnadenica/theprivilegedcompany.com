@@ -364,6 +364,40 @@ body.has-custom-cursor #cursor-follower {
     font-weight: 300;
 }
 
+.anagram-strip {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 2rem auto 0;
+    max-width: 720px;
+}
+
+.anagram-token {
+    min-width: var(--anagram-width, 6ch);
+    padding: 0.42rem 0.68rem;
+    border: 1px solid rgba(255, 157, 0, 0.24);
+    border-radius: 6px;
+    background: rgba(255, 157, 0, 0.055);
+    color: var(--c-accent-strong);
+    font-family: var(--f-logic);
+    font-size: clamp(0.68rem, 1.4vw, 0.78rem);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: 0 0 16px rgba(255, 157, 0, 0.25);
+    transition: border-color 0.25s, background 0.25s, color 0.25s;
+    will-change: contents;
+}
+
+.anagram-token.is-twitching {
+    border-color: rgba(255, 177, 59, 0.72);
+    background: rgba(255, 157, 0, 0.12);
+    color: #ffd49a;
+}
+
 .hero-footer {
     margin-top: 6rem;
     display: flex;
@@ -765,7 +799,7 @@ body.has-custom-cursor #cursor-follower {
     font-size: 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.2em;
-    color: var(--c-dim);
+    color: rgba(255, 157, 0, 0.78);
     background: var(--c-bg);
     position: relative;
     text-align: center;
@@ -781,12 +815,12 @@ body.has-custom-cursor #cursor-follower {
 
 .footer-right a {
     text-decoration: none;
-    color: inherit;
+    color: var(--c-accent-strong);
     transition: color 0.3s;
 }
 
 .footer-right a:hover {
-    color: var(--c-accent);
+    color: #ffd49a;
 }
 
 /* SPA Transitions */
@@ -981,6 +1015,16 @@ body.has-custom-cursor #cursor-follower {
 
     .hero-lead {
         margin-top: 2rem;
+    }
+
+    .anagram-strip {
+        gap: 0.55rem;
+        margin-top: 1.6rem;
+    }
+
+    .anagram-token {
+        padding: 0.38rem 0.55rem;
+        font-size: 0.62rem;
     }
 
     .hero-footer {
