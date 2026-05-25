@@ -19,6 +19,8 @@ import ContactPage from "../pages/ContactPage";
 import FaqPage from "../pages/FaqPage";
 import HomePage from "../pages/HomePage";
 import LegalPage from "../pages/LegalPage";
+import PrivacyPage from "../pages/PrivacyPage";
+import TermsPage from "../pages/TermsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import ProfilePage from "../pages/ProfilePage";
 import UsersPage from "../pages/UsersPage";
@@ -43,7 +45,8 @@ const footerLinks = [
   { to: "/about", label: "За нас" },
   { to: "/faq", label: "FAQ" },
   { to: "/contact", label: "Контакти" },
-  { to: "/legal", label: "Правна информация" }
+  { to: "/terms", label: "Условия за ползване" },
+  { to: "/privacy", label: "Политика за поверителност" }
 ] as const;
 
 function resolveDocumentTitle(pathname: string) {
@@ -81,6 +84,14 @@ function resolveDocumentTitle(pathname: string) {
 
   if (pathname === "/legal") {
     return "Правна информация";
+  }
+
+  if (pathname === "/terms") {
+    return "Условия за ползване";
+  }
+
+  if (pathname === "/privacy") {
+    return "Политика за поверителност";
   }
 
   if (pathname === "/admin") {
@@ -389,7 +400,9 @@ export default function AppShell() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/faq" element={<FaqPage />} />
-          <Route path="/legal" element={<LegalPage />} />
+          <Route path="/legal" element={<Navigate to="/terms" replace />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/dashboard" element={<ProfilePage />} />
@@ -457,7 +470,7 @@ function CookieConsentBanner() {
         <strong>Използваме бисквитки</strong>
         <p>
           Запазваме само необходимото за вход и сесия. Не използваме рекламни тракери. Виж{" "}
-          <Link to="/legal">правната ни страница</Link> за детайли.
+          <Link to="/privacy">политиката за поверителност</Link> за детайли.
         </p>
       </div>
       <div className="cookie-banner__actions">

@@ -56,6 +56,7 @@ export interface UploadedDocument {
   storageKey: string;
   uploadedAt: string;
   category?: DocumentCategory;
+  sizeBytes?: number;
   downloadUrl?: string;
 }
 

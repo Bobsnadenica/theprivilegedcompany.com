@@ -31,9 +31,6 @@ import {
   DOCUMENT_UPLOAD_ACCEPT,
   DOCUMENT_UPLOAD_FORMAT_LABEL,
   DOCUMENT_UPLOAD_MAX_COUNT,
-  getCvUploadContentType,
-  getCvUploadValidationError,
-  getDocumentUploadContentType,
   getDocumentUploadValidationError
 } from "../../lib/uploads";
 import { resolvePublicUrl } from "../../lib/url";
@@ -42,7 +39,6 @@ import type {
   ConsultantMediaKind,
   ConsultantProfile,
   ConsultantProfileType,
-  DocumentCategory,
   PlanTier,
   UploadedDocument,
   UserProfile,
@@ -2861,11 +2857,11 @@ export function AuthPage() {
                     />
                     <span>
                       Съгласявам се с{" "}
-                      <Link to="/legal" target="_blank" rel="noreferrer">
+                      <Link to="/terms" target="_blank" rel="noreferrer">
                         Условията за ползване
                       </Link>{" "}
                       и{" "}
-                      <Link to="/legal" target="_blank" rel="noreferrer">
+                      <Link to="/privacy" target="_blank" rel="noreferrer">
                         Политиката за поверителност
                       </Link>
                       .
@@ -3493,114 +3489,42 @@ export function DashboardPage() {
     const formElement = event.currentTarget;
     const formData = new FormData(formElement);
     const file = formData.get("document") as File | null;
-    const rawCategory = String(formData.get("category") || "cv").toLowerCase();
-    const category: DocumentCategory =
-      rawCategory === "cv" ||
-      rawCategory === "certificate" ||
-      rawCategory === "portfolio" ||
-      rawCategory === "other"
-        ? rawCategory
-        : "cv";
 
     if (!file || !file.name) {
       setError("Избери файл за качване.");
       return;
     }
 
-    const isCv = category === "cv";
-    const validationError = isCv
-      ? getCvUploadValidationError(file)
-      : getDocumentUploadValidationError(file);
-
+    const validationError = getDocumentUploadValidationError(file);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    if (!isCv && (profile.documents || []).length >= DOCUMENT_UPLOAD_MAX_COUNT) {
+    if ((profile.documents || []).length >= DOCUMENT_UPLOAD_MAX_COUNT) {
       setError(`Достигна лимита от ${DOCUMENT_UPLOAD_MAX_COUNT} документа.`);
       return;
     }
 
     try {
-      const contentType = isCv
-        ? getCvUploadContentType(file)
-        : getDocumentUploadContentType(file);
-      const result = isCv
-        ? await api.createCvUpload(token, file)
-        : await api.createDocumentUpload(token, file);
-
+      const contentType = file.type || "application/octet-stream";
+      const result = await api.createDocumentUpload(token, file);
       await uploadFileToSignedUrl(result.uploadUrl, file, "документа", contentType);
 
       const doc: UploadedDocument = {
         ...(result.document as UploadedDocument),
-        category
+        sizeBytes: file.size || undefined
       };
 
-      const updated = isCv
-        ? await api.updateMyProfile(token, { cvDocument: doc })
-        : await api.updateMyProfile(token, {
-            documents: [...(profile.documents || []), doc]
-          });
+      const updated = await api.updateMyProfile(token, {
+        documents: [...(profile.documents || []), doc]
+      });
 
       setProfile(updated);
       setMessage("Документът е качен.");
       formElement.reset();
     } catch (value) {
       setError(value instanceof Error ? value.message : "Неуспешно качване.");
-    }
-  }
-
-  async function changeDocumentCategory(storageKey: string, nextCategory: DocumentCategory) {
-    setError("");
-    setMessage("");
-
-    const isCurrentCv = profile.cvDocument?.storageKey === storageKey;
-    const otherDocs = profile.documents || [];
-
-    if (isCurrentCv && nextCategory === "cv") return;
-
-    try {
-      if (!isCurrentCv && nextCategory !== "cv") {
-        const updated = await api.updateMyProfile(token, {
-          documents: otherDocs.map((d) =>
-            d.storageKey === storageKey ? { ...d, category: nextCategory } : d
-          )
-        });
-        setProfile(updated);
-        setMessage("Типът на документа е обновен.");
-        return;
-      }
-
-      if (isCurrentCv && nextCategory !== "cv") {
-        const demoted: UploadedDocument = {
-          ...(profile.cvDocument as UploadedDocument),
-          category: nextCategory
-        };
-        const updated = await api.updateMyProfile(token, {
-          cvDocument: null,
-          documents: [...otherDocs, demoted]
-        });
-        setProfile(updated);
-        setMessage("Типът на документа е обновен.");
-        return;
-      }
-
-      const found = otherDocs.find((d) => d.storageKey === storageKey);
-      if (!found) return;
-      const previousCv = profile.cvDocument;
-      const remainingDocs = otherDocs.filter((d) => d.storageKey !== storageKey);
-      const nextDocuments = previousCv
-        ? [...remainingDocs, { ...previousCv, category: "other" as DocumentCategory }]
-        : remainingDocs;
-      const updated = await api.updateMyProfile(token, {
-        cvDocument: { ...found, category: "cv" } as UploadedDocument,
-        documents: nextDocuments
-      });
-      setProfile(updated);
-      setMessage("Типът на документа е обновен.");
-    } catch (value) {
-      setError(value instanceof Error ? value.message : "Неуспешно обновяване.");
     }
   }
 
@@ -4577,31 +4501,23 @@ export function DashboardPage() {
               <form className="documents-upload" onSubmit={uploadDocument}>
                 <label className="dashboard-upload-field">
                   <span>Избери файл</span>
-                  <input name="document" type="file" accept={DOCUMENT_UPLOAD_ACCEPT} required />
+                  <input
+                    name="document"
+                    type="file"
+                    accept={DOCUMENT_UPLOAD_ACCEPT}
+                    required
+                  />
                   <span className="form-note">{DOCUMENT_UPLOAD_FORMAT_LABEL}</span>
-                </label>
-                <label className="dashboard-upload-field">
-                  <span>Тип</span>
-                  <select name="category" defaultValue="cv">
-                    <option value="cv">CV / резюме</option>
-                    <option value="certificate">Сертификат</option>
-                    <option value="portfolio">Портфолио</option>
-                    <option value="other">Друго</option>
-                  </select>
-                  <span className="form-note">
-                    Можеш да смениш типа след качването.
-                  </span>
                 </label>
                 <button className="primary-button" type="submit">
                   Качи документ
                 </button>
               </form>
 
-              <UnifiedDocumentList
+              <UserDocumentList
                 cvDocument={profile.cvDocument}
                 documents={profile.documents || []}
                 onRemove={removeDocument}
-                onChangeCategory={changeDocumentCategory}
               />
             </div>
           </section>
@@ -4684,7 +4600,10 @@ export function DashboardPage() {
                         required
                       />
                       <span className="form-note">
-                        Публична страница: {consultantPublicUrl || "Ще се създаде след записване"}
+                        Публична страница:{" "}
+                        {consultantProfile?.slug
+                          ? `/consultants/${consultantProfile.slug}`
+                          : "ще се създаде след записване"}
                       </span>
                     </label>
                     <label>
@@ -5938,106 +5857,152 @@ function DirectoryFeedbackState({
   );
 }
 
-const DOCUMENT_CATEGORY_LABEL: Record<DocumentCategory, string> = {
-  cv: "CV / резюме",
-  certificate: "Сертификат",
-  portfolio: "Портфолио",
-  other: "Друго"
+const DOCUMENT_FILE_TYPE_ICONS: Record<string, { glyph: string; label: string }> = {
+  pdf: { glyph: "📕", label: "PDF" },
+  doc: { glyph: "📘", label: "Word" },
+  docx: { glyph: "📘", label: "Word" },
+  rtf: { glyph: "📘", label: "Текст" },
+  txt: { glyph: "📄", label: "Текст" },
+  md: { glyph: "📄", label: "Markdown" },
+  xls: { glyph: "📗", label: "Excel" },
+  xlsx: { glyph: "📗", label: "Excel" },
+  csv: { glyph: "📗", label: "Таблица" },
+  ppt: { glyph: "📙", label: "Презентация" },
+  pptx: { glyph: "📙", label: "Презентация" },
+  key: { glyph: "📙", label: "Keynote" },
+  jpg: { glyph: "🖼️", label: "Изображение" },
+  jpeg: { glyph: "🖼️", label: "Изображение" },
+  png: { glyph: "🖼️", label: "Изображение" },
+  gif: { glyph: "🖼️", label: "Изображение" },
+  webp: { glyph: "🖼️", label: "Изображение" },
+  svg: { glyph: "🖼️", label: "SVG" },
+  heic: { glyph: "🖼️", label: "Изображение" },
+  mp4: { glyph: "🎬", label: "Видео" },
+  mov: { glyph: "🎬", label: "Видео" },
+  avi: { glyph: "🎬", label: "Видео" },
+  mkv: { glyph: "🎬", label: "Видео" },
+  webm: { glyph: "🎬", label: "Видео" },
+  mp3: { glyph: "🎵", label: "Аудио" },
+  wav: { glyph: "🎵", label: "Аудио" },
+  m4a: { glyph: "🎵", label: "Аудио" },
+  zip: { glyph: "🗜️", label: "Архив" },
+  rar: { glyph: "🗜️", label: "Архив" },
+  "7z": { glyph: "🗜️", label: "Архив" },
+  tar: { glyph: "🗜️", label: "Архив" },
+  gz: { glyph: "🗜️", label: "Архив" }
 };
 
-const DOCUMENT_CATEGORY_ORDER: DocumentCategory[] = [
-  "cv",
-  "certificate",
-  "portfolio",
-  "other"
-];
+function getFileTypeIcon(fileName: string) {
+  const ext = (fileName.split(".").pop() || "").toLowerCase();
+  return DOCUMENT_FILE_TYPE_ICONS[ext] || { glyph: "📎", label: "Файл" };
+}
 
-function UnifiedDocumentList({
+function formatBytes(bytes?: number) {
+  if (!bytes || !Number.isFinite(bytes) || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const USER_DOCUMENT_QUOTA_BYTES = 50 * 1024 * 1024;
+
+function UserDocumentList({
   cvDocument,
   documents,
-  onRemove,
-  onChangeCategory
+  onRemove
 }: {
   cvDocument?: UploadedDocument | null;
   documents: UploadedDocument[];
   onRemove: (storageKey: string) => Promise<void> | void;
-  onChangeCategory: (
-    storageKey: string,
-    category: DocumentCategory
-  ) => Promise<void> | void;
 }) {
-  const cvItem = cvDocument
-    ? [{ ...cvDocument, category: "cv" as DocumentCategory }]
-    : [];
-  const otherItems = (documents || []).map((d) => ({
-    ...d,
-    category: (d.category || "other") as DocumentCategory
-  }));
-  const merged = [...cvItem, ...otherItems].sort(
-    (a, b) =>
-      DOCUMENT_CATEGORY_ORDER.indexOf(a.category) -
-      DOCUMENT_CATEGORY_ORDER.indexOf(b.category)
+  const merged = [
+    ...(cvDocument ? [cvDocument] : []),
+    ...(documents || [])
+  ];
+
+  const usedBytes = merged.reduce(
+    (total, doc) => total + (Number(doc.sizeBytes) || 0),
+    0
   );
+  const usedMb = (usedBytes / (1024 * 1024)).toFixed(1);
+  const quotaMb = (USER_DOCUMENT_QUOTA_BYTES / (1024 * 1024)).toFixed(0);
+  const percent = Math.min(100, (usedBytes / USER_DOCUMENT_QUOTA_BYTES) * 100);
 
   if (!merged.length) {
     return (
       <div className="panel panel--subtle profile-documents__empty">
         <strong>Все още няма качени документи.</strong>
-        <p>Качи CV, сертификат или портфолио, ако имаш.</p>
+        <p>
+          Качи всеки файл, който помага на консултанта да те разбере по-бързо — CV, диплома,
+          портфолио, кратко резюме. До 50 MB общо.
+        </p>
       </div>
     );
   }
 
   return (
-    <ul className="profile-documents" aria-label="Документи в профила">
-      {merged.map((doc) => (
-        <li className="profile-documents__item" key={doc.storageKey}>
-          <div className="profile-documents__main">
-            <span className={`document-tag document-tag--${doc.category}`}>
-              {DOCUMENT_CATEGORY_LABEL[doc.category]}
-            </span>
-            <strong>{doc.fileName}</strong>
-            <span className="form-note">
-              {formatDocumentUploadedAt(doc.uploadedAt)}
-            </span>
-          </div>
-          <div className="profile-documents__actions">
-            <label className="profile-documents__retag">
-              <span className="visually-hidden">Промени типа</span>
-              <select
-                value={doc.category}
-                onChange={(event) =>
-                  onChangeCategory(doc.storageKey, event.target.value as DocumentCategory)
-                }
-              >
-                {DOCUMENT_CATEGORY_ORDER.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {DOCUMENT_CATEGORY_LABEL[cat]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {doc.downloadUrl ? (
-              <a
-                className="ghost-button"
-                href={doc.downloadUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Отвори
-              </a>
-            ) : null}
-            <button
-              className="ghost-button"
-              type="button"
-              onClick={() => onRemove(doc.storageKey)}
-            >
-              Премахни
-            </button>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className="profile-documents-wrap">
+      <div
+        className="profile-documents__quota"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(percent)}
+      >
+        <div className="profile-documents__quota-bar">
+          <span style={{ width: `${percent}%` }} />
+        </div>
+        <span className="form-note">
+          {usedMb} MB от {quotaMb} MB ({merged.length}{" "}
+          {merged.length === 1 ? "файл" : "файла"})
+        </span>
+      </div>
+      <ul className="profile-documents" aria-label="Документи в профила">
+        {merged.map((doc) => {
+          const icon = getFileTypeIcon(doc.fileName);
+          const size = formatBytes(doc.sizeBytes);
+          return (
+            <li className="profile-documents__item" key={doc.storageKey}>
+              <div className="profile-documents__main">
+                <span
+                  className="profile-documents__icon"
+                  title={icon.label}
+                  aria-label={icon.label}
+                >
+                  {icon.glyph}
+                </span>
+                <div className="profile-documents__text">
+                  <strong>{doc.fileName}</strong>
+                  <span className="form-note">
+                    {formatDocumentUploadedAt(doc.uploadedAt)}
+                    {size ? ` · ${size}` : ""}
+                  </span>
+                </div>
+              </div>
+              <div className="profile-documents__actions">
+                {doc.downloadUrl ? (
+                  <a
+                    className="ghost-button"
+                    href={doc.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Отвори
+                  </a>
+                ) : null}
+                <button
+                  className="ghost-button"
+                  type="button"
+                  onClick={() => onRemove(doc.storageKey)}
+                >
+                  Премахни
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

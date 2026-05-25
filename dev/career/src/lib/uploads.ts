@@ -17,15 +17,17 @@ const DOCUMENT_ALLOWED_CONTENT_TYPES = new Set(
 export const CV_UPLOAD_ACCEPT =
   ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-export const DOCUMENT_UPLOAD_ACCEPT =
-  ".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain";
+// We accept any file type now. Downloads are forced via Content-Disposition
+// so even an HTML-spoofed file can't render inline from the S3 origin.
+export const DOCUMENT_UPLOAD_ACCEPT = "*";
 
-export const CV_UPLOAD_MAX_BYTES = 8 * 1024 * 1024;
-export const CV_UPLOAD_FORMAT_LABEL = "PDF, DOC или DOCX до 8 MB";
+export const CV_UPLOAD_MAX_BYTES = 50 * 1024 * 1024;
+export const CV_UPLOAD_FORMAT_LABEL = "Всеки файлов формат, до 50 MB общо";
 
-export const DOCUMENT_UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
-export const DOCUMENT_UPLOAD_FORMAT_LABEL = "PDF, DOC, DOCX или TXT до 10 MB";
-export const DOCUMENT_UPLOAD_MAX_COUNT = 10;
+export const DOCUMENT_UPLOAD_MAX_BYTES = 50 * 1024 * 1024;
+export const DOCUMENT_UPLOAD_TOTAL_BYTES = 50 * 1024 * 1024;
+export const DOCUMENT_UPLOAD_FORMAT_LABEL = "Всеки файлов формат, до 50 MB общо";
+export const DOCUMENT_UPLOAD_MAX_COUNT = 50;
 
 function getFileExtension(fileName: string) {
   const extension = fileName.trim().toLowerCase().split(".").pop();
@@ -43,18 +45,12 @@ export function getCvUploadContentType(file: Pick<File, "name" | "type">) {
 }
 
 export function getCvUploadValidationError(file: Pick<File, "name" | "size" | "type">) {
-  const contentType = getCvUploadContentType(file);
-
-  if (!CV_ALLOWED_CONTENT_TYPES.has(contentType)) {
-    return "Качи CV във формат PDF, DOC или DOCX.";
-  }
-
   if (!Number.isFinite(file.size) || file.size <= 0) {
-    return "Файлът изглежда празен. Избери валиден CV документ.";
+    return "Файлът изглежда празен.";
   }
 
   if (file.size > CV_UPLOAD_MAX_BYTES) {
-    return "CV файлът трябва да е 8 MB или по-малък.";
+    return "Файлът надвишава 50 MB.";
   }
 
   return "";
@@ -76,18 +72,12 @@ export function getDocumentUploadContentType(file: Pick<File, "name" | "type">) 
 export function getDocumentUploadValidationError(
   file: Pick<File, "name" | "size" | "type">
 ) {
-  const contentType = getDocumentUploadContentType(file);
-
-  if (!DOCUMENT_ALLOWED_CONTENT_TYPES.has(contentType)) {
-    return "Поддържани формати: PDF, DOC, DOCX или TXT.";
-  }
-
   if (!Number.isFinite(file.size) || file.size <= 0) {
     return "Файлът изглежда празен.";
   }
 
   if (file.size > DOCUMENT_UPLOAD_MAX_BYTES) {
-    return "Документът трябва да е 10 MB или по-малък.";
+    return "Файлът надвишава 50 MB.";
   }
 
   return "";

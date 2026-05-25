@@ -2813,6 +2813,11 @@ textarea {
   line-height: 1.75;
 }
 
+.form-note {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .journey-card,
 .pricing-card,
 .summary-card,
@@ -6547,40 +6552,60 @@ textarea {
   gap: 4px;
 }
 
-.document-tag {
+/* User-documents list: file-type icon + filename + metadata. Categories
+   removed — the file extension itself carries enough signal. */
+.profile-documents-wrap {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-documents__quota {
+  display: grid;
+  gap: 6px;
+}
+
+.profile-documents__quota-bar {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  background: rgba(10, 102, 194, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.profile-documents__quota-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #0a66c2, #16a34a);
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.profile-documents__icon {
   display: inline-flex;
   align-items: center;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  width: fit-content;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(247, 250, 253, 0.9);
+  border: 1px solid var(--border);
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
-.document-tag--cv {
-  color: #0a66c2;
-  background: rgba(10, 102, 194, 0.08);
-  border: 1px solid rgba(10, 102, 194, 0.18);
+.profile-documents__main {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 1 1 240px;
+  min-width: 0;
 }
 
-.document-tag--certificate {
-  color: #166534;
-  background: rgba(22, 101, 52, 0.08);
-  border: 1px solid rgba(22, 101, 52, 0.18);
-}
-
-.document-tag--portfolio {
-  color: #7c3aed;
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px solid rgba(124, 58, 237, 0.18);
-}
-
-.document-tag--other {
-  color: var(--text-soft);
-  background: rgba(100, 116, 139, 0.08);
-  border: 1px solid rgba(100, 116, 139, 0.18);
+.profile-documents__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 /* ─── Availability weekly-pattern picker ────────────────────────────── */

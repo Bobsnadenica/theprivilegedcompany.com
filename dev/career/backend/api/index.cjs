@@ -44,8 +44,9 @@ const ALLOWED_DOCUMENT_TYPES = new Set([
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain"
 ]);
-const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
-const MAX_USER_DOCUMENTS = 10;
+const MAX_DOCUMENT_BYTES = 50 * 1024 * 1024;
+const MAX_USER_TOTAL_DOCUMENT_BYTES = 50 * 1024 * 1024;
+const MAX_USER_DOCUMENTS = 50;
 const CONSULTANT_PROFILE_STATUSES = new Set(["pending", "approved", "rejected"]);
 const VISIBLE_CONSULTANT_STATUSES = new Set(["approved", "active"]);
 const ADMIN_GROUP = "admin";
@@ -764,10 +765,17 @@ function normalizeCvDocument(value, fallback, userId) {
     "CV storage key"
   );
 
+  const sizeBytes =
+    Number(value.sizeBytes) > 0
+      ? Number(value.sizeBytes)
+      : Number(fallback?.sizeBytes) > 0
+        ? Number(fallback.sizeBytes)
+        : undefined;
   return {
     fileName: sanitizeFileName(value.fileName || fallback?.fileName || "cv"),
     storageKey,
     category: "cv",
+    ...(sizeBytes ? { sizeBytes } : {}),
     uploadedAt:
       normalizeText(value.uploadedAt, fallback?.uploadedAt || "", 40) ||
       new Date().toISOString()
@@ -805,10 +813,17 @@ function normalizeUserDocuments(value, fallback, userId) {
     }
     seenKeys.add(storageKey);
     const previous = fallbackByKey.get(storageKey);
+    const itemSize =
+      Number(item.sizeBytes) > 0
+        ? Number(item.sizeBytes)
+        : Number(previous?.sizeBytes) > 0
+          ? Number(previous.sizeBytes)
+          : undefined;
     sanitized.push({
       fileName: sanitizeFileName(item.fileName || previous?.fileName || "document"),
       storageKey,
       category: normalizeDocumentCategory(item.category, previous?.category),
+      ...(itemSize ? { sizeBytes: itemSize } : {}),
       uploadedAt:
         normalizeText(item.uploadedAt, previous?.uploadedAt || "", 40) ||
         previous?.uploadedAt ||
@@ -848,27 +863,14 @@ function validateUploadRequest({ kind, contentType, fileSize }) {
     return "fileSize must be a positive number.";
   }
 
-  if (kind === "cv") {
-    if (!ALLOWED_DOCUMENT_TYPES.has(safeContentType) || safeContentType === "text/plain") {
-      return "Unsupported CV file type.";
-    }
-
-    if (safeFileSize > 8 * 1024 * 1024) {
-      return "CV files must be 8 MB or smaller.";
-    }
-
-    return null;
-  }
-
-  if (kind === "document") {
-    if (!ALLOWED_DOCUMENT_TYPES.has(safeContentType)) {
-      return "Unsupported document type.";
-    }
-
+  // CV and Document slots share the same rules now: any file type, up to
+  // 50 MB per file (total quota of 50 MB per user enforced separately in
+  // createUploadUrl). Downloads are forced via Content-Disposition so
+  // arbitrary content types can't render inline from S3.
+  if (kind === "cv" || kind === "document") {
     if (safeFileSize > MAX_DOCUMENT_BYTES) {
-      return "Documents must be 10 MB or smaller.";
+      return "Файлът надвишава 50 MB.";
     }
-
     return null;
   }
 
@@ -1895,6 +1897,30 @@ async function createUploadUrl(event) {
     return badRequest(uploadValidationError);
   }
 
+  // Per-user document quota: sum the bytes the user already has stored
+  // and reject if this upload would put them over 50 MB total. Applies
+  // to cv + document kinds; avatars/consultant-media are not counted.
+  if (kind === "cv" || kind === "document") {
+    const fileSize = Number(body.fileSize) || 0;
+    const user = await getUserBySub(claims.sub);
+    let usedBytes = 0;
+    if (user?.cvDocument?.sizeBytes) {
+      usedBytes += Number(user.cvDocument.sizeBytes) || 0;
+    }
+    for (const doc of Array.isArray(user?.documents) ? user.documents : []) {
+      usedBytes += Number(doc?.sizeBytes) || 0;
+    }
+    if (usedBytes + fileSize > MAX_USER_TOTAL_DOCUMENT_BYTES) {
+      const remainingMb = Math.max(
+        0,
+        Math.floor((MAX_USER_TOTAL_DOCUMENT_BYTES - usedBytes) / (1024 * 1024))
+      );
+      return badRequest(
+        `Достигна лимита от 50 MB общо за документи. Свободни още ${remainingMb} MB.`
+      );
+    }
+  }
+
   const safeFileName = sanitizeFileName(body.fileName);
   const storageKey =
     kind === "cv" || kind === "document"
@@ -1916,7 +1942,8 @@ async function createUploadUrl(event) {
     document: {
       fileName: body.fileName,
       storageKey,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      sizeBytes: Number(body.fileSize) || undefined
     }
   });
 }
