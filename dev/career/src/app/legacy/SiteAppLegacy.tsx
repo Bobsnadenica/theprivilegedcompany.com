@@ -1670,10 +1670,10 @@ export function ConsultantPage() {
     "Профилът все още няма описание на работата.";
   const profileFacts = [
     { label: "Локация", value: getConsultantLocationLabel(consultant) },
-    { label: "Формат", value: consultant.sessionModes.join(" · ") },
+    { label: "Формат", value: (consultant.sessionModes || []).join(" · ") },
     { label: "Продължителност", value: getSessionLengthLabel(consultant) },
     { label: "Цена", value: getConsultantPriceLabel(consultant) }
-  ];
+  ].filter((fact) => String(fact.value || "").trim());
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}${import.meta.env.BASE_URL}#/consultants/${consultant.slug}`
@@ -5503,7 +5503,23 @@ function ProfileSnapshotCard({ consultant }: { consultant: ConsultantProfile }) 
     ? (consultant.rating || 0).toFixed(1)
     : null;
   const topSpecializations = (consultant.specializations || []).slice(0, 3);
-  const languages = (consultant.languages || []).join(" · ");
+  const languages = (consultant.languages || []).filter((l) => String(l || "").trim());
+  const sessionModes = (consultant.sessionModes || []).filter((s) => String(s || "").trim());
+  // Hide stats with no value entirely instead of rendering empty <dd> rows
+  // next to labels. Empty arrays are truthy in JS so we have to length-check.
+  const stats: Array<{ label: string; value: string }> = [];
+  if (Number(consultant.experienceYears) > 0) {
+    stats.push({ label: "Опит", value: `${consultant.experienceYears} години` });
+  }
+  if (languages.length) {
+    stats.push({ label: "Езици", value: languages.join(" · ") });
+  }
+  if (Number(consultant.priceBgn) > 0) {
+    stats.push({ label: "Цена", value: `от ${consultant.priceBgn} лв` });
+  }
+  if (sessionModes.length) {
+    stats.push({ label: "Формат", value: sessionModes.join(" · ") });
+  }
 
   return (
     <section className="panel profile-snapshot" aria-label="Преглед">
@@ -5519,30 +5535,16 @@ function ProfileSnapshotCard({ consultant }: { consultant: ConsultantProfile }) 
         )}
       </header>
 
-      <dl className="profile-snapshot__stats">
-        {consultant.experienceYears ? (
-          <div>
-            <dt>Опит</dt>
-            <dd>{consultant.experienceYears} години</dd>
-          </div>
-        ) : null}
-        {languages ? (
-          <div>
-            <dt>Езици</dt>
-            <dd>{languages}</dd>
-          </div>
-        ) : null}
-        {consultant.priceBgn ? (
-          <div>
-            <dt>Цена</dt>
-            <dd>от {consultant.priceBgn} лв</dd>
-          </div>
-        ) : null}
-        <div>
-          <dt>Формат</dt>
-          <dd>{(consultant.sessionModes || ["Онлайн"]).join(" · ")}</dd>
-        </div>
-      </dl>
+      {stats.length ? (
+        <dl className="profile-snapshot__stats">
+          {stats.map((stat) => (
+            <div key={stat.label}>
+              <dt>{stat.label}</dt>
+              <dd>{stat.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
 
       {topSpecializations.length ? (
         <div className="profile-snapshot__tags">
