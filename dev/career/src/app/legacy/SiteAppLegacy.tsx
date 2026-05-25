@@ -1895,8 +1895,11 @@ export function ConsultantPage() {
             </article>
           </div>
 
+          <aside className="profile-aside-stack" aria-label="Информация и резервация">
+            <ProfileSnapshotCard consultant={consultant} />
+
           {confirmedBooking ? (
-            <aside className="panel booking-success" aria-live="polite">
+            <div className="panel booking-success" role="status" aria-live="polite">
               <div className="booking-success__badge" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="28" height="28">
                   <path
@@ -1947,7 +1950,7 @@ export function ConsultantPage() {
                   Заяви още един час
                 </button>
               </div>
-            </aside>
+            </div>
           ) : (
           <form className="panel booking-panel" onSubmit={submitBooking}>
             <header className="booking-panel__head">
@@ -2062,6 +2065,7 @@ export function ConsultantPage() {
             ) : null}
           </form>
           )}
+          </aside>
         </div>
       </section>
     </>
@@ -5485,6 +5489,65 @@ export function DashboardPage() {
           onClose={() => setRescheduleModalBooking(null)}
           onSubmit={rescheduleAction}
         />
+      ) : null}
+    </section>
+  );
+}
+
+function ProfileSnapshotCard({ consultant }: { consultant: ConsultantProfile }) {
+  const ratingValue = consultant.reviewCount
+    ? (consultant.rating || 0).toFixed(1)
+    : null;
+  const topSpecializations = (consultant.specializations || []).slice(0, 3);
+  const languages = (consultant.languages || []).join(" · ");
+
+  return (
+    <section className="panel profile-snapshot" aria-label="Преглед">
+      <header className="profile-snapshot__head">
+        <span className="eyebrow">Бърз профил</span>
+        {ratingValue ? (
+          <span className="profile-snapshot__rating">
+            <span aria-hidden="true">★</span> {ratingValue}
+            <span className="form-note"> · {consultant.reviewCount} отзива</span>
+          </span>
+        ) : (
+          <span className="plan-pill">Нов профил</span>
+        )}
+      </header>
+
+      <dl className="profile-snapshot__stats">
+        {consultant.experienceYears ? (
+          <div>
+            <dt>Опит</dt>
+            <dd>{consultant.experienceYears} години</dd>
+          </div>
+        ) : null}
+        {languages ? (
+          <div>
+            <dt>Езици</dt>
+            <dd>{languages}</dd>
+          </div>
+        ) : null}
+        {consultant.priceBgn ? (
+          <div>
+            <dt>Цена</dt>
+            <dd>от {consultant.priceBgn} лв</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>Формат</dt>
+          <dd>{(consultant.sessionModes || ["Онлайн"]).join(" · ")}</dd>
+        </div>
+      </dl>
+
+      {topSpecializations.length ? (
+        <div className="profile-snapshot__tags">
+          {topSpecializations.map((item) => (
+            <span className="chip chip--soft" key={item}>
+              {item}
+            </span>
+          ))}
+        </div>
       ) : null}
     </section>
   );

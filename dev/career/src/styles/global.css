@@ -3143,11 +3143,91 @@ textarea {
   gap: 16px;
 }
 
-.booking-card,
-.booking-panel {
+.booking-card {
   position: sticky;
   top: 106px;
   align-self: start;
+}
+
+/* The right rail on the consultant detail page is a stack of the snapshot
+   card + the booking widget. Making the wrapper sticky (instead of the
+   widget) keeps both cards together as they follow the scroll, which
+   eliminates the "tall empty white space" effect on profiles with short
+   booking content. */
+.profile-aside-stack {
+  display: grid;
+  gap: 16px;
+  align-self: start;
+  position: sticky;
+  top: 106px;
+}
+
+.profile-aside-stack .booking-panel,
+.profile-aside-stack .booking-success {
+  position: static;
+  top: auto;
+}
+
+.profile-snapshot {
+  padding: 20px;
+}
+
+.profile-snapshot__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.profile-snapshot__rating {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #b45309;
+}
+
+.profile-snapshot__rating .form-note {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.profile-snapshot__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 14px;
+}
+
+.profile-snapshot__stats > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-snapshot__stats dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.profile-snapshot__stats dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.profile-snapshot__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .booking-panel__head {
