@@ -159,11 +159,17 @@ async function getConsultantBySlug(slug) {
       ExpressionAttributeValues: {
         ":slug": slug
       },
-      Limit: 1
+      Limit: 5
     })
   );
 
-  return result.Items?.[0] || null;
+  const items = result.Items || [];
+  if (!items.length) return null;
+  // Legacy data sometimes has multiple rows on the same slug from before
+  // slug-claim atomicity was added. Prefer a visible (approved + public)
+  // match, falling back to the first row so the visibility check downstream
+  // still rejects unapproved drafts cleanly with a 404.
+  return items.find(isVisibleConsultant) || items[0];
 }
 
 const SLUG_CLAIM_PREFIX = "slug-claim#";
@@ -1095,7 +1101,53 @@ function isVisibleConsultant(consultant) {
   if (!isConsultantRecord(consultant)) return false;
   if (consultant.isPublic === false) return false;
   const status = consultant.profileStatus || "approved";
-  return VISIBLE_CONSULTANT_STATUSES.has(status);
+  if (!VISIBLE_CONSULTANT_STATUSES.has(status)) return false;
+  // Minimum quality bar — empty or junk profiles never appear in the public
+  // catalog even when their flags read public+approved. Stops the catalog
+  // from leaking half-set-up accounts or stale legacy rows.
+  if (!String(consultant.name || "").trim()) return false;
+  if (!String(consultant.headline || "").trim()) return false;
+  if (!String(consultant.bio || "").trim()) return false;
+  return true;
+}
+
+// Internal completeness check — used by updateMyConsultant to silently
+// promote a pending profile to approved+public once enough fields are
+// filled. The threshold deliberately covers the same fields a client
+// would scan when choosing a consultant: identity, expertise, format,
+// availability. We do NOT surface this rule in the UI; the profile just
+// goes live when it's ready.
+function isConsultantProfileReadyForAutoApprove(consultant) {
+  const name = String(consultant.name || "").trim();
+  const headline = String(consultant.headline || "").trim();
+  const bio = String(consultant.bio || "").trim();
+  const experienceSummary = String(consultant.experienceSummary || "").trim();
+  const highlights = Array.isArray(consultant.experienceHighlights)
+    ? consultant.experienceHighlights.filter((x) => String(x || "").trim()).length
+    : 0;
+  const specializations = Array.isArray(consultant.specializations)
+    ? consultant.specializations.filter((x) => String(x || "").trim()).length
+    : 0;
+  const languages = Array.isArray(consultant.languages)
+    ? consultant.languages.filter((x) => String(x || "").trim()).length
+    : 0;
+  const availability = Array.isArray(consultant.availability)
+    ? consultant.availability.length
+    : 0;
+  const sessionLength = Number(consultant.sessionLengthMinutes);
+
+  return (
+    name.length >= 2 &&
+    headline.length >= 10 &&
+    bio.length >= 80 &&
+    experienceSummary.length >= 20 &&
+    highlights >= 1 &&
+    specializations >= 1 &&
+    languages >= 1 &&
+    Number.isFinite(sessionLength) &&
+    sessionLength > 0 &&
+    availability >= 1
+  );
 }
 
 const LIST_PAGE_SIZE = 24;
@@ -1766,6 +1818,20 @@ async function updateMyConsultant(event) {
     nextConsultant.availability,
     baseConsultant.nextAvailable || ""
   );
+
+  // Silent auto-approve: a fully-fleshed-out profile becomes public without
+  // waiting for explicit admin action. We only promote upward — pending →
+  // approved+public. We never downgrade an admin-approved or admin-rejected
+  // profile from here, and we don't communicate this rule to the UI; the
+  // profile just appears in the catalog the moment it's ready.
+  if (
+    nextConsultant.profileStatus === "pending" &&
+    isConsultantProfileReadyForAutoApprove(nextConsultant)
+  ) {
+    nextConsultant.profileStatus = "approved";
+    nextConsultant.isPublic = true;
+    nextConsultant.autoApprovedAt = new Date().toISOString();
+  }
 
   try {
     await putConsultantWithSlugClaim({
