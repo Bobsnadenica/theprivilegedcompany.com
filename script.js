@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525d';
+import { languageMeta, translations } from './translations.js?v=20260525g';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525d';
+const assetVersion = '20260525g';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -92,6 +92,20 @@ const serviceRequestTypes = {
     'Social Media Management': 'Marketing or social media',
     'Advertisement Support': 'Marketing or social media',
     'Scam & Funnel Awareness': 'Scam or fraud awareness'
+};
+const toolSuiteServiceName = 'Learn Any Tech Topic';
+const toolSuitePath = 'Tech%20Tools/index.html';
+const serviceDestinations = {
+    [toolSuiteServiceName]: {
+        type: 'internal',
+        href: toolSuitePath,
+        label: 'Open Tool Suite'
+    },
+    'Scam & Funnel Awareness': {
+        type: 'external',
+        href: 'https://istinskiguru.com',
+        label: 'Open Scam Guide'
+    }
 };
 const knownServiceNames = Object.keys(serviceRequestTypes);
 const supportedLanguages = Object.keys(languageMeta);
@@ -335,38 +349,52 @@ const initServiceCards = () => {
         const serviceName = getSourceText(heading);
         if (!serviceRequestTypes[serviceName]) return;
 
+        const destination = serviceDestinations[serviceName];
         card.dataset.serviceName = serviceName;
         card.setAttribute('role', 'link');
         card.setAttribute('tabindex', '0');
-        card.setAttribute('aria-label', currentLanguage === 'bg'
-            ? `Започнете бриф за ${t(serviceName)}`
-            : `Start a brief for ${serviceName}`
+        if (destination) card.dataset.i18nAriaLabel = destination.label;
+        card.setAttribute('aria-label', destination
+            ? t(destination.label)
+            : (currentLanguage === 'bg'
+                ? `Започнете бриф за ${t(serviceName)}`
+                : `Start a brief for ${serviceName}`)
         );
 
         let cta = card.querySelector('.service-card-cta');
         if (!cta) {
             cta = document.createElement('small');
             cta.className = 'service-card-cta';
-            cta.dataset.i18nSource = 'Start a brief';
             card.append(cta);
         }
-        cta.textContent = t('Start a brief');
+        cta.dataset.i18nSource = destination ? destination.label : 'Start a brief';
+        cta.textContent = t(cta.dataset.i18nSource);
 
         if (card.dataset.serviceBound) return;
         card.dataset.serviceBound = 'true';
 
-        const openContact = () => {
+        const openDestination = () => {
+            if (destination?.type === 'internal') {
+                window.location.href = new URL(destination.href, window.location.origin).href;
+                return;
+            }
+
+            if (destination?.type === 'external') {
+                window.location.href = destination.href;
+                return;
+            }
+
             const target = new URL('contact', window.location.origin);
             target.searchParams.set('service', serviceName);
             history.pushState(null, null, `${target.pathname}${target.search}`);
             router();
         };
 
-        card.addEventListener('click', openContact);
+        card.addEventListener('click', openDestination);
         card.addEventListener('keydown', event => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
-            openContact();
+            openDestination();
         });
     });
 };
@@ -549,19 +577,15 @@ class AnagramText {
         this.elements = document.querySelectorAll(selector);
         this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         this.pairs = [
-            ['SECURE', 'RESCUE'],
             ['TRACE', 'REACT'],
-            ['LISTEN', 'SILENT'],
             ['ALERT', 'ALTER'],
-            ['LOGIN', 'LINGO'],
             ['ROUTE', 'OUTER'],
-            ['STATE', 'TASTE'],
-            ['SCOPE', 'COPES'],
-            ['SEARCH', 'CHASER'],
-            ['SIGNAL', 'ALIGNS'],
-            ['BINARY', 'BRAINY'],
-            ['STREAM', 'MASTER'],
-            ['CLOUD', 'COULD']
+            ['RAM', 'ARM'],
+            ['ROM', 'ORM'],
+            ['TLS', 'STL'],
+            ['RAID', 'ARIA'],
+            ['SSO', 'OSS'],
+            ['OCR', 'ROC']
         ].map(([primary, alternate]) => ({ primary, alternate }));
         this.nextPairIndex = this.elements.length;
         this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
