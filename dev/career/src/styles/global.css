@@ -3278,18 +3278,29 @@ textarea {
   margin-top: 2px;
 }
 
+/* Wrap title + description in one grid cell so they share column 2 with
+   the title; otherwise grid auto-flow puts the description in col 1 row 2
+   (the 24px counter column) and the text breaks character-by-character on
+   narrow screens. */
+.how-it-works__step {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .how-it-works__list strong {
   display: block;
   font-size: 0.95rem;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .how-it-works__list span {
   display: block;
-  margin-top: 2px;
   font-size: 0.85rem;
   color: var(--text-soft);
   line-height: 1.5;
+  overflow-wrap: break-word;
 }
 
 /* Bottom-of-page CTA below the consultant grid — picks up empty whitespace

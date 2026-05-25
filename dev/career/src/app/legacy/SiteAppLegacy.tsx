@@ -2102,16 +2102,22 @@ function HowItWorksCard() {
       <p className="eyebrow">Как работи</p>
       <ol className="how-it-works__list">
         <li>
-          <strong>Избираш час</strong>
-          <span>Заявка се изпраща веднага по имейл.</span>
+          <div className="how-it-works__step">
+            <strong>Избираш час</strong>
+            <span>Заявка се изпраща веднага по имейл.</span>
+          </div>
         </li>
         <li>
-          <strong>Консултантът потвърждава</strong>
-          <span>Получаваш отделно известие за приемане или отказ.</span>
+          <div className="how-it-works__step">
+            <strong>Консултантът потвърждава</strong>
+            <span>Получаваш отделно известие за приемане или отказ.</span>
+          </div>
         </li>
         <li>
-          <strong>Напомняне 24 часа преди</strong>
-          <span>И двете страни получават имейл с детайлите.</span>
+          <div className="how-it-works__step">
+            <strong>Напомняне 24 часа преди</strong>
+            <span>И двете страни получават имейл с детайлите.</span>
+          </div>
         </li>
       </ol>
     </section>
