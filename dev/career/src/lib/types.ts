@@ -162,6 +162,25 @@ export interface ConsultantReviewItem {
   createdAt: string;
 }
 
+export type NotificationType =
+  | "booking_requested"
+  | "booking_accepted"
+  | "booking_declined"
+  | "booking_cancelled"
+  | "booking_rescheduled"
+  | "booking_reminder"
+  | "review_received";
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  href?: string;
+  createdAt: string;
+  readAt?: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

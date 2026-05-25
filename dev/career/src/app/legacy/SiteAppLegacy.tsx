@@ -39,6 +39,7 @@ import type {
   ConsultantMediaKind,
   ConsultantProfile,
   ConsultantProfileType,
+  NotificationItem,
   PlanTier,
   UploadedDocument,
   UserProfile,
@@ -3105,6 +3106,8 @@ export function DashboardPage() {
   const [dashboardReloadKey, setDashboardReloadKey] = useState(0);
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null);
   const [decidingBookingId, setDecidingBookingId] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationsBusy, setNotificationsBusy] = useState(false);
   const [reviewModalBooking, setReviewModalBooking] = useState<Booking | null>(null);
   const [rescheduleModalBooking, setRescheduleModalBooking] = useState<Booking | null>(null);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -3135,14 +3138,16 @@ export function DashboardPage() {
         .getMyConsultantProfile(token)
         .then((value) => value)
         .catch(() => null),
-      api.listConsultants().catch(() => [])
+      api.listConsultants().catch(() => []),
+      api.listMyNotifications(token).catch(() => ({ items: [], unreadCount: 0 }))
     ])
       .then(
         ([
           nextProfile,
           nextBookings,
           nextConsultantProfile,
-          nextDirectoryConsultants
+          nextDirectoryConsultants,
+          nextNotifications
         ]) => {
         if (!mounted) {
           return;
@@ -3152,6 +3157,7 @@ export function DashboardPage() {
         setBookings(nextBookings);
         setConsultantProfile(nextConsultantProfile);
         setDirectoryConsultants(nextDirectoryConsultants);
+        setNotifications(nextNotifications.items || []);
         }
       )
       .catch((value) => {
@@ -3418,6 +3424,21 @@ export function DashboardPage() {
       setError(value instanceof Error ? value.message : "Неуспешен експорт.");
     } finally {
       setAccountActionLoading(null);
+    }
+  }
+
+  async function markNotificationsReadAction() {
+    if (!token || notificationsBusy) return;
+    setNotificationsBusy(true);
+    try {
+      await api.markMyNotificationsRead(token);
+      setNotifications((current) =>
+        current.map((n) => (n.readAt ? n : { ...n, readAt: new Date().toISOString() }))
+      );
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Неуспешно маркиране на известията.");
+    } finally {
+      setNotificationsBusy(false);
     }
   }
 
@@ -3934,6 +3955,16 @@ export function DashboardPage() {
             <button type="button" onClick={() => scrollToDashboardSection("overview")}>
               Преглед
             </button>
+            {notifications.length ? (
+              <button type="button" onClick={() => scrollToDashboardSection("notifications")}>
+                Известия
+                {notifications.filter((n) => !n.readAt).length ? (
+                  <span className="notifications-panel__badge notifications-panel__badge--inline">
+                    {notifications.filter((n) => !n.readAt).length}
+                  </span>
+                ) : null}
+              </button>
+            ) : null}
             {profile.role === "consultant" ? (
               <button type="button" onClick={() => scrollToDashboardSection("consultant-profile")}>
                 Публичен профил
@@ -4036,6 +4067,14 @@ export function DashboardPage() {
               )}
             </div>
           </section>
+
+          {notifications.length ? (
+            <NotificationsPanel
+              notifications={notifications}
+              busy={notificationsBusy}
+              onMarkAllRead={markNotificationsReadAction}
+            />
+          ) : null}
 
           {profile.role === "client" ? (
             <section className="panel" id="matches">
@@ -5494,6 +5533,86 @@ export function DashboardPage() {
           onSubmit={rescheduleAction}
         />
       ) : null}
+    </section>
+  );
+}
+
+const NOTIFICATION_ICONS: Record<NotificationItem["type"], string> = {
+  booking_requested: "📨",
+  booking_accepted: "✅",
+  booking_declined: "↩️",
+  booking_cancelled: "⛔",
+  booking_rescheduled: "🔁",
+  booking_reminder: "⏰",
+  review_received: "⭐"
+};
+
+function formatRelativeBg(iso: string) {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const diffSec = Math.round((Date.now() - then) / 1000);
+  if (diffSec < 60) return "току-що";
+  if (diffSec < 3600) return `преди ${Math.round(diffSec / 60)} мин`;
+  if (diffSec < 86400) return `преди ${Math.round(diffSec / 3600)} ч`;
+  if (diffSec < 7 * 86400) return `преди ${Math.round(diffSec / 86400)} дни`;
+  return formatDate(iso);
+}
+
+function NotificationsPanel({
+  notifications,
+  busy,
+  onMarkAllRead
+}: {
+  notifications: NotificationItem[];
+  busy: boolean;
+  onMarkAllRead: () => void | Promise<void>;
+}) {
+  const sorted = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  const unreadCount = sorted.filter((n) => !n.readAt).length;
+  const visible = sorted.slice(0, 10);
+
+  return (
+    <section className="panel notifications-panel" id="notifications">
+      <header className="notifications-panel__head">
+        <div>
+          <p className="eyebrow">Известия</p>
+          <h2>
+            Какво се случи скоро{" "}
+            {unreadCount ? (
+              <span className="notifications-panel__badge">{unreadCount}</span>
+            ) : null}
+          </h2>
+        </div>
+        {unreadCount ? (
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={() => onMarkAllRead()}
+            disabled={busy}
+          >
+            {busy ? "Маркираме..." : "Маркирай като прочетени"}
+          </button>
+        ) : null}
+      </header>
+      <ul className="notifications-list" aria-label="Списък с известия">
+        {visible.map((n) => (
+          <li
+            key={n.id}
+            className={`notifications-item ${n.readAt ? "" : "notifications-item--unread"}`}
+          >
+            <span className="notifications-item__icon" aria-hidden="true">
+              {NOTIFICATION_ICONS[n.type] || "🔔"}
+            </span>
+            <div className="notifications-item__body">
+              <strong>{n.title}</strong>
+              <p>{n.body}</p>
+              <span className="form-note">{formatRelativeBg(n.createdAt)}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

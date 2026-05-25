@@ -139,6 +139,56 @@ function requireAdmin(event) {
   return claims;
 }
 
+const NOTIFICATION_TYPES = new Set([
+  "booking_requested",
+  "booking_accepted",
+  "booking_declined",
+  "booking_cancelled",
+  "booking_rescheduled",
+  "booking_reminder",
+  "review_received"
+]);
+
+const NOTIFICATION_KEEP = 50;
+
+async function appendUserNotification(userId, notification) {
+  if (!userId || !notification) return;
+  if (!NOTIFICATION_TYPES.has(notification.type)) return;
+
+  const payload = {
+    id: `n-${randomUUID()}`,
+    type: notification.type,
+    title: String(notification.title || "").slice(0, 160),
+    body: String(notification.body || "").slice(0, 400),
+    href: notification.href || "/dashboard",
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    // Append and let the read-side trim to NOTIFICATION_KEEP. DynamoDB has no
+    // native "limit list size" expression, but on the next read we slice the
+    // tail and overwrite the user record if it ballooned past the cap.
+    await dynamo.send(
+      new UpdateCommand({
+        TableName: env.usersTable,
+        Key: { userId },
+        UpdateExpression:
+          "SET notifications = list_append(if_not_exists(notifications, :empty), :item)",
+        ExpressionAttributeValues: {
+          ":empty": [],
+          ":item": [payload]
+        }
+      })
+    );
+  } catch (error) {
+    console.error("[notify] append failed", {
+      userId,
+      type: notification.type,
+      error: error?.message || error
+    });
+  }
+}
+
 async function getUserBySub(userId) {
   const result = await dynamo.send(
     new GetCommand({
@@ -645,6 +695,20 @@ async function sendDueReminders() {
         client: client || { email: booking.clientEmail, name: booking.clientName },
         booking
       });
+
+      const reminderWhen = formatBookingDateTimeBg(booking.scheduledAt);
+      await appendUserNotification(booking.clientId, {
+        type: "booking_reminder",
+        title: `Утре имаш консултация с ${booking.consultantName || consultant?.name || ""}`,
+        body: `Час: ${reminderWhen}.`
+      });
+      if (consultant?.ownerUserId) {
+        await appendUserNotification(consultant.ownerUserId, {
+          type: "booking_reminder",
+          title: `Утре имаш консултация с ${booking.clientName || "потребител"}`,
+          body: `Час: ${reminderWhen}.`
+        });
+      }
 
       await dynamo.send(
         new UpdateCommand({
@@ -2117,6 +2181,21 @@ async function createBooking(event) {
     console.error("[booking] notification failure", error?.message || error);
   }
 
+  // In-app notifications for both parties — independent of email delivery so
+  // they appear on the dashboard even if SES sandbox / verification blocks
+  // the outbound mail.
+  const whenLabel = formatBookingDateTimeBg(booking.scheduledAt);
+  await appendUserNotification(consultant.ownerUserId, {
+    type: "booking_requested",
+    title: `Нова заявка от ${booking.clientName || "потребител"}`,
+    body: `Час: ${whenLabel}. Отвори таблото, за да приемеш или откажеш.`
+  });
+  await appendUserNotification(user.userId, {
+    type: "booking_requested",
+    title: `Заявката ти за ${consultant.name} е изпратена`,
+    body: `Час: ${whenLabel}. Ще получиш известие при отговор от консултанта.`
+  });
+
   return response(201, booking);
 }
 
@@ -2185,6 +2264,18 @@ async function acceptBooking({ claims, bookingId }) {
   } catch (error) {
     console.error("[booking] accept email failure", error?.message || error);
   }
+
+  const acceptWhen = formatBookingDateTimeBg(booking.scheduledAt);
+  await appendUserNotification(booking.clientId, {
+    type: "booking_accepted",
+    title: `${consultant.name} потвърди резервацията`,
+    body: `Час: ${acceptWhen}. Ще получиш напомняне 24 часа преди срещата.`
+  });
+  await appendUserNotification(consultant.ownerUserId, {
+    type: "booking_accepted",
+    title: `Потвърди консултация с ${booking.clientName || "потребител"}`,
+    body: `Час: ${acceptWhen}.`
+  });
 
   return response(200, updated);
 }
@@ -2255,6 +2346,14 @@ async function declineBooking({ claims, bookingId, reason }) {
   } catch (error) {
     console.error("[booking] decline email failure", error?.message || error);
   }
+
+  await appendUserNotification(booking.clientId, {
+    type: "booking_declined",
+    title: `${consultant.name} не може да поеме заявката`,
+    body: trimmedReason
+      ? `Причина: ${trimmedReason}. Можеш да избереш друг час или друг консултант.`
+      : "Можеш да избереш друг час или друг консултант."
+  });
 
   return response(200, updated);
 }
@@ -2412,6 +2511,24 @@ async function rescheduleBooking(event) {
     console.error("[booking] reschedule email failure", error?.message || error);
   }
 
+  // Notify only the OTHER party (the actor knows they did the action).
+  const otherUserId =
+    rescheduledBy === "consultant" ? booking.clientId : consultant.ownerUserId;
+  const newWhen = formatBookingDateTimeBg(normalizedNew);
+  const oldWhen = formatBookingDateTimeBg(oldScheduledAt);
+  await appendUserNotification(otherUserId, {
+    type: "booking_rescheduled",
+    title:
+      rescheduledBy === "consultant"
+        ? `${consultant.name} премести часа на резервацията`
+        : `Преместен час за консултация с ${booking.clientName || "потребител"}`,
+    body:
+      `${oldWhen} → ${newWhen}.` +
+      (nextStatus === "pending"
+        ? " Новият час чака потвърждение."
+        : "")
+  });
+
   return response(200, updated);
 }
 
@@ -2529,6 +2646,21 @@ async function updateBookingStatus(event) {
     }
   } catch (error) {
     console.error("[booking] cancellation email failure", error?.message || error);
+  }
+
+  // Notify the OTHER party in-app (the canceller knows what they did).
+  const cancelWhen = formatBookingDateTimeBg(booking.scheduledAt);
+  const otherUserId =
+    cancelledBy === "consultant" ? booking.clientId : consultant?.ownerUserId;
+  if (otherUserId) {
+    await appendUserNotification(otherUserId, {
+      type: "booking_cancelled",
+      title:
+        cancelledBy === "consultant"
+          ? `${booking.consultantName || consultant?.name || "Консултант"} отказа резервацията`
+          : `${booking.clientName || "Потребител"} отказа резервацията`,
+      body: `Час: ${cancelWhen}. Слотът отново е свободен в графика.`
+    });
   }
 
   return response(200, updated);
@@ -2753,6 +2885,14 @@ async function submitReview(event) {
     throw error;
   }
 
+  await appendUserNotification(consultant.ownerUserId, {
+    type: "review_received",
+    title: `${booking.clientName || "Потребител"} остави отзив`,
+    body: `${"★".repeat(rating)}${"☆".repeat(5 - rating)}${
+      comment ? ` — „${comment.slice(0, 120)}${comment.length > 120 ? "…" : ""}"` : ""
+    }`
+  });
+
   return response(200, {
     booking: { ...booking, review },
     consultant: {
@@ -2761,6 +2901,73 @@ async function submitReview(event) {
       rating: Math.round(((legacySum + rating) / (priorCount + 1)) * 10) / 10
     }
   });
+}
+
+async function getMyNotifications(event) {
+  const claims = requireAuth(event);
+  const result = await dynamo.send(
+    new GetCommand({
+      TableName: env.usersTable,
+      Key: { userId: claims.sub },
+      ProjectionExpression: "notifications",
+      ConsistentRead: true
+    })
+  );
+  const stored = Array.isArray(result.Item?.notifications)
+    ? result.Item.notifications
+    : [];
+  // Newest first, capped at NOTIFICATION_KEEP. Also trim the row in DynamoDB
+  // if it grew past the cap, so lists stay bounded over time.
+  const sorted = [...stored].sort(
+    (a, b) =>
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+  );
+  if (sorted.length > NOTIFICATION_KEEP) {
+    const trimmed = sorted.slice(0, NOTIFICATION_KEEP);
+    try {
+      await dynamo.send(
+        new UpdateCommand({
+          TableName: env.usersTable,
+          Key: { userId: claims.sub },
+          UpdateExpression: "SET notifications = :n",
+          ExpressionAttributeValues: { ":n": trimmed }
+        })
+      );
+    } catch {
+      /* best effort */
+    }
+    return response(200, { items: trimmed, unreadCount: trimmed.filter((n) => !n.readAt).length });
+  }
+  return response(200, {
+    items: sorted,
+    unreadCount: sorted.filter((n) => !n.readAt).length
+  });
+}
+
+async function markMyNotificationsRead(event) {
+  const claims = requireAuth(event);
+  const result = await dynamo.send(
+    new GetCommand({
+      TableName: env.usersTable,
+      Key: { userId: claims.sub },
+      ProjectionExpression: "notifications",
+      ConsistentRead: true
+    })
+  );
+  const stored = Array.isArray(result.Item?.notifications)
+    ? result.Item.notifications
+    : [];
+  const now = new Date().toISOString();
+  const next = stored.map((n) => (n.readAt ? n : { ...n, readAt: now }));
+  await dynamo.send(
+    new UpdateCommand({
+      TableName: env.usersTable,
+      Key: { userId: claims.sub },
+      UpdateExpression: "SET notifications = :n",
+      ExpressionAttributeValues: { ":n": next }
+    })
+  );
+  return response(200, { ok: true, unreadCount: 0 });
 }
 
 async function listBookings(event) {
@@ -3024,6 +3231,8 @@ exports.handler = async (event) => {
     if (method === "GET" && path === "/me/profile") return getMeProfile(event);
     if (method === "GET" && path === "/me/data-export") return exportMyData(event);
     if (method === "DELETE" && path === "/me") return deleteMyAccount(event);
+    if (method === "GET" && path === "/me/notifications") return getMyNotifications(event);
+    if (method === "POST" && path === "/me/notifications/mark-read") return markMyNotificationsRead(event);
     if (method === "PUT" && path === "/me/profile") return updateMeProfile(event);
     if (method === "POST" && path === "/me/cv/upload-url") return createUploadUrl(event);
     if (method === "GET" && path === "/bookings") return listBookings(event);

@@ -8,6 +8,7 @@ import type {
   ConsultantProfile,
   ConsultantProfileStatus,
   ConsultantProfileType,
+  NotificationItem,
   PlanTier,
   UploadedDocument,
   UserProfile,
@@ -297,6 +298,22 @@ export const api = {
     return request<{ deleted: boolean; anonymizedBookings: number; note: string }>(
       "/me",
       { method: "DELETE" },
+      token
+    );
+  },
+
+  async listMyNotifications(token: string) {
+    return request<{ items: NotificationItem[]; unreadCount: number }>(
+      "/me/notifications",
+      undefined,
+      token
+    );
+  },
+
+  async markMyNotificationsRead(token: string) {
+    return request<{ ok: boolean; unreadCount: number }>(
+      "/me/notifications/mark-read",
+      { method: "POST" },
       token
     );
   },
