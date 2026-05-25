@@ -2065,10 +2065,60 @@ export function ConsultantPage() {
             ) : null}
           </form>
           )}
+          <HowItWorksCard />
           </aside>
         </div>
       </section>
+
+      <section className="section consultant-page-cta">
+        <div className="container">
+          <div className="panel consultant-page-cta__card">
+            <div>
+              <p className="eyebrow">Още опции</p>
+              <h2>Разгледай и други {getConsultantTypeLabelPlural(consultant)}</h2>
+              <p className="section-caption">
+                Сравни фокус, формат и свободни часове, за да избереш правилния човек за
+                следващата си стъпка.
+              </p>
+            </div>
+            <div className="consultant-page-cta__actions">
+              <Link className="primary-button" to="/users">
+                Към всички профили
+              </Link>
+              <Link className="ghost-button" to="/users?kind=mentor">
+                Само ментори
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
+  );
+}
+
+function getConsultantTypeLabelPlural(consultant: ConsultantProfile) {
+  return getConsultantProfileType(consultant) === "mentor" ? "ментори" : "консултанти";
+}
+
+function HowItWorksCard() {
+  return (
+    <section className="panel how-it-works" aria-label="Как работи">
+      <p className="eyebrow">Как работи</p>
+      <ol className="how-it-works__list">
+        <li>
+          <strong>Избираш час</strong>
+          <span>Заявка се изпраща веднага по имейл.</span>
+        </li>
+        <li>
+          <strong>Консултантът потвърждава</strong>
+          <span>Получаваш отделно известие за приемане или отказ.</span>
+        </li>
+        <li>
+          <strong>Напомняне 24 часа преди</strong>
+          <span>И двете страни получават имейл с детайлите.</span>
+        </li>
+      </ol>
+    </section>
   );
 }
 

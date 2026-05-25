@@ -3230,6 +3230,95 @@ textarea {
   gap: 6px;
 }
 
+/* "How it works" widget in the right rail — fills space when booking
+   content is short and educates first-time users on the lifecycle. */
+.how-it-works {
+  padding: 18px 20px;
+}
+
+.how-it-works .eyebrow {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.how-it-works__list {
+  counter-reset: how-step;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.how-it-works__list li {
+  counter-increment: how-step;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.how-it-works__list li::before {
+  content: counter(how-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.how-it-works__list strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.how-it-works__list span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+/* Bottom-of-page CTA below the consultant grid — picks up empty whitespace
+   when both columns in the main grid end short. */
+.consultant-page-cta {
+  padding-top: 0;
+}
+
+.consultant-page-cta__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  flex-wrap: wrap;
+}
+
+.consultant-page-cta__card h2 {
+  margin: 6px 0 6px;
+  font-size: 1.4rem;
+  line-height: 1.25;
+}
+
+.consultant-page-cta__card .section-caption {
+  margin: 0;
+  max-width: 56ch;
+}
+
+.consultant-page-cta__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .booking-panel__head {
   display: grid;
   gap: 4px;
