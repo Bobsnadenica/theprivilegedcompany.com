@@ -1386,7 +1386,10 @@ async function listConsultants(event) {
       items: decoratedItems.map(stripSensitiveConsultantFields),
       nextCursor: encodeCursor(lastEvaluatedKey)
     },
-    { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" }
+    // Marketplace data updates whenever a consultant saves their profile;
+    // a 60s cache made client-side updates appear with a lag. Keep this
+    // fully fresh until traffic justifies a CDN with explicit invalidation.
+    { "Cache-Control": "no-store" }
   );
 }
 
@@ -1412,7 +1415,9 @@ async function getConsultant(event) {
     200,
     stripSensitiveConsultantFields({ ...decorated, recentReviews }),
     {
-      "Cache-Control": "public, max-age=120, stale-while-revalidate=600"
+      // Match /consultants — no caching so profile edits are immediately
+      // visible to clients without waiting for stale-while-revalidate.
+      "Cache-Control": "no-store"
     }
   );
 }
