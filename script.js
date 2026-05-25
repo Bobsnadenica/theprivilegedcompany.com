@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525h';
+import { languageMeta, translations } from './translations.js?v=20260525n';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525h';
+const assetVersion = '20260525n';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -390,7 +390,10 @@ const initServiceCards = () => {
             router();
         };
 
-        card.addEventListener('click', openDestination);
+        card.addEventListener('click', event => {
+            if (event.target.closest('a, button, input, select, textarea')) return;
+            openDestination();
+        });
         card.addEventListener('keydown', event => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
@@ -793,18 +796,30 @@ const initHealthCheck = () => {
 
     const request = async (path, options = {}) => {
         const started = performance.now();
-        const response = await fetch(targetPath(path), {
-            cache: 'no-store',
-            ...options
-        });
-        const elapsed = performance.now() - started;
-        const text = options.method === 'HEAD' ? '' : await response.text();
+        try {
+            const response = await fetch(targetPath(path), {
+                cache: 'no-store',
+                ...options
+            });
+            const elapsed = performance.now() - started;
+            const text = options.method === 'HEAD' ? '' : await response.text();
 
-        return {
-            elapsed,
-            response,
-            text
-        };
+            return {
+                elapsed,
+                response,
+                text
+            };
+        } catch {
+            return {
+                elapsed: performance.now() - started,
+                response: {
+                    ok: false,
+                    status: 0,
+                    headers: { get: () => null }
+                },
+                text: ''
+            };
+        }
     };
 
     let diagnosticsRunning = false;
@@ -892,6 +907,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `${home.response.status} ${home.response.ok ? 'ОК' : 'провери'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`
                         : `${home.response.status} ${home.response.ok ? 'OK' : 'check'} - ${getHeader(home.response, 'content-type')} - ${byteSize(getHeader(home.response, 'content-length', '0'))} - ${formatMs(home.elapsed)}`,
+                    attention: !home.response.ok,
                     updates: { http: `${home.response.status} ${home.response.ok ? 'OK' : 'CHECK'}` }
                 },
                 {
@@ -899,6 +915,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `robots ${robots.response.status}; sitemap ${sitemap.response.status} с ${sitemapUrls.length} URL адрес${sitemapUrls.length === 1 ? '' : 'а'}.`
                         : `robots ${robots.response.status}; sitemap ${sitemap.response.status} with ${sitemapUrls.length} URL${sitemapUrls.length === 1 ? '' : 's'}.`,
+                    attention: !robots.response.ok || !sitemap.response.ok || !sitemapUrls.length,
                     updates: {
                         traffic: `${sitemapUrls.length} URLS`,
                         seo: robots.response.ok ? 'ROBOTS OK' : 'ROBOTS?'
@@ -909,6 +926,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `${routeEntries.length - missingFragments}/${routeEntries.length} view фрагмента са достъпни; ${directRouteIssues} директни маршрута имат нужда от fallback.`
                         : `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.`,
+                    attention: Boolean(missingFragments || directRouteIssues),
                     updates: {
                         cache: `${routeEntries.length - missingFragments}/${routeEntries.length}`,
                         errors: directRouteIssues ? 'FALLBACK' : 'CLEAR'
@@ -919,6 +937,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `Title е наличен; description ${metaDescription ? `${metaDescription.length} символа` : 'липсва'}.`
                         : `Title present; description ${metaDescription ? `${metaDescription.length} chars` : 'missing'}.`,
+                    attention: !metaDescription,
                     updates: { seo: metaDescription ? 'META OK' : 'META?' }
                 },
                 {
@@ -926,6 +945,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `Зареждане ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB трансфер.`
                         : `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB transferred.`,
+                    attention: false,
                     updates: {
                         assets: `${resources.length} ASSETS`,
                         latency: `${Math.round((nav?.domainLookupEnd || 0) - (nav?.domainLookupStart || 0))}/${nav?.secureConnectionStart ? Math.round((nav.connectEnd || 0) - nav.secureConnectionStart) : 0}MS`
@@ -936,6 +956,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} mixed-content URL адреса; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`
                         : `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`,
+                    attention: Boolean(mixedContent.length || (missingHardeningHeaders.length && !htmlPolicies.length)),
                     updates: {
                         shield: missingHardeningHeaders.length ? (htmlPolicies.length ? 'HTML POLICY' : 'CHECK') : 'SECURE'
                     }
@@ -945,6 +966,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; response headers ${missingHardeningHeaders.length ? `липсват: ${missingHardeningHeaders.join(', ')}` : 'налични'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
                         : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `missing: ${missingHardeningHeaders.join(', ')}` : 'present'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
+                    attention: Boolean(sqlLeak || exposedFiles.length),
                     updates: {
                         errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }
@@ -954,6 +976,7 @@ const initHealthCheck = () => {
                     summary: currentLanguage === 'bg'
                         ? 'Копираният скрипт добавя DNS, TLS сертификат, redirect, sitemap link checks, sensitive-file checks, SQL error smoke и optional nmap проверка само на web ports 80/443/8080/8443.'
                         : 'Copied script adds DNS, TLS certificate, redirect, sitemap link checks, sensitive-file checks, SQL error smoke, and optional nmap checks limited to web ports 80/443/8080/8443.',
+                    attention: false,
                     updates: {
                         latency: 'DNS/TLS'
                     }
@@ -963,6 +986,7 @@ const initHealthCheck = () => {
             return [{
                 label: 'Probe Failed',
                 summary: error instanceof Error ? error.message : String(error),
+                attention: true,
                 updates: { errors: 'FAILED' }
             }];
         }
@@ -974,16 +998,17 @@ const initHealthCheck = () => {
         diagnosticsRunning = true;
         logEl.replaceChildren();
         commandEl.textContent = 'copy website-probe.sh';
-        outputEl.textContent = t('One portable script. Run it with: bash website-probe.sh https://example.com');
+        outputEl.textContent = t('Copy one .sh probe. From Terminal, WSL, or Git Bash it checks tools, offers supported installs, and prints a short status table.');
 
         const summaries = await buildProbeSummary();
         summaries.forEach(summary => {
-            appendSummary(summary);
             Object.entries(summary.updates).forEach(([key, value]) => updateStatus(key, value));
         });
 
         commandEl.textContent = `example target: ${targetOrigin}`;
-        outputEl.textContent = t('The script reports status, metadata, DNS, TLS, crawl files, route health, security headers, exposure smoke, and optional nmap web-port signals.');
+        outputEl.textContent = summaries.some(summary => summary.attention)
+            ? t('Status tiles updated. Copy the script for the full terminal probe and short status table.')
+            : t('Local checks are clear. Copy the script for the full terminal probe and short status table.');
         diagnosticsRunning = false;
         diagnosticsHasRun = true;
     };
@@ -1119,14 +1144,20 @@ class QuantumWeb {
         this.canvas = document.getElementById(id);
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d');
+        this.canvas.__quantumWeb = this;
         this.particles = [];
         this.mouse = { x: null, y: null, vx: 0, vy: 0, down: false };
         this.lastMouse = { x: 0, y: 0 };
         this.lastFrame = 0;
         this.resizeTimer = null;
         this.ripples = [];
+        this.isVisible = !document.hidden;
         this.init();
         this.animate(0);
+        document.addEventListener('visibilitychange', () => {
+            this.isVisible = !document.hidden;
+            if (this.isVisible && !this.isReducedMotion) this.animate(performance.now());
+        });
         window.addEventListener('resize', () => {
             clearTimeout(this.resizeTimer);
             this.resizeTimer = setTimeout(() => this.init(), 150);
@@ -1168,11 +1199,15 @@ class QuantumWeb {
         this.particles = [];
         this.isCompact = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
         this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        this.frameInterval = this.isCompact ? 33 : 16;
-        this.connectionDistance = this.isCompact ? 86 : 118;
+        const cores = navigator.hardwareConcurrency || 8;
+        const memory = navigator.deviceMemory || 8;
+        const saveData = Boolean(navigator.connection?.saveData);
+        this.isEconomy = saveData || cores <= 4 || memory <= 4;
+        this.frameInterval = this.isReducedMotion ? 1000 : (this.isCompact || this.isEconomy ? 33 : 20);
+        this.connectionDistance = this.isCompact ? 82 : (this.isEconomy ? 98 : 112);
 
-        const density = this.isCompact ? 7200 : 3800;
-        const maxParticles = this.isReducedMotion ? 70 : (this.isCompact ? 125 : 360);
+        const density = this.isCompact ? 7600 : (this.isEconomy ? 5600 : 4600);
+        const maxParticles = this.isReducedMotion ? 48 : (this.isCompact ? 95 : (this.isEconomy ? 170 : 260));
         const count = Math.floor((this.width * this.height) / density);
 
         for (let i = 0; i < Math.min(count, maxParticles); i++) {
@@ -1190,9 +1225,14 @@ class QuantumWeb {
                 phase: Math.random() * Math.PI * 2
             });
         }
+
+        this.canvas.dataset.particleCount = String(this.particles.length);
+        this.canvas.dataset.frameInterval = String(this.frameInterval);
+        this.canvas.dataset.performanceMode = this.isCompact ? 'compact' : (this.isEconomy ? 'economy' : 'rich');
     }
 
     animate(timestamp = 0) {
+        if (!this.isVisible) return;
         if (!this.isReducedMotion && timestamp - this.lastFrame < this.frameInterval) {
             requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
             return;
@@ -1283,9 +1323,10 @@ class QuantumWeb {
         });
 
         this.ctx.lineWidth = 0.5;
-        if (!this.isReducedMotion) {
+        if (!this.isReducedMotion && this.particles.length > 1) {
             const grid = new Map();
             const cellSize = this.connectionDistance;
+            const connectionStride = this.isEconomy ? 2 : 1;
             this.particles.forEach(p => {
                 const cellX = Math.floor(p.x / cellSize);
                 const cellY = Math.floor(p.y / cellSize);
@@ -1295,7 +1336,8 @@ class QuantumWeb {
                 grid.set(key, bucket);
             });
 
-            this.particles.forEach(particle => {
+            this.particles.forEach((particle, particleIndex) => {
+                if (particleIndex % connectionStride !== 0) return;
                 const cellX = Math.floor(particle.x / cellSize);
                 const cellY = Math.floor(particle.y / cellSize);
                 for (let x = cellX - 1; x <= cellX + 1; x++) {

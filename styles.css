@@ -150,8 +150,36 @@ body.has-custom-cursor #cursor-follower {
 .hud-logo a {
     text-decoration: none;
     display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.logo-icon {
+    width: 2.65rem;
+    height: 2.65rem;
+    flex: 0 0 2.65rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 157, 0, 0.32);
+    border-radius: 8px;
+    background: rgba(255, 157, 0, 0.045);
+    overflow: hidden;
+}
+
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(255, 157, 0, 0.18));
+}
+
+.logo-copy {
+    display: flex;
     flex-direction: column;
-    min-width: max-content;
+    min-width: 0;
 }
 
 .logo-mark {
@@ -961,6 +989,12 @@ body.has-custom-cursor #cursor-follower {
     .logo-mark {
         font-size: 1.28rem;
         line-height: 1;
+    }
+
+    .logo-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        flex-basis: 2.25rem;
     }
 
     .logo-full {
