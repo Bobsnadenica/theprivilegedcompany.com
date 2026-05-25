@@ -2,19 +2,19 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525o';
+import { languageMeta, translations } from './translations.js?v=20260525p';
 
 const routes = {
     '': {
-        title: 'AI Engineering, Automation & IT Advisory',
+        title: 'IT Solutions, App & Website Development',
         view: 'home.html',
         isStatic: true,
-        description: 'ThePrivilegedCompany builds AI-amplified software, cloud systems, automation, technical SEO, and private IT advisory for businesses and individuals.'
+        description: 'IT solutions for businesses and individuals: app development, website building, technical SEO, automation, AI tools, cloud audits, and tech training.'
     },
     'manifest': {
         title: 'Services',
         view: 'manifest.html',
-        description: 'Explore ThePrivilegedCompany services for companies and individuals: data products, audits, consulting, websites, apps, SEO, marketing, training, and custom tools.'
+        description: 'Explore IT solutions from ThePrivilegedCompany: app development, website building, technical SEO, audits, automation, consulting, tech training, and custom tools.'
     },
     'who-are-we': {
         title: 'Who We Are',
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525o';
+const assetVersion = '20260525p';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
