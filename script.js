@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525g';
+import { languageMeta, translations } from './translations.js?v=20260525h';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525g';
+const assetVersion = '20260525h';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -1050,6 +1050,7 @@ const initHealthCheck = () => {
  * Custom Cursor Logic
  */
 const canUseEnhancedPointer = () => (
+    window.innerWidth > 760 &&
     window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
     !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 );

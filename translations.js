@@ -30,6 +30,7 @@ export const translations = {
             "From idea to shipped.": "От идея до реален продукт.",
             "We turn rough technical goals into clear plans, working systems, and practical guidance. Whether you arrive as an individual or a business, we help decide what matters, build what is needed, and explain the path without noise.": "Превръщаме неясни технически цели в конкретни планове, работещи системи и практична насока. Независимо дали идвате като човек или компания, помагаме да се реши кое е важно, да се изгради нужното и да се обясни пътят без шум.",
             "Website Diagnostics": "Диагностика на сайта",
+            "Diagnostics": "Диагностика",
             "Open the panel to copy the probe script and see the useful checks.": "Отворете панела, за да копирате скрипта за проверка и да видите полезните проверки.",
             "Copy Script": "Копирай скрипта",
             "Response": "Отговор",

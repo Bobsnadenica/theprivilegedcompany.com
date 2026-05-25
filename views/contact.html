@@ -111,7 +111,14 @@
     .contact-form-status.is-visible { opacity: 1; }
 
     @media (max-width: 720px) {
+        .contact-shell { padding-top: 2rem; }
         .field-grid { grid-template-columns: 1fr; }
+        .contact-form { gap: 1rem; }
+        .contact-form label span { font-size: 0.6rem; letter-spacing: 0.12em; }
+        .contact-form input,
+        .contact-form select,
+        .contact-form textarea { min-height: 3.1rem; padding: 0.85rem 0.9rem; font-size: 1rem; }
+        .contact-form textarea { min-height: 150px; }
         .contact-actions { align-items: stretch; flex-direction: column; }
         .contact-actions .btn-hud { width: 100%; }
         .contact-email { text-align: center; }

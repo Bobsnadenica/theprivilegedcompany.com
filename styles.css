@@ -597,6 +597,10 @@ body.has-custom-cursor #cursor-follower {
     font-weight: 800;
 }
 
+.health-title-short {
+    display: none;
+}
+
 .health-toggle-meta {
     display: flex;
     align-items: center;
@@ -928,41 +932,71 @@ body.has-custom-cursor #cursor-follower {
 }
 
 @media (max-width: 640px) {
+    :root {
+        --gap: clamp(1rem, 4vw, 1.25rem);
+    }
+
     #main-hud {
-        top: 0.75rem;
-        left: 1rem;
-        right: 1rem;
-        grid-template-columns: 1fr;
-        gap: 0.7rem;
-        padding: 0.75rem;
+        top: 0.65rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "logo actions"
+            "nav nav";
+        gap: 0.6rem;
+        padding: 0.65rem;
     }
 
     .hud-logo {
+        grid-area: logo;
         justify-self: start;
+        min-width: 0;
+    }
+
+    .hud-logo a {
+        min-width: 0;
+    }
+
+    .logo-mark {
+        font-size: 1.28rem;
+        line-height: 1;
+    }
+
+    .logo-full {
+        max-width: min(185px, 50vw);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.48rem;
+        letter-spacing: 0.28em;
     }
 
     .hud-nav {
+        grid-area: nav;
         justify-self: stretch;
         width: 100%;
     }
 
     .hud-actions {
-        justify-self: stretch;
+        grid-area: actions;
+        justify-self: end;
+        align-self: start;
         justify-content: flex-end;
     }
 
     .hud-nav ul {
         display: grid;
-        grid-template-columns: 1fr 1fr auto;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         width: 100%;
-        gap: 0.4rem;
+        gap: 0.35rem;
     }
 
     .hud-nav a {
-        min-height: 2.25rem;
-        padding: 0.55rem 0.5rem;
-        font-size: 0.54rem;
-        letter-spacing: 0.08em;
+        width: 100%;
+        min-height: 2.15rem;
+        padding: 0.48rem 0.42rem;
+        font-size: 0.52rem;
+        letter-spacing: 0.075em;
         gap: 0.25rem;
     }
 
@@ -970,23 +1004,29 @@ body.has-custom-cursor #cursor-follower {
         display: none;
     }
 
-    .logo-full {
-        max-width: 190px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .language-switcher {
+        min-height: 2.1rem;
+        padding: 0.35rem 0.48rem;
+    }
+
+    .language-switcher select {
+        font-size: 0.58rem;
+        letter-spacing: 0.08em;
     }
 
     .monolith-hero {
         min-height: auto;
-        padding: 11rem var(--gap) 5rem;
+        padding: 9.5rem var(--gap) 4rem;
     }
 
     .display-huge {
-        font-size: 2.85rem;
+        font-size: clamp(2.55rem, 13.5vw, 3.05rem);
+        line-height: 1.03;
     }
 
     .hero-lead {
-        margin-top: 2rem;
+        margin-top: 1.45rem;
+        line-height: 1.55;
     }
 
     .anagram-strip {
@@ -1000,20 +1040,20 @@ body.has-custom-cursor #cursor-follower {
     }
 
     .hero-footer {
-        margin-top: 4rem;
+        margin-top: 3.25rem;
     }
 
     .magnetic-btn {
-        width: 148px;
-        height: 148px;
+        width: 132px;
+        height: 132px;
     }
 
     .monolith-advert {
-        padding: 5.5rem var(--gap) 6rem;
+        padding: 4.5rem var(--gap) 5rem;
     }
 
     .monolith-advert h2 {
-        font-size: 2.45rem;
+        font-size: clamp(2rem, 10vw, 2.35rem);
     }
 
     .monolith-advert p {
@@ -1027,17 +1067,19 @@ body.has-custom-cursor #cursor-follower {
     #dynamic-view .monolith-view,
     .monolith-view {
         width: 100%;
-        padding: 11rem var(--gap) 3rem;
+        padding: 9.5rem var(--gap) 4rem;
     }
 
     #dynamic-view .view-header,
     .view-header {
-        margin-bottom: 4rem;
+        margin-bottom: 3rem;
     }
 
     #dynamic-view .view-lead,
     .view-lead {
         font-size: 1.05rem;
+        line-height: 1.6;
+        margin-top: 1.35rem;
     }
 
     #dynamic-view .info-block,
@@ -1096,13 +1138,65 @@ body.has-custom-cursor #cursor-follower {
     }
 
     .diagnostic-dock {
-        right: 1rem;
-        flex-wrap: wrap-reverse;
+        left: auto;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        max-width: calc(100vw - 1.5rem);
     }
 
     #health-dashboard {
-        width: calc(100vw - 2rem);
-        max-height: min(72vh, 620px);
+        width: min(343px, calc(100vw - 2rem));
+        max-height: min(76svh, 620px);
+        padding: 0.9rem;
+    }
+
+    #health-dashboard.minimized {
+        width: 2.8rem;
+        max-width: 2.8rem;
+        padding: 0.38rem;
+    }
+
+    #health-dashboard.minimized .health-header {
+        min-height: 2rem;
+        padding: 0;
+        justify-content: center;
+        gap: 0;
+    }
+
+    #health-dashboard.minimized .health-title-full {
+        display: none;
+    }
+
+    #health-dashboard.minimized .health-title-short {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    #health-dashboard.minimized .health-toggle-meta {
+        gap: 0.25rem;
+    }
+
+    #health-dashboard:not(.minimized) .health-grid {
+        grid-template-columns: 1fr;
+        gap: 0.65rem;
+    }
+
+    .health-terminal {
+        padding: 0.7rem;
+    }
+
+    .probe-actions {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .copy-probe-btn {
+        width: 100%;
     }
 
     .diagnostic-log {
@@ -1110,9 +1204,10 @@ body.has-custom-cursor #cursor-follower {
     }
 
     #main-footer {
-        align-items: flex-start;
+        align-items: center;
         flex-direction: column;
         gap: 1.5rem;
+        padding-bottom: 6rem;
     }
 
     .footer-right {
@@ -1123,7 +1218,17 @@ body.has-custom-cursor #cursor-follower {
 
 @media (max-width: 380px) {
     .display-huge {
-        font-size: 2.55rem;
+        font-size: 2.42rem;
+    }
+
+    .hud-nav a {
+        font-size: 0.49rem;
+        letter-spacing: 0.045em;
+        padding-inline: 0.3rem;
+    }
+
+    .logo-full {
+        max-width: 165px;
     }
 }
 
