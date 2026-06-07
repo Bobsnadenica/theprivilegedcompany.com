@@ -1,0 +1,656 @@
+{
+  "pack_id": "base",
+  "pack_name": "Starter Pack",
+  "questions": [
+    {
+      "id": "base_q001",
+      "text": "What color is the sky on a sunny day?",
+      "text_bg": "Какъв цвят е небето в слънчев ден?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Blue",   "text_bg": "Синьо",      "is_correct": true  },
+        { "id": "c2", "text": "Red",    "text_bg": "Червено",    "is_correct": false },
+        { "id": "c3", "text": "Green",  "text_bg": "Зелено",     "is_correct": false },
+        { "id": "c4", "text": "Purple", "text_bg": "Лилаво",     "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q002",
+      "text": "What sound does a dog make?",
+      "text_bg": "Какъв звук издава кучето?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Woof", "text_bg": "Хав-хав", "is_correct": true  },
+        { "id": "c2", "text": "Moo",  "text_bg": "Му-у",    "is_correct": false },
+        { "id": "c3", "text": "Meow", "text_bg": "Мяу",     "is_correct": false },
+        { "id": "c4", "text": "Oink", "text_bg": "Хрю",     "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q003",
+      "text": "What color is a ripe banana?",
+      "text_bg": "Какъв цвят е узрелият банан?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Yellow", "text_bg": "Жълто",   "is_correct": true  },
+        { "id": "c2", "text": "Blue",   "text_bg": "Синьо",   "is_correct": false },
+        { "id": "c3", "text": "Pink",   "text_bg": "Розово",  "is_correct": false },
+        { "id": "c4", "text": "Black",  "text_bg": "Черно",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q004",
+      "text": "How many legs does a dog have?",
+      "text_bg": "Колко крака има кучето?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "4", "text_bg": "4", "is_correct": true  },
+        { "id": "c2", "text": "2", "text_bg": "2", "is_correct": false },
+        { "id": "c3", "text": "6", "text_bg": "6", "is_correct": false },
+        { "id": "c4", "text": "8", "text_bg": "8", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q005",
+      "text": "What sound does a cat make?",
+      "text_bg": "Какъв звук издава котката?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Meow", "text_bg": "Мяу",     "is_correct": true  },
+        { "id": "c2", "text": "Woof", "text_bg": "Хав-хав", "is_correct": false },
+        { "id": "c3", "text": "Moo",  "text_bg": "Му-у",    "is_correct": false },
+        { "id": "c4", "text": "Roar", "text_bg": "Ррр",     "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q006",
+      "text": "Which shape has three sides?",
+      "text_bg": "Коя фигура има три страни?",
+      "difficulty": 1,
+      "category": "Shapes",
+      "choices": [
+        { "id": "c1", "text": "Triangle",  "text_bg": "Триъгълник",   "is_correct": true  },
+        { "id": "c2", "text": "Circle",    "text_bg": "Кръг",         "is_correct": false },
+        { "id": "c3", "text": "Square",    "text_bg": "Квадрат",      "is_correct": false },
+        { "id": "c4", "text": "Rectangle", "text_bg": "Правоъгълник", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q007",
+      "text": "What do we use to smell things?",
+      "text_bg": "С какво усещаме миризми?",
+      "difficulty": 1,
+      "category": "Body",
+      "choices": [
+        { "id": "c1", "text": "Nose",  "text_bg": "Нос",   "is_correct": true  },
+        { "id": "c2", "text": "Eyes",  "text_bg": "Очи",   "is_correct": false },
+        { "id": "c3", "text": "Ears",  "text_bg": "Уши",   "is_correct": false },
+        { "id": "c4", "text": "Hands", "text_bg": "Ръце",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q008",
+      "text": "What number comes after four?",
+      "text_bg": "Кое число идва след четири?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "5", "text_bg": "5", "is_correct": true  },
+        { "id": "c2", "text": "3", "text_bg": "3", "is_correct": false },
+        { "id": "c3", "text": "6", "text_bg": "6", "is_correct": false },
+        { "id": "c4", "text": "9", "text_bg": "9", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q009",
+      "text": "What color is grass?",
+      "text_bg": "Какъв цвят е тревата?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Green",  "text_bg": "Зелено",    "is_correct": true  },
+        { "id": "c2", "text": "Orange", "text_bg": "Оранжево",  "is_correct": false },
+        { "id": "c3", "text": "White",  "text_bg": "Бяло",      "is_correct": false },
+        { "id": "c4", "text": "Pink",   "text_bg": "Розово",    "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q010",
+      "text": "What sound does a cow make?",
+      "text_bg": "Какъв звук издава кравата?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Moo",   "text_bg": "Му-у",  "is_correct": true  },
+        { "id": "c2", "text": "Oink",  "text_bg": "Хрю",   "is_correct": false },
+        { "id": "c3", "text": "Cluck", "text_bg": "Ко-ко", "is_correct": false },
+        { "id": "c4", "text": "Baa",   "text_bg": "Бе-е",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q011",
+      "text": "How many fingers are on one hand?",
+      "text_bg": "Колко пръста има на една ръка?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "5",  "text_bg": "5",  "is_correct": true  },
+        { "id": "c2", "text": "4",  "text_bg": "4",  "is_correct": false },
+        { "id": "c3", "text": "10", "text_bg": "10", "is_correct": false },
+        { "id": "c4", "text": "6",  "text_bg": "6",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q012",
+      "text": "Which letter does the word Apple start with?",
+      "text_bg": "С каква буква започва думата Ябълка?",
+      "difficulty": 1,
+      "category": "Letters",
+      "choices": [
+        { "id": "c1", "text": "A", "text_bg": "Я", "is_correct": true  },
+        { "id": "c2", "text": "B", "text_bg": "Б", "is_correct": false },
+        { "id": "c3", "text": "P", "text_bg": "К", "is_correct": false },
+        { "id": "c4", "text": "E", "text_bg": "А", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q013",
+      "text": "What shape is a wheel?",
+      "text_bg": "Каква е формата на колелото?",
+      "difficulty": 1,
+      "category": "Shapes",
+      "choices": [
+        { "id": "c1", "text": "Circle",   "text_bg": "Кръг",      "is_correct": true  },
+        { "id": "c2", "text": "Square",   "text_bg": "Квадрат",   "is_correct": false },
+        { "id": "c3", "text": "Triangle", "text_bg": "Триъгълник","is_correct": false },
+        { "id": "c4", "text": "Oval",     "text_bg": "Овал",      "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q014",
+      "text": "What do bees make?",
+      "text_bg": "Какво правят пчелите?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Honey",  "text_bg": "Мед",    "is_correct": true  },
+        { "id": "c2", "text": "Milk",   "text_bg": "Мляко",  "is_correct": false },
+        { "id": "c3", "text": "Butter", "text_bg": "Масло",  "is_correct": false },
+        { "id": "c4", "text": "Eggs",   "text_bg": "Яйца",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q015",
+      "text": "What do we use to hear sounds?",
+      "text_bg": "С какво чуваме звуците?",
+      "difficulty": 1,
+      "category": "Body",
+      "choices": [
+        { "id": "c1", "text": "Ears",  "text_bg": "Уши",   "is_correct": true  },
+        { "id": "c2", "text": "Eyes",  "text_bg": "Очи",   "is_correct": false },
+        { "id": "c3", "text": "Mouth", "text_bg": "Уста",  "is_correct": false },
+        { "id": "c4", "text": "Feet",  "text_bg": "Крака", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q016",
+      "text": "How many wheels does a tricycle have?",
+      "text_bg": "Колко колела има триколката?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "3", "text_bg": "3", "is_correct": true  },
+        { "id": "c2", "text": "2", "text_bg": "2", "is_correct": false },
+        { "id": "c3", "text": "4", "text_bg": "4", "is_correct": false },
+        { "id": "c4", "text": "1", "text_bg": "1", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q017",
+      "text": "Which letter does the word Ball start with?",
+      "text_bg": "С каква буква започва думата Топка?",
+      "difficulty": 1,
+      "category": "Letters",
+      "choices": [
+        { "id": "c1", "text": "B", "text_bg": "Т", "is_correct": true  },
+        { "id": "c2", "text": "A", "text_bg": "А", "is_correct": false },
+        { "id": "c3", "text": "L", "text_bg": "П", "is_correct": false },
+        { "id": "c4", "text": "D", "text_bg": "К", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q018",
+      "text": "What color is the sun?",
+      "text_bg": "Какъв цвят е слънцето?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Yellow", "text_bg": "Жълто",   "is_correct": true  },
+        { "id": "c2", "text": "Blue",   "text_bg": "Синьо",   "is_correct": false },
+        { "id": "c3", "text": "Green",  "text_bg": "Зелено",  "is_correct": false },
+        { "id": "c4", "text": "Purple", "text_bg": "Лилаво",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q019",
+      "text": "What sound does a duck make?",
+      "text_bg": "Какъв звук издава патицата?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Quack", "text_bg": "Кря-кря",      "is_correct": true  },
+        { "id": "c2", "text": "Moo",   "text_bg": "Му-у",         "is_correct": false },
+        { "id": "c3", "text": "Roar",  "text_bg": "Ррр",          "is_correct": false },
+        { "id": "c4", "text": "Tweet", "text_bg": "Чурулукане",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q020",
+      "text": "If you have two apples and get one more, how many apples do you have?",
+      "text_bg": "Ако имаш две ябълки и получиш още една, колко ябълки имаш?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "3", "text_bg": "3", "is_correct": true  },
+        { "id": "c2", "text": "2", "text_bg": "2", "is_correct": false },
+        { "id": "c3", "text": "4", "text_bg": "4", "is_correct": false },
+        { "id": "c4", "text": "1", "text_bg": "1", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q021",
+      "text": "Which one is a fruit?",
+      "text_bg": "Кое от тези е плод?",
+      "difficulty": 1,
+      "category": "Food",
+      "choices": [
+        { "id": "c1", "text": "Apple", "text_bg": "Ябълка", "is_correct": true  },
+        { "id": "c2", "text": "Car",   "text_bg": "Кола",   "is_correct": false },
+        { "id": "c3", "text": "Chair", "text_bg": "Стол",   "is_correct": false },
+        { "id": "c4", "text": "Shoe",  "text_bg": "Обувка", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q022",
+      "text": "How many days are in a week?",
+      "text_bg": "Колко дни има една седмица?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "7", "text_bg": "7",  "is_correct": true  },
+        { "id": "c2", "text": "5", "text_bg": "5",  "is_correct": false },
+        { "id": "c3", "text": "6", "text_bg": "6",  "is_correct": false },
+        { "id": "c4", "text": "8", "text_bg": "8",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q023",
+      "text": "What do we use to brush our teeth?",
+      "text_bg": "С какво си мием зъбите?",
+      "difficulty": 1,
+      "category": "Body",
+      "choices": [
+        { "id": "c1", "text": "Toothbrush", "text_bg": "Четка за зъби", "is_correct": true  },
+        { "id": "c2", "text": "Fork",       "text_bg": "Вилица",        "is_correct": false },
+        { "id": "c3", "text": "Pencil",     "text_bg": "Молив",         "is_correct": false },
+        { "id": "c4", "text": "Spoon",      "text_bg": "Лъжица",        "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q024",
+      "text": "Which shape has no corners?",
+      "text_bg": "Коя фигура няма ъгли?",
+      "difficulty": 1,
+      "category": "Shapes",
+      "choices": [
+        { "id": "c1", "text": "Circle",   "text_bg": "Кръг",        "is_correct": true  },
+        { "id": "c2", "text": "Triangle", "text_bg": "Триъгълник",  "is_correct": false },
+        { "id": "c3", "text": "Square",   "text_bg": "Квадрат",     "is_correct": false },
+        { "id": "c4", "text": "Rectangle","text_bg": "Правоъгълник","is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q025",
+      "text": "What color do red and yellow make?",
+      "text_bg": "Какъв цвят става от червено и жълто?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Orange", "text_bg": "Оранжево", "is_correct": true  },
+        { "id": "c2", "text": "Green",  "text_bg": "Зелено",   "is_correct": false },
+        { "id": "c3", "text": "Purple", "text_bg": "Лилаво",   "is_correct": false },
+        { "id": "c4", "text": "Black",  "text_bg": "Черно",    "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q026",
+      "text": "What do fish use to breathe in water?",
+      "text_bg": "С какво дишат рибите във водата?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Gills", "text_bg": "Хриле", "is_correct": true  },
+        { "id": "c2", "text": "Nose",  "text_bg": "Нос",   "is_correct": false },
+        { "id": "c3", "text": "Lungs", "text_bg": "Бели дробове", "is_correct": false },
+        { "id": "c4", "text": "Ears",  "text_bg": "Уши",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q027",
+      "text": "Which season is usually the coldest?",
+      "text_bg": "Кой сезон обикновено е най-студен?",
+      "difficulty": 1,
+      "category": "Nature",
+      "choices": [
+        { "id": "c1", "text": "Winter", "text_bg": "Зима",   "is_correct": true  },
+        { "id": "c2", "text": "Summer", "text_bg": "Лято",   "is_correct": false },
+        { "id": "c3", "text": "Spring", "text_bg": "Пролет", "is_correct": false },
+        { "id": "c4", "text": "Autumn", "text_bg": "Есен",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q028",
+      "text": "What do we usually wear on our feet?",
+      "text_bg": "Какво обикновено носим на краката си?",
+      "difficulty": 1,
+      "category": "Daily Life",
+      "choices": [
+        { "id": "c1", "text": "Shoes",   "text_bg": "Обувки", "is_correct": true  },
+        { "id": "c2", "text": "Hat",     "text_bg": "Шапка",  "is_correct": false },
+        { "id": "c3", "text": "Gloves",  "text_bg": "Ръкавици", "is_correct": false },
+        { "id": "c4", "text": "Scarf",   "text_bg": "Шал",    "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q029",
+      "text": "What number comes before ten?",
+      "text_bg": "Кое число е преди десет?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "9",  "text_bg": "9",  "is_correct": true  },
+        { "id": "c2", "text": "11", "text_bg": "11", "is_correct": false },
+        { "id": "c3", "text": "8",  "text_bg": "8",  "is_correct": false },
+        { "id": "c4", "text": "7",  "text_bg": "7",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q030",
+      "text": "Which animal says baa?",
+      "text_bg": "Кое животно казва бе-е?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Sheep", "text_bg": "Овца",   "is_correct": true  },
+        { "id": "c2", "text": "Duck",  "text_bg": "Патица", "is_correct": false },
+        { "id": "c3", "text": "Cat",   "text_bg": "Котка",  "is_correct": false },
+        { "id": "c4", "text": "Cow",   "text_bg": "Крава",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q031",
+      "text": "Which part of the day comes after morning?",
+      "text_bg": "Коя част от деня идва след сутринта?",
+      "difficulty": 1,
+      "category": "Daily Life",
+      "choices": [
+        { "id": "c1", "text": "Afternoon", "text_bg": "Следобед", "is_correct": true  },
+        { "id": "c2", "text": "Midnight",  "text_bg": "Полунощ",  "is_correct": false },
+        { "id": "c3", "text": "Dawn",      "text_bg": "Зазоряване","is_correct": false },
+        { "id": "c4", "text": "Yesterday", "text_bg": "Вчера",    "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q032",
+      "text": "What do we use to cut paper?",
+      "text_bg": "С какво режем хартия?",
+      "difficulty": 1,
+      "category": "School",
+      "choices": [
+        { "id": "c1", "text": "Scissors", "text_bg": "Ножица", "is_correct": true  },
+        { "id": "c2", "text": "Pillow",   "text_bg": "Възглавница", "is_correct": false },
+        { "id": "c3", "text": "Spoon",    "text_bg": "Лъжица", "is_correct": false },
+        { "id": "c4", "text": "Cup",      "text_bg": "Чаша",   "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q033",
+      "text": "Which animal can hop and has long ears?",
+      "text_bg": "Кое животно подскача и има дълги уши?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Rabbit", "text_bg": "Заек", "is_correct": true  },
+        { "id": "c2", "text": "Fish",   "text_bg": "Риба", "is_correct": false },
+        { "id": "c3", "text": "Bear",   "text_bg": "Мечка", "is_correct": false },
+        { "id": "c4", "text": "Turtle", "text_bg": "Костенурка", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q034",
+      "text": "How many months are in a year?",
+      "text_bg": "Колко месеца има в една година?",
+      "difficulty": 1,
+      "category": "Numbers",
+      "choices": [
+        { "id": "c1", "text": "12", "text_bg": "12", "is_correct": true  },
+        { "id": "c2", "text": "10", "text_bg": "10", "is_correct": false },
+        { "id": "c3", "text": "8",  "text_bg": "8",  "is_correct": false },
+        { "id": "c4", "text": "6",  "text_bg": "6",  "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q035",
+      "text": "What do plants need to grow?",
+      "text_bg": "От какво имат нужда растенията, за да растат?",
+      "difficulty": 1,
+      "category": "Nature",
+      "choices": [
+        { "id": "c1", "text": "Water",  "text_bg": "Вода", "is_correct": true  },
+        { "id": "c2", "text": "Plastic","text_bg": "Пластмаса", "is_correct": false },
+        { "id": "c3", "text": "Metal",  "text_bg": "Метал", "is_correct": false },
+        { "id": "c4", "text": "Smoke",  "text_bg": "Дим", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q036",
+      "text": "Which shape looks like a box?",
+      "text_bg": "Коя фигура прилича на кутия?",
+      "difficulty": 1,
+      "category": "Shapes",
+      "choices": [
+        { "id": "c1", "text": "Square",   "text_bg": "Квадрат", "is_correct": true  },
+        { "id": "c2", "text": "Circle",   "text_bg": "Кръг", "is_correct": false },
+        { "id": "c3", "text": "Triangle", "text_bg": "Триъгълник", "is_correct": false },
+        { "id": "c4", "text": "Oval",     "text_bg": "Овал", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q037",
+      "text": "What color are strawberries?",
+      "text_bg": "Какъв цвят са ягодите?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Red",    "text_bg": "Червени", "is_correct": true  },
+        { "id": "c2", "text": "Blue",   "text_bg": "Сини", "is_correct": false },
+        { "id": "c3", "text": "Gray",   "text_bg": "Сиви", "is_correct": false },
+        { "id": "c4", "text": "Purple", "text_bg": "Лилави", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q038",
+      "text": "What do we wear when it rains?",
+      "text_bg": "Какво обличаме, когато вали?",
+      "difficulty": 1,
+      "category": "Daily Life",
+      "choices": [
+        { "id": "c1", "text": "Raincoat", "text_bg": "Дъждобран", "is_correct": true  },
+        { "id": "c2", "text": "Swimsuit", "text_bg": "Бански", "is_correct": false },
+        { "id": "c3", "text": "Pajamas",  "text_bg": "Пижама", "is_correct": false },
+        { "id": "c4", "text": "Scarf",    "text_bg": "Шал", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q039",
+      "text": "Which letter does the word Sun start with?",
+      "text_bg": "С коя буква започва думата Слънце?",
+      "difficulty": 1,
+      "category": "Letters",
+      "choices": [
+        { "id": "c1", "text": "S", "text_bg": "С", "is_correct": true  },
+        { "id": "c2", "text": "M", "text_bg": "М", "is_correct": false },
+        { "id": "c3", "text": "R", "text_bg": "Р", "is_correct": false },
+        { "id": "c4", "text": "T", "text_bg": "Т", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q040",
+      "text": "How many eyes do most people have?",
+      "text_bg": "Колко очи имат повечето хора?",
+      "difficulty": 1,
+      "category": "Body",
+      "choices": [
+        { "id": "c1", "text": "2", "text_bg": "2", "is_correct": true  },
+        { "id": "c2", "text": "1", "text_bg": "1", "is_correct": false },
+        { "id": "c3", "text": "3", "text_bg": "3", "is_correct": false },
+        { "id": "c4", "text": "4", "text_bg": "4", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q041",
+      "text": "Which animal gives us wool?",
+      "text_bg": "Кое животно ни дава вълна?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Sheep", "text_bg": "Овца", "is_correct": true  },
+        { "id": "c2", "text": "Horse", "text_bg": "Кон", "is_correct": false },
+        { "id": "c3", "text": "Duck",  "text_bg": "Патица", "is_correct": false },
+        { "id": "c4", "text": "Shark", "text_bg": "Акула", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q042",
+      "text": "What do we drink with breakfast?",
+      "text_bg": "Какво пием на закуска?",
+      "difficulty": 1,
+      "category": "Food",
+      "choices": [
+        { "id": "c1", "text": "Milk", "text_bg": "Мляко", "is_correct": true  },
+        { "id": "c2", "text": "Sand", "text_bg": "Пясък", "is_correct": false },
+        { "id": "c3", "text": "Soap", "text_bg": "Сапун", "is_correct": false },
+        { "id": "c4", "text": "Salt", "text_bg": "Сол", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q043",
+      "text": "Which vehicle flies in the sky?",
+      "text_bg": "Кое превозно средство лети в небето?",
+      "difficulty": 1,
+      "category": "Transport",
+      "choices": [
+        { "id": "c1", "text": "Airplane", "text_bg": "Самолет", "is_correct": true  },
+        { "id": "c2", "text": "Bicycle",  "text_bg": "Велосипед", "is_correct": false },
+        { "id": "c3", "text": "Boat",     "text_bg": "Лодка", "is_correct": false },
+        { "id": "c4", "text": "Bus",      "text_bg": "Автобус", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q044",
+      "text": "What color is snow?",
+      "text_bg": "Какъв цвят е снегът?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "White", "text_bg": "Бял", "is_correct": true  },
+        { "id": "c2", "text": "Brown", "text_bg": "Кафяв", "is_correct": false },
+        { "id": "c3", "text": "Black", "text_bg": "Черен", "is_correct": false },
+        { "id": "c4", "text": "Green", "text_bg": "Зелен", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q045",
+      "text": "How many sides does a square have?",
+      "text_bg": "Колко страни има квадратът?",
+      "difficulty": 1,
+      "category": "Shapes",
+      "choices": [
+        { "id": "c1", "text": "4", "text_bg": "4", "is_correct": true  },
+        { "id": "c2", "text": "3", "text_bg": "3", "is_correct": false },
+        { "id": "c3", "text": "5", "text_bg": "5", "is_correct": false },
+        { "id": "c4", "text": "6", "text_bg": "6", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q046",
+      "text": "Which season has falling leaves?",
+      "text_bg": "През кой сезон падат листата?",
+      "difficulty": 1,
+      "category": "Nature",
+      "choices": [
+        { "id": "c1", "text": "Autumn", "text_bg": "Есен", "is_correct": true  },
+        { "id": "c2", "text": "Spring", "text_bg": "Пролет", "is_correct": false },
+        { "id": "c3", "text": "Summer", "text_bg": "Лято", "is_correct": false },
+        { "id": "c4", "text": "Winter", "text_bg": "Зима", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q047",
+      "text": "What do we use to write on paper?",
+      "text_bg": "С какво пишем върху хартия?",
+      "difficulty": 1,
+      "category": "School",
+      "choices": [
+        { "id": "c1", "text": "Pencil", "text_bg": "Молив", "is_correct": true  },
+        { "id": "c2", "text": "Plate",  "text_bg": "Чиния", "is_correct": false },
+        { "id": "c3", "text": "Fork",   "text_bg": "Вилица", "is_correct": false },
+        { "id": "c4", "text": "Shoe",   "text_bg": "Обувка", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q048",
+      "text": "Which room do we usually sleep in?",
+      "text_bg": "В коя стая обикновено спим?",
+      "difficulty": 1,
+      "category": "Home",
+      "choices": [
+        { "id": "c1", "text": "Bedroom", "text_bg": "Спалня", "is_correct": true  },
+        { "id": "c2", "text": "Garage",  "text_bg": "Гараж", "is_correct": false },
+        { "id": "c3", "text": "Kitchen", "text_bg": "Кухня", "is_correct": false },
+        { "id": "c4", "text": "Garden",  "text_bg": "Градина", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q049",
+      "text": "What do we call a baby dog?",
+      "text_bg": "Как наричаме бебе на куче?",
+      "difficulty": 1,
+      "category": "Animals",
+      "choices": [
+        { "id": "c1", "text": "Puppy",  "text_bg": "Кученце", "is_correct": true  },
+        { "id": "c2", "text": "Kitten", "text_bg": "Котенце", "is_correct": false },
+        { "id": "c3", "text": "Calf",   "text_bg": "Телe", "is_correct": false },
+        { "id": "c4", "text": "Foal",   "text_bg": "Жребче", "is_correct": false }
+      ]
+    },
+    {
+      "id": "base_q050",
+      "text": "What color do blue and yellow make?",
+      "text_bg": "Какъв цвят става от синьо и жълто?",
+      "difficulty": 1,
+      "category": "Colors",
+      "choices": [
+        { "id": "c1", "text": "Green",  "text_bg": "Зелено", "is_correct": true  },
+        { "id": "c2", "text": "Purple", "text_bg": "Лилаво", "is_correct": false },
+        { "id": "c3", "text": "Red",    "text_bg": "Червено", "is_correct": false },
+        { "id": "c4", "text": "Orange", "text_bg": "Оранжево", "is_correct": false }
+      ]
+    }
+  ]
+}
