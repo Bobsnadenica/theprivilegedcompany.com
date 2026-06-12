@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260525p';
+import { languageMeta, translations } from './translations.js?v=20260612a';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260525p';
+const assetVersion = '20260612a';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -94,7 +94,7 @@ const serviceRequestTypes = {
     'Scam & Funnel Awareness': 'Scam or fraud awareness'
 };
 const toolSuiteServiceName = 'Learn Any Tech Topic';
-const toolSuitePath = 'Tech%20Tools/index.html';
+const toolSuitePath = 'dev/Tech%20Tools/index.html';
 const serviceDestinations = {
     [toolSuiteServiceName]: {
         type: 'internal',

@@ -1,0 +1,308 @@
+{
+  "questions_en": [
+    {
+      "text": "Wearing a coat in the winter?",
+      "points_yes": 0,
+      "points_no": 100,
+      "image": "coat.jpg"
+    },
+    {
+      "text": "Drinking water when thirsty?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Charging your phone at night?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Using a towel after a shower?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Sitting in a chair like a normal person?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Putting your seatbelt on before driving?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Saying goodnight to your friends?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Eating 3 meals a day?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Brushing your teeth in the morning?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Wearing socks that match?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Owning more than one pillow?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Closing the fridge properly?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Walking your dog?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Putting your phone on silent in the cinema?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Using deodorant?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Using an umbrella when it rains?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Wiping after using the toilet?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Checking the expiration date on milk?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Sleeping with a blanket?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Using sunscreen at the beach?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Liking women?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Blowing on food when it's hot?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Reading the instructions?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Washing your face?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Locking your front door?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Using GPS to find a location?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Cooking meat until it's done?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Having a job?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Breathing air?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Wearing sunglasses when it's sunny?",
+      "points_yes": 0,
+      "points_no": 100
+    }
+  ],
+  "questions_bg": [
+    {
+      "text": "Да носиш яке през зимата?",
+      "points_yes": 0,
+      "points_no": 100,
+      "image": "coat.jpg"
+    },
+    {
+      "text": "Да пиеш вода, когато си жаден?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да зареждаш телефона си през нощта?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да използваш кърпа след душ?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да седиш нормално на стол?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да си сложиш колан преди да тръгнеш?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да кажеш лека нощ на приятелите си?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да ядеш 3 пъти на ден?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да миеш зъбите сутрин?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да носиш еднакви чорапи?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да имаш повече от една възглавница?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да затваряш хладилника добре?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да разхождаш кучето си?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да си сложиш телефона на тих режим в киното?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да използваш дезодорант?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да използваш чадър, когато вали?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да се бършеш след тоалетна?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да гледаш срока на годност на млякото?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да спиш със завивка?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да ползваш слънцезащитен крем?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да харесваш жени?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да си духаш на храната, когато е гореща?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да четеш упътването?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да си миеш лицето?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да заключваш входната врата?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да използваш навигация?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да готвиш месото докато стане готово?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да ходиш на работа?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да дишаш въздух?",
+      "points_yes": 0,
+      "points_no": 100
+    },
+    {
+      "text": "Да носиш слънчеви очила?",
+      "points_yes": 0,
+      "points_no": 100
+    }
+  ]
+}

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рецептите на Мама</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-color: #fff8e1;
+    --text-color: #3e2723;
+    --secondary-text-color: #5d4037;
+    --accent-color: #ff7043;
+    --link-bg-color: rgba(255, 112, 67, 0.1);
+    --link-border-color: rgba(255, 112, 67, 0.3);
+    --primary-gradient: linear-gradient(45deg, #ef5350, #ff7043);
+    --underline-gradient: linear-gradient(90deg, #ef5350, #ff8a65);
+}
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html, body {
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+    cursor: none;
+    user-select: none;
+    background-color: var(--bg-color);
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 1rem;
+    text-align: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+.garden {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-color) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80') no-repeat center/cover;
+    z-index: -1;
+    filter: brightness(1.1) saturate(1.3) blur(2px);
+    background-attachment: fixed;
+    transition: filter 0.5s ease;
+}
+.flower-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    min-height: 100%;
+}
+h1, h2, .recipe-container, .cat-game-wrapper {
+    z-index: 1;
+}
+h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    color: transparent;
+    position: relative;
+    padding-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-top: 1rem;
+}
+h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 80%;
+    max-width: 250px;
+    height: 3px;
+    background: var(--underline-gradient);
+    animation: underline 1s 0.5s ease forwards;
+}
+h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    color: var(--secondary-text-color);
+    margin: 0.5rem 0 1.5rem;
+    max-width: 600px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+@keyframes slideIn {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+@keyframes underline {
+    to {
+        transform: translateX(-50%) scaleX(1);
+    }
+}
+.recipe-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    width: 100%;
+    max-width: 800px;
+    background: rgba(255,245,230,0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.recipe-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-bottom: 1px solid var(--link-border-color);
+    padding-bottom: 1rem;
+}
+.recipe-section:last-child {
+    border-bottom: none;
+}
+.recipe-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 4vw, 1.8rem);
+    color: var(--text-color);
+    text-align: left;
+}
+.recipe-section h4 {
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    color: var(--accent-color);
+    margin-top: 0.5rem;
+}
+.recipe-section ul, .recipe-section ol {
+    text-align: left;
+    margin-left: 1.5rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    color: var(--secondary-text-color);
+}
+.recipe-img {
+    width: 100%;
+    max-width: 520px;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    border: 2px solid var(--link-border-color);
+    margin: 1rem auto;
+    object-fit: cover;
+    display: block;
+    background: rgba(255,255,255,0.6);
+    box-shadow: 0 10px 24px rgba(62, 39, 35, 0.14);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.recipe-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 14px 28px rgba(62, 39, 35, 0.2);
+}
+.cat-game-wrapper {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+}
+.cat-fact-container, .todo-container {
+    max-width: 400px;
+    background: rgba(255,245,230,0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+.cat-fact-container:hover, .todo-container:hover {
+    transform: translateY(-5px);
+}
+.cat-img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 2px solid var(--link-border-color);
+    aspect-ratio: 4/3;
+    object-fit: cover;
+}
+.fact {
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    color: var(--secondary-text-color);
+    margin-top: 0.5rem;
+}
+.todo-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.todo-input {
+    padding: 0.5rem;
+    border: 1px solid var(--link-border-color);
+    border-radius: 5px;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+}
+.todo-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(255, 112, 67, 0.5);
+}
+.todo-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.todo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--link-border-color);
+}
+.todo-item button {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    cursor: pointer;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    transition: color 0.3s ease;
+}
+.todo-item button:hover {
+    color: #d32f2f;
+}
+.duck {
+    position: absolute;
+    pointer-events: none;
+    z-index: 9999;
+}
+.cursor-duck {
+    font-size: 2rem;
+    animation: waddleCursor 0.5s ease-in-out infinite alternate;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3);
+    opacity: 1;
+}
+.follower-duck {
+    font-size: 1rem;
+    animation: waddleFollower 0.6s ease-in-out infinite alternate;
+    opacity: 0.8;
+}
+@keyframes waddleCursor {
+    from {
+        transform: translate(-50%, -50%) rotate(-3deg) scale(1.05);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(3deg) scale(1.05);
+    }
+}
+@keyframes waddleFollower {
+    from {
+        transform: translate(-50%, -50%) rotate(-5deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(5deg);
+    }
+}
+.flower {
+    position: absolute;
+    font-size: 1rem;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0;
+    transition: transform 1s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 1s;
+}
+.flower.grown {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+}
+.animated-plant {
+    position: absolute;
+    font-size: 1.5rem;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: gently 5s ease-in-out infinite alternate;
+    opacity: 0.9;
+}
+@keyframes gently {
+    from {
+        transform: translate(-50%, -50%) rotate(-2deg);
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(2deg);
+    }
+}
+@media (max-width: 900px) {
+    body {
+        padding: 0.5rem;
+    }
+    h1 {
+        font-size: clamp(1.8rem, 5vw, 3rem);
+    }
+    h2 {
+        font-size: clamp(0.9rem, 2vw, 1.2rem);
+    }
+    .recipe-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    .recipe-section h3 {
+        font-size: clamp(1.2rem, 3vw, 1.5rem);
+    }
+    .recipe-img {
+        max-width: 100%;
+    }
+    .cat-game-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+    .todo-container, .cat-fact-container {
+        width: 100%;
+        max-width: 350px;
+    }
+}
+@media (max-width: 600px) {
+    h1 {
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+    }
+    h2 {
+        font-size: clamp(0.8rem, 1.8vw, 1rem);
+    }
+    .recipe-container {
+        padding: 0.8rem;
+    }
+    .recipe-img {
+        max-width: 100%;
+    }
+    .cursor-duck {
+        font-size: 1.5rem;
+    }
+    .follower-duck {
+        font-size: 0.8rem;
+    }
+}
+</style>
+</head>
+<body>
+<div class="garden"></div>
+<div class="flower-container"></div>
+<h1>Рецептите на Мама</h1>
+<h2>Вкусни домашни рецепти</h2>
+<div class="recipe-container">
+    <div class="recipe-section">
+        <h3>Рецепта 1: Вкусна яхния</h3>
+        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Home-made_Dumplings_%26_beef_stew_dish.jpg" alt="Рецепта за яхния" class="recipe-img" loading="lazy" decoding="async">
+        <h4>Съставки</h4>
+        <ul>
+            <li>500 гр. свинско месо</li>
+            <li>2 глави лук</li>
+            <li>3-4 моркова</li>
+            <li>200 гр. гъби</li>
+            <li>сол, черен пипер, червен пипер</li>
+        </ul>
+        <h4>Инструкции</h4>
+        <ol>
+            <li>Задушете месото и лука до златисто.</li>
+            <li>Добавете нарязаните моркови и гъби.</li>
+            <li>Поръсете с подправките и разбъркайте.</li>
+            <li>Добавете малко вода и оставете да къкри за 45 минути.</li>
+        </ol>
+    </div>
+    <div class="recipe-section">
+        <h3>Рецепта 2: Крем супа</h3>
+        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Cream_Soup_with_Garlic_Bread.jpg" alt="Рецепта за крем супа" class="recipe-img" loading="lazy" decoding="async">
+        <h4>Съставки</h4>
+        <ul>
+            <li>1 глава карфиол</li>
+            <li>2 картофа</li>
+            <li>1 лук</li>
+            <li>500 мл. зеленчуков бульон</li>
+            <li>100 мл. сметана за готвене</li>
+        </ul>
+        <h4>Инструкции</h4>
+        <ol>
+            <li>Сварете зеленчуците в бульона до омекване.</li>
+            <li>Пасирайте до гладка смес.</li>
+            <li>Добавете сметаната и разбъркайте.</li>
+            <li>Сервирайте топло с крутони.</li>
+        </ol>
+    </div>
+    <div class="recipe-section">
+        <h3>Рецепта 3: Ябълков пай</h3>
+        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/ApplePie.jpg" alt="Рецепта за ябълков пай" class="recipe-img" loading="lazy" decoding="async">
+        <h4>Съставки</h4>
+        <ul>
+            <li>1 кг. ябълки</li>
+            <li>1 ч.ч. захар</li>
+            <li>1 ч.л. канела</li>
+            <li>1 бутер тесто</li>
+            <li>1 жълтък за намазване</li>
+        </ul>
+        <h4>Инструкции</h4>
+        <ol>
+            <li>Нарежете ябълките и ги смесете със захарта и канелата.</li>
+            <li>Разточете тестото и го поставете в тавичка.</li>
+            <li>Изсипете сместа с ябълките.</li>
+            <li>Покрийте с втори пласт тесто, намажете с жълтък и изпечете.</li>
+        </ol>
+    </div>
+</div>
+<div class="cat-game-wrapper">
+    <div class="todo-container">
+        <h3>🐾 Котешки задачи</h3>
+        <input type="text" class="todo-input" placeholder="Добави задача..." />
+        <ul class="todo-list"></ul>
+    </div>
+    <div class="cat-fact-container">
+        <h3>🐱 Котешки факт</h3>
+        <img id="cat-img" class="cat-img" alt="Daily Cat" loading="lazy" />
+        <div id="fact" class="fact">Зареждам котешки факт...</div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ducks = [],
+        duckCount = 5,
+        duckEmojis = ["🦆"],
+        babyDuck = ["🐥", "🐤"];
+
+    for (let i = 0; i < duckCount; i++) {
+        const span = document.createElement("span");
+        span.classList.add("duck", i === 0 ? "cursor-duck" : "follower-duck");
+        span.textContent = i === 0 ? duckEmojis[0] : babyDuck[(i - 1) % babyDuck.length];
+        document.body.appendChild(span);
+        ducks.push({ el: span, x: innerWidth / 2, y: innerHeight / 2, targetX: innerWidth / 2, targetY: innerHeight / 2 });
+    }
+
+    let mouseX = innerWidth / 2,
+        mouseY = innerHeight / 2;
+    document.addEventListener("mousemove", e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY + window.scrollY;
+    });
+
+    (function animate() {
+        ducks[0].x = mouseX;
+        ducks[0].y = mouseY;
+        ducks[0].el.style.left = ducks[0].x + "px";
+        ducks[0].el.style.top = ducks[0].y + "px";
+
+        for (let i = 1; i < ducks.length; i++) {
+            const p = ducks[i - 1],
+                d = ducks[i],
+                dist = Math.hypot(d.x - p.x, d.y - p.y),
+                maxDist = 30;
+            if (dist > maxDist) {
+                const a = Math.atan2(p.y - d.y, p.x - d.x);
+                d.targetX = p.x - Math.cos(a) * maxDist;
+                d.targetY = p.y - Math.sin(a) * maxDist;
+            }
+            d.x += (d.targetX - d.x) * 0.1;
+            d.y += (d.targetY - d.y) * 0.1;
+            d.el.style.left = d.x + "px";
+            d.el.style.top = d.y + "px";
+        }
+        requestAnimationFrame(animate);
+    })();
+
+    const flowers = ["🌸", "🌻", "🌼", "🌹", "🌷", "💐", "🌺", "🌾", "🌿", "🍄"],
+        container = document.querySelector('.flower-container');
+    const createPlant = (x, y) => {
+        const p = document.createElement("div");
+        p.className = "flower";
+        p.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+        container.appendChild(p);
+        setTimeout(() => p.classList.add("grown"), 10);
+    };
+
+    let flowerInterval, mouseTimeout;
+    document.addEventListener("mousedown", e => {
+        if (!e.target.closest('.recipe-container, .cat-fact-container, .todo-container')) {
+            createPlant(e.pageX, e.pageY);
+            mouseTimeout = setTimeout(() => {
+                flowerInterval = setInterval(() => createPlant(e.pageX, e.pageY), 100);
+            }, 200);
+        }
+    });
+
+    document.addEventListener("mouseup", () => {
+        clearTimeout(mouseTimeout);
+        clearInterval(flowerInterval);
+        mouseTimeout = flowerInterval = null;
+    });
+
+    ["🌱", "🌿", "🌷", "🍄", "🌳", "🌾"].forEach((emoji) => {
+        for (let i = 0; i < 3; i++) {
+            const p = document.createElement("div");
+            p.className = "animated-plant";
+            p.textContent = emoji;
+            p.style.left = Math.random() * 100 + "vw";
+            p.style.top = Math.random() * 100 + "%";
+            p.style.fontSize = (Math.random() * 1 + 0.8) + "rem";
+            p.style.animationDelay = Math.random() * 5 + "s";
+            container.appendChild(p);
+        }
+    });
+
+    (async () => {
+        try {
+            const cat = await fetch("https://api.thecatapi.com/v1/images/search").then(r => r.json());
+            document.getElementById("cat-img").src = cat[0].url;
+            const fact = await fetch("https://catfact.ninja/fact").then(r => r.json());
+            document.getElementById("fact").textContent = fact.fact;
+        } catch (e) {
+            document.getElementById("fact").textContent = "Не успях да заредя коте 😿";
+        }
+    })();
+
+    const todoInput = document.querySelector('.todo-input');
+    const todoList = document.querySelector('.todo-list');
+
+    const loadTasks = () => {
+        const tasks = JSON.parse(localStorage.getItem('catTasks') || '[]');
+        tasks.forEach(task => addTaskToDOM(task));
+    };
+
+    const saveTasks = () => {
+        const tasks = Array.from(todoList.children).map(li => li.querySelector('span').textContent.replace('🐱 ', ''));
+        localStorage.setItem('catTasks', JSON.stringify(tasks));
+    };
+
+    const addTaskToDOM = (task) => {
+        const li = document.createElement('li');
+        li.className = 'todo-item';
+        li.innerHTML = `<span>🐱 ${task}</span><button>🗑️</button>`;
+        todoList.appendChild(li);
+        li.querySelector('button').addEventListener('click', () => {
+            li.remove();
+            saveTasks();
+        });
+    };
+
+    todoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && todoInput.value.trim()) {
+            addTaskToDOM(todoInput.value.trim());
+            saveTasks();
+            todoInput.value = '';
+        }
+    });
+
+    loadTasks();
+});
+</script>
+</body>
+</html>

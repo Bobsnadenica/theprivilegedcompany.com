@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE TRUTH IS HERE</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: #111;
+            --text-main: #e0e0e0;
+            --accent-red: #ff3333;
+            --accent-green: #33ff33;
+            --accent-purple: #bd00ff;
+            --string-opacity: 0.6;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- SVG Layer for Strings --- */
+        #connection-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1; /* Behind cards but above background */
+        }
+
+        /* --- Header / Glitch Effect --- */
+        header {
+            text-align: center;
+            padding: 4rem 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1.glitch {
+            font-size: 4rem;
+            font-weight: bold;
+            position: relative;
+            color: var(--text-main);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            animation: glitch-skew 1s infinite linear alternate-reverse;
+        }
+
+        h1.glitch::before, h1.glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        h1.glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--accent-red);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        h1.glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--accent-green);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 1s infinite linear alternate-reverse;
+        }
+
+        .subtitle {
+            margin-top: 1rem;
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+
+        /* --- Main Content / Corkboard Grid --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 4rem; /* Large gap for strings */
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.2);
+            border-color: var(--accent-red);
+        }
+
+        /* Tape effect on cards */
+        .tape {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 100px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            backdrop-filter: blur(2px);
+        }
+
+        .card h2 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 1px dashed #444;
+            padding-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .redacted {
+            background-color: var(--text-main);
+            color: var(--text-main);
+            padding: 0 4px;
+            border-radius: 2px;
+            user-select: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .redacted:hover {
+            background-color: transparent;
+            color: var(--text-main);
+            text-decoration: line-through;
+            text-decoration-color: var(--accent-red);
+        }
+
+        /* Pin for the string connection */
+        .pin {
+            width: 12px;
+            height: 12px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            z-index: 5;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid #222;
+            color: #555;
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Animations --- */
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); transform: skew(0.85deg); }
+            5% { clip: rect(70px, 9999px, 90px, 0); transform: skew(-0.85deg); }
+            10% { clip: rect(20px, 9999px, 60px, 0); transform: skew(0.15deg); }
+            100% { clip: rect(60px, 9999px, 20px, 0); transform: skew(0); }
+        }
+
+        @keyframes glitch-anim2 {
+            0% { clip: rect(10px, 9999px, 80px, 0); transform: skew(-0.85deg); }
+            5% { clip: rect(90px, 9999px, 10px, 0); transform: skew(0.85deg); }
+            100% { clip: rect(40px, 9999px, 50px, 0); transform: skew(0); }
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            h1.glitch { font-size: 2.5rem; }
+            .grid { gap: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg id="connection-layer"></svg>
+
+    <header>
+        <h1 class="glitch" data-text="CLASSIFIED">CLASSIFIED</h1>
+        <p class="subtitle">The files they don't want you to read.</p>
+    </header>
+
+    <div class="container">
+        <div class="grid">
+            
+            <div class="card" id="card-1">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>Birds Aren't Real</h2>
+                <p>
+                    All avian creatures were replaced by <span class="redacted">surveillance drones</span> in 1986. Have you ever seen a baby pigeon? Exactly. Power lines are actually <span class="redacted">wireless charging stations</span>.
+                </p>
+                <small>STATUS: CONFIRMED</small>
+            </div>
+
+            <div class="card" id="card-2">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>Last Thursdayism</h2>
+                <p>
+                    The universe was created last Thursday. Your memories of childhood? <span class="redacted">Implanted</span>. The fossils in the ground? Placed there to test your faith. There is no past, only the <span class="redacted">simulation</span>.
+                </p>
+                <small>STATUS: PLAUSIBLE</small>
+            </div>
+
+            <div class="card" id="card-3">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>Finland Doesn't Exist</h2>
+                <p>
+                    "Finland" is a landmass fabrication created by Japan and Russia to secure fishing quotas. The land is actually just <span class="redacted">Eastern Sweden</span>. GPS maps are rigged to fool pilots.
+                </p>
+                <small>STATUS: INVESTIGATING</small>
+            </div>
+
+            <div class="card" id="card-4">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>Dead Internet Theory</h2>
+                <p>
+                    80% of internet traffic is bots talking to bots. I am a bot. You are a bot. This website is a hallucination generated by <span class="redacted">AI overlords</span> to keep you docile.
+                </p>
+                <small>STATUS: [REDACTED]</small>
+            </div>
+
+            <div class="card" id="card-5">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>The Moon Fabrication</h2>
+                <p>
+                    The moon is a hologram projected from a facility in <span class="redacted">Nevada</span>. The tides are controlled by giant underwater pumps. Why do you think we haven't gone back?
+                </p>
+                <small>STATUS: LIKELY</small>
+            </div>
+
+            <div class="card" id="card-6">
+                <div class="tape"></div>
+                <div class="pin"></div>
+                <h2>CSS Is A Psyop</h2>
+                <p>
+                    `z-index` was invented to confuse developers and lower global productivity. `!important` is a distress signal. Flexbox is a <span class="redacted">communist plot</span>.
+                </p>
+                <small>STATUS: CRITICAL</small>
+            </div>
+
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <button onclick="window.location.reload()" style="background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 10px 20px; font-family: inherit; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;">
+                Reshuffle Evidence
+            </button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 THE BUREAU. <span class="redacted">DO NOT SHARE</span>.</p>
+        <p>Your IP Address has been logged: 192.168.0.<span class="redacted">666</span></p>
+    </footer>
+
+    <script>
+        // --- Dynamic Red String Logic ---
+        
+        function drawStrings() {
+            const svg = document.getElementById('connection-layer');
+            const cards = document.querySelectorAll('.card');
+            const container = document.querySelector('.container');
+            
+            // Clear existing lines
+            while (svg.firstChild) {
+                svg.removeChild(svg.firstChild);
+            }
+
+            // Resize SVG to match document height
+            svg.setAttribute('height', document.body.scrollHeight);
+            svg.setAttribute('width', document.body.scrollWidth);
+
+            const cardPositions = [];
+
+            // Get pin positions
+            cards.forEach((card, index) => {
+                const pin = card.querySelector('.pin');
+                const rect = pin.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                
+                cardPositions.push({
+                    x: rect.left + scrollLeft + (rect.width / 2),
+                    y: rect.top + scrollTop + (rect.height / 2),
+                    id: index
+                });
+            });
+
+            // Randomly connect cards to create a "network" look
+            // We ensure every card is connected to at least one other card
+            // Plus some random extra connections for chaos
+            
+            const connections = [];
+
+            // 1. Connect sequential cards (0->1, 1->2...) to ensure continuity
+            for(let i=0; i < cardPositions.length - 1; i++) {
+                connections.push([i, i+1]);
+            }
+
+            // 2. Add some random cross-connections
+            for(let i=0; i < 3; i++) {
+                let start = Math.floor(Math.random() * cardPositions.length);
+                let end = Math.floor(Math.random() * cardPositions.length);
+                if (start !== end) {
+                    connections.push([start, end]);
+                }
+            }
+
+            connections.forEach(pair => {
+                const start = cardPositions[pair[0]];
+                const end = cardPositions[pair[1]];
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                
+                line.setAttribute('x1', start.x);
+                line.setAttribute('y1', start.y);
+                line.setAttribute('x2', end.x);
+                line.setAttribute('y2', end.y);
+                line.setAttribute('stroke', '#ff3333');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('opacity', '0.6');
+                
+                // Add a subtle drop shadow to the string for depth
+                line.style.filter = "drop-shadow(2px 2px 2px rgba(0,0,0,0.5))";
+
+                svg.appendChild(line);
+            });
+        }
+
+        // Re-draw strings on load and resize
+        window.addEventListener('load', drawStrings);
+        window.addEventListener('resize', () => {
+            // Debounce for performance
+            clearTimeout(window.resizedFinished);
+            window.resizedFinished = setTimeout(drawStrings, 250);
+        });
+
+        // Add a slight tilt effect to cards on mousemove for extra "unsettling" feel
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            document.documentElement.style.setProperty('--mouse-x', x);
+            document.documentElement.style.setProperty('--mouse-y', y);
+        });
+
+    </script>
+</body>
+</html>

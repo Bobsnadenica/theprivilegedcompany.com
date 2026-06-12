@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Useful Links Archive</title>
+    <meta
+      name="description"
+      content="A minimal archive of useful links generated directly from Links.txt."
+    />
+    <meta name="theme-color" content="#101514" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <script type="module" src="./assets/js/app.mjs"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <p class="masthead__kicker">/ useful-links-archive</p>
+        <h1>Archive</h1>
+        <p class="masthead__lede">
+          Edit <code>Links.txt</code>. Push to GitHub. New links appear here.
+        </p>
+
+        <div class="masthead__actions">
+          <a class="ascii-button" href="#archive">[ browse ]</a>
+          <a class="ascii-button" href="./Links.txt">[ links.txt ]</a>
+        </div>
+
+        <dl class="masthead__stats" aria-label="Archive statistics">
+          <div>
+            <dt>links</dt>
+            <dd id="hero-link-count">0</dd>
+          </div>
+          <div>
+            <dt>categories</dt>
+            <dd id="hero-category-count">0</dd>
+          </div>
+          <div>
+            <dt>source</dt>
+            <dd id="sync-stamp">live source</dd>
+          </div>
+        </dl>
+      </header>
+
+      <section class="controls" aria-label="Archive controls">
+        <label class="search-field" for="search-input">
+          <span>search</span>
+          <input
+            id="search-input"
+            name="search"
+            type="search"
+            placeholder="Search name, note, url, or category"
+            autocomplete="off"
+          />
+        </label>
+
+        <p class="results-summary" id="results-summary">
+          Loading links from Links.txt...
+        </p>
+
+        <p class="controls__hint">
+          shortcuts:
+          <code>/</code> search,
+          <code>esc</code> clear
+        </p>
+
+        <nav
+          class="category-pills"
+          id="category-pills"
+          aria-label="Filter by category"
+        ></nav>
+      </section>
+
+      <section class="archive" id="archive" aria-live="polite">
+        <noscript>
+          <div class="feedback feedback--error">
+            <h2>JavaScript is required</h2>
+            <p>This page renders its link list from <code>Links.txt</code>.</p>
+          </div>
+        </noscript>
+
+        <div class="feedback feedback--error" id="error-state" hidden>
+          <h2>Could not build the archive</h2>
+          <p id="error-message"></p>
+        </div>
+
+        <div class="feedback feedback--empty" id="empty-state" hidden>
+          <h2>No links match the current filter</h2>
+          <p>Try another term or switch back to all categories.</p>
+        </div>
+
+        <div class="category-stack" id="category-stack"></div>
+      </section>
+
+      <footer class="site-footer">
+        <p>
+          single source of truth:
+          <a href="./Links.txt">Links.txt</a>
+        </p>
+        <p>
+          supported lines:
+          <code>Category:</code>
+          <code>https://example.com/</code>
+          <code>Label | https://example.com/ | Optional note</code>
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conspiracy Theories Research Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Merriweather', serif;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+        }
+        
+        .intro {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            line-height: 1.7;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.8rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            color: #1a237e;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            color: #1a237e;
+            border-bottom: 2px solid #e8eaf6;
+            padding-bottom: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        
+        .theories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .theory-item {
+            background: white;
+            border-left: 4px solid #3949ab;
+            padding: 1.2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .theory-title {
+            font-weight: 700;
+            color: #1a237e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .theory-category {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #3949ab;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        
+        .analysis-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 10px;
+            margin-bottom: 3rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .resources {
+            background: #e8eaf6;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 3rem;
+        }
+        
+        .resource-list {
+            list-style-type: none;
+            margin-top: 1.5rem;
+        }
+        
+        .resource-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #c5cae9;
+        }
+        
+        .resource-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .resource-list i {
+            color: #3949ab;
+            margin-right: 0.7rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .disclaimer {
+            background: #fff8e1;
+            border-left: 4px solid #ffb300;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 5px;
+        }
+        
+        .disclaimer h3 {
+            color: #ff8f00;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #3949ab;
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background: #283593;
+        }
+        
+        .center-text {
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            header {
+                padding: 1.8rem;
+            }
+            
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .analysis-section, .resources {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Conspiracy Theories Research Hub</h1>
+        <p class="tagline">Examining narratives, psychology, and societal impact</p>
+        <p class="intro">This platform provides a scholarly examination of conspiracy theories, their origins, psychological underpinnings, and effects on society. Our approach is analytical, evidence-based, and balanced.</p>
+        <a href="#resources" class="btn">Explore Resources</a>
+    </header>
+    
+    <div class="disclaimer">
+        <h3><i class="fas fa-exclamation-triangle"></i> Research Disclaimer</h3>
+        <p>This website is for academic and research purposes. The inclusion of any conspiracy theory does not imply endorsement of its validity. We encourage critical thinking and evidence-based analysis of all claims.</p>
+    </div>
+    
+    <section class="container">
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h2 class="card-title">Psychological Aspects</h2>
+            <p>Research into why people believe in conspiracy theories, including cognitive biases, personality factors, and psychological needs they fulfill.</p>
+            <ul style="margin-top: 1rem; padding-left: 1.2rem;">
+                <li>Pattern recognition & agency detection</li>
+                <li>Epistemic, existential, and social needs</li>
+                <li>Confirmation bias and motivated reasoning</li>
+                <li>Relationship to anxiety and uncertainty</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h2 class="card-title">Societal Impact</h2>
+            <p>How conspiracy theories affect communities, politics, public health, and social cohesion in the digital age.</p>
+            <ul style="margin-top: 1rem; padding-left: 1.2rem;">
+                <li>Polarization and erosion of trust</li>
+                <li>Impact on public health initiatives</li>
+                <li>Radicalization and violence</li>
+                <li>Challenges to democratic processes</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <h2 class="card-title">Historical Context</h2>
+            <p>Conspiracy theories throughout history, from ancient times to the present, and their evolution with technology.</p>
+            <ul style="margin-top: 1rem; padding-left: 1.2rem;">
+                <li>Historical precedents and patterns</li>
+                <li>The role of mass media</li>
+                <li>Internet and social media amplification</li>
+                <li>Comparative analysis across cultures</li>
+            </ul>
+        </div>
+    </section>
+    
+    <section class="analysis-section">
+        <h2 class="center-text">Notable Conspiracy Theories: Analysis</h2>
+        <p class="center-text" style="max-width: 800px; margin: 0 auto 2rem;">A selection of widely discussed theories with their origins and scholarly analysis.</p>
+        
+        <div class="theories-grid">
+            <div class="theory-item">
+                <div class="theory-title">Moon Landing Hoax</div>
+                <p>The claim that the Apollo moon landings were staged by NASA. Debunked by multiple evidence sources, yet persists in popular culture.</p>
+                <span class="theory-category">Space & Science</span>
+            </div>
+            
+            <div class="theory-item">
+                <div class="theory-title">9/11 Inside Job</div>
+                <p>Allegations that the US government orchestrated or allowed the 9/11 attacks. Extensively investigated with no evidence supporting these claims.</p>
+                <span class="theory-category">Political</span>
+            </div>
+            
+            <div class="theory-item">
+                <div class="theory-title">Flat Earth Theory</div>
+                <p>The belief that Earth is flat rather than spherical. Despite overwhelming scientific evidence, gained traction through social media communities.</p>
+                <span class="theory-category">Anti-Science</span>
+            </div>
+            
+            <div class="theory-item">
+                <div class="theory-title">QAnon</div>
+                <p>A far-reaching political conspiracy alleging a "deep state" against former President Trump. Led to real-world consequences including violence.</p>
+                <span class="theory-category">Political</span>
+            </div>
+        </div>
+    </section>
+    
+    <section class="resources" id="resources">
+        <h2 class="center-text">Research Resources</h2>
+        <p class="center-text" style="max-width: 800px; margin: 0 auto;">Academic materials, databases, and tools for studying conspiracy theories.</p>
+        
+        <ul class="resource-list">
+            <li><i class="fas fa-book"></i> <strong>Books:</strong> "Suspicious Minds" by Rob Brotherton, "The United States of Paranoia" by Jesse Walker</li>
+            <li><i class="fas fa-university"></i> <strong>Academic Journals:</strong> Journal of Conspiracy Theories, Conspiracy Theories & Disinformation journal</li>
+            <li><i class="fas fa-database"></i> <strong>Databases:</strong> Conspiracy Theory Research Database (CTRD), Media Manipulation Casebook</li>
+            <li><i class="fas fa-graduation-cap"></i> <strong>Courses:</strong> Coursera's "Understanding Conspiracy Theories", edX "Disinformation" courses</li>
+            <li><i class="fas fa-tools"></i> <strong>Tools:</strong> Hoaxy misinformation tracker, Botometer for detecting bot accounts</li>
+        </ul>
+        
+        <div class="center-text" style="margin-top: 2rem;">
+            <a href="#" class="btn"><i class="fas fa-download"></i> Download Research Guide (PDF)</a>
+        </div>
+    </section>
+    
+    <section class="analysis-section">
+        <h2 class="center-text">Critical Thinking Framework</h2>
+        <p>When evaluating conspiracy theories or any extraordinary claims, researchers recommend applying systematic critical thinking:</p>
+        
+        <div class="container" style="margin-top: 2rem;">
+            <div class="card">
+                <h3 class="card-title">1. Source Evaluation</h3>
+                <p>Examine the credibility of sources, their expertise, potential biases, and whether they provide verifiable evidence.</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">2. Evidence Assessment</h3>
+                <p>Look for empirical evidence, consider alternative explanations, and check if claims are falsifiable.</p>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">3. Logical Consistency</h3>
+                <p>Analyze whether the theory relies on logical fallacies, special pleading, or ad hoc explanations.</p>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <p>Conspiracy Theories Research Hub &copy; 2023 | For Academic Purposes Only</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;">This site is designed for research, education, and promoting media literacy.</p>
+        <p style="margin-top: 1rem;">
+            <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i> contact@conspiracyresearch.org | 
+            <i class="fas fa-twitter" style="margin: 0 0.5rem;"></i> @ConspiracyResearch
+        </p>
+    </footer>
+    
+    <script>
+        // Simple interactivity for the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event to theory items for more details
+            const theoryItems = document.querySelectorAll('.theory-item');
+            
+            theoryItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const title = this.querySelector('.theory-title').textContent;
+                    alert(`More detailed analysis of "${title}" would be displayed in a full research platform.`);
+                });
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if(targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if(targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Button interaction for download button
+            const downloadBtn = document.querySelector('.btn[href="#"]');
+            if(downloadBtn) {
+                downloadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('In a full implementation, this would download the research guide PDF.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

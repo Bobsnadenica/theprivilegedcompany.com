@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Time Left To...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        body.site-locked { overflow: hidden; }
+
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+            50%       { box-shadow: 0 0 18px 4px rgba(239,68,68,0.25); }
+        }
+        @keyframes pulse-orange {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+            50%       { box-shadow: 0 0 14px 3px rgba(249,115,22,0.2); }
+        }
+        .glow-red    { animation: pulse-red 2.4s ease-in-out infinite; }
+        .glow-orange { animation: pulse-orange 3s ease-in-out infinite; }
+
+        @keyframes bar-fill {
+            from { width: 0; }
+            to   { width: var(--w); }
+        }
+        .bar-anim { animation: bar-fill 1.1s cubic-bezier(.4,0,.2,1) forwards; }
+
+        .card { opacity: 0; transform: translateY(16px); }
+        .card.show { opacity: 1; transform: translateY(0); transition: opacity .45s ease, transform .45s ease; }
+
+        .lock-screen {
+            position: fixed; inset: 0; z-index: 50;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1.5rem;
+            background: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(18px);
+        }
+        .lock-screen.is-hidden {
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity .35s ease, visibility .35s ease;
+        }
+        .lock-card {
+            width: min(100%, 26rem);
+            padding: 1.75rem;
+            border-radius: 1.5rem;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+        }
+        .content-shell {
+            transition: opacity .35s ease, filter .35s ease, transform .35s ease;
+        }
+        body.site-locked .content-shell {
+            opacity: 0;
+            filter: blur(10px);
+            transform: scale(.985);
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body class="site-locked bg-slate-950 min-h-screen">
+
+<div id="lock-screen" class="lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-description">
+    <div class="lock-card">
+        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-500 mb-3">Restricted Access</p>
+        <h1 id="lock-title" class="text-2xl font-extrabold text-white tracking-tight">Enter access code</h1>
+        <p id="lock-description" class="text-slate-400 text-sm mt-2">Authorized access only.</p>
+        <form id="lock-form" class="mt-6 space-y-3" novalidate>
+            <label for="lock-input" class="block text-sm font-semibold text-slate-300">Access code</label>
+            <input id="lock-input" name="password" type="password" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                   placeholder="Enter code" aria-describedby="lock-status" />
+            <button type="submit"
+                    class="w-full rounded-2xl bg-slate-200 text-slate-950 font-bold px-4 py-3 hover:bg-white transition-colors">
+                Unlock
+            </button>
+        </form>
+        <p id="lock-status" class="text-slate-500 text-sm mt-3" aria-live="polite">Protected page.</p>
+    </div>
+</div>
+
+<div class="content-shell">
+<div class="max-w-3xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-10">
+        <a href="../index.html"
+           class="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:scale-110 transition-all shrink-0"
+           aria-label="Back to home">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <div class="flex-1">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">⏳ Time Left To…</h1>
+            <p id="today" class="text-slate-500 text-sm mt-0.5"></p>
+        </div>
+        <div id="summary" class="flex gap-2 text-xs font-semibold hidden sm:flex"></div>
+    </div>
+
+    <!-- Content -->
+    <div id="root" class="space-y-10">
+        <div class="flex items-center justify-center py-20 text-slate-500 gap-3">
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+            </svg>
+            Loading…
+        </div>
+    </div>
+
+</div>
+</div>
+
+<script>
+const LOCK_STORAGE_KEY = 'timetoUnlocked';
+const LOCK_ATTEMPTS_KEY = 'timetoLockAttempts';
+const LOCK_UNTIL_KEY = 'timetoLockUntil';
+const ACCESS_HASH = '73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049';
+
+async function sha256(value) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function unlockPage() {
+    sessionStorage.setItem(LOCK_STORAGE_KEY, 'true');
+    document.body.classList.remove('site-locked');
+    document.getElementById('lock-screen').classList.add('is-hidden');
+}
+
+function updateLockCooldown(statusEl, submitBtn) {
+    const lockUntil = Number(localStorage.getItem(LOCK_UNTIL_KEY) || 0);
+    const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
+    if (remaining > 0) {
+        submitBtn.disabled = true;
+        statusEl.textContent = `Too many attempts. Try again in ${remaining}s.`;
+        return true;
+    }
+    submitBtn.disabled = false;
+    return false;
+}
+
+function initLockScreen() {
+    const form = document.getElementById('lock-form');
+    const input = document.getElementById('lock-input');
+    const status = document.getElementById('lock-status');
+    const submit = form.querySelector('button[type="submit"]');
+
+    if (sessionStorage.getItem(LOCK_STORAGE_KEY) === 'true') {
+        unlockPage();
+        return;
+    }
+
+    input.focus();
+    updateLockCooldown(status, submit);
+    const timer = window.setInterval(() => updateLockCooldown(status, submit), 1000);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (updateLockCooldown(status, submit)) return;
+
+        const candidate = input.value.trim();
+        if (!candidate) {
+            status.textContent = 'Enter the access code first.';
+            return;
+        }
+
+        submit.disabled = true;
+        status.textContent = 'Checking code...';
+
+        try {
+            const hashed = await sha256(candidate);
+            if (hashed === ACCESS_HASH) {
+                localStorage.removeItem(LOCK_ATTEMPTS_KEY);
+                localStorage.removeItem(LOCK_UNTIL_KEY);
+                window.clearInterval(timer);
+                unlockPage();
+                return;
+            }
+
+            const attempts = Number(localStorage.getItem(LOCK_ATTEMPTS_KEY) || 0) + 1;
+            localStorage.setItem(LOCK_ATTEMPTS_KEY, String(attempts));
+            if (attempts >= 3) {
+                const cooldown = Math.min(60, (attempts - 2) * 10);
+                localStorage.setItem(LOCK_UNTIL_KEY, String(Date.now() + cooldown * 1000));
+                status.textContent = `Wrong code. Locked for ${cooldown}s.`;
+            } else {
+                status.textContent = `Wrong code. ${3 - attempts} attempt${3 - attempts === 1 ? '' : 's'} before cooldown.`;
+            }
+            input.select();
+            updateLockCooldown(status, submit);
+        } catch {
+            status.textContent = 'Unlock failed.';
+            submit.disabled = false;
+        }
+    });
+}
+
+// ── Urgency tiers ────────────────────────────────────────────────────────────
+const TIERS = [
+    { max: -1,   label: 'Expired',  badge: 'bg-slate-700 text-slate-400',   ring: 'border-slate-600/60',   bg: 'bg-slate-800/60',      num: 'text-slate-400',   bar: 'bg-slate-500',   glow: '' },
+    { max: 60,   label: 'Critical', badge: 'bg-red-500/20 text-red-400',     ring: 'border-red-500/50',     bg: 'bg-red-950/40',        num: 'text-red-400',     bar: 'bg-red-500',     glow: 'glow-red' },
+    { max: 180,  label: 'Soon',     badge: 'bg-orange-500/20 text-orange-400', ring: 'border-orange-500/40', bg: 'bg-orange-950/30',   num: 'text-orange-400',  bar: 'bg-orange-500',  glow: 'glow-orange' },
+    { max: 365,  label: 'Upcoming', badge: 'bg-yellow-500/15 text-yellow-400', ring: 'border-yellow-500/30', bg: 'bg-yellow-950/20',   num: 'text-yellow-400',  bar: 'bg-yellow-400',  glow: '' },
+    { max: Infinity, label: 'OK',   badge: 'bg-emerald-500/15 text-emerald-400', ring: 'border-emerald-500/25', bg: 'bg-emerald-950/20', num: 'text-emerald-400', bar: 'bg-emerald-500', glow: '' },
+];
+
+function tier(days) {
+    if (days < 0)    return TIERS[0];
+    if (days <= 60)  return TIERS[1];
+    if (days <= 180) return TIERS[2];
+    if (days <= 365) return TIERS[3];
+    return TIERS[4];
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function daysUntil(date) {
+    const now = new Date(); now.setHours(0,0,0,0);
+    const d   = new Date(date); d.setHours(0,0,0,0);
+    return Math.ceil((d - now) / 86400000);
+}
+
+function humanTime(days) {
+    if (days < 0)  return { big: 'Expired',  small: Math.abs(days) + 'd ago' };
+    if (days === 0) return { big: 'Today!',  small: 'Expires today' };
+    const n = days.toLocaleString('en-US');
+    const monthsRaw = days / 30.44;
+    const months = monthsRaw < 2 ? Number(monthsRaw.toFixed(1)) : Math.round(monthsRaw);
+    const label = months === 1 ? 'month' : 'months';
+    return { big: n + 'd', small: '~' + months.toLocaleString('en-US') + ' ' + label + ' left' };
+}
+
+// Bar = % filled as we approach the date (full = very close or expired)
+function barWidth(days) {
+    if (days <= 0) return 100;
+    const horizon = 1095; // 3-year horizon
+    const progress = ((horizon - days) / horizon) * 100;
+    return Math.min(100, Math.max(3, progress));
+}
+
+// ── Parser ───────────────────────────────────────────────────────────────────
+function parseExpiry(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const groups = [];
+    let cur = null;
+
+    for (const line of lines) {
+        // Section header: ends with ':' and has no "Expires"
+        if (/:\s*$/.test(line) && !/expires/i.test(line)) {
+            cur = { name: line.replace(/:$/, '').trim(), items: [] };
+            groups.push(cur);
+            continue;
+        }
+
+        // Entry: "Name - Expires Month D[,] YYYY"
+        const m = line.match(/^(.+?)\s*[:\-–—]\s*[Ee]xpires?\s+([A-Za-z]+ \d{1,2},?\s*\d{4})\s*$/);
+        if (m) {
+            const name    = m[1].trim();
+            const dateRaw = m[2].replace(/,(\d)/, ', $1'); // normalise "6,2026" → "6, 2026"
+            const date    = new Date(dateRaw);
+            if (isNaN(date)) continue;
+            const days = daysUntil(date);
+            if (!cur) { cur = { name: 'Other', items: [] }; groups.push(cur); }
+            cur.items.push({ name, date, days, group: cur.name });
+        }
+    }
+    return groups.filter(g => g.items.length > 0);
+}
+
+function parsePayments(text) {
+    const lines = text.split('\n').map((l) => l.trim());
+    const items = [];
+    let inPayments = false;
+
+    for (const raw of lines) {
+        if (!raw) continue;
+        if (/^Payments:\s*$/i.test(raw)) {
+            inPayments = true;
+            continue;
+        }
+        if (/:\s*$/.test(raw) && !/^Payments:\s*$/i.test(raw)) {
+            inPayments = false;
+            continue;
+        }
+        if (!inPayments) continue;
+
+        const match = raw.match(/^(.+?)\s*-\s*(.+?)\s*-\s*([0-9.,]+(?:\s*-\s*[0-9.,]+)?)\s*EUR(?:\s*-\s*(.+))?$/i);
+        if (!match) continue;
+
+        const [, name, schedule, amountRaw, note = ''] = match;
+        const isRange = amountRaw.includes('-');
+        const amount = isRange
+            ? amountRaw.split('-').map((part) => Number(part.replace(',', '.').trim()))
+            : Number(amountRaw.replace(',', '.').trim());
+
+        items.push({
+            name: name.trim(),
+            schedule: schedule.trim(),
+            amountRaw: amountRaw.replace(/\s+/g, ''),
+            amount,
+            isRange,
+            note: note.trim(),
+        });
+    }
+    return items;
+}
+
+function monthIndexFromName(name) {
+    const months = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    return months.indexOf(name.toLowerCase());
+}
+
+function atStartOfDay(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function addMonths(date, count) {
+    const d = new Date(date);
+    d.setMonth(d.getMonth() + count);
+    return d;
+}
+
+function addYears(date, count) {
+    const d = new Date(date);
+    d.setFullYear(d.getFullYear() + count);
+    return d;
+}
+
+function nextPaymentDue(schedule, note) {
+    const today = atStartOfDay(new Date());
+    const monthlyMatch = schedule.match(/monthly on the (\d{1,2})(?:st|nd|rd|th)/i);
+    if (monthlyMatch) {
+        const day = Number(monthlyMatch[1]);
+        const currentMonthDue = atStartOfDay(new Date(today.getFullYear(), today.getMonth(), day));
+        const nextDue = currentMonthDue >= today ? currentMonthDue : atStartOfDay(new Date(today.getFullYear(), today.getMonth() + 1, day));
+        const previousDue = nextDue.getTime() === currentMonthDue.getTime()
+            ? atStartOfDay(new Date(today.getFullYear(), today.getMonth() - 1, day))
+            : currentMonthDue;
+        return { nextDue, previousDue };
+    }
+
+    const yearlyMatch = schedule.match(/yearly in ([a-z]+)/i);
+    if (yearlyMatch) {
+        const month = monthIndexFromName(yearlyMatch[1]);
+        const thisYearDue = atStartOfDay(new Date(today.getFullYear(), month, 1));
+        let nextDue = thisYearDue >= today ? thisYearDue : atStartOfDay(new Date(today.getFullYear() + 1, month, 1));
+
+        if (/paid/i.test(note) && thisYearDue < today) {
+            nextDue = atStartOfDay(new Date(today.getFullYear() + 1, month, 1));
+        }
+
+        const previousDue = atStartOfDay(new Date(nextDue.getFullYear() - 1, nextDue.getMonth(), 1));
+        return { nextDue, previousDue };
+    }
+
+    return null;
+}
+
+function paymentProgress(schedule, note) {
+    const due = nextPaymentDue(schedule, note);
+    if (!due) return { daysLeft: null, progress: 0, dueLabel: schedule };
+
+    const today = atStartOfDay(new Date());
+    const total = Math.max(1, Math.round((due.nextDue - due.previousDue) / 86400000));
+    const elapsed = Math.max(0, Math.min(total, Math.round((today - due.previousDue) / 86400000)));
+    const progress = Math.max(4, Math.min(100, (elapsed / total) * 100));
+    const daysLeft = Math.ceil((due.nextDue - today) / 86400000);
+    const dueLabel = due.nextDue.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    return { daysLeft, progress, dueLabel };
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function cardHTML(item, idx) {
+    const t  = tier(item.days);
+    const h  = humanTime(item.days);
+    const bw = barWidth(item.days);
+    const fmt = item.date.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+
+    return `
+    <div class="card ${t.bg} border ${t.ring} ${t.glow} rounded-2xl p-4 sm:p-5 hover:scale-[1.025] transition-transform duration-200 cursor-default"
+         style="transition-delay:${idx * 70}ms">
+        <div class="flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+                <p class="text-white font-semibold text-sm sm:text-base leading-snug truncate">${esc(item.name)}</p>
+                <p class="text-slate-500 text-xs mt-0.5">${fmt}</p>
+            </div>
+            <div class="text-right shrink-0 ml-2">
+                <p class="${t.num} font-black text-xl sm:text-2xl leading-none tabular-nums">${h.big}</p>
+                <p class="text-slate-500 text-xs mt-0.5 whitespace-nowrap">${h.small}</p>
+            </div>
+        </div>
+
+        <!-- Progress bar: full = lots of time left -->
+        <div class="mt-4 h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div class="${t.bar} h-full rounded-full bar-anim" style="--w:${bw}%; width:0"></div>
+        </div>
+
+        ${t.label !== 'OK' ? `
+        <div class="mt-2.5 flex justify-end">
+            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${t.badge}">${t.label}</span>
+        </div>` : ''}
+    </div>`;
+}
+
+function groupHTML(group) {
+    return `
+    <section class="space-y-3">
+        <div class="flex items-center gap-3">
+            <div class="h-px flex-1 bg-slate-800"></div>
+            <h2 class="text-slate-500 text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">${esc(group.name)}</h2>
+            <div class="h-px flex-1 bg-slate-800"></div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+            ${group.items.map((it, i) => cardHTML(it, i)).join('')}
+        </div>
+    </section>`;
+}
+
+function euroAmount(value) {
+    if (Array.isArray(value)) {
+        return `${value[0].toFixed(2)}-${value[1].toFixed(2)} EUR`;
+    }
+    return `${Number(value).toFixed(2)} EUR`;
+}
+
+function paymentCardHTML(item) {
+    const due = paymentProgress(item.schedule, item.note);
+    const dueTier = due.daysLeft === null ? TIERS[4] : tier(due.daysLeft);
+    const dueBig = due.daysLeft === null
+        ? 'Set'
+        : due.daysLeft < 0
+            ? 'Late'
+            : due.daysLeft === 0
+                ? 'Today'
+                : `${due.daysLeft}d`;
+    const dueSmall = due.daysLeft === null
+        ? item.schedule
+        : due.daysLeft === 0
+            ? `Due today (${due.dueLabel})`
+            : `Due ${due.dueLabel}`;
+
+    return `
+    <div class="card bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 hover:scale-[1.02] transition-transform duration-200 cursor-default">
+        <div class="flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+                <p class="text-white font-semibold text-sm sm:text-base leading-snug truncate">${esc(item.name)}</p>
+                <p class="text-slate-500 text-xs mt-0.5">${esc(item.schedule)}${item.note ? ` • ${esc(item.note)}` : ''}</p>
+            </div>
+            <div class="text-right shrink-0 ml-2">
+                <p class="text-sky-300 font-black text-lg sm:text-xl leading-none tabular-nums">${esc(euroAmount(item.amount))}</p>
+            </div>
+        </div>
+        <div class="mt-4 flex items-end justify-between gap-3">
+            <div>
+                <p class="${dueTier.num} font-black text-lg sm:text-xl leading-none tabular-nums">${dueBig}</p>
+                <p class="text-slate-500 text-xs mt-1">${esc(dueSmall)}</p>
+            </div>
+            ${due.daysLeft !== null ? `<span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${dueTier.badge}">${dueTier.label}</span>` : ''}
+        </div>
+        <div class="mt-3 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="${dueTier.bar} h-full rounded-full" style="width:${due.progress}%; transition: width .6s ease"></div>
+        </div>
+    </div>`;
+}
+
+function paymentSummaryHTML(payments) {
+    if (payments.length === 0) return '';
+
+    return `
+    <section class="space-y-3">
+        <div class="flex items-center gap-3">
+            <div class="h-px flex-1 bg-slate-800"></div>
+            <h2 class="text-slate-500 text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">Payments</h2>
+            <div class="h-px flex-1 bg-slate-800"></div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+            ${payments.map(paymentCardHTML).join('')}
+        </div>
+    </section>`;
+}
+
+function summaryHTML(groups) {
+    const all = groups.flatMap(g => g.items);
+    const counts = { Critical: 0, Soon: 0, Upcoming: 0, OK: 0, Expired: 0 };
+    all.forEach(it => { counts[tier(it.days).label]++; });
+    const pills = [
+        { k: 'Expired',  cls: 'bg-slate-700 text-slate-300' },
+        { k: 'Critical', cls: 'bg-red-500/20 text-red-400' },
+        { k: 'Soon',     cls: 'bg-orange-500/20 text-orange-400' },
+        { k: 'Upcoming', cls: 'bg-yellow-500/15 text-yellow-400' },
+        { k: 'OK',       cls: 'bg-emerald-500/15 text-emerald-400' },
+    ];
+    return pills
+        .filter(p => counts[p.k] > 0)
+        .map(p => `<span class="px-2.5 py-1 rounded-full ${p.cls}">${counts[p.k]} ${p.k}</span>`)
+        .join('');
+}
+
+function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function animateCards() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((c, i) => {
+        setTimeout(() => c.classList.add('show'), i * 70 + 40);
+    });
+    // Trigger bar animations
+    setTimeout(() => {
+        document.querySelectorAll('.bar-anim').forEach(el => {
+            el.style.animation = 'none';
+            el.offsetHeight; // reflow
+            el.style.animation = '';
+        });
+    }, 100);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.getElementById('today').textContent = new Date().toLocaleDateString('en-GB', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric'
+});
+initLockScreen();
+
+fetch('timeto.txt')
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(text => {
+        const groups = parseExpiry(text);
+        const payments = parsePayments(text);
+        const root   = document.getElementById('root');
+        const sumEl  = document.getElementById('summary');
+
+        if (groups.length === 0 && payments.length === 0) {
+            root.innerHTML = '<p class="text-center text-slate-500 py-20">No entries found in timeto.txt</p>';
+            return;
+        }
+
+        root.innerHTML  = [
+            groups.map(groupHTML).join(''),
+            paymentSummaryHTML(payments)
+        ].filter(Boolean).join('');
+
+        if (groups.length > 0) {
+            sumEl.innerHTML = summaryHTML(groups);
+            sumEl.classList.remove('hidden');
+        }
+        requestAnimationFrame(animateCards);
+    })
+    .catch(() => {
+        document.getElementById('root').innerHTML =
+            `<div class="text-center py-20 space-y-2">
+                <p class="text-red-400 font-semibold">Could not load timeto.txt</p>
+                <p class="text-slate-600 text-sm">Make sure the file exists next to index.html</p>
+            </div>`;
+    });
+</script>
+</body>
+</html>

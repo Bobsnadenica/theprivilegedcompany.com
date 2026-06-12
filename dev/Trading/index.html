@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Asset Intel</h1>
+            <p class="subtitle">Proprietary signals & predictive analytics</p>
+        </header>
+
+        <main class="grid">
+            <!-- S&P 500 Card -->
+            <section class="card" id="sp500-card">
+                <div class="card-header">
+                    <h2>S&P 500 Index</h2>
+                    <span class="symbol">SPX</span>
+                </div>
+                <div class="price-container">
+                    <span class="price" id="sp500-price">0.00</span>
+                    <span class="change" id="sp500-change">0.00%</span>
+                </div>
+                <div class="predictions">
+                    <div class="prediction-item">
+                        <span class="timeframe">24H Forecast</span>
+                        <span class="signal" id="sp500-24h">ANALYZING</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="timeframe">7D Forecast</span>
+                        <span class="signal" id="sp500-7d">ANALYZING</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="timeframe">1Y Forecast</span>
+                        <span class="signal" id="sp500-1y">ANALYZING</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bitcoin Card -->
+            <section class="card" id="btc-card">
+                <div class="card-header">
+                    <h2>Bitcoin Core</h2>
+                    <span class="symbol">BTC/USD</span>
+                </div>
+                <div class="price-container">
+                    <span class="price" id="btc-price">0.00</span>
+                    <span class="change" id="btc-change">0.00%</span>
+                </div>
+                <div class="predictions">
+                    <div class="prediction-item">
+                        <span class="timeframe">24H Forecast</span>
+                        <span class="signal" id="btc-24h">ANALYZING</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="timeframe">7D Forecast</span>
+                        <span class="signal" id="btc-7d">ANALYZING</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="timeframe">1Y Forecast</span>
+                        <span class="signal" id="btc-1y">ANALYZING</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Asset Intel Dashboard. System status: Live. Simulated data feed active.</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+Cloudflare domains:
+www.bobsnadenica.com - Expires August 6,2026
+www.dalisipedal.com - Expires January 1, 2027
+www.everydaylilly.com - Expires September 27,2035
+www.istinskiguru.com - Expires April 5, 2027
+www.malkokote.com - Expires May 2,2027
+www.theprivilegedcompany.com - Expires May 19,2027
+
+Store Subscription:
+Apple developer - Expires October 10, 2026
+
+Car:
+M3 Insurance: Expires August 17, 2026
+Car Vinetka - Expires December 27, 2026
+ГТП - Expires July 3, 2026
+
+Contacts:
+A1 - Expires May 1, 2027
+
+Work:
+AWS Certified Solutions Architect Associate - Expires April 18,2029
+AWS Certified Cloud Practitioner - Expires April 18,2029
+Microsoft Certified: Azure Fundamentals - Expires never
+
+
+
+Random:
+Mario - Expires September 10, 2051
+Wuigi - Expires August 13, 2035
+
+Payments:
+K1 - Monthly on the 10th - 301,25 EUR
+K2 - Monthly on the 13th - 362,49 EUR
+Pulse Fitness - Monthly on the 26th - 50 EUR
+A1 - Monthly on the 26th - 60 EUR
+Taxes - Yearly in February - 120 EUR - Paid for 2026
+Electricity - Monthly on the 9th - 140 EUR
+Total fixed monthly: 913,74 EUR

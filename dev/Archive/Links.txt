@@ -1,0 +1,138 @@
+# Useful Links Archive
+# Format:
+# Category:
+# Label | https://example.com/ | Optional note
+
+Social Media:
+Instagram | https://www.instagram.com/ | Photos, creators, and direct messages
+X | https://x.com/ | Real-time updates and niche accounts
+Reddit | https://www.reddit.com/ | Communities, research, and rabbit holes
+YouTube | https://www.youtube.com/ | Video, tutorials, and subscriptions
+TikTok | https://www.tiktok.com/ | Short-form trends and discovery
+LinkedIn | https://www.linkedin.com/ | Professional network and jobs
+Facebook | https://www.facebook.com/ | Groups, pages, and events
+Pinterest | https://www.pinterest.com/ | Visual bookmarks and inspiration
+
+Messaging:
+Discord | https://discord.com/ | Communities, voice, and private servers
+Telegram Web | https://web.telegram.org/ | Messaging, channels, and saved messages
+WhatsApp Web | https://web.whatsapp.com/ | Desktop chat and quick sharing
+Messenger | https://www.messenger.com/ | Facebook messages in the browser
+Slack | https://slack.com/intl/en-gb/ | Team messaging and workspaces
+
+Games:
+AirConsole | https://www.airconsole.com/ | Couch games in the browser
+ROMsPure | https://romspure.cc/ | Retro game ROM library
+Steam | https://store.steampowered.com/ | PC games and wishlists
+SteamDB | https://steamdb.info/ | Price tracking, bundles, and stats
+HowLongToBeat | https://howlongtobeat.com/ | Estimate game completion time
+
+Crack Games:
+FitGirl Repacks | https://fitgirl-repacks.site/ | Repack releases and mirrors
+Skidrow Reloaded | https://www.skidrowreloaded.com/ | Scene release tracker
+DODI Repacks | https://dodi-repacks.site/ | Repack releases and updates
+GameStatus | https://gamestatus.info/en | Server and online game status
+
+Tools:
+Account Killer | https://www.accountkiller.com/en/ | Find account deletion instructions
+Photopea | https://www.photopea.com/ | Browser photo editor
+PDF24 Tools | https://tools.pdf24.org/en/ | Merge, compress, and convert PDFs
+Remove.bg | https://www.remove.bg/ | Quick background removal
+TinyWow | https://tinywow.com/ | Everyday file conversion tools
+
+Movies and TV:
+A Good Movie To Watch | https://agoodmovietowatch.com/ | Human-curated movie picks
+JustWatch | https://www.justwatch.com/ | Find where a movie or show is streaming
+IMDb | https://www.imdb.com/ | Ratings, cast, and release details
+Letterboxd | https://letterboxd.com/ | Track movies, reviews, and lists
+
+Shopping:
+CamelCamelCamel | https://camelcamelcamel.com/ | Amazon price history
+Amazon | https://www.amazon.com/ | Shopping and wishlists
+eBay | https://www.ebay.com/ | Auctions and second-hand deals
+Etsy | https://www.etsy.com/ | Handmade and niche finds
+
+Data:
+LightningMaps | https://www.lightningmaps.org/ | Live lightning strikes
+LeoLabs | https://platform.leolabs.space/visualization | Orbital object visualization
+Our World in Data | https://ourworldindata.org/ | Public charts and research
+Worldometer | https://www.worldometers.info/ | Live counters and rankings
+NASA Eyes | https://eyes.nasa.gov/ | Space visualization and mission data
+
+Gym:
+MuscleWiki | https://musclewiki.com/ | Exercise library by muscle group
+ExRx | https://exrx.net/ | Exercise technique and anatomy
+Strength Level | https://strengthlevel.com/ | Benchmark lifts and standards
+
+Software:
+AlternativeTo | https://alternativeto.net/ | App replacements and alternatives
+FileHippo | https://filehippo.com/ | Software downloads
+Ninite | https://ninite.com/ | Clean installs for common Windows apps
+
+AI:
+ChatGPT | https://chatgpt.com/ | General AI assistant
+Claude | https://claude.ai/ | Long-form thinking and writing
+Perplexity | https://www.perplexity.ai/ | Research and web-grounded answers
+Hugging Face | https://huggingface.co/ | Models, spaces, and datasets
+Async | https://async.com/ | Async collaboration for media review
+
+Assets:
+Mixkit | https://mixkit.co/ | Free video, sound, and templates
+Unsplash | https://unsplash.com/ | Free photography
+Pexels | https://www.pexels.com/ | Free stock photos and video
+Icons8 | https://icons8.com/ | Icons, illustrations, and generators
+Fontshare | https://www.fontshare.com/ | Free typefaces
+
+Freelance:
+Fiverr | https://www.fiverr.com/ | Quick freelance gigs
+Upwork | https://www.upwork.com/ | Long-form freelance projects
+Toptal | https://www.toptal.com/ | Premium contractor network
+
+Productivity:
+Notion | https://www.notion.so/ | Notes, docs, and project planning
+Google Drive | https://drive.google.com/ | Files, sharing, and backup
+Google Calendar | https://calendar.google.com/ | Schedule and reminders
+Trello | https://trello.com/ | Lightweight kanban boards
+Todoist | https://todoist.com/ | Personal tasks and recurring lists
+
+Reference:
+Wikipedia | https://www.wikipedia.org/ | General knowledge
+Archive.org | https://archive.org/ | Internet archive and digital library
+Wayback Machine | https://web.archive.org/ | Old versions of websites
+MDN Web Docs | https://developer.mozilla.org/ | Frontend documentation
+Stack Overflow | https://stackoverflow.com/ | Developer Q and A
+
+Developer:
+GitHub | https://github.com/ | Repositories, issues, and pull requests
+GitLab | https://gitlab.com/ | Repositories and CI
+NPM | https://www.npmjs.com/ | JavaScript packages
+Vercel | https://vercel.com/ | Frontend deployment
+Netlify | https://www.netlify.com/ | Static site hosting
+Can I Use | https://caniuse.com/ | Browser support matrix
+
+Travel and Maps:
+Google Maps | https://maps.google.com/ | Navigation and saved places
+OpenStreetMap | https://www.openstreetmap.org/ | Community map data
+Rome2Rio | https://www.rome2rio.com/ | Route planning across transport types
+Skyscanner | https://www.skyscanner.com/ | Flight search
+Booking | https://www.booking.com/ | Hotels and stays
+
+Music and Audio:
+Spotify | https://open.spotify.com/ | Music discovery and playlists
+SoundCloud | https://soundcloud.com/ | Uploads, remixes, and deep cuts
+TuneIn | https://tunein.com/ | Radio and live stations
+Bandcamp | https://bandcamp.com/ | Music purchases and indie releases
+
+News:
+Reuters | https://www.reuters.com/ | Straight news coverage
+AP News | https://apnews.com/ | Global and US reporting
+BBC News | https://www.bbc.com/news | International headlines
+Ground News | https://ground.news/ | Compare bias and coverage angles
+
+
+
+
+
+https://human.biodigital.com/login?returnUrl=/explore
+
+https://mirofish.homes

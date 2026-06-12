@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Perfect Circle Challenge 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;600;900&display=swap" rel="stylesheet">
+<style>
+    html, body {
+        margin: 0;
+        overflow: hidden;
+        height: 100%;
+        background: radial-gradient(circle at center, #1a1a2e, #16213e, #0f3460);
+        font-family: 'Exo 2', sans-serif;
+        color: white;
+        user-select: none;
+        touch-action: none; /* Prevents scrolling on mobile */
+    }
+
+    #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+        z-index: 1;
+    }
+
+    #particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    #hud {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 10;
+        pointer-events: none;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        width: 100%;
+    }
+
+    #score {
+        font-size: 48px;
+        font-weight: 900;
+        color: #fff;
+        margin: 0;
+        line-height: 1;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #details {
+        font-size: 16px;
+        color: #aeb8c7;
+        margin-top: 4px;
+        font-weight: 300;
+        letter-spacing: 1px;
+    }
+
+    @media (min-width: 768px) {
+        #hud { top: 40px; }
+        #score { font-size: 64px; }
+        #details { font-size: 18px; }
+    }
+
+    #leaderboard {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #8892b0;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 20px;
+        border-radius: 20px;
+        display: inline-block;
+        backdrop-filter: blur(4px);
+    }
+
+    #instructions {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 28px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        animation: breathe 3s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+        0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.95); }
+        50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    /* Pop animation for high scores */
+    @keyframes pop {
+        0% { transform: scale(0.8); opacity: 0; }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .high-score-anim {
+        animation: pop 0.5s forwards;
+        color: #ffd700 !important; /* Gold */
+        text-shadow: 0 0 20px #ffd700;
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+<canvas id="particles"></canvas>
+
+<div id="hud">
+  <div id="score">0.0%</div>
+  <div id="details">Draw a circle to begin</div>
+  <div id="leaderboard"></div>
+</div>
+
+<div id="instructions">HOLD & DRAW</div>
+
+<script>
+/** * AUDIO SYSTEM (Synthesizer)
+ */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+function playSound(type, val) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'draw') {
+        // A low hum that rises as you draw longer
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(100 + (val * 2), now);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'score') {
+        // Chime based on score (Higher score = Higher pitch)
+        osc.type = val > 90 ? 'triangle' : 'sine';
+        const freq = 200 + (val * 8); 
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.1); // "Ding" effect
+        
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+        
+        osc.start(now);
+        osc.stop(now + 1.5);
+    }
+}
+
+/** * MAIN GAME LOGIC 
+ */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const particleCanvas = document.getElementById("particles");
+const pctx = particleCanvas.getContext("2d");
+
+let w, h;
+function resize() {
+    w = window.innerWidth;
+    h = window.innerHeight;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = particleCanvas.width = w * ratio;
+    canvas.height = particleCanvas.height = h * ratio;
+    ctx.scale(ratio, ratio);
+    pctx.scale(ratio, ratio);
+    
+    // Reset visual state on resize
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+}
+window.addEventListener("resize", resize);
+resize();
+
+let drawing = false;
+let points = [];
+let particles = [];
+let bestScore = parseFloat(localStorage.getItem("bestScore") || "0");
+
+// Update initial leaderboard text
+updateLeaderboardUI();
+
+function start(e) {
+    e.preventDefault(); // Prevent scrolling on touch
+    drawing = true;
+    points = [];
+    
+    // Clear canvas instantly for a fresh attempt
+    ctx.clearRect(0, 0, w, h);
+    
+    // Reset UI style
+    document.getElementById("score").style.color = "#fff";
+    document.getElementById("instructions").style.opacity = "0";
+    
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    points.push(pos);
+}
+
+function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    
+    const pos = getPos(e);
+    points.push(pos);
+
+    // Audio feedback based on stroke length
+    if (points.length % 5 === 0) playSound('draw', points.length);
+
+    // Dynamic Color: Starts Blue, turns Cyan, then White
+    const hue = (200 + points.length) % 360;
+    ctx.strokeStyle = `hsl(${hue}, 80%, 70%)`;
+    ctx.lineWidth = 4;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = `hsl(${hue}, 80%, 50%)`;
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    
+    // Spawn trail particles
+    if (Math.random() > 0.5) spawnParticle(pos.x, pos.y, `hsl(${hue}, 80%, 50%)`);
+}
+
+function end() {
+    if (!drawing) return;
+    drawing = false;
+    document.getElementById("instructions").style.opacity = "1";
+    document.getElementById("instructions").innerText = "DRAW AGAIN";
+    
+    if (points.length < 30) {
+        document.getElementById("details").innerText = "Too small! Try bigger.";
+        return;
+    }
+    
+    calculateScore();
+}
+
+function getPos(e) {
+    if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length > 0) {
+        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+}
+
+/**
+ * MATH & SCORING
+ */
+function calculateScore() {
+    let avgX = 0, avgY = 0;
+    points.forEach(p => { avgX += p.x; avgY += p.y; });
+    avgX /= points.length;
+    avgY /= points.length;
+
+    // Calculate average radius
+    const radii = points.map(p => Math.hypot(p.x - avgX, p.y - avgY));
+    const avgR = radii.reduce((a, b) => a + b) / radii.length;
+
+    // Calculate Variance (how wobbly it is)
+    const variance = radii.reduce((sum, r) => sum + Math.abs(r - avgR), 0) / radii.length;
+    
+    // Calculate Closure (did endpoints meet?)
+    const startPt = points[0];
+    const endPt = points[points.length - 1];
+    const closureGap = Math.hypot(startPt.x - endPt.x, startPt.y - endPt.y);
+    // Normalize closure penalty based on circle size
+    const closurePenalty = (closureGap / avgR) * 15;
+
+    // Normalize variance penalty
+    const variancePenalty = (variance / avgR) * 100;
+
+    let rawScore = 100 - variancePenalty - closurePenalty;
+    let score = Math.max(0, Math.min(100, rawScore));
+
+    displayResult(score, avgX, avgY, avgR);
+}
+
+function displayResult(score, cx, cy, r) {
+    playSound('score', score);
+
+    const scoreEl = document.getElementById("score");
+    const detailsEl = document.getElementById("details");
+
+    // Color grading based on score
+    let color = "#ff4d4d"; // Red (Bad)
+    let comment = "Square?";
+    
+    if (score > 80) { color = "#ff9f43"; comment = "Not bad!"; } // Orange
+    if (score > 90) { color = "#00d2d3"; comment = "Excellent!"; } // Cyan
+    if (score > 95) { color = "#54a0ff"; comment = "Masterpiece!"; } // Blue
+    if (score > 98) { color = "#ffd700"; comment = "GODLIKE"; } // Gold
+
+    scoreEl.innerText = score.toFixed(1) + "%";
+    scoreEl.style.color = color;
+    scoreEl.style.textShadow = `0 0 20px ${color}`;
+    
+    // Visual Pop Effect
+    scoreEl.style.transform = "scale(1.5)";
+    setTimeout(() => scoreEl.style.transform = "scale(1)", 200);
+
+    detailsEl.innerText = comment;
+    detailsEl.style.color = color;
+
+    // Draw the "Ghost" Ideal Circle for comparison
+    drawIdealCircle(cx, cy, r, color);
+    
+    // Save to leaderboard
+    saveScore(score);
+    
+    // Explosive particles for good scores
+    if (score > 90) explodeParticles(cx, cy, color);
+}
+
+function drawIdealCircle(x, y, r, color) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]); // Dashed line
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset
+    ctx.globalAlpha = 1.0;
+}
+
+function saveScore(score) {
+    let scores = JSON.parse(localStorage.getItem("circleScores") || "[]");
+    scores.push(score);
+    scores.sort((a, b) => b - a);
+    scores = scores.slice(0, 5); // Keep top 5
+    localStorage.setItem("circleScores", JSON.stringify(scores));
+    updateLeaderboardUI(scores);
+}
+
+function updateLeaderboardUI(scores) {
+    if (!scores) scores = JSON.parse(localStorage.getItem("circleScores") || "[]");
+    const lb = document.getElementById("leaderboard");
+    if (scores.length === 0) {
+        lb.innerHTML = "No high scores yet";
+        return;
+    }
+    lb.innerHTML = "🏆 BEST: " + scores[0].toFixed(1) + "%";
+}
+
+/**
+ * PARTICLE SYSTEM
+ */
+function spawnParticle(x, y, color) {
+    particles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        life: 1.0,
+        color: color
+    });
+}
+
+function explodeParticles(x, y, color) {
+    for(let i=0; i<50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        particles.push({
+            x: x, y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1.0,
+            decay: 0.02,
+            color: color
+        });
+    }
+}
+
+function loop() {
+    pctx.clearRect(0, 0, w, h);
+    
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= (p.decay || 0.05); // Default decay is fast for trail
+        
+        pctx.globalAlpha = p.life;
+        pctx.fillStyle = p.color;
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        pctx.fill();
+        
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+    
+    requestAnimationFrame(loop);
+}
+loop();
+
+// Event Listeners
+canvas.addEventListener("mousedown", start);
+canvas.addEventListener("mousemove", draw);
+window.addEventListener("mouseup", end);
+
+canvas.addEventListener("touchstart", start, {passive: false});
+canvas.addEventListener("touchmove", draw, {passive: false});
+window.addEventListener("touchend", end, {passive: false});
+window.addEventListener("touchcancel", end, {passive: false});
+
+</script>
+</body>
+</html>

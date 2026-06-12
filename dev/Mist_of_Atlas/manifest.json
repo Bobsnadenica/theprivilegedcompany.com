@@ -1,0 +1,17 @@
+{
+  "name": "Mist of Atlas: World of Fog",
+  "short_name": "MistOfAtlas",
+  "description": "Turn real-world movement into a premium fantasy-style exploration map.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#08111a",
+  "theme_color": "#d0aa61",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
