@@ -9,6 +9,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
+**/.claude/worktrees/
 
 # =========================================================================
 # Node / JavaScript
