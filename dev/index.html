@@ -14,21 +14,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="site-locked bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-start p-4">
-
-<div id="lock-screen" class="lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-description">
-    <div class="lock-card">
-        <p class="lock-eyebrow">Private Entry</p>
-        <h1 id="lock-title" class="lock-title">Restricted Access</h1>
-        <p id="lock-description" class="lock-description">Enter the access code to continue.</p>
-        <form id="lock-form" class="lock-form" novalidate>
-            <label for="lock-input" class="lock-label">Access code</label>
-            <input id="lock-input" name="password" type="password" inputmode="numeric" autocomplete="off" spellcheck="false" class="lock-input" placeholder="Enter code" aria-describedby="lock-status" />
-            <button type="submit" class="lock-submit">Unlock</button>
-        </form>
-        <p id="lock-status" class="lock-status" aria-live="polite">Authorized access only.</p>
-    </div>
-</div>
+<body class="bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-start p-4">
 
 <iframe class="video-bg"
     src="https://www.youtube.com/embed/iYmvCUonukw?autoplay=1&mute=1&controls=0&loop=1&playlist=iYmvCUonukw&modestbranding=1&showinfo=0&playsinline=1"
@@ -37,7 +23,7 @@
 <div class="video-overlay"></div>
 
 <div id="fade-wrapper">
-    <div id="page-content" class="flex flex-col items-center w-full" aria-hidden="true">
+    <div id="page-content" class="flex flex-col items-center w-full">
 
         <main class="relative z-10 w-full flex flex-col items-center">
 
@@ -205,7 +191,6 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@joergdietrich/leaflet.terminator@1.1.0/L.Terminator.js"></script>
-<script src="js/front_page_lock.js"></script>
 <script src="js/front_page_map.js"></script>
 <script src="js/explosion.js"></script>
 </body>
