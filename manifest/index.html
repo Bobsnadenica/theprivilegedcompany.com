@@ -243,7 +243,7 @@
                             <span class="terminal-prompt">$</span>
                             <span id="diagnostic-command">website-probe.sh --example</span>
                         </div>
-                        <div class="terminal-line terminal-output" id="diagnostic-output">Copy one .sh probe. From Terminal, WSL, or Git Bash it checks tools, offers supported installs, and prints a short status table.</div>
+                        <div class="terminal-line terminal-output" id="diagnostic-output">Copy one .sh browser-style probe. From Terminal, WSL, or Git Bash it checks setup, site health, and safe pentest smoke signals.</div>
                         <div class="probe-actions">
                             <button class="copy-probe-btn" id="copy-probe-script" type="button">Copy Script</button>
                             <span class="copy-probe-status" id="copy-probe-status" aria-live="polite"></span>
@@ -412,13 +412,14 @@ ensure_tool() {
   [ "$required" = required ] && return 1 || return 0
 }
 
-printf "ThePrivilegedCompany website probe\n"
+printf "ThePrivilegedCompany website diagnostics + browser-style pentest smoke probe\n"
 printf "Target: %s\n" "$TARGET"
 printf "Platform: %s\n" "$PLATFORM"
 printf "Run as: chmod +x website-probe.sh && ./website-probe.sh https://example.com\n"
 printf "Windows: run from WSL or Git Bash. macOS/Linux: run from Terminal.\n"
 printf "Optional auto-install: TPC_AUTO_INSTALL=1 ./website-probe.sh https://example.com\n"
 printf "Permission: run only against websites you own or are allowed to test.\n\n"
+printf "Mode: safe/passive checks plus low-rate smoke probes. No brute force, no destructive tests.\n\n"
 
 if ! ensure_tool curl required; then
   printf "curl is required. Install it and rerun.\n"
@@ -497,6 +498,237 @@ header_state() {
   printf "%s\n" "$headers" | grep -iq "^$1:" && echo present || echo missing
 }
 
+count_regex() {
+  set +e
+  count="$(grep -Eio "$1" "$TMP/home.html" 2>/dev/null | wc -l | tr -d ' ')"
+  set -e
+  printf "%s" "${count:-0}"
+}
+
+run_browser_style_audit() {
+  if need python3; then
+    python3 - "$TMP/home.html" "$BASE" > "$TMP/browser-audit.txt" <<'PY'
+import re
+import sys
+from html.parser import HTMLParser
+from urllib.parse import urljoin, urlparse
+
+html_path, base = sys.argv[1], sys.argv[2]
+with open(html_path, "r", encoding="utf-8", errors="ignore") as handle:
+    html = handle.read()
+script_close = r'</' + r'script>'
+html = re.sub(r'<script type="text/plain" id="probe-script-template">.*?' + script_close, '', html, flags=re.I | re.S)
+
+parsed_base = urlparse(base)
+base_origin = f"{parsed_base.scheme}://{parsed_base.netloc}"
+
+class PassiveParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.forms = []
+        self.current_form = None
+        self.file_inputs = 0
+        self.password_inputs = 0
+        self.mixed_content = 0
+        self.risky_blank = 0
+        self.javascript_urls = 0
+        self.inline_handlers = 0
+        self.inline_script_count = 0
+        self.inline_script_text = []
+        self.in_inline_script = False
+        self.third_party_hosts = set()
+        self.third_party_script_count = 0
+        self.scripts_without_integrity = 0
+        self.sensitive_links = set()
+        self.generator_meta = ""
+
+    def close_form(self):
+        if self.current_form is not None:
+            self.forms.append(self.current_form)
+            self.current_form = None
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        attrs = {name.lower(): (value or "") for name, value in attrs}
+
+        for name, value in attrs.items():
+            if name.startswith("on"):
+                self.inline_handlers += 1
+            if name in ("src", "href", "action") and value.strip().lower().startswith("http://"):
+                self.mixed_content += 1
+
+        if tag == "form":
+            self.close_form()
+            action = attrs.get("action", "")
+            method = attrs.get("method", "get").lower()
+            action_url = urljoin(base, action or base)
+            action_origin = ""
+            try:
+                parsed = urlparse(action_url)
+                action_origin = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else ""
+            except Exception:
+                action_origin = ""
+            self.current_form = {
+                "method": method,
+                "action_origin": action_origin,
+                "has_csrf": False,
+                "has_password": False,
+                "has_file": False,
+            }
+
+        if tag == "input":
+            input_type = attrs.get("type", "text").lower()
+            signal = " ".join([attrs.get("name", ""), attrs.get("id", ""), attrs.get("class", "")])
+            if input_type == "password":
+                self.password_inputs += 1
+                if self.current_form is not None:
+                    self.current_form["has_password"] = True
+            if input_type == "file":
+                self.file_inputs += 1
+                if self.current_form is not None:
+                    self.current_form["has_file"] = True
+            if re.search(r"csrf|xsrf|authenticity|nonce|token", signal, re.I) and self.current_form is not None:
+                self.current_form["has_csrf"] = True
+
+        if tag == "a":
+            href = attrs.get("href", "")
+            if attrs.get("target", "").lower() == "_blank":
+                rel = attrs.get("rel", "").lower()
+                if "noopener" not in rel and "noreferrer" not in rel:
+                    self.risky_blank += 1
+            if href.strip().lower().startswith("javascript:"):
+                self.javascript_urls += 1
+            if re.search(r"(/admin\b|/administrator\b|/swagger\b|/openapi\b|/api/docs\b|/actuator\b|/debug\b|/phpinfo\.php\b)", href, re.I):
+                self.sensitive_links.add(href[:140])
+
+        if tag == "form" and attrs.get("action", "").strip().lower().startswith("javascript:"):
+            self.javascript_urls += 1
+
+        if tag == "script":
+            src = attrs.get("src", "")
+            if src:
+                script_url = urljoin(base, src)
+                parsed = urlparse(script_url)
+                origin = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else ""
+                if origin and origin != base_origin:
+                    self.third_party_script_count += 1
+                    self.third_party_hosts.add(parsed.hostname or parsed.netloc)
+                    if not attrs.get("integrity"):
+                        self.scripts_without_integrity += 1
+            else:
+                self.inline_script_count += 1
+                self.in_inline_script = True
+
+        if tag == "meta" and attrs.get("name", "").lower() == "generator":
+            self.generator_meta = attrs.get("content", "")
+
+    def handle_data(self, data):
+        if self.in_inline_script:
+            self.inline_script_text.append(data)
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag == "form":
+            self.close_form()
+        if tag == "script":
+            self.in_inline_script = False
+
+parser = PassiveParser()
+parser.feed(html)
+parser.close_form()
+
+post_forms = sum(1 for form in parser.forms if form["method"] == "post")
+cross_origin_forms = sum(1 for form in parser.forms if form["action_origin"] and form["action_origin"] != base_origin)
+post_missing_csrf = sum(1 for form in parser.forms if form["method"] == "post" and not form["has_csrf"])
+upload_forms = sum(1 for form in parser.forms if form["has_file"])
+inline_joined = "\n".join(parser.inline_script_text)
+sink_hits = 0
+for pattern in (r"\beval\s*\(", r"\bdocument\.write\s*\(", r"\.innerHTML\s*=", r"insertAdjacentHTML\s*\("):
+    sink_hits += len(re.findall(pattern, inline_joined, re.I))
+
+secret_patterns = [
+    r"AIza[0-9A-Za-z-_]{35}",
+    r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}",
+    r"AKIA[0-9A-Z]{16}",
+    r"-----BEGIN [A-Z ]*PRIVATE KEY-----",
+]
+secret_hits = sum(len(re.findall(pattern, html)) for pattern in secret_patterns)
+debug_patterns = [
+    r"SQL syntax.*MySQL",
+    r"ORA-\d{4,5}",
+    r"Traceback \(most recent call last\)",
+    r"Unhandled(?:\s+\w+)?Exception",
+    r"Stack trace",
+    r"Exception in thread",
+    r"\bTypeError:\b",
+    r"\bReferenceError:\b",
+]
+debug_hits = sum(1 for pattern in debug_patterns if re.search(pattern, html, re.I))
+
+def put(key, value):
+    print(f"{key}\t{value}")
+
+put("available", "yes")
+put("form_count", len(parser.forms))
+put("post_forms", post_forms)
+put("password_forms", parser.password_inputs)
+put("file_inputs", parser.file_inputs)
+put("upload_forms", upload_forms)
+put("post_missing_csrf", post_missing_csrf)
+put("cross_origin_forms", cross_origin_forms)
+put("mixed_content", parser.mixed_content)
+put("risky_blank", parser.risky_blank)
+put("javascript_urls", parser.javascript_urls)
+put("inline_handlers", parser.inline_handlers)
+put("inline_scripts", parser.inline_script_count)
+put("inline_sinks", sink_hits)
+put("third_party_scripts", parser.third_party_script_count)
+put("scripts_without_integrity", parser.scripts_without_integrity)
+put("third_party_hosts", ", ".join(sorted(parser.third_party_hosts)) or "none")
+put("sensitive_links", len(parser.sensitive_links))
+put("client_secret_hits", secret_hits)
+put("debug_hits", debug_hits)
+put("generator_meta", parser.generator_meta or "none")
+PY
+  else
+    {
+      printf "available\tlimited\n"
+      printf "form_count\t%s\n" "$(count_regex '<form\b')"
+      printf "post_forms\t%s\n" "$(count_regex '<form[^>]+method=["'\'']?post')"
+      printf "password_forms\t%s\n" "$(count_regex 'type=["'\'']?password')"
+      printf "file_inputs\t%s\n" "$(count_regex 'type=["'\'']?file')"
+      printf "upload_forms\t%s\n" "$(count_regex 'type=["'\'']?file')"
+      printf "post_missing_csrf\t0\n"
+      printf "cross_origin_forms\t0\n"
+      printf "mixed_content\t%s\n" "$(count_regex 'http://[^"'\'' <>)]+' )"
+      printf "risky_blank\t%s\n" "$(count_regex 'target=["'\'']?_blank')"
+      printf "javascript_urls\t%s\n" "$(count_regex 'javascript:')"
+      printf "inline_handlers\t%s\n" "$(count_regex '[[:space:]]on[a-z]+=' )"
+      printf "inline_scripts\t%s\n" "$(count_regex '<script(>|[[:space:]][^>]*>)')"
+      printf "inline_sinks\t%s\n" "$(count_regex 'eval[[:space:]]*\(|document\.write[[:space:]]*\(|innerHTML[[:space:]]*=|insertAdjacentHTML[[:space:]]*\(')"
+      printf "third_party_scripts\t0\n"
+      printf "scripts_without_integrity\t0\n"
+      printf "third_party_hosts\tlimited without python3\n"
+      printf "sensitive_links\t%s\n" "$(count_regex '/admin\b|/administrator\b|/swagger\b|/openapi\b|/api/docs\b|/actuator\b|/debug\b|/phpinfo\.php\b')"
+      printf "client_secret_hits\t%s\n" "$(count_regex 'AIza[0-9A-Za-z_-]{35}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----')"
+      printf "debug_hits\t%s\n" "$(count_regex 'SQL syntax|SQLSTATE|Traceback \(most recent call last\)|Unhandled[^<]*Exception|Stack trace|TypeError:|ReferenceError:')"
+      printf "generator_meta\tlimited without python3\n"
+    } > "$TMP/browser-audit.txt"
+  fi
+}
+
+audit_value() {
+  awk -F '\t' -v key="$1" '$1 == key { $1=""; sub(/^\t/, ""); print; exit }' "$TMP/browser-audit.txt" 2>/dev/null || true
+}
+
+audit_num() {
+  value="$(audit_value "$1")"
+  case "$value" in
+    ""|*[!0-9]*) printf "0" ;;
+    *) printf "%s" "$value" ;;
+  esac
+}
+
 home_stats="$(fetch_code "$BASE/" "$TMP/home.html")"
 home_code="$(printf "%s" "$home_stats" | awk '{print $1}')"
 home_time="$(printf "%s" "$home_stats" | awk '{print $2}')"
@@ -513,8 +745,8 @@ if printf "%s" "$HOST" | grep -Eq '^(localhost|127\.|10\.|172\.(1[6-9]|2[0-9]|3[
   add_status "DNS" "SKIP" "local/IP target"
 elif need dig; then
   a_records="$(dig +short A "$HOST" 2>/dev/null | tr '\n' ' ' | trim || true)"
-  ns_records="$(dig +short NS "$HOST" 2>/dev/null | tr '\n' ' ' | trim || true)"
-  caa_records="$(dig +short CAA "$HOST" 2>/dev/null | tr '\n' ' ' | trim || true)"
+  ns_records="$(dig +short NS "$DOMAIN" 2>/dev/null | tr '\n' ' ' | trim || true)"
+  caa_records="$(dig +short CAA "$DOMAIN" 2>/dev/null | tr '\n' ' ' | trim || true)"
   [ -n "$a_records" ] && add_status "DNS A" "OK" "$a_records" || { add_status "DNS A" "WARN" "no A records returned"; add_note "DNS A record was not returned by dig."; }
   [ -n "$ns_records" ] && add_status "DNS NS" "OK" "$ns_records" || add_status "DNS NS" "WARN" "no NS records returned"
   [ -n "$caa_records" ] && add_status "DNS CAA" "OK" "$caa_records" || add_status "DNS CAA" "INFO" "no CAA record"
@@ -566,6 +798,8 @@ elif need whois; then
   expires="$(domain_field "^(Registry Expiry Date|Registrar Registration Expiration Date|Expiration Date|Expiry Date|paid-till):")"
   updated="$(domain_field "^(Updated Date|Last Updated On|Last Modified|changed):")"
   nameservers="$(domain_fields "^(Name Server|Nameserver|nserver):")"
+  dns_nameservers="$(dig +short NS "$DOMAIN" 2>/dev/null | sort -u | tr '\n' ' ' | trim || true)"
+  [ -n "$dns_nameservers" ] && nameservers="$dns_nameservers"
   dnssec="$(domain_field "^(DNSSEC):")"
   add_status "DOMAIN" "INFO" "$DOMAIN"
   [ -n "$registrar" ] && add_status "DOMAIN REGISTRAR" "OK" "$registrar" || add_status "DOMAIN REGISTRAR" "INFO" "not public in WHOIS"
@@ -671,13 +905,125 @@ case "$server_header" in
     ;;
 esac
 
+cors_headers_file="$TMP/cors.headers"
+curl -L -sS -D "$cors_headers_file" -o /dev/null -H "Origin: https://sentinel.invalid" --max-time 15 "$BASE/" 2>/dev/null || true
+cors_origin="$(tr -d '\r' < "$cors_headers_file" | grep -i '^access-control-allow-origin:' | tail -1 | cut -d: -f2- | trim || true)"
+cors_creds="$(tr -d '\r' < "$cors_headers_file" | grep -i '^access-control-allow-credentials:' | tail -1 | cut -d: -f2- | trim || true)"
+case "$cors_origin" in
+  "")
+    add_status "CORS" "OK" "no ACAO header for sentinel origin"
+    ;;
+  "*")
+    add_status "CORS" "WARN" "wildcard Access-Control-Allow-Origin"
+    add_note "CORS allows any origin on the homepage response."
+    ;;
+  "https://sentinel.invalid")
+    add_status "CORS" "FAIL" "reflected arbitrary Origin${cors_creds:+; credentials=$cors_creds}"
+    add_note "CORS reflected an untrusted Origin header."
+    ;;
+  *)
+    add_status "CORS" "INFO" "ACAO: $cors_origin"
+    ;;
+esac
+
+set_cookie_lines="$(printf "%s\n" "$headers" | tr -d '\r' | grep -i '^set-cookie:' || true)"
+cookie_count="$(printf "%s\n" "$set_cookie_lines" | sed '/^$/d' | wc -l | tr -d ' ')"
+cookie_issues=0
+auth_cookie_issues=0
+if [ "$cookie_count" -gt 0 ]; then
+  while IFS= read -r cookie; do
+    [ -z "$cookie" ] && continue
+    lower_cookie="$(printf "%s" "$cookie" | tr '[:upper:]' '[:lower:]')"
+    cookie_name="$(printf "%s" "$cookie" | sed -E 's/^[Ss]et-[Cc]ookie:[[:space:]]*([^=;]+).*/\1/')"
+    issues=""
+    case "$lower_cookie" in *"; secure"*) ;; *) [ "$SCHEME" = "https" ] && issues="${issues}Secure " ;; esac
+    case "$lower_cookie" in *"; httponly"*) ;; *) issues="${issues}HttpOnly " ;; esac
+    case "$lower_cookie" in *"; samesite="*) ;; *) issues="${issues}SameSite " ;; esac
+    if [ -n "$issues" ]; then
+      cookie_issues=$((cookie_issues + 1))
+      if printf "%s" "$cookie_name" | grep -Eiq 'sess|token|auth|sid|login|user'; then
+        auth_cookie_issues=$((auth_cookie_issues + 1))
+      fi
+    fi
+  done <<EOF
+$set_cookie_lines
+EOF
+fi
+if [ "$cookie_count" -eq 0 ]; then
+  add_status "COOKIES" "OK" "none set on homepage"
+elif [ "$cookie_issues" -eq 0 ]; then
+  add_status "COOKIES" "OK" "$cookie_count reviewed; flags look hardened"
+elif [ "$auth_cookie_issues" -gt 0 ]; then
+  add_status "COOKIES" "FAIL" "$cookie_issues issue(s); auth-like cookie affected"
+  add_note "Auth-like cookies are missing Secure, HttpOnly, or SameSite flags."
+else
+  add_status "COOKIES" "WARN" "$cookie_issues of $cookie_count missing recommended flags"
+  add_note "Some cookies are missing Secure, HttpOnly, or SameSite flags."
+fi
+
+run_browser_style_audit
+form_count="$(audit_num form_count)"
+post_forms="$(audit_num post_forms)"
+password_forms="$(audit_num password_forms)"
+file_inputs="$(audit_num file_inputs)"
+post_missing_csrf="$(audit_num post_missing_csrf)"
+cross_origin_forms="$(audit_num cross_origin_forms)"
+mixed_content_count="$(audit_num mixed_content)"
+risky_blank_count="$(audit_num risky_blank)"
+javascript_url_count="$(audit_num javascript_urls)"
+inline_handler_count="$(audit_num inline_handlers)"
+inline_script_count="$(audit_num inline_scripts)"
+inline_sink_count="$(audit_num inline_sinks)"
+third_party_script_count="$(audit_num third_party_scripts)"
+missing_sri_count="$(audit_num scripts_without_integrity)"
+sensitive_link_count="$(audit_num sensitive_links)"
+client_secret_hits="$(audit_num client_secret_hits)"
+debug_hits="$(audit_num debug_hits)"
+generator_meta="$(audit_value generator_meta)"
+
+if [ "$form_count" -eq 0 ]; then
+  add_status "BROWSER FORMS" "INFO" "no forms observed"
+elif [ "$post_missing_csrf" -gt 0 ] || [ "$cross_origin_forms" -gt 0 ]; then
+  add_status "BROWSER FORMS" "WARN" "$form_count forms; $post_missing_csrf POST missing CSRF signal; $cross_origin_forms cross-origin"
+  add_note "Browser-style audit found form patterns that need manual review."
+else
+  add_status "BROWSER FORMS" "OK" "$form_count forms; $post_forms POST; $password_forms password; $file_inputs file input"
+fi
+
+client_issue_total=$((mixed_content_count + risky_blank_count + javascript_url_count + inline_handler_count + inline_sink_count))
+if [ "$client_issue_total" -eq 0 ]; then
+  add_status "BROWSER CLIENT" "OK" "no mixed content, risky blank links, javascript: URLs, inline handlers, or sink hits"
+else
+  add_status "BROWSER CLIENT" "WARN" "mixed $mixed_content_count; blank $risky_blank_count; js-url $javascript_url_count; handlers $inline_handler_count; sinks $inline_sink_count"
+  add_note "Browser-style client checks found review-worthy DOM/script patterns."
+fi
+
+if [ "$third_party_script_count" -eq 0 ]; then
+  add_status "SUPPLY CHAIN" "INFO" "no third-party scripts observed"
+elif [ "$missing_sri_count" -gt 0 ]; then
+  add_status "SUPPLY CHAIN" "WARN" "$third_party_script_count third-party scripts; $missing_sri_count without SRI"
+  add_note "Third-party scripts without Subresource Integrity need supply-chain review."
+else
+  add_status "SUPPLY CHAIN" "OK" "$third_party_script_count third-party scripts with SRI"
+fi
+
+[ "$client_secret_hits" -eq 0 ] && add_status "SECRET SCAN" "OK" "no high-signal client secret markers" || { add_status "SECRET SCAN" "FAIL" "$client_secret_hits high-signal marker(s)"; add_note "Client-delivered HTML contains high-signal secret markers."; }
+[ "$debug_hits" -eq 0 ] && add_status "DEBUG SIGNALS" "OK" "no stack trace/debug markers" || { add_status "DEBUG SIGNALS" "WARN" "$debug_hits marker(s)"; add_note "Rendered HTML includes debug or stack-trace style markers."; }
+[ "$sensitive_link_count" -eq 0 ] && add_status "SENSITIVE LINKS" "OK" "no admin/debug/API-doc links advertised" || { add_status "SENSITIVE LINKS" "WARN" "$sensitive_link_count advertised route hint(s)"; add_note "DOM advertises admin, debug, or API-documentation style links."; }
+[ -n "$generator_meta" ] && [ "$generator_meta" != "none" ] && add_status "GENERATOR META" "INFO" "$generator_meta"
+
 sql_probe_stats="$(fetch_code "$BASE/?tpc_probe=%27%22%29%3B--" "$TMP/sql-smoke.html")"
 script_close='</''script>'
 perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/sql-smoke.html" > "$TMP/sql-smoke-body.html" 2>/dev/null || cp "$TMP/sql-smoke.html" "$TMP/sql-smoke-body.html"
 sql_error="$(grep -Eiq "SQL syntax|SQLSTATE|mysql_|mysqli_|PostgreSQL|pg_query|SQLite|ORA-[0-9]|ODBC|JDBC|PDOException|unclosed quotation|unterminated quoted|string literal" "$TMP/sql-smoke-body.html" && echo possible || echo clear)"
+reflect_marker="TPCPROBE$RANDOM$RANDOM"
+reflect_stats="$(fetch_code "$BASE/?tpc_reflect=$reflect_marker" "$TMP/reflect-smoke.html")"
+script_close='</''script>'
+perl -0pe "s#<script type=\"text/plain\" id=\"probe-script-template\">.*?$script_close##s" "$TMP/reflect-smoke.html" > "$TMP/reflect-smoke-body.html" 2>/dev/null || cp "$TMP/reflect-smoke.html" "$TMP/reflect-smoke-body.html"
+reflected_marker="$(grep -Fq "$reflect_marker" "$TMP/reflect-smoke-body.html" && echo yes || echo no)"
 exposed=0
 exposed_names=""
-for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/db.sql" "/.DS_Store"; do
+for path in "/.env" "/.env.local" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" "/backup.sql" "/dump.sql" "/db.sql" "/.DS_Store"; do
   code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$BASE$path" 2>/dev/null || true)"
   code="${code:-000}"
   case "$code" in
@@ -688,7 +1034,29 @@ for path in "/.env" "/.git/config" "/wp-config.php" "/config.php" "/backup.zip" 
   esac
 done
 [ "$sql_error" = clear ] && add_status "SQLI SMOKE" "OK" "no obvious SQL error leakage" || { add_status "SQLI SMOKE" "WARN" "possible SQL error leakage"; add_note "SQL smoke probe found database-like error text."; }
+[ "$reflected_marker" = no ] && add_status "REFLECTION" "OK" "probe marker not reflected" || { add_status "REFLECTION" "WARN" "query marker reflected in response"; add_note "A benign query marker was reflected into the response; review output encoding."; }
 [ "$exposed" -eq 0 ] && add_status "SENSITIVE FILES" "OK" "0 exposed" || { add_status "SENSITIVE FILES" "FAIL" "$exposed exposed: $exposed_names"; add_note "Sensitive file paths exposed: $exposed_names"; }
+
+open_redirect_hits=""
+for param in next redirect return url continue destination callback; do
+  redirect_url="$BASE/?$param=https%3A%2F%2Fexample.com%2Ftpc-probe"
+  curl -sS -D "$TMP/redirect-$param.headers" -o /dev/null --max-time 8 "$redirect_url" 2>/dev/null || true
+  location_header="$(tr -d '\r' < "$TMP/redirect-$param.headers" | grep -i '^location:' | head -1 | cut -d: -f2- | trim || true)"
+  if printf "%s" "$location_header" | grep -Eiq '^https?://example\.com(/|$)'; then
+    open_redirect_hits="${open_redirect_hits}${param} "
+  fi
+done
+[ -z "$open_redirect_hits" ] && add_status "REDIRECT SMOKE" "OK" "no obvious open redirect" || { add_status "REDIRECT SMOKE" "WARN" "parameter(s): $open_redirect_hits"; add_note "Open redirect smoke found parameter(s) redirecting to example.com: $open_redirect_hits"; }
+
+sensitive_route_hits=""
+for path in "/admin" "/administrator" "/swagger" "/openapi.json" "/api/docs" "/actuator" "/debug" "/phpinfo.php"; do
+  code="$(curl -L -sS -o /dev/null -w "%{http_code}" --max-time 8 "$BASE$path" 2>/dev/null || true)"
+  code="${code:-000}"
+  case "$code" in
+    2*|3*) sensitive_route_hits="${sensitive_route_hits}${path}($code) " ;;
+  esac
+done
+[ -z "$sensitive_route_hits" ] && add_status "SENSITIVE ROUTES" "OK" "common admin/debug routes not public" || { add_status "SENSITIVE ROUTES" "WARN" "$sensitive_route_hits"; add_note "Common admin/debug/API-doc routes responded publicly: $sensitive_route_hits"; }
 
 if need nmap; then
   nmap -Pn -T2 -sT -sV --version-light --max-retries 2 --host-timeout 45s -p 80,443,8080,8443 --open "$HOST" > "$TMP/nmap.txt" 2>/dev/null || true
@@ -708,7 +1076,7 @@ else
   printf "No urgent issues found in the probe scope.\n"
 fi
 
-printf "\nScope: HTTP, redirects, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled sitemap links, metadata, security headers, sensitive-file smoke, SQL error smoke, and optional nmap web-port check.\n"</script>
-    <script type="module" src="script.js?v=20260613a"></script>
+printf "\nScope: HTTP, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled links, metadata, headers, CORS, cookies, passive browser-style DOM checks, client secret/debug exposure, query reflection, SQL error smoke, sensitive-file/route smoke, open-redirect smoke, and optional nmap web-port check.\n"</script>
+    <script type="module" src="script.js?v=20260613d"></script>
 </body>
 </html>

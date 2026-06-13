@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260613a';
+import { languageMeta, translations } from './translations.js?v=20260613d';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260613a';
+const assetVersion = '20260613d';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -806,6 +806,94 @@ const initHealthCheck = () => {
         ''
     );
 
+    const collectBrowserSmokeSignals = () => {
+        const forms = [...document.forms];
+        const postForms = forms.filter(form => (form.getAttribute('method') || 'get').toLowerCase() === 'post');
+        const passwordForms = forms.filter(form => [...form.elements].some(element => element.type === 'password'));
+        const fileInputs = [...document.querySelectorAll('input[type="file" i]')];
+        const postMissingCsrf = postForms.filter(form => ![...form.elements].some(element =>
+            /csrf|xsrf|authenticity|nonce|token/i.test(`${element.name || ''} ${element.id || ''} ${element.className || ''}`)
+        ));
+        const crossOriginForms = forms.filter(form => {
+            try {
+                const action = new URL(form.getAttribute('action') || window.location.href, window.location.href);
+                return action.origin !== window.location.origin;
+            } catch {
+                return false;
+            }
+        });
+        const riskyBlankLinks = [...document.querySelectorAll('a[target="_blank"]')].filter(link => {
+            const rel = (link.getAttribute('rel') || '').toLowerCase();
+            return !rel.includes('noopener') && !rel.includes('noreferrer');
+        });
+        const javascriptUrls = [...document.querySelectorAll('a[href], form[action]')].filter(node => {
+            const attr = node.tagName.toLowerCase() === 'form' ? 'action' : 'href';
+            return /^javascript:/i.test(node.getAttribute(attr) || '');
+        });
+        const inlineHandlers = [...document.querySelectorAll('*')].reduce((count, node) => (
+            count + [...node.attributes || []].filter(attr => /^on/i.test(attr.name)).length
+        ), 0);
+        const inlineScriptText = [...document.scripts]
+            .filter(script => !script.src && script.type !== 'text/plain')
+            .map(script => script.textContent || '')
+            .join('\n');
+        const sinkHits = [
+            /\beval\s*\(/gi,
+            /\bdocument\.write\s*\(/gi,
+            /\.innerHTML\s*=/gi,
+            /insertAdjacentHTML\s*\(/gi
+        ].reduce((count, pattern) => count + (inlineScriptText.match(pattern) || []).length, 0);
+        const thirdPartyScripts = [...document.scripts].filter(script => {
+            if (!script.src) return false;
+            try {
+                return new URL(script.src, window.location.href).origin !== window.location.origin;
+            } catch {
+                return false;
+            }
+        });
+        const scriptsWithoutIntegrity = thirdPartyScripts.filter(script => !script.integrity);
+        const sensitiveLinks = [...document.querySelectorAll('a[href]')].filter(link =>
+            /(?:\/admin\b|\/administrator\b|\/swagger\b|\/openapi\b|\/api\/docs\b|\/actuator\b|\/debug\b|\/phpinfo\.php\b)/i.test(link.getAttribute('href') || '')
+        );
+        const pageHtml = stripEmbeddedProbe(document.documentElement.outerHTML || '');
+        const clientSecretHits = [
+            /AIza[0-9A-Za-z-_]{35}/g,
+            /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g,
+            /AKIA[0-9A-Z]{16}/g,
+            /-----BEGIN [A-Z ]*PRIVATE KEY-----/g
+        ].reduce((count, pattern) => count + (pageHtml.match(pattern) || []).length, 0);
+        const debugHits = [
+            /SQL syntax.*MySQL/i,
+            /ORA-\d{4,5}/i,
+            /Traceback \(most recent call last\)/i,
+            /Unhandled(?:\s+\w+)?Exception/i,
+            /Stack trace/i,
+            /Exception in thread/i,
+            /\bTypeError:\b/i,
+            /\bReferenceError:\b/i
+        ].filter(pattern => pattern.test(pageHtml)).length;
+        const clientIssues = riskyBlankLinks.length + javascriptUrls.length + inlineHandlers + sinkHits + scriptsWithoutIntegrity.length + clientSecretHits + debugHits;
+
+        return {
+            formCount: forms.length,
+            postForms: postForms.length,
+            passwordForms: passwordForms.length,
+            fileInputs: fileInputs.length,
+            postMissingCsrf: postMissingCsrf.length,
+            crossOriginForms: crossOriginForms.length,
+            riskyBlankLinks: riskyBlankLinks.length,
+            javascriptUrls: javascriptUrls.length,
+            inlineHandlers,
+            sinkHits,
+            thirdPartyScripts: thirdPartyScripts.length,
+            scriptsWithoutIntegrity: scriptsWithoutIntegrity.length,
+            sensitiveLinks: sensitiveLinks.length,
+            clientSecretHits,
+            debugHits,
+            clientIssues
+        };
+    };
+
     const request = async (path, options = {}) => {
         const started = performance.now();
         try {
@@ -882,7 +970,9 @@ const initHealthCheck = () => {
 
             const sitemapUrls = [...sitemap.text.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]);
             const missingFragments = fragments.filter(({ response }) => !response.ok).length;
-            const directRouteIssues = directRoutes.filter(({ result }) => !result.response.ok).length;
+            const isReachable = response => response.status >= 200 && response.status < 400;
+            const directRouteIssues = directRoutes.filter(({ result }) => !isReachable(result.response)).length;
+            const shouldReportDirectRouteIssues = window.location.protocol === 'https:';
             const exposedFiles = sensitiveFiles.filter(({ result }) => result.response.status >= 200 && result.response.status < 300);
             const metaDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
             const resources = performance.getEntriesByType('resource');
@@ -912,6 +1002,7 @@ const initHealthCheck = () => {
                     : 'GitHub Pages does not apply custom response headers; use a CDN/proxy layer.')
                 : '';
             const sqlLeak = hasSqlErrorLeak(stripEmbeddedProbe(sqlSmoke.text));
+            const browserSmoke = collectBrowserSmokeSignals();
 
             return [
                 {
@@ -936,12 +1027,12 @@ const initHealthCheck = () => {
                 {
                     label: 'Routes',
                     summary: currentLanguage === 'bg'
-                        ? `${routeEntries.length - missingFragments}/${routeEntries.length} view фрагмента са достъпни; ${directRouteIssues} директни маршрута имат нужда от fallback.`
-                        : `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.`,
-                    attention: Boolean(missingFragments || directRouteIssues),
+                        ? `${routeEntries.length - missingFragments}/${routeEntries.length} view фрагмента са достъпни; ${shouldReportDirectRouteIssues ? `${directRouteIssues} директни маршрута имат нужда от fallback.` : 'директните route shell файлове са генерирани.'}`
+                        : `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${shouldReportDirectRouteIssues ? `${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.` : 'direct route shells generated.'}`,
+                    attention: Boolean(missingFragments || (shouldReportDirectRouteIssues && directRouteIssues)),
                     updates: {
                         cache: `${routeEntries.length - missingFragments}/${routeEntries.length}`,
-                        errors: directRouteIssues ? 'FALLBACK' : 'CLEAR'
+                        errors: shouldReportDirectRouteIssues && directRouteIssues ? 'FALLBACK' : 'CLEAR'
                     }
                 },
                 {
@@ -974,20 +1065,36 @@ const initHealthCheck = () => {
                     }
                 },
                 {
+                    label: 'Browser Smoke',
+                    summary: currentLanguage === 'bg'
+                        ? `forms ${browserSmoke.formCount}; POST без CSRF сигнал ${browserSmoke.postMissingCsrf}; cross-origin forms ${browserSmoke.crossOriginForms}; client risks ${browserSmoke.clientIssues}; third-party scripts ${browserSmoke.thirdPartyScripts}, без SRI ${browserSmoke.scriptsWithoutIntegrity}; secrets ${browserSmoke.clientSecretHits}; debug ${browserSmoke.debugHits}.`
+                        : `forms ${browserSmoke.formCount}; POST missing CSRF signal ${browserSmoke.postMissingCsrf}; cross-origin forms ${browserSmoke.crossOriginForms}; client risks ${browserSmoke.clientIssues}; third-party scripts ${browserSmoke.thirdPartyScripts}, missing SRI ${browserSmoke.scriptsWithoutIntegrity}; secrets ${browserSmoke.clientSecretHits}; debug ${browserSmoke.debugHits}.`,
+                    attention: Boolean(
+                        browserSmoke.postMissingCsrf ||
+                        browserSmoke.crossOriginForms ||
+                        browserSmoke.clientIssues ||
+                        browserSmoke.sensitiveLinks
+                    ),
+                    updates: {
+                        shield: browserSmoke.clientSecretHits || browserSmoke.debugHits ? 'CHECK' : 'BROWSER OK',
+                        errors: browserSmoke.clientSecretHits || browserSmoke.debugHits ? 'CHECK' : (shouldReportDirectRouteIssues && directRouteIssues ? 'FALLBACK' : 'CLEAR')
+                    }
+                },
+                {
                     label: 'Vuln Smoke',
                     summary: currentLanguage === 'bg'
                         ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; response headers ${missingHardeningHeaders.length ? `липсват: ${missingHardeningHeaders.join(', ')}` : 'налични'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
                         : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `missing: ${missingHardeningHeaders.join(', ')}` : 'present'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
                     attention: Boolean(sqlLeak || exposedFiles.length),
                     updates: {
-                        errors: sqlLeak || exposedFiles.length ? 'CHECK' : (directRouteIssues ? 'FALLBACK' : 'CLEAR')
+                        errors: sqlLeak || exposedFiles.length ? 'CHECK' : (shouldReportDirectRouteIssues && directRouteIssues ? 'FALLBACK' : 'CLEAR')
                     }
                 },
                 {
                     label: 'External Probe',
                     summary: currentLanguage === 'bg'
-                        ? 'Копираният скрипт добавя DNS, TLS сертификат, redirect, sitemap link checks, sensitive-file checks, SQL error smoke и optional nmap проверка само на web ports 80/443/8080/8443.'
-                        : 'Copied script adds DNS, TLS certificate, redirect, sitemap link checks, sensitive-file checks, SQL error smoke, and optional nmap checks limited to web ports 80/443/8080/8443.',
+                        ? 'Копираният single-file скрипт добавя DNS, TLS, domain info, CORS, cookies, browser-style DOM checks, secret/debug scan, redirect/reflection/SQL smoke и optional nmap само за web ports.'
+                        : 'Copied single-file script adds DNS, TLS, domain info, CORS, cookies, browser-style DOM checks, secret/debug scan, redirect/reflection/SQL smoke, and optional nmap web-port checks.',
                     attention: false,
                     updates: {
                         latency: 'DNS/TLS'
@@ -1010,17 +1117,18 @@ const initHealthCheck = () => {
         diagnosticsRunning = true;
         logEl.replaceChildren();
         commandEl.textContent = 'copy website-probe.sh';
-        outputEl.textContent = t('Copy one .sh probe. From Terminal, WSL, or Git Bash it checks tools, offers supported installs, and prints a short status table.');
+        outputEl.textContent = t('Copy one .sh browser-style probe. From Terminal, WSL, or Git Bash it checks setup, site health, and safe pentest smoke signals.');
 
         const summaries = await buildProbeSummary();
         summaries.forEach(summary => {
             Object.entries(summary.updates).forEach(([key, value]) => updateStatus(key, value));
         });
+        summaries.forEach(appendSummary);
 
         commandEl.textContent = `example target: ${targetOrigin}`;
         outputEl.textContent = summaries.some(summary => summary.attention)
-            ? t('Status tiles updated. Copy the script for the full terminal probe and short status table.')
-            : t('Local checks are clear. Copy the script for the full terminal probe and short status table.');
+            ? t('Useful checks are listed below. Copy the script for the full single-file browser-style probe.')
+            : t('Local checks are clear. Copy the script for the full single-file browser-style probe.');
         diagnosticsRunning = false;
         diagnosticsHasRun = true;
     };
