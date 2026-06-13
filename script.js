@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260612b';
+import { languageMeta, translations } from './translations.js?v=20260613a';
 
 const routes = {
     '': {
@@ -71,7 +71,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260612b';
+const assetVersion = '20260613a';
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -91,6 +91,7 @@ const serviceRequestTypes = {
     'Learn Any Tech Topic': 'Training / academy',
     'Social Media Management': 'Marketing or social media',
     'Advertisement Support': 'Marketing or social media',
+    'Adult entertainment': 'Marketing or social media',
     'Scam & Funnel Awareness': 'Scam or fraud awareness'
 };
 const toolSuiteServiceName = 'Learn Any Tech Topic';
@@ -100,6 +101,16 @@ const serviceDestinations = {
         type: 'internal',
         href: toolSuitePath,
         label: 'Open Tool Suite'
+    },
+    'Career Consulting': {
+        type: 'external',
+        href: 'https://www.growpoint.bg',
+        label: 'Open career consulting'
+    },
+    'Adult entertainment': {
+        type: 'external',
+        href: 'https://www.malkokote.com',
+        label: 'Open adult entertainment'
     },
     'Scam & Funnel Awareness': {
         type: 'external',
@@ -246,6 +257,7 @@ const setLanguage = lang => {
     applyTranslations();
     const { key, route } = getCurrentRoute();
     updateSeo(key, route);
+    initServiceCards();
 };
 
 const initLanguageSwitcher = () => {
