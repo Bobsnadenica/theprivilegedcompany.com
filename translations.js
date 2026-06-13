@@ -48,6 +48,7 @@ export const translations = {
             "Open Scam Guide": "Отвори наръчника за измами",
             "Privacy Protocol": "Протокол за поверителност",
             "Knowledge Base": "База знания",
+            "Fun dev stuff": "Забавни dev неща",
             "Copied": "Копирано",
             "Copy blocked": "Копирането е блокирано",
             "Opening your email client with the request details.": "Отваряме имейл клиента с детайлите на запитването.",
