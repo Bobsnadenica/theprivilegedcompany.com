@@ -1,0 +1,35 @@
+schema { query: Query mutation: Mutation }
+
+type Query {
+  getSharedViewport(worldId: String, minLat: Float!, maxLat: Float!, minLon: Float!, maxLon: Float!, zoom: Int!): SharedViewportResponse
+  getSharedPresence(worldId: String, minLat: Float!, maxLat: Float!, minLon: Float!, maxLon: Float!, zoom: Int!): SharedPresenceResponse
+  listPendingLandmarks(limit: Int, nextToken: String): PendingLandmarkPage
+  getPendingLandmarkReviewUrl(landmarkId: ID!): ReviewUrlResponse
+  getLandmarkViewUrl(landmarkId: ID!): ReviewUrlResponse
+  getMyDiscoveryBootstrap(worldId: String): MyDiscoveryBootstrap!
+}
+
+type Mutation {
+  syncDiscoveries(worldId: String, cellsJson: AWSJSON!, currentLat: Float, currentLon: Float, mapZoom: Int, displayName: String, profileIcon: String): DiscoverySyncResponse
+  createLandmarkUploadTicket(worldId: String, title: String!, description: String, category: String!, lat: Float!, lon: Float!, filename: String!, contentType: String!, byteLength: Int!, mapZoom: Int): LandmarkUploadTicket
+  finalizeLandmarkUpload(landmarkId: ID!, uploadToken: String!): LandmarkSubmissionResult
+  moderateLandmark(landmarkId: ID!, approve: Boolean!, moderationNotes: String): LandmarkModerationResult
+}
+
+type SharedViewportResponse { worldId: String!, cells: [SharedCell!]!, players: [SharedPlayer!]!, landmarks: [SharedLandmark!]!, generatedAt: AWSDateTime! }
+type SharedPresenceResponse { worldId: String!, players: [SharedPlayer!]!, generatedAt: AWSDateTime! }
+type SharedCell { cellId: ID!, lat: Float!, lon: Float!, discovererCount: Int!, tileId: String!, lastDiscoveredAt: AWSDateTime! }
+type SharedPlayer { userId: ID!, displayName: String!, profileIcon: String!, lat: Float!, lon: Float!, lastSeenAt: AWSDateTime! }
+type SharedLandmark { landmarkId: ID!, title: String!, description: String, category: String!, lat: Float!, lon: Float!, status: String!, approvedObjectKey: String, createdAt: AWSDateTime! }
+type DiscoverySyncResponse { acceptedCellCount: Int!, newPersonalCellCount: Int!, updatedSharedCellCount: Int!, trackingActive: Boolean!, timestamp: AWSDateTime! }
+type LandmarkUploadTicket { landmarkId: ID!, uploadToken: String!, objectKey: String!, uploadUrl: AWSURL!, uploadFieldsJson: AWSJSON!, expiresAt: AWSDateTime!, maxBytes: Int! }
+type LandmarkSubmissionResult { landmarkId: ID!, status: String!, message: String! }
+type LandmarkModerationResult { landmarkId: ID!, status: String!, approvedObjectKey: String }
+type ReviewUrlResponse { landmarkId: ID!, viewUrl: AWSURL!, expiresAt: AWSDateTime! }
+type PendingLandmarkPage { items: [PendingLandmark!]!, nextToken: String }
+type PendingLandmark { landmarkId: ID!, title: String!, description: String, category: String!, lat: Float!, lon: Float!, status: String!, pendingObjectKey: String!, createdAt: AWSDateTime!, userId: ID! }
+type MyDiscoveryBootstrap { cells: [MyDiscoveryCell!]! }
+type MyDiscoveryCell { cellId: String!, lat: Float!, lon: Float! }
+scalar AWSDateTime
+scalar AWSJSON
+scalar AWSURL

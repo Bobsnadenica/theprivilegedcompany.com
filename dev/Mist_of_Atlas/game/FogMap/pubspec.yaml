@@ -1,0 +1,45 @@
+name: fog_frontier
+description: Discover the real world with a fantasy fog-of-war map.
+publish_to: "none"
+version: 0.3.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_map: ^8.2.2
+  geolocator: ^14.0.2
+  path_provider: ^2.1.5
+  share_plus: ^12.0.1
+  latlong2: ^0.9.1
+  cross_file: ^0.3.5+2
+  http: ^1.6.0
+  flutter_secure_storage: ^10.0.0
+  amazon_cognito_identity_dart_2: ^3.8.1
+  image_picker: ^1.2.1
+  mime: ^2.0.0
+  http_parser: ^4.1.2
+  model_viewer_plus: ^1.10.0
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/icon.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    # Per-archetype hero outfits + textures. See assets/armory/modular/README.md.
+    # Quaternius RPG models are no longer bundled — the per-archetype outfits
+    # below replace them entirely.
+    - assets/armory/modular/heroes/
