@@ -27,7 +27,7 @@
 
         <main class="relative z-10 w-full flex flex-col items-center">
 
-            <div class="bg-slate-100/70 dark:bg-slate-800/70 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:scale-[1.02]">
+            <div class="portal-card">
 
                 <button id="theme-toggle" aria-label="Toggle Dark Mode" aria-pressed="true"
                     class="absolute top-4 right-4 p-3 rounded-full bg-slate-300 dark:bg-slate-700 text-gray-800 dark:text-gray-200 hover:rotate-12 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all">
@@ -39,136 +39,121 @@
                     </svg>
                 </button>
 
-                <div class="mb-5 text-center">
-                    <a href="../" class="inline-flex items-center justify-center rounded-full border border-slate-300/70 dark:border-slate-600 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-all">Back to TPC</a>
+                <div class="portal-header">
+                    <p class="portal-kicker">Personal Portal</p>
+                    <h1 class="portal-title">Dev Portal</h1>
+                    <p class="portal-intro">A private launchpad for experiments, utilities, side projects, and moved demos, with a live stream backdrop and ISS tracking below.</p>
                 </div>
 
-                <h1 class="text-4xl md:text-5xl font-extrabold text-center text-gray-900 dark:text-gray-50 mb-6 drop-shadow-lg">Dev Portal</h1>
-                <p class="text-[11px] uppercase tracking-[0.35em] text-center text-slate-500 dark:text-slate-400 mb-2">Personal Portal</p>
-                <p class="text-sm text-center text-slate-600 dark:text-slate-300 mb-6">A private launchpad for experiments, utilities, side projects, and moved demos, with a live stream backdrop and ISS tracking below.</p>
+                <div class="portal-sections">
 
-                <div class="space-y-8">
-
-                  <!-- 🎮 Games & Fun -->
-                  <div>
-                    <h2 class="text-xl font-bold text-center mb-3 text-gray-700 dark:text-gray-200">🎮 Games & Fun</h2>
-                    <div class="space-y-4">
-                      <a href="games/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Random Games</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Steam/PSN/Blizzard profile and others.</p>
+                  <section class="portal-section" aria-labelledby="games-heading">
+                    <h2 id="games-heading" class="portal-section-title">Games & Fun</h2>
+                    <div class="portal-grid">
+                      <a href="games/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Random Games</span>
+                        <span class="portal-tile-description">Steam, PSN, Blizzard profiles, and other playful links.</span>
+                        <span class="portal-tile-meta">Open collection</span>
                       </a>
-                      <a href="perfect_circle/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Perfect Circle</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Try to draw the perfect circle — a fun accuracy game.</p>
+                      <a href="perfect_circle/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Perfect Circle</span>
+                        <span class="portal-tile-description">Draw the cleanest circle you can and chase the accuracy score.</span>
+                        <span class="portal-tile-meta">Launch game</span>
                       </a>
-                      <a href="password_game/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Password Game</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Test your creativity and rules-following skills by creating the ultimate password.</p>
+                      <a href="password_game/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Password Game</span>
+                        <span class="portal-tile-description">Create the ultimate password while the rules keep getting sharper.</span>
+                        <span class="portal-tile-meta">Try challenge</span>
                       </a>
-                      <a href="conspiracy/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Random Conspiracy</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Everyday ChatGPT/Grok/Gemini and Deepseek will create a new HTML page centered around "Conspiracies" - test your luck!</p>
+                      <a href="conspiracy/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Random Conspiracy</span>
+                        <span class="portal-tile-description">A rotating generated page for weird theory-of-the-day luck.</span>
+                        <span class="portal-tile-meta">View today's page</span>
                       </a>
-                      <a href="isitgay/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-pink-300 to-pink-400 dark:from-pink-700 dark:to-pink-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">
-                            Is It Gay?
-                        </button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">
-                            A fun swipe-based game to measure total gayness %.
-                        </p>
+                      <a href="isitgay/index.html" class="portal-tile portal-tile-special">
+                        <span class="portal-tile-title">Is It Gay?</span>
+                        <span class="portal-tile-description">A swipe-based joke game built for quick laughs.</span>
+                        <span class="portal-tile-meta">Start swiping</span>
                       </a>
-                       <a href="shorturl/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Short URL</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Create a short URL from a long one.</p>
+                      <a href="shorturl/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Short URL</span>
+                        <span class="portal-tile-description">Turn a long URL into a cleaner short link.</span>
+                        <span class="portal-tile-meta">Open tool</span>
                       </a>
                     </div>
-                  </div>
+                  </section>
 
-                  <!-- 🧰 Tools & Utilities -->
-                  <div>
-                    <h2 class="text-xl font-bold text-center mb-3 text-gray-700 dark:text-gray-200">🧰 Tools & Utilities</h2>
-                    <div class="space-y-4">
-                      <a href="converter/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Converter</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Convert various units and currencies.</p>
+                  <section class="portal-section" aria-labelledby="tools-heading">
+                    <h2 id="tools-heading" class="portal-section-title">Tools & Utilities</h2>
+                    <div class="portal-grid">
+                      <a href="converter/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Converter</span>
+                        <span class="portal-tile-description">Convert common units and currencies from a compact utility page.</span>
+                        <span class="portal-tile-meta">Open utility</span>
                       </a>
-                      <a href="Tech%20Tools/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Tech Tools</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Access most common tech concepts</p>
+                      <a href="whoami/whoami.html" class="portal-tile">
+                        <span class="portal-tile-title">Who Am I</span>
+                        <span class="portal-tile-description">Check public IP and network information when permission is granted.</span>
+                        <span class="portal-tile-meta">Inspect network</span>
                       </a>
-                      <a href="whoami/whoami.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Who Am I</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">View your public IP and other network info as long as you give permission.</p>
+                      <a href="https://app.jetkvm.com/devices" class="portal-tile">
+                        <span class="portal-tile-title">My PC</span>
+                        <span class="portal-tile-description">Open the remote access panel for JetKVM devices.</span>
+                        <span class="portal-tile-meta">External tool</span>
                       </a>
-                      <a href="https://app.jetkvm.com/devices" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">My PC</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Remotely access and control your PC with JetKVM.</p>
-                      </a>
-                       <a href="timeto/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Personal Timer</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">How much time i have before things expire</p>
+                      <a href="timeto/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Personal Timer</span>
+                        <span class="portal-tile-description">Track how much time is left before important things expire.</span>
+                        <span class="portal-tile-meta">Open timer</span>
                       </a>
                     </div>
-                  </div>
+                  </section>
 
-                  <!-- 🍲 Everyday Projects -->
-                  <div>
-                    <h2 class="text-xl font-bold text-center mb-3 text-gray-700 dark:text-gray-200">🍲 Everyday Projects</h2>
-                    <div class="space-y-4">
-                      <a href="https://everydaylilly.com" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Everyday Lilly</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">A website for the app "Everyday Lilly."</p>
+                  <section class="portal-section" aria-labelledby="projects-heading">
+                    <h2 id="projects-heading" class="portal-section-title">Projects & Experiments</h2>
+                    <div class="portal-grid">
+                      <a href="iveto/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Рецептите на мама</span>
+                        <span class="portal-tile-description">Рецептите на Ивето, gathered into a small everyday project.</span>
+                        <span class="portal-tile-meta">Open recipes</span>
                       </a>
-                      <a href="iveto/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Рецептите на мама</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Рецептите на Ивето</p>
+                      <a href="Mist_of_Atlas/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Map Adventure Prototype</span>
+                        <span class="portal-tile-description">A local landing page for a movement-based exploration demo.</span>
+                        <span class="portal-tile-meta">View prototype</span>
                       </a>
-                       <a href="https://dalisipedal.com" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">P.E.D.A.L.</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">A website for the app "P.E.D.A.L."</p>
+                      <a href="cena/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Spesti</span>
+                        <span class="portal-tile-description">A comparison page for checking prices more quickly.</span>
+                        <span class="portal-tile-meta">Compare prices</span>
                       </a>
-                      <a href="Mist_of_Atlas/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Map Adventure Prototype</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">A local landing page for a movement-based exploration demo.</p>
+                      <a href="Archive/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Archive</span>
+                        <span class="portal-tile-description">A small archive area for saved links and references.</span>
+                        <span class="portal-tile-meta">Browse archive</span>
                       </a>
-                      <a href="cena/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Spesti</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Website for comparing prices</p>
+                      <a href="https://www.everydaylilly.com/everyday_stuff/howwenamethings/index.html" class="portal-tile">
+                        <span class="portal-tile-title">How We Name Things</span>
+                        <span class="portal-tile-description">A kids game for matching names with everyday objects.</span>
+                        <span class="portal-tile-meta">External game</span>
                       </a>
-                      <a href="../contact?service=Career%20Consulting" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Career Consult</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Start a career consulting brief on the main site.</p>
+                      <a href="https://www.everydaylilly.com/everyday_stuff/Who_Wants_to_be_smart/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Who Wants to Be a Millionaire</span>
+                        <span class="portal-tile-description">A kid-friendly quiz inspired by the classic game-show format.</span>
+                        <span class="portal-tile-meta">External quiz</span>
                       </a>
-                       <a href="https://istinskiguru.com" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Bulgarian Guru</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Website for Bulgarian Guru</p>
+                      <a href="Trading/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Trading Bot</span>
+                        <span class="portal-tile-description">A workspace for trading-bot experiments and notes.</span>
+                        <span class="portal-tile-meta">Open project</span>
                       </a>
-                       <a href="../" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">The Privileged Company</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Website for The Privileged Company</p>
-                      </a>
-                      <a href="Archive/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Archive</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Internet Archive</p>
-                      </a>
-                      <a href="https://www.everydaylilly.com/everyday_stuff/howwenamethings/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">How We Name Things</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">A kid's game to match names with objects</p>
-                      </a>
-                      <a href="https://www.everydaylilly.com/everyday_stuff/Who_Wants_to_be_smart/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Who Wants to Be a Millionaire(kids edition)</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Who wants to be a millionaire but for kids</p>
-                      </a>
-                      <a href="Trading/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Trading bot</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Trading bot</p>
-                      </a>
-                      <a href="todo/index.html" class="block">
-                        <button class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 text-gray-900 dark:text-gray-100 font-semibold hover:scale-105 hover:shadow-lg transition-all">Todo List</button>
-                        <p class="text-xs text-center text-slate-500 dark:text-slate-400 mt-1">Simple todo list</p>
+                      <a href="todo/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Todo List</span>
+                        <span class="portal-tile-description">A tiny task list for simple tracking and experiments.</span>
+                        <span class="portal-tile-meta">Open list</span>
                       </a>
                     </div>
-                  </div>
+                  </section>
 
                 </div>
             </div>
