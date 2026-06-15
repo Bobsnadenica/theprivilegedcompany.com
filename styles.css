@@ -264,15 +264,61 @@ body.has-custom-cursor #cursor-follower {
     box-shadow: 0 0 20px rgba(255, 157, 0, 0.22);
 }
 
-/* "Hosting Service" entry point in the Services/Manifest view */
-.hosting-cta-row {
+/* "Hosting Service" client-access band in the Services/Manifest view */
+.hosting-banner {
     display: flex;
-    justify-content: center;
-    margin: 1.75rem 0 0.5rem;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.1rem;
+    max-width: 640px;
+    margin: 0 auto clamp(3rem, 6vw, 5rem);
+    padding: clamp(2.5rem, 5vw, 3.5rem) 1.5rem;
+    border-top: 1px solid var(--c-dim);
+    border-bottom: 1px solid var(--c-dim);
+}
+
+.hosting-banner .label {
+    margin-bottom: 0;
 }
 
 .hosting-cta {
-    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.9rem 2.1rem;
+    border-radius: 2rem;
+    background: var(--c-accent);
+    color: #050301;
+    font-family: var(--f-logic);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out),
+        background 0.25s var(--ease-out);
+}
+
+.hosting-cta:hover {
+    background: var(--c-accent-strong);
+    box-shadow: 0 0 26px rgba(255, 157, 0, 0.28);
+    transform: translateY(-2px);
+}
+
+.hosting-cta__arrow {
+    transition: transform 0.3s var(--ease-out);
+}
+
+.hosting-cta:hover .hosting-cta__arrow {
+    transform: translateX(4px);
+}
+
+.hosting-banner__note {
+    margin: 0;
+    max-width: 420px;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--c-muted);
 }
 
 .hud-actions {
