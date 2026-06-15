@@ -82,7 +82,6 @@ async function enterApp(session, email) {
 async function refreshList() {
   const list = $('file-list');
   list.innerHTML = '';
-  setError($('files-error'), '');
   try {
     const files = await listFiles();
     $('files-empty').hidden = files.length > 0;
@@ -203,12 +202,14 @@ $('newpass-form').addEventListener('submit', async (e) => {
 async function handleFiles(fileList) {
   const files = Array.from(fileList || []);
   if (!files.length) return;
+  setError($('files-error'), '');
   const status = $('upload-status');
   for (const file of files) {
     status.textContent = `Uploading ${file.name}…`;
     try {
       await uploadFile(file);
     } catch (err) {
+      console.error('[portal] upload failed', err);
       setError($('files-error'), `Upload failed for ${file.name}: ${err.message || err}`);
     }
   }
@@ -233,7 +234,14 @@ const dropzone = $('dropzone');
   })
 );
 dropzone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
-dropzone.addEventListener('click', () => $('file-input').click());
+// Guard against the programmatic input.click() bubbling back to the dropzone
+// (input is a child), which would re-enter this handler and stop the OS file
+// picker from opening.
+const fileInput = $('file-input');
+dropzone.addEventListener('click', (e) => {
+  if (e.target === fileInput) return;
+  fileInput.click();
+});
 
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {

@@ -75,11 +75,16 @@ export async function listFiles() {
 
 export async function uploadFile(file) {
   const key = `${prefix()}${file.name}`;
+  // Read the file into a byte array. Passing a File/Blob directly makes the
+  // SDK's checksum middleware call body.getReader() (browser Blobs have no
+  // getReader), which throws before the request is sent. A Uint8Array is
+  // hashed directly, no streaming.
+  const body = new Uint8Array(await file.arrayBuffer());
   await s3.send(
     new PutObjectCommand({
       Bucket: cfg.bucket,
       Key: key,
-      Body: file,
+      Body: body,
       ContentType: file.type || 'application/octet-stream',
     })
   );
