@@ -264,6 +264,17 @@ body.has-custom-cursor #cursor-follower {
     box-shadow: 0 0 20px rgba(255, 157, 0, 0.22);
 }
 
+/* "Hosting Service" entry point in the Services/Manifest view */
+.hosting-cta-row {
+    display: flex;
+    justify-content: center;
+    margin: 1.75rem 0 0.5rem;
+}
+
+.hosting-cta {
+    letter-spacing: 0.04em;
+}
+
 .hud-actions {
     display: flex;
     align-items: center;
