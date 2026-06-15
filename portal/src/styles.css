@@ -168,6 +168,14 @@ input:focus {
   margin: 14px 0 0;
 }
 
+.reqs {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* --- files view ----------------------------------------------------------- */
 .files-head {
   display: flex;

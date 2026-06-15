@@ -140,6 +140,19 @@ $('login-form').addEventListener('submit', async (e) => {
   }
 });
 
+// Mirrors the Cognito password policy in backend/cognito.tf so the user gets a
+// friendly message instead of a raw InvalidPasswordException.
+function passwordIssues(pw) {
+  const rules = [
+    [pw.length >= 12, 'at least 12 characters'],
+    [/[a-z]/.test(pw), 'a lowercase letter'],
+    [/[A-Z]/.test(pw), 'an uppercase letter'],
+    [/[0-9]/.test(pw), 'a number'],
+    [/[^A-Za-z0-9]/.test(pw), 'a symbol'],
+  ];
+  return rules.filter(([ok]) => !ok).map(([, label]) => label);
+}
+
 // --- first-login: set a permanent password ----------------------------------
 $('newpass-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -148,6 +161,11 @@ $('newpass-form').addEventListener('submit', async (e) => {
   const confirmPw = $('new-password-confirm').value;
   if (pw !== confirmPw) {
     setError($('newpass-error'), 'Passwords do not match.');
+    return;
+  }
+  const missing = passwordIssues(pw);
+  if (missing.length) {
+    setError($('newpass-error'), `Password needs ${missing.join(', ')}.`);
     return;
   }
   const btn = $('newpass-btn');

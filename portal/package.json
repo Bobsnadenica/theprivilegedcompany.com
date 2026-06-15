@@ -6,7 +6,7 @@
   "description": "Login + personal file upload portal (Cognito + S3, direct-to-S3).",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "rm -rf assets && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
