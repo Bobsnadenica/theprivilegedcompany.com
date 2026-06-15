@@ -67,8 +67,9 @@ The wizard (`./run.sh` or `python run.py setup`) has 4 short steps:
 
 ### Step 2 — Facebook: log in, then pick your Page
 
-> 📘 **Full, step-by-step walkthrough (create a developer account → app → App
-> ID/Secret): [FACEBOOK_SETUP.md](FACEBOOK_SETUP.md).** Do that once, and
+> 📘 **Step-by-step walkthrough (create a developer account → app → App
+> ID/Secret):** open **[`dev/aipost247/index.html`](index.html)** in your browser
+> (or the text version [FACEBOOK_SETUP.md](FACEBOOK_SETUP.md)). Do that once, and
 > everything else runs locally from the script.
 
 > **The one unavoidable bit:** Facebook does **not** let any app post to a Page

@@ -55,7 +55,7 @@ def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
         f"     and save:\n         {redirect}\n"
         "  5. Open 'App settings' -> 'Basic' and copy your App ID and App Secret.\n"
         "  ------------------------------------------------------------------\n"
-        "  Full written guide (with the developer-account steps): FACEBOOK_SETUP.md\n"
+        "  Prefer a visual guide? Open dev/aipost247/index.html in your browser.\n"
     )
     try:
         webbrowser.open(APP_DASHBOARD_URL)
