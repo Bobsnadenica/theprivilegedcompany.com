@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260615b';
+import { languageMeta, translations } from './translations.js?v=20260615d';
 
 const routes = {
     '': {
@@ -131,6 +131,17 @@ let currentLanguage = (() => {
 
 const normalizeI18nKey = value => String(value || '').replace(/\s+/g, ' ').trim();
 
+// Reverse map: any translated value -> its English source. Lets us recover the
+// original key even when a node's text was already translated the first time we
+// see it (e.g. after the scramble effect replaces the hero text node), so
+// language switching round-trips correctly without a page reload.
+const reverseI18n = new Map();
+Object.values(translations).forEach(pack => {
+    Object.entries(pack?.text || {}).forEach(([english, translated]) => {
+        reverseI18n.set(normalizeI18nKey(translated), english);
+    });
+});
+
 const t = value => {
     const key = normalizeI18nKey(value);
     if (!key || currentLanguage === 'en') return value;
@@ -225,7 +236,17 @@ const applyTranslations = (root = document) => {
     while (walker.nextNode()) textNodes.push(walker.currentNode);
 
     textNodes.forEach(node => {
-        if (!node.__i18nSource) node.__i18nSource = node.nodeValue;
+        if (!node.__i18nSource) {
+            const raw = node.nodeValue;
+            const english = reverseI18n.get(normalizeI18nKey(raw));
+            if (english) {
+                const lead = raw.match(/^\s*/)?.[0] || '';
+                const trail = raw.match(/\s*$/)?.[0] || '';
+                node.__i18nSource = `${lead}${english}${trail}`;
+            } else {
+                node.__i18nSource = raw;
+            }
+        }
         const source = node.__i18nSource;
         const key = normalizeI18nKey(source);
         const translated = currentLanguage === 'en' ? key : t(key);
@@ -266,6 +287,32 @@ const initLanguageSwitcher = () => {
     select.dataset.bound = 'true';
     select.addEventListener('change', event => setLanguage(event.target.value));
     applyTranslations();
+};
+
+const getTheme = () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+const applyTheme = (theme, persist) => {
+    document.documentElement.setAttribute('data-theme', theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f8fc' : '#030201');
+    const scheme = document.querySelector('meta[name="color-scheme"]');
+    if (scheme) scheme.setAttribute('content', theme === 'light' ? 'light' : 'dark');
+    if (persist) {
+        try {
+            localStorage.setItem('tpc-theme', theme);
+        } catch {
+            // storage blocked; theme still applies for the session
+        }
+    }
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+};
+
+const initThemeSwitcher = () => {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = 'true';
+    applyTheme(getTheme(), false);
+    btn.addEventListener('click', () => applyTheme(getTheme() === 'light' ? 'dark' : 'light', true));
 };
 
 /**
@@ -1272,12 +1319,14 @@ class QuantumWeb {
         this.resizeTimer = null;
         this.ripples = [];
         this.isVisible = !document.hidden;
+        this.readTheme();
         this.init();
         this.animate(0);
         document.addEventListener('visibilitychange', () => {
             this.isVisible = !document.hidden;
             if (this.isVisible && !this.isReducedMotion) this.animate(performance.now());
         });
+        document.addEventListener('themechange', () => this.readTheme());
         window.addEventListener('resize', () => {
             clearTimeout(this.resizeTimer);
             this.resizeTimer = setTimeout(() => this.init(), 150);
@@ -1305,6 +1354,13 @@ class QuantumWeb {
             this.mouse.y = null;
             this.mouse.down = false;
         }, { passive: true });
+    }
+
+    readTheme() {
+        const cs = getComputedStyle(document.documentElement);
+        this.accent = cs.getPropertyValue('--c-accent-rgb').trim() || '255, 157, 0';
+        this.accentStrong = cs.getPropertyValue('--c-accent-strong-rgb').trim() || '255, 177, 59';
+        this.bgColor = cs.getPropertyValue('--c-bg').trim() || '#030201';
     }
 
     init() {
@@ -1359,15 +1415,15 @@ class QuantumWeb {
         }
 
         this.lastFrame = timestamp;
-        this.ctx.fillStyle = '#030201';
+        this.ctx.fillStyle = this.bgColor;
         this.ctx.fillRect(0, 0, this.width, this.height);
 
         if (!this.isCompact && this.mouse.x !== null) {
             const auraRadius = this.mouse.down ? 360 : 280;
             const aura = this.ctx.createRadialGradient(this.mouse.x, this.mouse.y, 0, this.mouse.x, this.mouse.y, auraRadius);
-            aura.addColorStop(0, this.mouse.down ? 'rgba(255, 177, 59, 0.18)' : 'rgba(255, 157, 0, 0.1)');
-            aura.addColorStop(0.45, 'rgba(255, 157, 0, 0.035)');
-            aura.addColorStop(1, 'rgba(255, 157, 0, 0)');
+            aura.addColorStop(0, this.mouse.down ? `rgba(${this.accentStrong}, 0.18)` : `rgba(${this.accent}, 0.1)`);
+            aura.addColorStop(0.45, `rgba(${this.accent}, 0.035)`);
+            aura.addColorStop(1, `rgba(${this.accent}, 0)`);
             this.ctx.fillStyle = aura;
             this.ctx.fillRect(0, 0, this.width, this.height);
         }
@@ -1377,7 +1433,7 @@ class QuantumWeb {
             .filter(ripple => ripple.alpha > 0.04 && ripple.radius < Math.max(this.width, this.height));
 
         this.ripples.forEach(ripple => {
-            this.ctx.strokeStyle = `rgba(255, 177, 59, ${ripple.alpha * 0.22})`;
+            this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${ripple.alpha * 0.22})`;
             this.ctx.lineWidth = 1;
             this.ctx.beginPath();
             this.ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
@@ -1431,12 +1487,12 @@ class QuantumWeb {
             const alpha = Math.min(0.95, 0.28 + p.depth * 0.26 + p.heat * 0.42 + twinkle);
             const size = p.size + p.heat * 1.45;
             if (p.heat > 0.15) {
-                this.ctx.fillStyle = `rgba(255, 177, 59, ${p.heat * 0.16})`;
+                this.ctx.fillStyle = `rgba(${this.accentStrong}, ${p.heat * 0.16})`;
                 this.ctx.beginPath();
                 this.ctx.arc(p.x, p.y, size * 3.2, 0, Math.PI * 2);
                 this.ctx.fill();
             }
-            this.ctx.fillStyle = `rgba(255, 157, 0, ${alpha})`;
+            this.ctx.fillStyle = `rgba(${this.accent}, ${alpha})`;
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
             this.ctx.fill();
@@ -1472,7 +1528,7 @@ class QuantumWeb {
                             if (dist < this.connectionDistance) {
                                 const heat = Math.max(particle.heat, neighbor.heat);
                                 const alpha = (1 - dist / this.connectionDistance) * (0.1 + heat * 0.18);
-                                this.ctx.strokeStyle = `rgba(255, 157, 0, ${alpha})`;
+                                this.ctx.strokeStyle = `rgba(${this.accent}, ${alpha})`;
                                 this.ctx.beginPath();
                                 this.ctx.moveTo(particle.x, particle.y);
                                 this.ctx.lineTo(neighbor.x, neighbor.y);
@@ -1490,7 +1546,7 @@ class QuantumWeb {
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < 180) {
                         const alpha = (1 - dist / 180) * (this.mouse.down ? 0.28 : 0.16);
-                        this.ctx.strokeStyle = `rgba(255, 177, 59, ${alpha})`;
+                        this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${alpha})`;
                         this.ctx.beginPath();
                         this.ctx.moveTo(this.mouse.x, this.mouse.y);
                         this.ctx.lineTo(p.x, p.y);
@@ -1561,6 +1617,7 @@ window.addEventListener('popstate', router);
 document.addEventListener('DOMContentLoaded', () => {
     new QuantumWeb('bg-canvas');
     initCursor();
+    initThemeSwitcher();
     initLanguageSwitcher();
     initMagnetic();
     initHealthCheck();
