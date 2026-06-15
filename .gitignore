@@ -32,6 +32,14 @@ dev/career/dist/
 portal/.vite/
 portal/src/config.js
 
+# =========================================================================
+# Local scratch / never-commit (migration backups, downloaded user files,
+# private keys). These hold real uploaded data and must never enter git.
+# =========================================================================
+**/_migrate_tmp/
+backend/_isolation_test.mjs
+*.p8
+
 # Logs / debug
 npm-debug.log*
 yarn-debug.log*

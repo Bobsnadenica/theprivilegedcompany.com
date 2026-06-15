@@ -3,18 +3,19 @@
 Terraform that stands up the login + private file-upload backend for the portal at
 [`/portal/`](../portal). **No servers** — the browser authenticates against a Cognito
 User Pool, swaps the login token for short-lived AWS credentials via a Cognito Identity
-Pool, and talks straight to S3. IAM scopes every user to `private/<their-identity-id>/*`,
-so each person only ever sees their own files.
+Pool, and talks straight to S3. The user's **email** claim is mapped into a session
+**principal tag**, and IAM scopes every user to `users/<their-email>/*`, so each person
+only ever sees their own files.
 
 ```
-Browser ──login──▶ Cognito User Pool ──token──▶ Cognito Identity Pool
-                                                      │ temp creds (IAM role)
-                                                      ▼
-                                          S3  private/<identityId>/*
+Browser ──login──▶ Cognito User Pool ──token (email)──▶ Cognito Identity Pool
+                                                          │ temp creds + email principal tag
+                                                          ▼
+                              S3  theprivilegedcompany-bucket / users/<email>/*
 ```
 
-Region: **eu-west-1**. Users are **created manually** (no self sign-up). Single `admin`
-group for now.
+Region: **eu-west-1**. Bucket: **`theprivilegedcompany-bucket`**. Users are **created
+manually** (no self sign-up). Single `admin` group for now.
 
 ## What gets created
 
@@ -24,8 +25,9 @@ group for now.
 | `aws_cognito_user_pool_client` | Public SPA client, no secret, SRP auth |
 | `aws_cognito_user_group.admin` | The `admin` group |
 | `aws_cognito_identity_pool` | Exchanges login token → temporary AWS creds |
-| `aws_iam_role.authenticated` | Role assumed by logged-in users, scoped to their prefix |
-| `aws_s3_bucket.uploads` | Private, encrypted, versioned upload bucket |
+| `aws_cognito_identity_pool_provider_principal_tag` | Maps the `email` claim → a session principal tag |
+| `aws_iam_role.authenticated` | Role assumed by logged-in users, scoped to `users/<email>/*` |
+| `aws_s3_bucket.uploads` | Private, encrypted, versioned upload bucket (`theprivilegedcompany-bucket`) |
 | `local_file.portal_config` | Writes `../portal/config.js` for the static page |
 
 ## Prerequisites

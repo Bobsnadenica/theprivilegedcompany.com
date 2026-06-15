@@ -5,5 +5,5 @@ window.__PORTAL_CONFIG__ = {
   userPoolId: "eu-west-1_3f0nnxAj8",
   userPoolClientId: "6qtlgdqofegqfa736pfoalsin4",
   identityPoolId: "eu-west-1:4d3e6ee9-98f5-49ba-85c4-8eb2d0b05c21",
-  bucket: "tpc-portal-user-uploads-4c411a4b",
+  bucket: "theprivilegedcompany-bucket",
 };
