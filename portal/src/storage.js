@@ -17,7 +17,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 const cfg = window.__PORTAL_CONFIG__;
 
 let s3 = null;
-let identityId = null;
+let userEmail = null;
 
 // Exchange the ID token for an identity id + temporary AWS credentials.
 // We call the Cognito Identity API directly (instead of the umbrella
@@ -27,13 +27,16 @@ export async function initStorage(idTokenJwt) {
   const loginKey = `cognito-idp.${cfg.region}.amazonaws.com/${cfg.userPoolId}`;
   const logins = { [loginKey]: idTokenJwt };
 
+  // The folder is keyed by the email claim and must match the IAM principal tag
+  // exactly, so take it straight from the token (never from typed input).
+  userEmail = emailFromJwt(idTokenJwt);
+
   const identityClient = new CognitoIdentityClient({ region: cfg.region });
 
-  // GetId gives us the stable identity id used to build the per-user S3 prefix.
+  // GetId gives us the identity id needed to fetch temporary credentials.
   const { IdentityId } = await identityClient.send(
     new GetIdCommand({ IdentityPoolId: cfg.identityPoolId, Logins: logins })
   );
-  identityId = IdentityId;
 
   // Credential provider: the SDK re-invokes this when the creds expire (within
   // the ID token's lifetime); after that the user signs in again.
@@ -51,11 +54,18 @@ export async function initStorage(idTokenJwt) {
 
   s3 = new S3Client({ region: cfg.region, credentials });
 
-  return identityId;
+  return userEmail;
+}
+
+// Decode the email claim from the ID token (base64url JWT payload).
+function emailFromJwt(jwt) {
+  let b64 = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  b64 += '='.repeat((4 - (b64.length % 4)) % 4);
+  return JSON.parse(atob(b64)).email;
 }
 
 function prefix() {
-  return `private/${identityId}/`;
+  return `users/${userEmail}/`;
 }
 
 export async function listFiles() {

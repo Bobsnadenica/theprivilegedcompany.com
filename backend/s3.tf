@@ -1,10 +1,10 @@
-# Random suffix keeps the bucket name globally unique without manual coordination.
-resource "random_id" "bucket_suffix" {
-  byte_length = 4
-}
-
 resource "aws_s3_bucket" "uploads" {
-  bucket = "${var.project}-user-uploads-${random_id.bucket_suffix.hex}"
+  bucket = var.bucket_name
+
+  # Lets Terraform delete the bucket and all object versions on destroy/replace.
+  # Convenient for this single-owner portal; note `terraform destroy` will then
+  # remove uploaded files too.
+  force_destroy = true
 }
 
 # No public access whatsoever — every object is reached via temporary,

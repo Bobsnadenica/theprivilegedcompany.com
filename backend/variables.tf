@@ -10,6 +10,12 @@ variable "project" {
   default     = "tpc-portal"
 }
 
+variable "bucket_name" {
+  description = "Globally-unique S3 bucket name for user uploads."
+  type        = string
+  default     = "theprivilegedcompany-bucket"
+}
+
 variable "cors_allowed_origins" {
   description = "Browser origins allowed to call the uploads bucket directly."
   type        = list(string)

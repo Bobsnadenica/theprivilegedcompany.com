@@ -82,3 +82,15 @@ resource "aws_cognito_identity_pool_roles_attachment" "portal" {
     authenticated = aws_iam_role.authenticated.arn
   }
 }
+
+# Map the user's email claim into a session principal tag, so the IAM policy can
+# scope each user to users/<email>/ (attribute-based access control).
+resource "aws_cognito_identity_pool_provider_principal_tag" "portal" {
+  identity_pool_id       = aws_cognito_identity_pool.portal.id
+  identity_provider_name = aws_cognito_user_pool.portal.endpoint
+  use_defaults           = false
+
+  principal_tags = {
+    email = "email"
+  }
+}
