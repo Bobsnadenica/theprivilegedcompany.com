@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260613d';
+import { languageMeta, translations } from './translations.js?v=20260615b';
 
 const routes = {
     '': {
@@ -1537,6 +1537,22 @@ document.addEventListener('click', e => {
             history.pushState(null, null, link.href);
             router();
         }
+    }
+});
+
+// External links (showcase buttons, etc.) always open in a new tab.
+document.addEventListener('click', e => {
+    const link = e.target.closest('a[href]');
+    if (!link || link.hasAttribute('data-link')) return;
+    let url;
+    try {
+        url = new URL(link.href, window.location.href);
+    } catch (_) {
+        return;
+    }
+    if (url.origin !== window.location.origin) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
     }
 });
 

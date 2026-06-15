@@ -23,6 +23,8 @@ export const translations = {
             "Who are we": "Кои сме ние",
             "Who We Are": "Кои сме ние",
             "Contact": "Контакт",
+            "Client Access": "Клиентски достъп",
+            "Hosting Service": "Хостинг услуга",
             "System Active": "Системата е активна",
             "Build Anything": "Изграждаме всичко",
             "IT solutions for businesses and individuals: app building, website building, automation, technical SEO, AI tools, and practical tech training.": "IT решения за компании и индивидуални клиенти: изработка на приложения, изработка на сайтове, автоматизация, техническо SEO, AI инструменти и практично tech обучение.",

@@ -150,8 +150,9 @@ body.has-custom-cursor #cursor-follower {
 .hud-logo a {
     text-decoration: none;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.4rem;
     min-width: 0;
     max-width: 100%;
 }
@@ -313,14 +314,6 @@ body.has-custom-cursor #cursor-follower {
     transform: translateX(4px);
 }
 
-.hosting-banner__note {
-    margin: 0;
-    max-width: 420px;
-    font-size: 0.85rem;
-    line-height: 1.55;
-    color: var(--c-muted);
-}
-
 .hud-actions {
     display: flex;
     align-items: center;
@@ -330,19 +323,49 @@ body.has-custom-cursor #cursor-follower {
 }
 
 .language-switcher {
+    position: relative;
     min-height: 2.45rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     border: 1px solid rgba(255, 157, 0, 0.28);
     border-radius: 999px;
     background: rgba(255, 157, 0, 0.06);
-    padding: 0.45rem 0.55rem;
+    padding: 0.45rem 1.55rem 0.45rem 0.75rem;
     color: var(--c-accent);
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease-out), background 0.25s var(--ease-out),
+        box-shadow 0.25s var(--ease-out);
+}
+
+.language-switcher:hover,
+.language-switcher:focus-within {
+    border-color: var(--c-accent);
+    background: rgba(255, 157, 0, 0.13);
+    box-shadow: 0 0 16px rgba(255, 157, 0, 0.16);
+}
+
+/* Custom chevron — replaces the native select arrow for a cleaner look */
+.language-switcher::after {
+    content: "";
+    position: absolute;
+    right: 0.72rem;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-0.08rem) rotate(45deg);
+    opacity: 0.75;
+    pointer-events: none;
+    transition: transform 0.25s var(--ease-out);
+}
+
+.language-switcher:hover::after {
+    transform: translateY(0.02rem) rotate(45deg);
 }
 
 .language-current-flag {
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1;
 }
 
@@ -353,11 +376,11 @@ body.has-custom-cursor #cursor-follower {
     color: #ffc57c;
     cursor: pointer;
     font: inherit;
-    font-size: 0.62rem;
+    font-size: 0.66rem;
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     outline: none;
-    padding: 0 0.15rem;
+    padding: 0;
 }
 
 .language-switcher select option {
@@ -1097,7 +1120,7 @@ body.has-custom-cursor #cursor-follower {
 
     .language-switcher {
         min-height: 2.1rem;
-        padding: 0.35rem 0.48rem;
+        padding: 0.35rem 1.4rem 0.35rem 0.6rem;
     }
 
     .language-switcher select {
