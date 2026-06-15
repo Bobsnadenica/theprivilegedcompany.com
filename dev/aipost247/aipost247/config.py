@@ -152,32 +152,36 @@ def _pip_install(package: str) -> bool:
         return False
 
 
-# --- help text -----------------------------------------------------------
-
-FB_LOGIN_HELP = """\
-To post to a Facebook Page you (Facebook's rules) need a one-time Meta app.
-After that, AIPost247 handles the login for you — you just pick your Page.
-
-  ONE-TIME, in https://developers.facebook.com/apps :
-    1. Create an app (type: "Business").
-    2. Add the "Facebook Login" product.
-    3. Facebook Login -> Settings -> "Valid OAuth Redirect URIs", add exactly:
-           http://localhost:8723/
-    4. Note your App ID and App Secret  (Settings -> Basic).
-
-  Permissions used: pages_show_list, pages_read_engagement, pages_manage_posts.
-  While your app is in "Development" mode you can manage your OWN Pages without
-  Facebook App Review.
-
-Then choose option [1] below and simply log in + pick your Page.
-"""
-
-
 def _prompt_secret(label: str, existing: str) -> str:
     if existing:
         value = getpass.getpass(f"{label} [press Enter to keep existing]: ").strip()
         return value or existing
     return getpass.getpass(f"{label}: ").strip()
+
+
+def _prompt_meta_app(existing: Config) -> tuple[str, str]:
+    """Return (app_id, app_secret), guiding the user to create a Meta app if needed."""
+    from .fb_oauth import guided_meta_app_setup
+
+    if existing.fb_app_id and existing.fb_app_secret:
+        if input(f"Use the saved Meta app (App ID {existing.fb_app_id})? (Y/n): ").strip().lower() != "n":
+            return existing.fb_app_id, existing.fb_app_secret
+
+    if input("Do you already have a Meta app (App ID + Secret)? (y/N): ").strip().lower() != "y":
+        guided_meta_app_setup()
+
+    while True:
+        app_id = input(f"Meta App ID [{existing.fb_app_id}]: ").strip() or existing.fb_app_id
+        app_secret = _prompt_secret("Meta App Secret", existing.fb_app_secret)
+        if app_id and app_secret:
+            return app_id, app_secret
+        nxt = input(
+            "  Both App ID and App Secret are required. "
+            "Press Enter to re-open the guide, or type 'skip': "
+        ).strip().lower()
+        if nxt == "skip":
+            return "", ""
+        guided_meta_app_setup()
 
 
 def _valid_time(value: str) -> bool:
@@ -246,14 +250,19 @@ def run_setup_wizard(existing: Config) -> None:
             print("  You can finish this later with:  python run.py login-gemini")
 
     # 2) Facebook ---------------------------------------------------------
-    print("\n--- 2/4  Facebook Page --------------------------------------------")
-    print(FB_LOGIN_HELP)
+    print("\n--- 2/4  Connect your Facebook Page -------------------------------")
+    print(
+        "Log in with Facebook and pick your Page — then it auto-posts on your\n"
+        "schedule for as long as AIPost247 keeps running.\n"
+        "(One-time: Facebook requires a free Meta app to post to a Page — same as\n"
+        " Buffer/Hootsuite. The wizard walks you through creating it.)"
+    )
     api_version = existing.graph_api_version or DEFAULT_GRAPH_VERSION
     values["GRAPH_API_VERSION"] = api_version
 
     fb_choice = input(
-        "  [1] Log in with Facebook and pick my Page  (recommended)\n"
-        "  [2] I'll paste a Page ID + token manually\n"
+        "\n  [1] Connect with Facebook (guided)  (recommended)\n"
+        "  [2] Paste a Page ID + token manually\n"
         "Choose 1 or 2 [1]: "
     ).strip() or "1"
 
@@ -261,20 +270,29 @@ def run_setup_wizard(existing: Config) -> None:
     page_token = existing.fb_page_access_token
 
     if fb_choice == "1":
-        app_id = input(f"Meta App ID [{existing.fb_app_id}]: ").strip() or existing.fb_app_id
-        app_secret = _prompt_secret("Meta App Secret", existing.fb_app_secret)
-        values["FB_APP_ID"] = app_id
-        values["FB_APP_SECRET"] = app_secret
-        try:
-            page_id, page_token, page_name = login_and_select_page(
-                app_id, app_secret, api_version
-            )
-            print(f"  OK — selected Page: {page_name} (id {page_id})")
-        except FacebookError as exc:
-            print(f"  ERROR during Facebook login: {exc}")
-            print("  Falling back to manual entry.")
-            page_id = input(f"Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
-            page_token = _prompt_secret("Page Access Token", existing.fb_page_access_token)
+        app_id, app_secret = _prompt_meta_app(existing)
+        if app_id and app_secret:
+            values["FB_APP_ID"] = app_id
+            values["FB_APP_SECRET"] = app_secret
+            connected = False
+            while not connected:
+                try:
+                    page_id, page_token, page_name = login_and_select_page(
+                        app_id, app_secret, api_version
+                    )
+                    print(f"  OK — connected Page: {page_name} (id {page_id})")
+                    connected = True
+                except FacebookError as exc:
+                    print(f"\n  Facebook login didn't complete:\n  {exc}\n")
+                    if input("  Try the login again? (Y/n): ").strip().lower() == "n":
+                        break
+            if not connected and input(
+                "  Paste a Page token manually instead? (y/N): "
+            ).strip().lower() == "y":
+                page_id = input(f"Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
+                page_token = _prompt_secret("Page Access Token", existing.fb_page_access_token)
+        else:
+            print("  Skipped Facebook — you can finish later with `python run.py setup`.")
     else:
         page_id = input(f"Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
         page_token = _prompt_secret("Long-lived Page Access Token", existing.fb_page_access_token)
@@ -339,8 +357,12 @@ def run_setup_wizard(existing: Config) -> None:
     _write_env(values)
     print("\n" + "=" * 68)
     print(" Configuration saved to .env (permissions 600).")
-    print(" Next:")
-    print("   python run.py generate    # preview a post without publishing")
-    print("   python run.py post-now    # publish one post right now")
-    print("   python run.py run         # start the autonomous loop")
+    print(" Try a preview first:")
+    print("   python run.py generate    # write a post WITHOUT publishing")
+    print(" Then go live:")
+    print("   python run.py run         # auto-posts on your schedule")
+    print()
+    print(" It keeps posting for as long as it stays running. To run it in the")
+    print(" background (survives closing the terminal):")
+    print("   nohup ./run.sh run > aipost247.out 2>&1 &")
     print("=" * 68 + "\n")

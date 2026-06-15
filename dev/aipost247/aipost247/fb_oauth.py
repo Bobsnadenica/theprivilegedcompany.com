@@ -33,6 +33,35 @@ log = get_logger("fb_oauth")
 DEFAULT_PORT = 8723
 SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts"]
 GRAPH_ROOT = "https://graph.facebook.com"
+APP_DASHBOARD_URL = "https://developers.facebook.com/apps/"
+
+
+def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
+    """Open the Meta dashboard and walk the user through one-time app creation."""
+    redirect = f"http://localhost:{port}/"
+    print(
+        "\n  ------------------------------------------------------------------\n"
+        "  Create your Meta app — one time, about 3 minutes\n"
+        "  (Facebook only lets apps post to a Page through a registered app —\n"
+        "   the same reason Buffer/Hootsuite ask you to 'connect Facebook'.)\n"
+        "  ------------------------------------------------------------------\n"
+        "  1. A browser opens to Meta for Developers. Log in with Facebook\n"
+        "     (register as a developer if it asks — it's free and instant).\n"
+        "  2. Click 'Create app'. If asked, choose use case 'Other', then app\n"
+        "     type 'Business', give it any name, and create it.\n"
+        "  3. In the app, add the product 'Facebook Login' (or 'Facebook Login\n"
+        "     for Business').\n"
+        "  4. In that product's Settings, add this EXACT 'Valid OAuth Redirect URI'\n"
+        f"     and save:\n         {redirect}\n"
+        "  5. Open 'App settings' -> 'Basic' and copy your App ID and App Secret.\n"
+        "  ------------------------------------------------------------------\n"
+        "  Full written guide (with the developer-account steps): FACEBOOK_SETUP.md\n"
+    )
+    try:
+        webbrowser.open(APP_DASHBOARD_URL)
+    except Exception:  # noqa: BLE001
+        print("  (Open this URL yourself: " + APP_DASHBOARD_URL + ")")
+    input("  Press Enter once you have your App ID and App Secret ... ")
 
 
 class _CallbackHandler(http.server.BaseHTTPRequestHandler):
@@ -73,7 +102,7 @@ class _CallbackHandler(http.server.BaseHTTPRequestHandler):
         return
 
 
-def _wait_for_code(port: int, state: str, timeout: int = 300) -> str:
+def _wait_for_code(port: int, state: str, redirect_uri: str, timeout: int = 300) -> str:
     _CallbackHandler.code = None
     _CallbackHandler.error = None
     _CallbackHandler.expected_state = state
@@ -92,7 +121,13 @@ def _wait_for_code(port: int, state: str, timeout: int = 300) -> str:
     if _CallbackHandler.error:
         raise FacebookError(f"Facebook login: {_CallbackHandler.error}")
     if not _CallbackHandler.code:
-        raise FacebookError("Timed out waiting for the Facebook login to complete.")
+        raise FacebookError(
+            "Timed out waiting for the Facebook login.\n"
+            "  If your browser showed 'URL blocked' or 'redirect_uri is not allowed',\n"
+            "  add this EXACT redirect URI to your app and save, then try again:\n"
+            f"      {redirect_uri}\n"
+            "  (Meta app -> Facebook Login -> Settings -> Valid OAuth Redirect URIs)"
+        )
     return _CallbackHandler.code
 
 
@@ -140,7 +175,7 @@ def login_and_select_page(
     except Exception:  # noqa: BLE001 - headless box, just show the URL
         pass
 
-    code = _wait_for_code(port, state)
+    code = _wait_for_code(port, state, redirect_uri)
 
     # code -> short-lived user token
     try:

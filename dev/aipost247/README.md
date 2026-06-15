@@ -67,6 +67,10 @@ The wizard (`./run.sh` or `python run.py setup`) has 4 short steps:
 
 ### Step 2 — Facebook: log in, then pick your Page
 
+> 📘 **Full, step-by-step walkthrough (create a developer account → app → App
+> ID/Secret): [FACEBOOK_SETUP.md](FACEBOOK_SETUP.md).** Do that once, and
+> everything else runs locally from the script.
+
 > **The one unavoidable bit:** Facebook does **not** let any app post to a Page
 > without a **registered Meta app**. So you provide an **App ID + App Secret
 > once**. After that you simply **log in with Facebook and choose your Page** —
