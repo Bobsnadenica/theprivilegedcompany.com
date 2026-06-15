@@ -8,8 +8,10 @@ This avoids asking the user for any API key.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
+from pathlib import Path
 
 from .logging_setup import get_logger
 
@@ -133,18 +135,59 @@ def is_authenticated(model: str = DEFAULT_MODEL, timeout: int = 90) -> bool:
         return False
 
 
-def login() -> None:
-    """Launch the interactive Gemini CLI so the user can complete Google login."""
-    path = ensure_installed()
-    print(
-        "\nThe Gemini CLI will now open.\n"
-        "  1. Choose 'Login with Google'.\n"
-        "  2. Complete the login in your browser.\n"
-        "  3. Back in the Gemini prompt, type /quit (or press Ctrl+C) to continue.\n"
-    )
-    input("Press Enter to open the Gemini CLI ... ")
+def _select_oauth_auth_type() -> None:
+    """Tell the Gemini CLI to use 'Login with Google' so a one-shot command can
+    trigger the browser OAuth directly, without the interactive auth picker."""
+    settings = Path.home() / ".gemini" / "settings.json"
     try:
-        subprocess.run([path])  # inherits the terminal so the user can interact
-    except KeyboardInterrupt:
-        pass
-    print()  # spacing after returning from the CLI
+        settings.parent.mkdir(parents=True, exist_ok=True)
+        data = {}
+        if settings.exists():
+            try:
+                data = json.loads(settings.read_text(encoding="utf-8")) or {}
+            except (ValueError, OSError):
+                data = {}
+        if data.get("selectedAuthType") != "oauth-personal":
+            data["selectedAuthType"] = "oauth-personal"
+            settings.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except OSError as exc:  # non-fatal
+        log.debug("Could not pre-select Gemini auth type: %s", exc)
+
+
+def login(model: str = DEFAULT_MODEL) -> bool:
+    """Authenticate the Gemini CLI with Google. Returns True if logged in.
+
+    This only runs the Google login (browser OAuth) — it does NOT open the
+    interactive Gemini chat. If already logged in, it does nothing.
+    """
+    path = ensure_installed()
+
+    if is_authenticated(model, timeout=30):
+        print("  Gemini is already logged in.")
+        return True
+
+    _select_oauth_auth_type()
+    print(
+        "  Logging in to Google for Gemini ...\n"
+        "  A browser window will open — complete the login there. This will\n"
+        "  continue automatically (the Gemini chat will NOT open)."
+    )
+    try:
+        # One-shot request: on first use this triggers the Google OAuth browser
+        # flow and then exits. Terminal is inherited so any prompts are visible.
+        subprocess.run([path, "-m", model, "-p", "Reply with: OK"], timeout=300)
+    except subprocess.TimeoutExpired:
+        print("  Login timed out.")
+    except OSError as exc:
+        log.warning("Could not start the Gemini login: %s", exc)
+
+    if is_authenticated(model, timeout=60):
+        return True
+
+    print(
+        "  Could not confirm the Gemini login automatically.\n"
+        "  Finish it manually: run `gemini` once, choose 'Login with Google',\n"
+        "  complete the browser login, then type /quit. Re-check with:\n"
+        "      python run.py login-gemini"
+    )
+    return False
