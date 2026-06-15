@@ -14,9 +14,7 @@ Thumbs.db
 # =========================================================================
 # Node / JavaScript
 # =========================================================================
-# Dependencies — reproducible via `npm install`. Note: the Lambda zip
-# packaged by Terraform reads from backend/api/ on disk, so node_modules
-# must EXIST on disk before `terraform apply`, but doesn't need to be in git.
+# Dependencies — reproducible via `npm install`.
 node_modules/
 **/node_modules/
 
@@ -24,6 +22,15 @@ node_modules/
 # and dev/career/assets/ — those are kept tracked deliberately so GitHub
 # Pages can serve them.
 dev/career/dist/
+
+# =========================================================================
+# Portal (/portal) — Cognito + S3 login/upload (see backend/)
+# =========================================================================
+# Vite scratch. The deployed bundle (portal/index.html + portal/assets/) and the
+# Terraform-generated portal/config.js are committed deliberately so GitHub Pages
+# can serve them — config.js holds only public client ids, no secrets.
+portal/.vite/
+portal/src/config.js
 
 # Logs / debug
 npm-debug.log*

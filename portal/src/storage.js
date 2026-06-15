@@ -1,0 +1,100 @@
+// Turns a Cognito login token into temporary AWS credentials and uses them to
+// list / upload / download / delete objects under the caller's own S3 prefix.
+import {
+  CognitoIdentityClient,
+  GetIdCommand,
+  GetCredentialsForIdentityCommand,
+} from '@aws-sdk/client-cognito-identity';
+import {
+  S3Client,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+const cfg = window.__PORTAL_CONFIG__;
+
+let s3 = null;
+let identityId = null;
+
+// Exchange the ID token for an identity id + temporary AWS credentials.
+// We call the Cognito Identity API directly (instead of the umbrella
+// @aws-sdk/credential-providers, which drags Node-only SSO/login providers
+// into the browser bundle).
+export async function initStorage(idTokenJwt) {
+  const loginKey = `cognito-idp.${cfg.region}.amazonaws.com/${cfg.userPoolId}`;
+  const logins = { [loginKey]: idTokenJwt };
+
+  const identityClient = new CognitoIdentityClient({ region: cfg.region });
+
+  // GetId gives us the stable identity id used to build the per-user S3 prefix.
+  const { IdentityId } = await identityClient.send(
+    new GetIdCommand({ IdentityPoolId: cfg.identityPoolId, Logins: logins })
+  );
+  identityId = IdentityId;
+
+  // Credential provider: the SDK re-invokes this when the creds expire (within
+  // the ID token's lifetime); after that the user signs in again.
+  const credentials = async () => {
+    const { Credentials } = await identityClient.send(
+      new GetCredentialsForIdentityCommand({ IdentityId, Logins: logins })
+    );
+    return {
+      accessKeyId: Credentials.AccessKeyId,
+      secretAccessKey: Credentials.SecretKey,
+      sessionToken: Credentials.SessionToken,
+      expiration: Credentials.Expiration,
+    };
+  };
+
+  s3 = new S3Client({ region: cfg.region, credentials });
+
+  return identityId;
+}
+
+function prefix() {
+  return `private/${identityId}/`;
+}
+
+export async function listFiles() {
+  const out = await s3.send(
+    new ListObjectsV2Command({ Bucket: cfg.bucket, Prefix: prefix() })
+  );
+  return (out.Contents || [])
+    .filter((o) => o.Key !== prefix()) // drop the folder placeholder, if any
+    .map((o) => ({
+      key: o.Key,
+      name: o.Key.slice(prefix().length),
+      size: o.Size,
+      lastModified: o.LastModified,
+    }))
+    .sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+}
+
+export async function uploadFile(file) {
+  const key = `${prefix()}${file.name}`;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: cfg.bucket,
+      Key: key,
+      Body: file,
+      ContentType: file.type || 'application/octet-stream',
+    })
+  );
+  return key;
+}
+
+// Private bucket → hand back a short-lived signed URL for download.
+export async function downloadUrl(key) {
+  return getSignedUrl(
+    s3,
+    new GetObjectCommand({ Bucket: cfg.bucket, Key: key }),
+    { expiresIn: 300 }
+  );
+}
+
+export async function deleteFile(key) {
+  await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: key }));
+}

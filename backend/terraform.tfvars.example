@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and edit if you need to override defaults.
+# terraform.tfvars is gitignored (it may carry environment-specific values).
+
+region  = "eu-west-1"
+project = "tpc-portal"
+
+cors_allowed_origins = [
+  "https://www.theprivilegedcompany.com",
+  "https://theprivilegedcompany.com",
+  "http://localhost:5173",
+]
