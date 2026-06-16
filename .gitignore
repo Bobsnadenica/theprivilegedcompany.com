@@ -10,6 +10,9 @@ Thumbs.db
 .idea/
 *.iml
 **/.claude/worktrees/
+# Temporary local preview-server config (created on the fly; never commit)
+.claude/launch.json
+**/.claude/launch.json
 
 # =========================================================================
 # Node / JavaScript
