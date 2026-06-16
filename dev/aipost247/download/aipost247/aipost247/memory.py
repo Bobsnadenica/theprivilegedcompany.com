@@ -120,6 +120,36 @@ class MemoryStore:
         with self._lock:
             return self._conn.execute("SELECT COUNT(*) AS c FROM posts").fetchone()["c"]
 
+    # --- clearing --------------------------------------------------------
+    def clear(self, *, posts: bool = True, instructions: bool = True,
+              knowledge: bool = True) -> dict[str, int]:
+        """Delete rows from the selected DB memory tables. Returns counts removed."""
+        removed: dict[str, int] = {}
+        with self._lock:
+            for name, flag in (("posts", posts), ("instructions", instructions),
+                               ("knowledge", knowledge)):
+                if not flag:
+                    continue
+                removed[name] = self._conn.execute(
+                    f"SELECT COUNT(*) AS c FROM {name}"  # table name is a fixed literal
+                ).fetchone()["c"]
+                self._conn.execute(f"DELETE FROM {name}")
+            self._conn.commit()
+        return removed
+
+    def clear_learned_files(self, names=("business.md", "skill.md")) -> list[str]:
+        """Delete the named auto-generated memory files. Returns names removed."""
+        removed: list[str] = []
+        for name in names:
+            path = self.memory_dir / name
+            try:
+                if path.exists():
+                    path.unlink()
+                    removed.append(name)
+            except OSError as exc:
+                log.warning("Could not remove %s: %s", path, exc)
+        return removed
+
     # --- engagement / self-improvement ----------------------------------
     def published_with_fb_ids(self, limit: int = 25) -> list[dict]:
         with self._lock:

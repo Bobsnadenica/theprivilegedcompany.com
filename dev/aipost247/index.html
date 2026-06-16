@@ -223,72 +223,7 @@
     <div class="warn">Безплатно е и отнема минута. Помага правата за страницата да работят правилно.</div>
   </div>
 
-  <h2><span class="num">5</span>Redirect URI (обикновено не е нужно)</h2>
-  <p class="sub">В режим за разработка Facebook автоматично позволява localhost.</p>
-  <div class="card">
-    <ol class="steps">
-      <li>В лявото меню отворете настройките на <b>Facebook Login</b> (под избрания use case → <b>Customize</b>, или <b>Facebook Login → Settings</b>).</li>
-      <li>
-        В <b>Valid OAuth Redirect URIs</b> най-вероятно ще видите бележка от Facebook:
-        <div class="warn"><i>„http://localhost redirects are automatically allowed while in
-          development mode only and do not need to be added here.“</i></div>
-        Това означава, че докато приложението е в <b>Development</b> режим (по подразбиране),
-        <b>не е нужно</b> да добавяте нищо тук — localhost се позволява автоматично. Просто
-        продължете към следващата стъпка.
-      </li>
-      <li>
-        <b>Само ако</b> приложението е в <b>Live</b> режим (или Facebook откаже входа с
-        „URL Blocked“), добавете точно това и натиснете <b>Save</b>:
-        <div class="codeblock">
-          <pre data-copy>http://localhost:8723/</pre>
-          <button class="copy">Копирай</button>
-        </div>
-        <div class="warn">Трябва да е <code class="inline">http</code> (не https),
-          порт <code class="inline">8723</code>, <b>с наклонена черта в края</b>.</div>
-      </li>
-    </ol>
-  </div>
-
-  <h2><span class="num">6</span>App Settings → Advanced</h2>
-  <p class="sub">Важно: НЕ маркирайте приложението като desktop / native.</p>
-  <div class="card">
-    <ol class="steps">
-      <li>Отворете <b>App Settings → Advanced</b>.</li>
-      <li>Намерете <b>„Native or desktop app?“</b> и се уверете, че е <b>No</b> (изключено).</li>
-      <li>
-        <div class="warn">Ако е <b>Yes</b>, Facebook очаква приложението да <b>няма</b> App Secret
-          и отказва входа с грешка <i>„the app is configured as a desktop app“</i>. Скриптът се
-          нуждае от App Secret, за да вземе <b>дълготраен</b> токен за страницата — затова трябва
-          да е <b>No</b>.</div>
-      </li>
-    </ol>
-  </div>
-
-  <h2><span class="num">7</span>Добавете правата за страницата</h2>
-  <p class="sub">Само толкова е нужно, за да публикува скриптът и да чете ангажираността.</p>
-  <div class="card">
-    <ol class="steps">
-      <li>Отворете избрания use case → <b>Customize</b> (или <b>Use cases</b> → вашия → <b>Permissions</b>).</li>
-      <li>
-        Уверете се, че тези права са <b>Added</b> (натиснете <b>Add</b>, ако още не са):
-        <ul style="margin:6px 0 0; padding-left:20px">
-          <li><code class="inline">pages_show_list</code></li>
-          <li><code class="inline">pages_read_engagement</code></li>
-          <li><code class="inline">pages_manage_posts</code></li>
-        </ul>
-      </li>
-      <li>Това е всичко. В режим <b>Development</b> правата работят за <b>вашите</b> страници — без App Review и без публикуване.</li>
-    </ol>
-    <div class="warn">
-      <b>Все още виждате „Invalid Scopes“?</b> Уверете се, че сте <b>admin</b> на страницата,
-      после добавете <b>Privacy Policy URL</b> (App Settings → Basic → Save) и опитайте пак.
-      Ако и това не помогне, генерирайте веднъж токен с тези права в
-      <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Graph API Explorer</a>
-      (изберете приложението, добавете правата, <b>Generate Access Token</b>).
-    </div>
-  </div>
-
-  <h2><span class="num">8</span>Копирайте App ID и App Secret</h2>
+  <h2><span class="num">5</span>Копирайте App ID и App Secret</h2>
   <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
   <div class="card">
     <ol class="steps">
@@ -298,7 +233,7 @@
     </ol>
   </div>
 
-  <h2><span class="num">9</span>Стартирайте скрипта — оттук всичко е локално</h2>
+  <h2><span class="num">6</span>Стартирайте скрипта — оттук всичко е локално</h2>
   <p class="sub">Поставяте двете стойности веднъж, влизате, избирате страница, задавате график.</p>
   <div class="card">
     <ol class="steps">
@@ -327,6 +262,25 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <p style="color:var(--muted)">Нужен е чист старт? <code class="inline">./run.sh clear-memory</code> изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</p>
   </div>
 
+  <h2 style="margin-top:46px">Команди</h2>
+  <p class="sub">Изпълняват се с <code class="inline">./run.sh &lt;команда&gt;</code> (Windows: <code class="inline">run.bat &lt;команда&gt;</code>).</p>
+  <div class="card" style="padding:8px 18px">
+    <table>
+      <thead><tr><th style="width:34%">Команда</th><th>Какво прави</th></tr></thead>
+      <tbody>
+        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка (AI, Facebook, график, бизнес профил).</td></tr>
+        <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува.</td></tr>
+        <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага.</td></tr>
+        <tr><td><code class="inline">./run.sh run</code></td><td>Стартира автоматичния режим по график (по подразбиране).</td></tr>
+        <tr><td><code class="inline">./run.sh status</code></td><td>Показва настройките (скрити тайни) и последните публикации.</td></tr>
+        <tr><td><code class="inline">./run.sh train</code></td><td>Отваря формата „Профил на бизнеса“.</td></tr>
+        <tr><td><code class="inline">./run.sh learn</code></td><td>Чете ангажираността и обновява <code class="inline">skill.md</code> (какво работи).</td></tr>
+        <tr><td><code class="inline">./run.sh clear-memory</code></td><td>Изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</td></tr>
+        <tr><td><code class="inline">./run.sh login-gemini</code></td><td>(Повторен) вход в Google за Gemini.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <h2 style="margin-top:46px">Какви права използваме</h2>
   <div class="card" style="padding:18px 26px">
     <p style="margin:0 0 8px">
@@ -350,8 +304,8 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <table>
       <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
-        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Добавете правата (Стъпка 7): use case → Customize → Permissions → <b>Add</b> за <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code>, <code class="inline">pages_manage_posts</code>. Все още грешка? Добавете Privacy Policy URL или генерирайте токен веднъж в Graph API Explorer. <b>Не</b> е нужно публикуване или App Review за вашата страница.</td></tr>
-        <tr><td>„the app is configured as a desktop app“ при размяна на кода</td><td>В <b>App Settings → Advanced</b> изключете <b>„Native or desktop app?“</b> (трябва да е <b>No</b>) и Save. Като desktop app Facebook не приема App Secret, а той е нужен за дълготрайния токен. (Стъпка 6)</td></tr>
+        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Обикновено use case-ът „Manage everything on your Page“ (Стъпка 3) вече включва правата. Ако видите тази грешка: use case → Customize → Permissions → <b>Add</b> за <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code>, <code class="inline">pages_manage_posts</code>. Все още грешка? Добавете Privacy Policy URL или генерирайте токен веднъж в Graph API Explorer. <b>Не</b> е нужно публикуване или App Review.</td></tr>
+        <tr><td>„the app is configured as a desktop app“ при размяна на кода</td><td>В <b>App Settings → Advanced</b> изключете <b>„Native or desktop app?“</b> (трябва да е <b>No</b> — това е стойността по подразбиране) и Save. Като desktop app Facebook не приема App Secret, а той е нужен за дълготрайния токен.</td></tr>
         <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>В <b>Development</b> режим localhost се позволява автоматично, така че обикновено това не се случва. Ако се случи (или сте в Live режим), добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
         <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Уверете се, че приложението е в <b>Development</b> режим. Ако е в Live — добавете redirect URI точно както по-горе.</td></tr>
         <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>

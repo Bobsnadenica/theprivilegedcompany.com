@@ -141,6 +141,57 @@ def cmd_status(config: Config, memory: MemoryStore) -> int:
     return 0
 
 
+def cmd_clear_memory(memory: MemoryStore) -> int:
+    """Interactively wipe accumulated memory (post history, learnings, profile)."""
+    print("\n  Изчистване на паметта на AIPost247")
+    print("  " + "-" * 36)
+    print("  Паметта е това, което AI ползва като контекст: история на")
+    print("  публикациите, наученото от ангажираността и бизнес профилът.")
+    print("  Какво да изтрия?")
+    print("    [1] Всичко (история, знания, инструкции, business.md, skill.md)")
+    print("    [2] Само историята на публикациите")
+    print("    [3] Само наученото от ангажираността (skill.md)")
+    print("    [4] Отказ")
+    choice = input("  Вашият избор [1-4]: ").strip()
+
+    if choice in {"", "4"}:
+        print("  Отказано — нищо не е променено.")
+        return 0
+
+    if choice == "1":
+        confirm = input(
+            "  Сигурни ли сте? Това е необратимо. Напишете 'да' за потвърждение: "
+        ).strip().lower()
+        if confirm not in {"да", "da", "yes", "y"}:
+            print("  Отказано — нищо не е променено.")
+            return 0
+        removed = memory.clear(posts=True, instructions=True, knowledge=True)
+        files = memory.clear_learned_files()
+        print(
+            f"  ✓ Изтрито: {removed.get('posts', 0)} публикации, "
+            f"{removed.get('knowledge', 0)} знания, "
+            f"{removed.get('instructions', 0)} инструкции."
+        )
+        if files:
+            print("  ✓ Изтрити файлове: " + ", ".join(files))
+        print("  (Ръчно добавените файлове в memory/knowledge/ и memory/instructions.md")
+        print("   остават непроменени — изтрийте ги ръчно при нужда.)")
+        return 0
+
+    if choice == "2":
+        removed = memory.clear(posts=True, instructions=False, knowledge=False)
+        print(f"  ✓ Изтрити {removed.get('posts', 0)} публикации от историята.")
+        return 0
+
+    if choice == "3":
+        files = memory.clear_learned_files(names=("skill.md",))
+        print("  ✓ Изтрит skill.md." if files else "  Нямаше skill.md за изтриване.")
+        return 0
+
+    print("  Невалиден избор — нищо не е променено.")
+    return 0
+
+
 def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
     # Pre-flight checks so misconfiguration is obvious before the loop starts.
     if config.ai_provider != "openai":
@@ -183,6 +234,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("login-gemini", help="Log in to Google for the Gemini CLI.")
     sub.add_parser("train", help="Open the 'train your business' form (saved as a skill).")
     sub.add_parser("learn", help="Read post engagement and refresh skill.md (what works).")
+    sub.add_parser("clear-memory", help="Wipe accumulated memory (history, learnings, profile).")
 
     add_k = sub.add_parser("add-knowledge", help="Add a knowledge snippet to memory.")
     add_k.add_argument("text", help="The knowledge text.")
@@ -240,6 +292,8 @@ def main(argv=None) -> int:
             return 0
         if command == "status":
             return cmd_status(config, memory)
+        if command == "clear-memory":
+            return cmd_clear_memory(memory)
 
         fb = FacebookClient(
             config.fb_page_id,

@@ -39,57 +39,20 @@ local `.env` file and are never uploaded or shared.
    and email. (Free, ~1 min; it helps the Page permissions work.)
 2. Review **Requirements** and **Overview**, then click **Create app**.
 
-### Step 5 · Redirect URI (usually nothing to do)
-1. Open the **Facebook Login** settings (your use case → **Customize**, or
-   **Facebook Login → Settings**).
-2. In **Valid OAuth Redirect URIs** you'll most likely see Facebook's note:
-
-   > *"http://localhost redirects are automatically allowed while in development
-   > mode only and do not need to be added here."*
-
-   While the app is in **Development** mode (the default), **you don't need to add
-   anything here** — localhost is allowed automatically. Just continue.
-3. **Only if** the app is in **Live** mode (or login fails with "URL Blocked"),
-   paste this **exactly** and **Save** — `http`, port `8723`, with the trailing slash:
-
-   ```
-   http://localhost:8723/
-   ```
-
-### Step 6 · App type — do NOT mark it as desktop/native
-In **App Settings → Advanced**, find **"Native or desktop app?"** and make sure it
-is **No** (off), then save.
-
-> If this is set to **Yes**, Facebook assumes the app has **no** App Secret and
-> rejects login with *"the app is configured as a desktop app"*. The script needs
-> the App Secret to obtain a **long-lived** Page token (for 24/7 posting), so this
-> must stay **No**.
-
-### Step 7 · Add the Page permissions
-
-This is all that's needed for the script to post and read engagement.
-
-1. Open your use case → **Customize** (or **Use cases → your use case → Permissions**).
-2. Make sure these are **Added** (click **Add** if they aren't):
-   - `pages_show_list`
-   - `pages_read_engagement`
-   - `pages_manage_posts`
-3. That's it. In **Development** mode these work for your **own** Pages — no App
-   Review and no publishing.
-
-> **Still seeing "Invalid Scopes"?** Make sure you're an **admin** of the Page,
-> then add a **Privacy Policy URL** (App Settings → Basic → Save) and try again.
-> If it still fails, generate a token once with these permissions in
-> [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
-> (select your app, add the permissions, **Generate Access Token**).
-
-### Step 8 · Copy your App ID and App Secret
+### Step 5 · Copy your App ID and App Secret
 1. Open **App Settings → Basic**.
 2. Copy the **App ID** shown at the top.
 3. Next to **App Secret**, click **Show** (re-enter your password) and copy it.
 
-Keep the App ID and App Secret handy for Part 2, then re-run `./run.sh setup` —
-the Facebook login will go through.
+That's the whole setup. Keep the App ID and App Secret for Part 2, then run
+`./run.sh setup`.
+
+> **Good defaults you don't need to touch:** the **"Manage everything on your
+> Page"** use case already includes `pages_show_list`, `pages_read_engagement`,
+> and `pages_manage_posts`; `http://localhost` is allowed automatically in
+> **Development** mode (no redirect URI to add); and **"Native or desktop app?"**
+> is **No** by default (keep it No). See **Troubleshooting** if login still fails
+> with "Invalid Scopes".
 
 ---
 
@@ -139,8 +102,8 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 
 | What you see | Fix |
 | --- | --- |
-| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | Add the permissions (Step 7): use case → Customize → Permissions → **Add** `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Still failing? Add a Privacy Policy URL or generate a token once in Graph API Explorer. You do **not** need to Publish or pass App Review for your own Page. |
-| "the app is configured as a desktop app" (during code exchange) | In **App Settings → Advanced**, turn **"Native or desktop app?"** to **No** and Save (Step 6). A desktop app can't use an App Secret, which the script needs for the long-lived token. |
+| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | The **"Manage everything on your Page"** use case (Step 3) usually includes the permissions already. If you see this, open your use case → Customize → Permissions → **Add** `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Still failing? Add a Privacy Policy URL or generate a token once in Graph API Explorer. You do **not** need to Publish or pass App Review for your own Page. |
+| "the app is configured as a desktop app" (during code exchange) | In **App Settings → Advanced**, turn **"Native or desktop app?"** to **No** and Save (it's No by default). A desktop app can't use an App Secret, which the script needs for the long-lived token. |
 | "URL Blocked" / "redirect_uri isn't allowed" | In **Development** mode localhost is allowed automatically, so this is rare. If it happens (or the app is in Live mode), add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
 | Browser login never returns / times out | Make sure the app is in **Development** mode. If it's Live, add the redirect URI exactly as above. |
 | Your Page is not in the list | You must be an **admin** of the Page, and grant the requested permissions during login. |

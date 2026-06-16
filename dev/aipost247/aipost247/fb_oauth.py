@@ -38,7 +38,6 @@ APP_DASHBOARD_URL = "https://developers.facebook.com/apps/"
 
 def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
     """Open the Meta dashboard and walk the user through one-time app creation."""
-    redirect = f"http://localhost:{port}/"
     print(
         "\n  ------------------------------------------------------------------\n"
         "  Създайте Meta приложение — еднократно, около 3-5 минути\n"
@@ -53,23 +52,13 @@ def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
         "      поправя грешката 'Invalid Scopes'.)\n"
         "  4. Business: натиснете 'Create a business portfolio' (или свържете\n"
         "     съществуващо), после довършете -> Create app.\n"
-        "  5. Redirect URI: в режим Development (по подразбиране) Facebook\n"
-        "     позволява localhost автоматично — НЕ е нужно да добавяте нищо.\n"
-        "     (Ще видите бележка: 'http://localhost redirects are automatically\n"
-        "      allowed while in development mode'.) Само ако сте в Live режим\n"
-        f"     добавете този Valid OAuth Redirect URI и Save:\n         {redirect}\n"
-        "  6. App Settings -> Advanced: 'Native or desktop app?' трябва да е No\n"
-        "     (изключено). Като desktop app Facebook отказва App Secret, който е\n"
-        "     нужен за дълготрайния токен.\n"
-        "  7. Use case -> Customize -> Permissions: уверете се, че са Added\n"
-        "     pages_show_list, pages_read_engagement, pages_manage_posts.\n"
-        "     (В Development режим работят за вашите страници без App Review.)\n"
-        "     Все още 'Invalid Scopes'? Добавете Privacy Policy URL (App\n"
-        "     Settings -> Basic -> Save) или генерирайте токен веднъж в\n"
-        "     Graph API Explorer.\n"
-        "  8. App Settings -> Basic: копирайте App ID и App Secret.\n"
+        "  5. App Settings -> Basic: копирайте App ID и App Secret.\n"
         "  ------------------------------------------------------------------\n"
-        "  Предпочитате ръководство с картинки? Отворете index.html.\n"
+        "  Това е всичко. (localhost се позволява автоматично в Development;\n"
+        "   'Native or desktop app?' трябва да е No, което е по подразбиране.)\n"
+        "  Все още 'Invalid Scopes' при входа? Добавете Privacy Policy URL\n"
+        "  (App Settings -> Basic -> Save) или генерирайте токен веднъж в\n"
+        "  Graph API Explorer. Предпочитате картинки? Отворете index.html.\n"
     )
     try:
         webbrowser.open(APP_DASHBOARD_URL)

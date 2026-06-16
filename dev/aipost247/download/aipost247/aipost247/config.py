@@ -392,9 +392,26 @@ def run_setup_wizard(existing: Config) -> None:
     values["DRY_RUN"] = (
         "true" if _ask_yes_no("  Тестов режим (пише публикации, но НЕ ги публикува)?", default=False) else "false"
     )
-    values["POST_LANGUAGE"] = (
-        input(f"  Език на публикациите [{existing.post_language}]: ").strip() or existing.post_language
+    _cur_lang = (existing.post_language or "").strip().lower()
+    _lang_default = 1 if _cur_lang.startswith(("бълг", "bulg")) else 2
+    _lang_choice = _choose(
+        "  На какъв език да пише публикациите?",
+        [
+            ("Български", "Публикациите ще са на български."),
+            ("English", "Posts will be written in English."),
+            ("Друг език", "Въведете език ръчно (напр. Deutsch, Español)."),
+        ],
+        default=_lang_default,
     )
+    if _lang_choice == 1:
+        values["POST_LANGUAGE"] = "Bulgarian"
+    elif _lang_choice == 2:
+        values["POST_LANGUAGE"] = "English"
+    else:
+        values["POST_LANGUAGE"] = (
+            input("  Език (напишете го на английски, напр. German): ").strip()
+            or existing.post_language
+        )
 
     # 4) Train your business ----------------------------------------------
     _section(4, 4, "Разкажете на AI за бизнеса си")
