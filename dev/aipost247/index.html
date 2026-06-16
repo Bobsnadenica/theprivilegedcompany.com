@@ -169,6 +169,36 @@
     align-items: center; justify-content: center; padding: 24px; z-index: 60; cursor: zoom-out; }
   .lightbox[hidden] { display: none; }
   .lightbox img { max-width: 96%; max-height: 92vh; border-radius: 10px; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); }
+
+  /* police tape — first-visit notice, click to tear down */
+  .police-tape { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+    background: rgba(8,12,20,.45); cursor: pointer; overflow: hidden; }
+  .police-tape[hidden] { display: none; }
+  .tape-band { position: relative; width: 190vw; height: 78px; transform: rotate(-16deg);
+    box-shadow: 0 14px 34px -10px rgba(0,0,0,.55); }
+  .tape-piece { position: absolute; top: 0; height: 100%; width: 50.5%;
+    background:
+      repeating-linear-gradient(45deg, #111 0 13px, #ffd400 13px 26px) top/100% 13px no-repeat,
+      repeating-linear-gradient(45deg, #111 0 13px, #ffd400 13px 26px) bottom/100% 13px no-repeat,
+      #ffd400;
+    transition: transform .9s cubic-bezier(.45,.05,.3,1), opacity .9s ease-in; }
+  .tape-piece-left { left: 0; transform-origin: left center; }
+  .tape-piece-right { right: 0; transform-origin: right center; }
+  .tape-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    gap: 26px; white-space: nowrap; overflow: hidden; pointer-events: none;
+    color: #111; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    font-size: 0.98rem; transition: opacity .22s ease; }
+  .tape-label .msg { color: #111; }
+  .tape-label .pl { color: #7a1f1f; }
+  .tape-hint { position: absolute; left: 0; right: 0; bottom: 8%; text-align: center;
+    color: #fff; font-size: .92rem; letter-spacing: .03em; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+    pointer-events: none; transition: opacity .25s ease; }
+  .police-tape.torn { background: transparent; transition: background .5s ease .15s; }
+  .police-tape.torn .tape-piece-left { transform: rotate(78deg) translate(-6px, 46px); opacity: 0; }
+  .police-tape.torn .tape-piece-right { transform: rotate(-78deg) translate(6px, 46px); opacity: 0; }
+  .police-tape.torn .tape-label, .police-tape.torn .tape-hint { opacity: 0; }
+  @media (max-width: 560px) { .tape-band { height: 64px; } .tape-label { font-size: .8rem; gap: 16px; } }
+  @media (prefers-reduced-motion: reduce) { .tape-piece { transition: opacity .3s ease; } }
 </style>
 </head>
 <body>
@@ -397,6 +427,19 @@
 </div>
 <div class="lightbox" id="lightbox" hidden><img id="lightbox-img" alt="Снимка" /></div>
 
+<div class="police-tape" id="police-tape" role="button" tabindex="0" aria-label="Премахни лентата" hidden>
+  <div class="tape-band">
+    <div class="tape-piece tape-piece-left"></div>
+    <div class="tape-piece tape-piece-right"></div>
+    <div class="tape-label">
+      <span class="pl">⚠ POLICE LINE</span>
+      <span class="msg">Работи и в момента, но скоро пускаме 2-ра версия</span>
+      <span class="pl">DO NOT CROSS ⚠</span>
+    </div>
+  </div>
+  <div class="tape-hint">щракни, за да премахнеш</div>
+</div>
+
 <script>
   // Копиране на кодовите блокове.
   document.querySelectorAll('.copy').forEach(function (btn) {
@@ -478,6 +521,34 @@
       if (!lightbox.hidden) { lightbox.hidden = true; lightImg.src = ''; }
       else if (!modal.hidden) closeModal();
     });
+  })();
+
+  // Полицейска лента — показва се само при ПЪРВО посещение; щракни за „скъсване“.
+  (function () {
+    var KEY = 'aipost247_tape_v1';
+    var tape = document.getElementById('police-tape');
+    if (!tape) return;
+    var seen = false;
+    try { seen = !!localStorage.getItem(KEY); } catch (e) { seen = false; }
+    if (seen) return;                         // вече е премахната — не показвай повече
+    tape.hidden = false;
+    var root = document.documentElement, prevOverflow = root.style.overflow;
+    root.style.overflow = 'hidden';           // заключи скрола, докато лентата стои
+    var torn = false;
+    function tearDown() {
+      if (torn) return; torn = true;
+      tape.classList.add('torn');
+      try { localStorage.setItem(KEY, '1'); } catch (e) {}
+      root.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      setTimeout(function () { if (tape.parentNode) tape.parentNode.removeChild(tape); }, 1050);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tearDown(); }
+    }
+    tape.addEventListener('click', tearDown);
+    document.addEventListener('keydown', onKey);
+    try { tape.focus(); } catch (e) {}
   })();
 </script>
 </body>
