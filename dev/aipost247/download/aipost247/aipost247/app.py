@@ -23,12 +23,7 @@ from .facebook_client import (
     FacebookError,
     FacebookRateLimitError,
 )
-from .gemini_client import (
-    GeminiAuthError,
-    GeminiError,
-    GeminiNotInstalled,
-    GeminiRateLimitError,
-)
+from .gemini_client import GeminiAuthError, GeminiError, GeminiNotInstalled
 from .logging_setup import get_logger, setup_logging
 from .memory import MemoryStore
 from .scheduler import describe_schedule, run_forever
@@ -98,8 +93,6 @@ def safe_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_r
         log.error("Gemini not logged in: %s — run `python run.py login-gemini`.", exc)
     except GeminiNotInstalled as exc:
         log.error("Gemini CLI unavailable: %s", exc)
-    except GeminiRateLimitError as exc:
-        log.warning("Gemini е временно претоварен: %s — ще опитаме пак следващия път.", exc)
     except GeminiError as exc:
         log.error("Gemini generation failed: %s — will try again next cycle.", exc)
     except FacebookAuthError as exc:

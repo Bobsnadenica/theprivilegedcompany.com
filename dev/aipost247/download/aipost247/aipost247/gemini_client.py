@@ -21,15 +21,8 @@ GEMINI_BIN = "gemini"
 NPM_PACKAGE = "@google/gemini-cli"
 DEFAULT_MODEL = "gemini-2.5-flash"
 
-# Substrings that mean the model is temporarily overloaded / rate limited.
-_CAPACITY_HINTS = (
-    "429", "resource_exhausted", "rate limit", "ratelimit", "rate_limit",
-    "ratelimitexceeded", "too many requests", "capacity", "quota",
-    "model_capacity_exhausted", "overloaded", "unavailable", "exhausted",
-)
-
-# Models tried (in order) if the chosen one is temporarily at capacity.
-FALLBACK_MODELS = ["gemini-2.5-pro"]
+# Substrings that, in CLI output, usually mean "you need to log in".
+_AUTH_HINTS = ("auth", "login", "oauth", "sign in", "credential", "unauthor", "permission denied")
 
 
 class GeminiError(Exception):
@@ -42,23 +35,6 @@ class GeminiNotInstalled(GeminiError):
 
 class GeminiAuthError(GeminiError):
     """The gemini CLI is installed but not logged in."""
-
-
-class GeminiRateLimitError(GeminiError):
-    """The model is temporarily at capacity / rate limited (transient)."""
-
-
-def _has_cached_credentials() -> bool:
-    """True if the Gemini CLI has cached Google OAuth credentials on disk."""
-    base = Path.home() / ".gemini"
-    for name in ("oauth_creds.json", "google_accounts.json"):
-        path = base / name
-        try:
-            if path.is_file() and path.stat().st_size > 2:
-                return True
-        except OSError:
-            pass
-    return False
 
 
 def cli_path() -> str | None:
@@ -118,11 +94,11 @@ def _clean(text: str) -> str:
     return text
 
 
-def _run_once(prompt: str, model: str, timeout: int) -> str:
-    """Run gemini once with a single model. Raises typed errors on failure."""
+def generate(prompt: str, model: str = DEFAULT_MODEL, timeout: int = 180) -> str:
+    """Run ``gemini -m <model> -p <prompt>`` and return the cleaned response."""
     path = cli_path()
     if not path:
-        raise GeminiNotInstalled("The Gemini CLI is not installed. Run setup.")
+        raise GeminiNotInstalled("The Gemini CLI is not installed. Run `python run.py setup`.")
 
     cmd = [path, "-m", model, "-p", prompt]
     try:
@@ -137,17 +113,10 @@ def _run_once(prompt: str, model: str, timeout: int) -> str:
 
     if proc.returncode != 0:
         haystack = f"{stderr}\n{stdout}".lower()
-        # Capacity / rate limit is transient — check it FIRST. (Its stack trace
-        # mentions 'OAuth2Client', which must NOT be read as an auth failure.)
-        if any(hint in haystack for hint in _CAPACITY_HINTS):
-            raise GeminiRateLimitError(
-                "Gemini is temporarily at capacity / rate limited for this model."
-            )
-        # Decide 'logged in?' from the credentials file, not log/stack-trace text.
-        if not _has_cached_credentials():
+        if any(hint in haystack for hint in _AUTH_HINTS):
             raise GeminiAuthError(
-                "The Gemini CLI is not logged in. Run 'login-gemini' and choose "
-                "'Login with Google'."
+                "The Gemini CLI is not logged in. Run `python run.py login-gemini` "
+                "and choose 'Login with Google'."
             )
         raise GeminiError(f"Gemini CLI error (exit {proc.returncode}): {stderr or stdout or 'no output'}")
 
@@ -157,29 +126,13 @@ def _run_once(prompt: str, model: str, timeout: int) -> str:
     return text
 
 
-def generate(prompt: str, model: str = DEFAULT_MODEL, timeout: int = 180) -> str:
-    """Generate text; if the chosen model is at capacity, fall back to another."""
-    models = [model] + [m for m in FALLBACK_MODELS if m != model]
-    last: Exception | None = None
-    for index, current in enumerate(models):
-        try:
-            return _run_once(prompt, current, timeout)
-        except GeminiRateLimitError as exc:
-            last = exc
-            if index + 1 < len(models):
-                log.warning("Gemini model '%s' is busy; trying '%s' ...", current, models[index + 1])
-    raise GeminiRateLimitError(
-        f"All Gemini models are temporarily at capacity. Try again shortly. ({last})"
-    )
-
-
 def is_authenticated(model: str = DEFAULT_MODEL, timeout: int = 90) -> bool:
-    """True if the Gemini CLI has cached Google credentials.
-
-    Checks the credentials file rather than running a generation, so a busy model
-    (capacity / rate limit) is never mistaken for 'not logged in'.
-    """
-    return _has_cached_credentials()
+    """Best-effort check that login works (does a tiny generation)."""
+    try:
+        generate("Reply with exactly: PONG", model=model, timeout=timeout)
+        return True
+    except GeminiError:
+        return False
 
 
 def _select_oauth_auth_type() -> None:
@@ -209,15 +162,15 @@ def login(model: str = DEFAULT_MODEL) -> bool:
     """
     path = ensure_installed()
 
-    if _has_cached_credentials():
+    if is_authenticated(model, timeout=30):
         print("  Gemini вече е влязъл.")
         return True
 
     _select_oauth_auth_type()
     print(
         "  Влизане в Google за Gemini ...\n"
-        "  Ще се отвори браузър — завършете входа там. (Ако горе видите грешка за\n"
-        "  зает модел / '429 capacity' — тя е временна и НЕ влияе на входа.)"
+        "  Ще се отвори браузър — завършете входа там. Това ще продължи\n"
+        "  автоматично (Gemini чатът НЯМА да се отвори)."
     )
     try:
         # One-shot request: on first use this triggers the Google OAuth browser
@@ -228,8 +181,7 @@ def login(model: str = DEFAULT_MODEL) -> bool:
     except OSError as exc:
         log.warning("Could not start the Gemini login: %s", exc)
 
-    if _has_cached_credentials():
-        print("  ✓ Влязохте в Google за Gemini.")
+    if is_authenticated(model, timeout=60):
         return True
 
     print(
