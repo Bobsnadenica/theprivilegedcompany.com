@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from .logging_setup import get_logger
@@ -214,26 +215,38 @@ def login(model: str = DEFAULT_MODEL) -> bool:
         return True
 
     _select_oauth_auth_type()
-    print(
-        "  Влизане в Google за Gemini ...\n"
-        "  Ще се отвори браузър — завършете входа там. (Ако горе видите грешка за\n"
-        "  зает модел / '429 capacity' — тя е временна и НЕ влияе на входа.)"
-    )
-    try:
-        # One-shot request: on first use this triggers the Google OAuth browser
-        # flow and then exits. Terminal is inherited so any prompts are visible.
-        subprocess.run([path, "-m", model, "-p", "Reply with: OK"], timeout=300)
-    except subprocess.TimeoutExpired:
-        print("  Времето за вход изтече.")
-    except OSError as exc:
-        log.warning("Could not start the Gemini login: %s", exc)
 
-    if _has_cached_credentials():
-        print("  ✓ Влязохте в Google за Gemini.")
-        return True
+    # Retry a few times when run interactively — the browser OAuth can be closed
+    # too early, time out, or hit a transient hiccup. Non-interactive (e.g. a
+    # background run) gets a single attempt and a clear failure.
+    interactive = sys.stdin.isatty() and sys.stdout.isatty()
+    max_attempts = 3 if interactive else 1
+    for attempt in range(1, max_attempts + 1):
+        print(
+            "  Влизане в Google за Gemini ...\n"
+            "  Ще се отвори браузър — завършете входа там. (Ако горе видите грешка за\n"
+            "  зает модел / '429 capacity' — тя е временна и НЕ влияе на входа.)"
+        )
+        try:
+            # One-shot request: on first use this triggers the Google OAuth
+            # browser flow and then exits. Terminal is inherited so prompts show.
+            subprocess.run([path, "-m", model, "-p", "Reply with: OK"], timeout=300)
+        except subprocess.TimeoutExpired:
+            print("  Времето за вход изтече.")
+        except OSError as exc:
+            log.warning("Could not start the Gemini login: %s", exc)
+
+        if _has_cached_credentials():
+            print("  ✓ Влязохте в Google за Gemini.")
+            return True
+
+        if attempt < max_attempts:
+            answer = input("  Входът не успя. Да опитаме пак? (Y/n): ").strip().lower()
+            if answer in {"n", "no", "не"}:
+                break
 
     print(
-        "  Входът в Gemini не може да се потвърди автоматично.\n"
+        "  Входът в Gemini не може да се потвърди.\n"
         "  Завършете го ръчно: стартирайте `gemini` веднъж, изберете\n"
         "  'Login with Google', завършете входа в браузъра, после /quit.\n"
         "  После проверете пак с командата 'login-gemini'."

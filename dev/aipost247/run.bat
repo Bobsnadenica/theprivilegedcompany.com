@@ -28,4 +28,14 @@ if not exist "%VENV_DIR%\.requirements.stamp" (
 
 echo [run.bat] Стартиране на AIPost247 ...
 python run.py %*
+set "RC=%ERRORLEVEL%"
+echo.
+if not "%RC%"=="0" (
+    echo [run.bat] AIPost247 спря с код %RC% — вижте съобщението по-горе.
+    echo [run.bat] Често: Gemini не е влязъл. Изпълнете:  run.bat login-gemini
+) else (
+    echo [run.bat] AIPost247 приключи.
+)
+echo [run.bat] Натиснете клавиш, за да затворите този прозорец ...
+pause >nul
 endlocal

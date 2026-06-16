@@ -12,6 +12,17 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="$HERE/download/aipost247.zip"
 mkdir -p "$HERE/download"
 
+# Stamp the version (from __init__.py) + build date into the download card so
+# the website and the zip always advertise the same, current version.
+VER="$(grep -oE '__version__ *= *"[^"]+"' "$HERE/aipost247/__init__.py" | sed -E 's/.*"([^"]+)".*/\1/')"
+DATE="$(date +%Y-%m-%d)"
+if [ -n "$VER" ] && grep -q 'id="dl-ver"' "$HERE/index.html"; then
+  STAMP="$(mktemp)"
+  sed -E "s#(<div class=\"dl-ver\" id=\"dl-ver\">).*(</div>)#\1Версия ${VER} · обновена ${DATE}\2#" \
+    "$HERE/index.html" > "$STAMP" && mv "$STAMP" "$HERE/index.html"
+  echo "Stamped version: $VER ($DATE)"
+fi
+
 STAGE="$(mktemp -d)"
 DEST="$STAGE/aipost247"
 mkdir -p "$DEST"

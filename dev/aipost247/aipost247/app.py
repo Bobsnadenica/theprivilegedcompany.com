@@ -193,14 +193,26 @@ def cmd_clear_memory(memory: MemoryStore) -> int:
 
 
 def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
-    # Pre-flight checks so misconfiguration is obvious before the loop starts.
+    # Pre-flight checks so the loop never starts in a known-broken state.
     if config.ai_provider != "openai":
         try:
             gemini_client.ensure_installed()
-            if not gemini_client.is_authenticated(config.gemini_model):
-                log.warning("Gemini may not be logged in. If posts fail, run `python run.py login-gemini`.")
         except GeminiError as exc:
-            log.warning("Gemini check: %s", exc)
+            log.error("Gemini CLI липсва: %s", exc)
+            log.error("Инсталирайте Node.js (nodejs.org), после изпълнете `login-gemini`, "
+                      "или `setup` и изберете OpenAI. НЕ стартирам.")
+            return 1
+        if not gemini_client.is_authenticated(config.gemini_model):
+            log.warning("Gemini не е влязъл в Google — опитвам вход сега ...")
+            try:
+                gemini_client.login(config.gemini_model)
+            except GeminiError as exc:
+                log.error("Входът в Gemini се провали: %s", exc)
+            if not gemini_client.is_authenticated(config.gemini_model):
+                log.error("НЕ стартирам: Gemini не е влязъл в Google. Изпълнете "
+                          "`login-gemini`, или `setup` и изберете OpenAI.")
+                return 1
+        log.info("Gemini е влязъл и готов.")
 
     try:
         name = fb.validate()

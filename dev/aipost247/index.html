@@ -65,7 +65,9 @@
     box-shadow: 0 10px 22px -10px var(--accent); transition: background 0.2s, transform 0.12s;
   }
   .dl-btn:hover { background: var(--accent-ink); transform: translateY(-1px); }
-  @media (max-width: 560px) { .dl { flex-direction: column; align-items: stretch; text-align: center; } }
+  .dl-cta { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+  .dl-ver { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+  @media (max-width: 560px) { .dl { flex-direction: column; align-items: stretch; text-align: center; } .dl-cta { align-items: center; } }
 
   .callout {
     margin: 22px 0; padding: 16px 18px; border-radius: 12px;
@@ -159,7 +161,10 @@
       <div class="dl-title">Изтеглете AIPost247</div>
       <div class="dl-sub">Разархивирайте и стартирайте <code class="inline">run.sh</code> (Mac/Linux) или <code class="inline">run.bat</code> (Windows). После следвайте стъпките по-долу.</div>
     </div>
-    <a class="dl-btn" href="download/aipost247.zip" download>⬇ Изтегли .zip</a>
+    <div class="dl-cta">
+      <a class="dl-btn" href="download/aipost247.zip" download>⬇ Изтегли .zip</a>
+      <div class="dl-ver" id="dl-ver">Версия 1.1.0 · обновена 2026-06-16</div>
+    </div>
   </div>
 
   <div class="callout local">
