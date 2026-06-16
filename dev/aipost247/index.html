@@ -223,20 +223,28 @@
     <div class="warn">Безплатно е и отнема минута. Помага правата за страницата да работят правилно.</div>
   </div>
 
-  <h2><span class="num">5</span>Добавете redirect URI</h2>
-  <p class="sub">Позволява на браузъра безопасно да върне входа към скрипта.</p>
+  <h2><span class="num">5</span>Redirect URI (обикновено не е нужно)</h2>
+  <p class="sub">В режим за разработка Facebook автоматично позволява localhost.</p>
   <div class="card">
     <ol class="steps">
       <li>В лявото меню отворете настройките на <b>Facebook Login</b> (под избрания use case → <b>Customize</b>, или <b>Facebook Login → Settings</b>).</li>
       <li>
-        В <b>Valid OAuth Redirect URIs</b> поставете точно това и натиснете <b>Save</b>:
+        В <b>Valid OAuth Redirect URIs</b> най-вероятно ще видите бележка от Facebook:
+        <div class="warn"><i>„http://localhost redirects are automatically allowed while in
+          development mode only and do not need to be added here.“</i></div>
+        Това означава, че докато приложението е в <b>Development</b> режим (по подразбиране),
+        <b>не е нужно</b> да добавяте нищо тук — localhost се позволява автоматично. Просто
+        продължете към следващата стъпка.
+      </li>
+      <li>
+        <b>Само ако</b> приложението е в <b>Live</b> режим (или Facebook откаже входа с
+        „URL Blocked“), добавете точно това и натиснете <b>Save</b>:
         <div class="codeblock">
           <pre data-copy>http://localhost:8723/</pre>
           <button class="copy">Копирай</button>
         </div>
         <div class="warn">Трябва да е <code class="inline">http</code> (не https),
-          порт <code class="inline">8723</code>, <b>с наклонена черта в края</b>.
-          Грешна стойност води до грешка „URL Blocked“ при вход.</div>
+          порт <code class="inline">8723</code>, <b>с наклонена черта в края</b>.</div>
       </li>
     </ol>
   </div>
@@ -349,8 +357,8 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
       <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
         <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Правата още не са активни. Добавете use case <b>„Manage everything on your Page“</b> (Стъпка 3) и ги <b>активирайте по Стъпка 8</b> (Privacy Policy URL + тест в Graph API Explorer). <b>Не</b> е нужно публикуване или App Review за вашата страница.</td></tr>
-        <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>Redirect URI не е запазен. Добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
-        <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Същата причина — redirect URI трябва да съвпада точно.</td></tr>
+        <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>В <b>Development</b> режим localhost се позволява автоматично, така че обикновено това не се случва. Ако се случи (или сте в Live режим), добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
+        <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Уверете се, че приложението е в <b>Development</b> режим. Ако е в Live — добавете redirect URI точно както по-горе.</td></tr>
         <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>
         <tr><td>„Invalid or expired token“ по-късно</td><td>Изпълнете отново <code class="inline">./run.sh setup</code> и влезте пак.</td></tr>
         <tr><td><code class="inline">Port 8723 already in use</code></td><td>Затворете това, което го използва, и опитайте отново.</td></tr>

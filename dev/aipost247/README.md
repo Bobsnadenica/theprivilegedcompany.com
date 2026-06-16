@@ -90,8 +90,9 @@ The wizard (`./run.sh` or `python run.py setup`) has 4 short steps:
 One-time, at <https://developers.facebook.com/apps>:
 1. Create an app (type **Business**).
 2. Add the **Facebook Login** product.
-3. **Facebook Login → Settings → Valid OAuth Redirect URIs**, add exactly:
-   `http://localhost:8723/`
+3. Redirect URI: in **Development** mode (default) `http://localhost` is allowed
+   automatically — nothing to add. Only in Live mode add `http://localhost:8723/`
+   under **Facebook Login → Settings → Valid OAuth Redirect URIs**.
 4. Copy your **App ID** and **App Secret** (Settings → Basic).
 
 Then in setup pick **"Log in with Facebook"**, enter App ID + Secret once, log in

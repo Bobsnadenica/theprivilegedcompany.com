@@ -39,16 +39,22 @@ local `.env` file and are never uploaded or shared.
    and email. (Free, ~1 min; it helps the Page permissions work.)
 2. Review **Requirements** and **Overview**, then click **Create app**.
 
-### Step 5 · Add the redirect URI
+### Step 5 · Redirect URI (usually nothing to do)
 1. Open the **Facebook Login** settings (your use case → **Customize**, or
    **Facebook Login → Settings**).
-2. In **Valid OAuth Redirect URIs**, paste this **exactly**, then **Save**:
+2. In **Valid OAuth Redirect URIs** you'll most likely see Facebook's note:
+
+   > *"http://localhost redirects are automatically allowed while in development
+   > mode only and do not need to be added here."*
+
+   While the app is in **Development** mode (the default), **you don't need to add
+   anything here** — localhost is allowed automatically. Just continue.
+3. **Only if** the app is in **Live** mode (or login fails with "URL Blocked"),
+   paste this **exactly** and **Save** — `http`, port `8723`, with the trailing slash:
 
    ```
    http://localhost:8723/
    ```
-
-   It must be `http` (not `https`), port `8723`, **with the trailing slash**.
 
 ### Step 6 · App type
 In **App Settings → Advanced**, mark the app as a **desktop / native app** and save.
@@ -128,8 +134,8 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 | What you see | Fix |
 | --- | --- |
 | "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | The permissions aren't active yet. Add the **"Manage everything on your Page"** use case (Step 3) **and activate them per Step 8** (Privacy Policy URL + a one-time Graph API Explorer test). You do **not** need to Publish or pass App Review for your own Page. |
-| "URL Blocked" / "redirect_uri isn't allowed" | The redirect URI isn't saved. Add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
-| Browser login never returns / times out | Same as above — the redirect URI must match exactly. |
+| "URL Blocked" / "redirect_uri isn't allowed" | In **Development** mode localhost is allowed automatically, so this is rare. If it happens (or the app is in Live mode), add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
+| Browser login never returns / times out | Make sure the app is in **Development** mode. If it's Live, add the redirect URI exactly as above. |
 | Your Page is not in the list | You must be an **admin** of the Page, and grant the requested permissions during login. |
 | "Invalid or expired token" later on | Re-run `./run.sh setup` and log in again. |
 | `Port 8723 already in use` | Close whatever is using it and retry. |
