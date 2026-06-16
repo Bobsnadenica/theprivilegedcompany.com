@@ -310,22 +310,19 @@
   <div class="card">
     <ol class="steps">
       <li>
-        В терминал:
-        <div class="codeblock">
-          <pre data-copy>cd dev/aipost247
-./run.sh setup        # Windows: run.bat setup</pre>
-          <button class="copy">Копирай</button>
-        </div>
+        <b>Стартирайте програмата</b> — настройката се отваря автоматично:
+        <ul style="margin:6px 0 0; padding-left:20px">
+          <li><b>Windows:</b> просто <b>щракнете два пъти</b> върху <code class="inline">run.bat</code> — не е нужно да отваряте терминал.</li>
+          <li><b>Mac/Linux:</b> в терминал, в папката на програмата, изпълнете <code class="inline">./run.sh</code> — <b>не</b> пишете <code class="inline">setup</code>; той пуска настройката сам при първото стартиране.</li>
+        </ul>
       </li>
       <li><b>Content generator</b> → изберете <b>Gemini</b> и влезте с <b>Google</b> (без API ключ).</li>
       <li><b>Facebook</b> → изберете <b>[1] Connect with Facebook</b>, поставете вашите <b>App ID</b> и <b>App Secret</b>. Отваря се браузър → одобрете → <b>изберете вашата страница</b> от списъка. Скриптът запазва дълготраен Page token вместо вас.</li>
+      <li><b>Профил на бизнеса</b> → отваря се форма (в браузъра или като прозорец). Попълнете накратко с какво се занимавате, тон и теми — така публикациите звучат като вас. (По избор, но препоръчително.)</li>
       <li><b>Schedule</b> → въведете <span class="pill">2</span>, за да публикувате на всеки 2 часа.</li>
-      <li>
-        Пуснете на живо (и оставете да работи на заден план):
+      <li>Готово — скриптът започва да генерира и публикува по вашия график. За да продължи на заден план на Mac/Linux (и след затваряне на терминала):
         <div class="codeblock">
-          <pre data-copy>./run.sh run
-# на заден план (продължава и след затваряне на терминала):
-nohup ./run.sh run > aipost247.out 2>&1 &</pre>
+          <pre data-copy>nohup ./run.sh run > aipost247.out 2>&1 &</pre>
           <button class="copy">Копирай</button>
         </div>
       </li>
@@ -340,7 +337,7 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <table>
       <thead><tr><th style="width:34%">Команда</th><th>Какво прави</th></tr></thead>
       <tbody>
-        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка (AI, Facebook, график, бизнес профил).</td></tr>
+        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка (AI, Facebook, бизнес профил, график). Обикновено не е нужна — стартирайте просто <code class="inline">run.bat</code> / <code class="inline">./run.sh</code>.</td></tr>
         <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува. После може да дадете обратна връзка, за да насочите следващата.</td></tr>
         <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага. После може да напишете какво да променим за следващата.</td></tr>
         <tr><td><code class="inline">./run.sh run</code></td><td>Стартира автоматичния режим по график (по подразбиране).</td></tr>
@@ -351,24 +348,6 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
         <tr><td><code class="inline">./run.sh login-gemini</code></td><td>(Повторен) вход в Google за Gemini.</td></tr>
       </tbody>
     </table>
-  </div>
-
-  <h2 style="margin-top:46px">Какви права използваме</h2>
-  <div class="card" style="padding:18px 26px">
-    <p style="margin:0 0 8px">
-      Use case-ът <b>„Manage everything on your Page“</b> дава достъп до
-      <code class="inline">pages_show_list</code>,
-      <code class="inline">pages_read_engagement</code> и
-      <code class="inline">pages_manage_posts</code> — да изброи страниците ви, да
-      <b>чете ангажираността</b> и да <b>публикува</b>. Добавяте ги ръчно в Стъпка 5;
-      в режим Development работят за <b>вашите</b> страници без преглед.
-    </p>
-    <p style="margin:0; color:var(--muted)">
-      Четенето на ангажираността включва и <b>самоусъвършенстване</b>: скриптът
-      записва кои публикации са се представили най-добре в
-      <code class="inline">memory/skill.md</code>, а AI ползва това като контекст,
-      за да пише по-добри бъдещи публикации.
-    </p>
   </div>
 
   <h2>Отстраняване на проблеми</h2>
