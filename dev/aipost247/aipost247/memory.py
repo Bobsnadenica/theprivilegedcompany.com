@@ -120,6 +120,38 @@ class MemoryStore:
         with self._lock:
             return self._conn.execute("SELECT COUNT(*) AS c FROM posts").fetchone()["c"]
 
+    def recent_posts_detailed(self, limit: int = 50) -> list[dict]:
+        """Recent posts with engagement columns — for the dashboard monitor."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, created_at, content, status, fb_post_id, model, "
+                "likes, comments, shares, engagement_updated_at "
+                "FROM posts ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def stats(self) -> dict:
+        """Summary counts for the dashboard status panel."""
+        with self._lock:
+            total = self._conn.execute("SELECT COUNT(*) AS c FROM posts").fetchone()["c"]
+            by_status = {
+                row["status"]: row["c"]
+                for row in self._conn.execute(
+                    "SELECT status, COUNT(*) AS c FROM posts GROUP BY status"
+                )
+            }
+            last = self._conn.execute(
+                "SELECT created_at FROM posts ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+        return {
+            "total": total,
+            "published": by_status.get("published", 0),
+            "dry_run": by_status.get("dry_run", 0),
+            "failed": by_status.get("failed", 0),
+            "last_created_at": last["created_at"] if last else None,
+        }
+
     # --- clearing --------------------------------------------------------
     def clear(self, *, posts: bool = True, instructions: bool = True,
               knowledge: bool = True) -> dict[str, int]:

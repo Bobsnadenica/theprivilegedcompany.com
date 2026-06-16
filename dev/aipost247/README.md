@@ -110,10 +110,11 @@ Nothing is hardcoded; data only goes to Google/OpenAI and Facebook themselves.
 ## 3. Commands
 
 ```bash
-python run.py setup            # (re)run the configuration wizard
+python run.py dashboard        # open the web dashboard (DEFAULT — configure + monitor in the browser)
+python run.py setup            # terminal configuration wizard (alternative to the dashboard)
 python run.py generate         # generate ONE post and print it — does NOT publish
 python run.py post-now         # generate AND publish one post immediately
-python run.py run              # start the autonomous loop (default if no command)
+python run.py run              # start the autonomous loop headless (no UI)
 python run.py status           # show config (secrets masked) + recent posts
 python run.py login-gemini     # (re)log in to Google for the Gemini CLI
 python run.py train            # open the "train your business" form (a skill)

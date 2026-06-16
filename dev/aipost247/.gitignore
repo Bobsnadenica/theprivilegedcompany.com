@@ -9,6 +9,11 @@ logs/
 *.db
 *.sqlite3
 
+# Runtime memory the app generates per user — never commit (seed files are kept).
+memory/business.md
+memory/skill.md
+memory/steering.md
+
 # Python
 __pycache__/
 *.py[cod]

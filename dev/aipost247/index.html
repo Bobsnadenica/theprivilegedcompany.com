@@ -232,7 +232,7 @@
     </div>
     <div class="dl-cta">
       <a class="dl-btn" href="download/aipost247.zip" download>⬇ Изтегли .zip</a>
-      <div class="dl-ver" id="dl-ver">Версия 1.1.0 · обновена 2026-06-17</div>
+      <div class="dl-ver" id="dl-ver">Версия 1.2.0 · обновена 2026-06-17</div>
     </div>
   </div>
 
@@ -338,30 +338,25 @@
     </ol>
   </div>
 
-  <h2><span class="num">7</span>Стартирайте скрипта — оттук всичко е локално</h2>
-  <p class="sub">Поставяте двете стойности веднъж, влизате, избирате страница, задавате график.</p>
+  <h2><span class="num">7</span>Стартирайте — отваря се табло в браузъра</h2>
+  <p class="sub">Цялата настройка и наблюдение стават в уеб табло — без терминал.</p>
   <div class="card">
     <ol class="steps">
       <li>
-        <b>Стартирайте програмата</b> — настройката се отваря автоматично:
+        <b>Стартирайте програмата:</b>
         <ul style="margin:6px 0 0; padding-left:20px">
-          <li><b>Windows:</b> просто <b>щракнете два пъти</b> върху <code class="inline">run.bat</code> — не е нужно да отваряте терминал.</li>
-          <li><b>Mac/Linux:</b> в терминал, в папката на програмата, изпълнете <code class="inline">./run.sh</code> — <b>не</b> пишете <code class="inline">setup</code>; той пуска настройката сам при първото стартиране.</li>
+          <li><b>Windows:</b> <b>щракнете два пъти</b> върху <code class="inline">run.bat</code>.</li>
+          <li><b>Mac/Linux:</b> изпълнете <code class="inline">./run.sh</code> в папката на програмата.</li>
         </ul>
+        Автоматично се отваря <b>табло</b> на адрес <code class="inline">http://localhost:8730</code>.
       </li>
-      <li><b>Content generator</b> → изберете <b>Gemini</b> и влезте с <b>Google</b> (без API ключ).</li>
-      <li><b>Facebook</b> → изберете <b>[1] Connect with Facebook</b>, поставете вашите <b>App ID</b> и <b>App Secret</b>. Отваря се браузър → одобрете → <b>изберете вашата страница</b> от списъка. Скриптът запазва дълготраен Page token вместо вас.</li>
-      <li><b>Профил на бизнеса</b> → отваря се форма (в браузъра или като прозорец). Попълнете накратко с какво се занимавате, тон и теми — така публикациите звучат като вас. (По избор, но препоръчително.)</li>
-      <li><b>Schedule</b> → въведете <span class="pill">2</span>, за да публикувате на всеки 2 часа.</li>
-      <li>Готово — скриптът започва да генерира и публикува по вашия график. За да продължи на заден план на Mac/Linux (и след затваряне на терминала):
-        <div class="codeblock">
-          <pre data-copy>nohup ./run.sh run > aipost247.out 2>&1 &</pre>
-          <button class="copy">Копирай</button>
-        </div>
-      </li>
+      <li><b>Настройка</b> (в таблото): изберете <b>Gemini</b> и натиснете <b>Вход в Google</b> (без ключ); при <b>Facebook</b> поставете <b>App ID</b> и <b>App Secret</b> и натиснете <b>Свържи</b> → одобрете в браузъра.</li>
+      <li><b>Бизнес &amp; стил</b>: попълнете кратък профил на бизнеса; по-късно можете да насочвате стила с обратна връзка след всяка публикация.</li>
+      <li><b>График</b>: изберете на колко време да публикува и запазете.</li>
+      <li><b>Старт на автопилота</b> — таблото започва да генерира и публикува по вашия график и показва <b>публикациите, изпълненията и дневника</b> на живо.</li>
     </ol>
-    <p style="color:var(--muted)">Съвет: първо изпълнете <code class="inline">./run.sh generate</code>, за да прегледате публикация <b>без</b> да я публикувате.</p>
-    <p style="color:var(--muted)">Нужен е чист старт? <code class="inline">./run.sh clear-memory</code> изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</p>
+    <p style="color:var(--muted)">Съвет: натиснете <b>Генерирай (преглед)</b> в таблото, за да видите публикация <b>без</b> да я публикувате.</p>
+    <p style="color:var(--muted)">Предпочитате терминал? Работят и <code class="inline">./run.sh setup</code>, <code class="inline">./run.sh run</code>, <code class="inline">generate</code>, <code class="inline">post-now</code> и т.н.</p>
   </div>
 
   <h2 style="margin-top:46px">Команди</h2>
@@ -370,7 +365,8 @@
     <table>
       <thead><tr><th style="width:34%">Команда</th><th>Какво прави</th></tr></thead>
       <tbody>
-        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка (AI, Facebook, бизнес профил, график). Обикновено не е нужна — стартирайте просто <code class="inline">run.bat</code> / <code class="inline">./run.sh</code>.</td></tr>
+        <tr><td><code class="inline">./run.sh dashboard</code></td><td><b>Отваря таблото</b> в браузъра (по подразбиране — само стартирайте <code class="inline">run.bat</code> / <code class="inline">./run.sh</code>). Конфигурирайте и наблюдавайте всичко оттам.</td></tr>
+        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка през <b>терминал</b> (алтернатива на таблото): AI, Facebook, бизнес профил, график.</td></tr>
         <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува. После може да дадете обратна връзка, за да насочите следващата.</td></tr>
         <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага. После може да напишете какво да променим за следващата.</td></tr>
         <tr><td><code class="inline">./run.sh run</code></td><td>Стартира автоматичния режим по график (по подразбиране).</td></tr>

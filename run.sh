@@ -1,3 +1,3 @@
 git add .
-git commit -m 'ko'
+git commit -m 'ko kaza ko'
 git push

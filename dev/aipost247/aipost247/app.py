@@ -314,8 +314,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"AIPost247 {__version__}")
     sub = parser.add_subparsers(dest="command")
 
-    sub.add_parser("setup", help="Interactive configuration wizard.")
-    sub.add_parser("run", help="Start the autonomous scheduler loop (default).")
+    sub.add_parser("dashboard", help="Open the web dashboard to configure + monitor (default).")
+    sub.add_parser("setup", help="Interactive configuration wizard (terminal).")
+    sub.add_parser("run", help="Start the autonomous scheduler loop (headless).")
     sub.add_parser("post-now", help="Generate and publish one post immediately.")
     sub.add_parser("generate", help="Generate one post and print it (does NOT publish).")
     sub.add_parser("status", help="Show configuration and recent posts.")
@@ -339,7 +340,12 @@ def main(argv=None) -> int:
     ensure_dirs()
     setup_logging(str(LOGS_DIR))
 
-    command = args.command or "run"
+    command = args.command or "dashboard"
+
+    if command == "dashboard":
+        from . import dashboard
+
+        return dashboard.run_dashboard()
 
     if command == "setup":
         run_setup_wizard(load_config())
