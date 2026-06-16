@@ -68,10 +68,17 @@ Solo build with Claude Code doing the edits. Estimate in effective hours; plan t
 | **P0-4** | **Verify end-to-end** — fresh setup → login → `generate` → `post-now`; confirm 429/auth/empty handling and the `run_loop` login gate still abort cleanly. Update the bundled smoke expectations. | 0.5h | manual + existing test patterns | P0-2, P0-3 |
 | P1-1 | **Rename the abstraction** (optional polish): `gemini_client.py` → `agent_client.py` or keep filename but neutralize user-facing strings ("Gemini" → "Antigravity"/"AI"). Update `app.py` command `login-gemini` → add `login-ai` alias (keep old as alias). | 1h | `aipost247/*.py`, `run.sh`/`run.bat` help | P0-* |
 | P1-2 | **Docs + website** — drop "Node.js required" everywhere (no longer needed!); update install line, model name, "login-gemini" naming; refresh `README.md`, `FACEBOOK_SETUP.md` is unaffected, `index.html` wizard text + commands table; bump `__version__` → 1.2.0. | 1h | `README.md`, `index.html`, `requirements.txt` note | P0-* |
-| P2-1 | **Provider config hardening** — make provider truly pluggable (`gemini`/`antigravity`/`openai`) so a future swap is config-only; add `ANTIGRAVITY_API_KEY` passthrough for CI. | 1.5h | `config.py`, `gemini_client.py` | P1-1 |
+| P2-1 | **Make the AI provider pluggable** — refactor so the content generator is a strategy chosen by config (`antigravity`/`openai`/`codex`/`copilot`/`ollama`), each exposing the same `generate(prompt)` + `is_authenticated()` + `login()` interface behind a registry. This is the foundation for the items below and protects against the next free-tier change. | 2h | `config.py`, new `providers/` (or `gemini_client.py` generalized), `app.generate_text` | P1-1 |
+| **P2-3** | **Add free login-only providers (no API key, just an account you already have).** Offer these as selectable providers + a "login" button each in the dashboard. See Appendix for the verified contracts: | — | — | P2-1 |
+| P2-3a | • **Codex CLI — "Sign in with ChatGPT"** (free ChatGPT tier works, browser OAuth, no key). One-shot via `codex exec "…"`; headless token via `CODEX_ACCESS_TOKEN`. | 1.5h | provider impl + dashboard option | P2-1 |
+| P2-3b | • **GitHub Copilot CLI — GitHub login** (Copilot **Free** for any personal account). `copilot login`; non-interactive via `GITHUB_TOKEN`/`COPILOT_GITHUB_TOKEN`. | 1.5h | provider impl + dashboard option | P2-1 |
+| P2-3c | • **Ollama (local, no account at all)** — fully free/offline; for the privacy/no-login crowd. Smaller models, uses local compute. | 1h | provider impl + dashboard option | P2-1 |
 | P2-2 | **Repackage + verify zip** clean (no secrets), re-stamp version, test `run.bat` double-click path on Windows. | 0.5h | `package.sh` | P1-2 |
 
-**Planned (committed): ~4h (P0)** · **Stretch: P1/P2 ~4h**
+> **NOTE (do NOT pursue Qwen):** Qwen Code's free Qwen-OAuth tier was **discontinued 2026-04-15**
+> — it now needs API keys, so it is no longer a "just login, free" option.
+
+**Planned (committed): ~4h (P0)** · **Stretch: P1/P2/P2-3 ~9h** (the extra providers are independent — ship one at a time)
 
 ---
 
@@ -100,10 +107,35 @@ Solo build with Claude Code doing the edits. Estimate in effective hours; plan t
 |---|---|
 | 2026-06-18 | ⚠ Gemini CLI free requests stop being served |
 | TBD (ASAP) | Sprint start — P0 spike + implementation |
-| TBD +1 | Verify, docs, repackage, ship v1.2.0 |
+| TBD +1 | Verify, docs, repackage, ship v1.3.0 (note: v1.2.0 already shipped — the web dashboard) |
 
 ## Rollback / safety
 - Keep the `gemini`-binary code path behind a feature check so existing installs that still have a
   working `gemini` keep functioning until June 18; prefer `agy` when present.
 - OpenAI provider remains the always-available paid escape hatch.
 - No secrets in repo; `planning/` is excluded from the distributable zip.
+
+---
+
+## Appendix — free, login-only AI CLIs (no API key; verified 2026-06-17)
+
+Goal: let users pick a generator using an account they **already have**, for free, without an API
+key. These are the candidates for tasks **P2-3a/b/c**. All free tiers here are volatile — design the
+provider as a config-selectable strategy (P2-1) so swapping is a setting, not a rewrite.
+
+| Provider | Login with | Free? | One-shot / headless | Fit for AIPost247 |
+|---|---|---|---|---|
+| **Antigravity CLI** (`agy`) | Google | ✅ free preview (personal Gmail) | `agy -p "…"` | **Primary** — direct Gemini-CLI successor, same `-p`, same Google login |
+| **OpenAI Codex CLI** | ChatGPT account ("Sign in with ChatGPT") | ✅ incl. ChatGPT **Free** tier | `codex exec "…"`; `CODEX_ACCESS_TOKEN` for headless | Strong 2nd — many users have a ChatGPT account |
+| **GitHub Copilot CLI** | GitHub account | ✅ **Copilot Free** (any personal account) | non-interactive via `GITHUB_TOKEN`/`COPILOT_GITHUB_TOKEN` | Good — many users have GitHub |
+| **Ollama** (local) | none (runs locally) | ✅ fully free / offline | `ollama run <model> "…"` | Privacy/no-account path; smaller models, local compute |
+| ~~Qwen Code~~ | ~~Qwen OAuth~~ | ❌ free tier **ended 2026-04-15** | — | **Do not use** (now needs API keys) |
+
+Caveats to validate during implementation: Codex has reported quirks where ChatGPT-login vs
+API-key modes conflict; Copilot model access depends on the plan; Antigravity is "preview" with no
+1:1 parity. Each provider's auth-detection differs (keyring / token file / env), so reuse the
+typed-error pattern (`AuthError` vs `RateLimitError`) per provider.
+
+**Sources:** Google Developers Blog (Gemini→Antigravity); OpenAI "Using Codex with your ChatGPT
+plan" + Codex CLI auth docs; GitHub Docs "Authenticating Copilot CLI" + Copilot plans (Free);
+QwenLM/qwen-code (OAuth tier discontinued).
