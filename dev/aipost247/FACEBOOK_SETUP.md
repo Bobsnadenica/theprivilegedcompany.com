@@ -58,7 +58,26 @@ In **App Settings → Advanced**, mark the app as a **desktop / native app** and
 2. Copy the **App ID** shown at the top.
 3. Next to **App Secret**, click **Show** (re-enter your password) and copy it.
 
-That is the entire Facebook setup. Keep the App ID and App Secret handy for Part 2.
+### Step 8 · Activate the permissions (fixes "Invalid Scopes")
+
+`pages_read_engagement` and `pages_manage_posts` must be **activated** once. You
+do **NOT** need to Publish the app or pass App Review for your **own** Page —
+Standard Access in Development mode is enough while you're the app admin.
+
+1. **Add a Privacy Policy URL.** In **App Settings → Basic**, fill in
+   **Privacy Policy URL** (any privacy-policy link — a free one is fine) and
+   **Save changes**. This completes a use-case requirement.
+2. Make sure you are an **admin** of both the app and the Facebook Page.
+3. **Test once in [Graph API Explorer](https://developers.facebook.com/tools/explorer/)** —
+   this activates the permissions:
+   - Select your app (top-right **Meta App**).
+   - Under **Permissions**, add `pages_show_list`, `pages_read_engagement`,
+     `pages_manage_posts`.
+   - Click **Generate Access Token** → log in → grant for your Page.
+   - A token generating successfully means the permissions now work.
+4. Re-run `./run.sh setup` — the Facebook login will go through.
+
+Keep the App ID and App Secret handy for Part 2.
 
 ---
 
@@ -108,7 +127,7 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 
 | What you see | Fix |
 | --- | --- |
-| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | Your app is missing those permissions. On the **Use cases** step add **"Manage everything on your Page"** (Step 3), then retry. You do **not** need a long-lived token first. |
+| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | The permissions aren't active yet. Add the **"Manage everything on your Page"** use case (Step 3) **and activate them per Step 8** (Privacy Policy URL + a one-time Graph API Explorer test). You do **not** need to Publish or pass App Review for your own Page. |
 | "URL Blocked" / "redirect_uri isn't allowed" | The redirect URI isn't saved. Add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
 | Browser login never returns / times out | Same as above — the redirect URI must match exactly. |
 | Your Page is not in the list | You must be an **admin** of the Page, and grant the requested permissions during login. |
