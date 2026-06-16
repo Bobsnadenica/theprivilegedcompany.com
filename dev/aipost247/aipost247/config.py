@@ -229,31 +229,11 @@ def _choose(intro: str, options: list[tuple[str, str]], default: int = 1) -> int
         print("  Напишете един от показаните номера.")
 
 
-# --- interactive setup wizard -------------------------------------------
-def run_setup_wizard(existing: Config) -> None:
-    """Interactive, idempotent configuration wizard. Writes .env + seeds memory."""
+def _setup_ai_provider(existing: Config) -> dict:
+    """Choose + configure the AI provider. Returns the env values to persist."""
     from . import gemini_client
-    from .facebook_client import FacebookClient, FacebookError
-    from .fb_oauth import login_and_select_page
 
-    ensure_dirs()
-    print("\n" + _rule("═"))
-    print("  AIPost247  ·  Настройка")
-    print(_rule("═"))
-    print(
-        "  Отнема около 3–5 минути. Ще настроим 4 неща:\n"
-        "    1) AI, който пише публикациите\n"
-        "    2) Вашата Facebook страница (вход и избор)\n"
-        "    3) Колко често да публикува\n"
-        "    4) Кратък профил на бизнеса ви\n"
-        "  Може да стартирате това пак по всяко време с командата 'setup'.\n"
-        "  Подробно ръководство с картинки: отворете index.html в тази папка."
-    )
-
-    values: dict[str, str] = {}
-
-    # 1) AI provider ------------------------------------------------------
-    _section(1, 4, "Изберете AI, който пише публикациите")
+    out: dict[str, str] = {}
     choice = _choose(
         "  И двата варианта са безплатни за начало:",
         [
@@ -266,9 +246,9 @@ def run_setup_wizard(existing: Config) -> None:
     )
 
     if choice == 2:
-        values["AI_PROVIDER"] = "openai"
-        values["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API ключ", existing.openai_api_key)
-        values["OPENAI_MODEL"] = (
+        out["AI_PROVIDER"] = "openai"
+        out["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API ключ", existing.openai_api_key)
+        out["OPENAI_MODEL"] = (
             input(f"  OpenAI модел [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
             or existing.openai_model or DEFAULT_OPENAI_MODEL
         )
@@ -276,12 +256,12 @@ def run_setup_wizard(existing: Config) -> None:
         _pip_install("openai")
         print("  ✓ OpenAI е избран за писане на публикациите.")
     else:
-        values["AI_PROVIDER"] = "gemini"
+        out["AI_PROVIDER"] = "gemini"
         gemini_model = (
             input(f"  Gemini модел [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
             or existing.gemini_model or DEFAULT_GEMINI_MODEL
         )
-        values["GEMINI_MODEL"] = gemini_model
+        out["GEMINI_MODEL"] = gemini_model
         try:
             print("  Проверка на Gemini CLI ...")
             gemini_client.ensure_installed()
@@ -292,16 +272,20 @@ def run_setup_wizard(existing: Config) -> None:
             print(f"  ! {exc}")
             print("    Съвет: инсталирайте Node.js (nodejs.org), или стартирайте setup пак и изберете OpenAI.")
             print("    Може и по-късно с командата 'login-gemini'.")
+    return out
 
-    # 2) Facebook ---------------------------------------------------------
-    _section(2, 4, "Свържете вашата Facebook страница")
+
+def _setup_facebook(existing: Config, api_version: str) -> tuple[dict, bool]:
+    """Connect a Facebook Page. Returns (env values, ok). ok=False aborts setup."""
+    from .facebook_client import FacebookClient, FacebookError
+    from .fb_oauth import login_and_select_page
+
     print(
         "  Ще влезете с Facebook и ще изберете страницата си. Еднократно: Facebook\n"
         "  изисква безплатно Meta приложение, за да публикува на страница (както\n"
         "  autopost24 — но безплатно). Пълно ръководство с картинки: index.html."
     )
-    api_version = existing.graph_api_version or DEFAULT_GRAPH_VERSION
-    values["GRAPH_API_VERSION"] = api_version
+    out: dict[str, str] = {"GRAPH_API_VERSION": api_version}
 
     fb_choice = _choose(
         "  Как искате да се свържете?",
@@ -320,8 +304,8 @@ def run_setup_wizard(existing: Config) -> None:
     if fb_choice == 1:
         app_id, app_secret = _prompt_meta_app(existing)
         if app_id and app_secret:
-            values["FB_APP_ID"] = app_id
-            values["FB_APP_SECRET"] = app_secret
+            out["FB_APP_ID"] = app_id
+            out["FB_APP_SECRET"] = app_secret
             connected = False
             while not connected:
                 try:
@@ -345,8 +329,8 @@ def run_setup_wizard(existing: Config) -> None:
         page_id = input(f"  Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
         page_token = _prompt_secret("  Дълготраен Page Access Token", existing.fb_page_access_token)
 
-    values["FB_PAGE_ID"] = page_id
-    values["FB_PAGE_ACCESS_TOKEN"] = page_token
+    out["FB_PAGE_ID"] = page_id
+    out["FB_PAGE_ACCESS_TOKEN"] = page_token
 
     if page_token:
         try:
@@ -355,11 +339,81 @@ def run_setup_wizard(existing: Config) -> None:
         except FacebookError as exc:
             print(f"  ! Токенът за страницата не може да се потвърди: {exc}")
             if not _ask_yes_no("  Да запазя въпреки това?", default=False):
-                print("  Настройката е прекъсната — нищо не е запазено.")
-                return
+                return out, False
+    return out, True
+
+
+def _has_saved_setup(existing: Config) -> bool:
+    """True if a previous run already configured both the AI and a Facebook Page."""
+    from . import gemini_client
+
+    if existing.ai_provider == "openai":
+        ai_ok = bool(existing.openai_api_key)
+    else:
+        ai_ok = gemini_client.is_authenticated(existing.gemini_model or DEFAULT_GEMINI_MODEL)
+    return ai_ok and bool(existing.fb_page_id and existing.fb_page_access_token)
+
+
+# --- interactive setup wizard -------------------------------------------
+def run_setup_wizard(existing: Config) -> None:
+    """Interactive, idempotent configuration wizard. Writes .env + seeds memory."""
+    ensure_dirs()
+    print("\n" + _rule("═"))
+    print("  AIPost247  ·  Настройка")
+    print(_rule("═"))
+
+    values: dict[str, str] = {}
+    api_version = existing.graph_api_version or DEFAULT_GRAPH_VERSION
+
+    # 0) Reuse saved Google/Facebook credentials? -------------------------
+    use_saved = False
+    if _has_saved_setup(existing):
+        provider = "OpenAI" if existing.ai_provider == "openai" else "Gemini (Google)"
+        print(
+            "  Открити са запазени данни от предишна настройка:\n"
+            f"    • AI: {provider}\n"
+            f"    • Facebook страница: id {existing.fb_page_id}\n"
+        )
+        reuse = _choose(
+            "  Как да продължим?",
+            [
+                ("Използвай запазените данни (бързо)",
+                 "Прескача входа в Google и Facebook — направо към график и профил."),
+                ("Започни наново",
+                 "Въведи наново AI и Facebook от нулата."),
+            ],
+            default=1,
+        )
+        use_saved = (reuse == 1)
+
+    total = 2 if use_saved else 4
+    step = 0
+
+    if use_saved:
+        print("  ✓ Запазените данни за Google/Facebook ще се ползват без промяна.")
+    else:
+        print(
+            "  Ще настроим 4 неща: 1) AI  2) Facebook страница  3) график  4) бизнес профил.\n"
+            "  Подробно ръководство с картинки: отворете index.html в тази папка."
+        )
+
+        # 1) AI provider --------------------------------------------------
+        step += 1
+        _section(step, total, "Изберете AI, който пише публикациите")
+        values.update(_setup_ai_provider(existing))
+
+        # 2) Facebook -----------------------------------------------------
+        step += 1
+        _section(step, total, "Свържете вашата Facebook страница")
+        fb_values, ok = _setup_facebook(existing, api_version)
+        values.update(fb_values)
+        if not ok:
+            print("  Настройката е прекъсната — нищо не е запазено.")
+            return
 
     # 3) Schedule ---------------------------------------------------------
-    _section(3, 4, "Колко често да публикува")
+    step += 1
+    _section(step, total, "Колко често да публикува")
     sched = _choose(
         "  Кога да публикува?",
         [
@@ -414,7 +468,8 @@ def run_setup_wizard(existing: Config) -> None:
         )
 
     # 4) Train your business ----------------------------------------------
-    _section(4, 4, "Разкажете на AI за бизнеса си")
+    step += 1
+    _section(step, total, "Разкажете на AI за бизнеса си")
     print(
         "  Кратък профил, за да звучат публикациите като вас — име, аудитория, тон, теми.\n"
         "  Отваря се малък прозорец за попълване; запазва се и се ползва за всяка публикация.\n"
