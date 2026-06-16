@@ -65,23 +65,23 @@ is **No** (off), then save.
 > the App Secret to obtain a **long-lived** Page token (for 24/7 posting), so this
 > must stay **No**.
 
-### Step 7 · Activate the permissions (fixes "Invalid Scopes")
+### Step 7 · Add the Page permissions
 
-`pages_read_engagement` and `pages_manage_posts` must be **activated** once. You
-do **NOT** need to Publish the app or pass App Review for your **own** Page —
-Standard Access in Development mode is enough while you're the app admin.
+This is all that's needed for the script to post and read engagement.
 
-1. **Add a Privacy Policy URL.** In **App Settings → Basic**, fill in
-   **Privacy Policy URL** (any privacy-policy link — a free one is fine) and
-   **Save changes**. This completes a use-case requirement.
-2. Make sure you are an **admin** of both the app and the Facebook Page.
-3. **Test once in [Graph API Explorer](https://developers.facebook.com/tools/explorer/)** —
-   this activates the permissions:
-   - Select your app (top-right **Meta App**).
-   - Under **Permissions**, add `pages_show_list`, `pages_read_engagement`,
-     `pages_manage_posts`.
-   - Click **Generate Access Token** → log in → grant for your Page.
-   - A token generating successfully means the permissions now work.
+1. Open your use case → **Customize** (or **Use cases → your use case → Permissions**).
+2. Make sure these are **Added** (click **Add** if they aren't):
+   - `pages_show_list`
+   - `pages_read_engagement`
+   - `pages_manage_posts`
+3. That's it. In **Development** mode these work for your **own** Pages — no App
+   Review and no publishing.
+
+> **Still seeing "Invalid Scopes"?** Make sure you're an **admin** of the Page,
+> then add a **Privacy Policy URL** (App Settings → Basic → Save) and try again.
+> If it still fails, generate a token once with these permissions in
+> [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
+> (select your app, add the permissions, **Generate Access Token**).
 
 ### Step 8 · Copy your App ID and App Secret
 1. Open **App Settings → Basic**.
@@ -139,7 +139,7 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 
 | What you see | Fix |
 | --- | --- |
-| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | The permissions aren't active yet. Add the **"Manage everything on your Page"** use case (Step 3) **and activate them per Step 8** (Privacy Policy URL + a one-time Graph API Explorer test). You do **not** need to Publish or pass App Review for your own Page. |
+| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | Add the permissions (Step 7): use case → Customize → Permissions → **Add** `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Still failing? Add a Privacy Policy URL or generate a token once in Graph API Explorer. You do **not** need to Publish or pass App Review for your own Page. |
 | "the app is configured as a desktop app" (during code exchange) | In **App Settings → Advanced**, turn **"Native or desktop app?"** to **No** and Save (Step 6). A desktop app can't use an App Secret, which the script needs for the long-lived token. |
 | "URL Blocked" / "redirect_uri isn't allowed" | In **Development** mode localhost is allowed automatically, so this is rare. If it happens (or the app is in Live mode), add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
 | Browser login never returns / times out | Make sure the app is in **Development** mode. If it's Live, add the redirect URI exactly as above. |

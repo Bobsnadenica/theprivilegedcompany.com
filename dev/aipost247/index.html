@@ -264,40 +264,27 @@
     </ol>
   </div>
 
-  <h2><span class="num">7</span>Активирайте правата (поправка на „Invalid Scopes“)</h2>
-  <p class="sub">Двете права за страница трябва да се активират веднъж. <b>Не</b> е нужно публикуване или App Review за вашата страница.</p>
+  <h2><span class="num">7</span>Добавете правата за страницата</h2>
+  <p class="sub">Само толкова е нужно, за да публикува скриптът и да чете ангажираността.</p>
   <div class="card">
-    <div class="warn">
-      Виждате <b>„Invalid Scopes: pages_read_engagement, pages_manage_posts“</b> или
-      <b>„This content isn't available right now“</b>? Тези права още не са активни.
-      Активирайте ги така:
-    </div>
     <ol class="steps">
+      <li>Отворете избрания use case → <b>Customize</b> (или <b>Use cases</b> → вашия → <b>Permissions</b>).</li>
       <li>
-        <b>Добавете Privacy Policy URL.</b> <b>App Settings → Basic</b> → попълнете
-        <b>Privacy Policy URL</b> (линк към политика за поверителност — става и безплатна)
-        → <b>Save changes</b>. Това завършва изискване на use case-а.
-      </li>
-      <li>
-        Уверете се, че сте <b>admin</b> и на приложението, и на самата Facebook страница.
-      </li>
-      <li>
-        <b>Тествайте веднъж през Graph API Explorer</b> — това активира правата:
+        Уверете се, че тези права са <b>Added</b> (натиснете <b>Add</b>, ако още не са):
         <ul style="margin:6px 0 0; padding-left:20px">
-          <li>Отворете <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Graph API Explorer</a>.</li>
-          <li>Горе вдясно изберете вашето приложение (<b>Meta App</b>).</li>
-          <li>В <b>Permissions</b> добавете <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code>, <code class="inline">pages_manage_posts</code>.</li>
-          <li>Натиснете <b>Generate Access Token</b> → влезте и одобрете за вашата страница.</li>
-          <li>Ако токенът се генерира успешно, правата вече работят. (Тестовите данни понякога се появяват до 24 ч., но обикновено е веднага.)</li>
+          <li><code class="inline">pages_show_list</code></li>
+          <li><code class="inline">pages_read_engagement</code></li>
+          <li><code class="inline">pages_manage_posts</code></li>
         </ul>
       </li>
-      <li>Готово — правата са активни. Продължете към App ID и App Secret по-долу.</li>
+      <li>Това е всичко. В режим <b>Development</b> правата работят за <b>вашите</b> страници — без App Review и без публикуване.</li>
     </ol>
-    <div class="warn" style="background:#e8f8ef;border-color:#bce6cd">
-      <b>Трябва ли да публикувам приложението (Publish)?</b> За <b>собствената</b> ви
-      страница — <b>не</b>. Режим <em>Development</em> + Standard Access е достатъчен,
-      докато вие сте admin. Публикуване (Live) и App Review са нужни само ако
-      <b>други хора</b> ще ползват приложението ви.
+    <div class="warn">
+      <b>Все още виждате „Invalid Scopes“?</b> Уверете се, че сте <b>admin</b> на страницата,
+      после добавете <b>Privacy Policy URL</b> (App Settings → Basic → Save) и опитайте пак.
+      Ако и това не помогне, генерирайте веднъж токен с тези права в
+      <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener">Graph API Explorer</a>
+      (изберете приложението, добавете правата, <b>Generate Access Token</b>).
     </div>
   </div>
 
@@ -363,7 +350,7 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <table>
       <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
-        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Правата още не са активни. Добавете use case <b>„Manage everything on your Page“</b> (Стъпка 3) и ги <b>активирайте по Стъпка 8</b> (Privacy Policy URL + тест в Graph API Explorer). <b>Не</b> е нужно публикуване или App Review за вашата страница.</td></tr>
+        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Добавете правата (Стъпка 7): use case → Customize → Permissions → <b>Add</b> за <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code>, <code class="inline">pages_manage_posts</code>. Все още грешка? Добавете Privacy Policy URL или генерирайте токен веднъж в Graph API Explorer. <b>Не</b> е нужно публикуване или App Review за вашата страница.</td></tr>
         <tr><td>„the app is configured as a desktop app“ при размяна на кода</td><td>В <b>App Settings → Advanced</b> изключете <b>„Native or desktop app?“</b> (трябва да е <b>No</b>) и Save. Като desktop app Facebook не приема App Secret, а той е нужен за дълготрайния токен. (Стъпка 6)</td></tr>
         <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>В <b>Development</b> режим localhost се позволява автоматично, така че обикновено това не се случва. Ако се случи (или сте в Live режим), добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
         <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Уверете се, че приложението е в <b>Development</b> режим. Ако е в Live — добавете redirect URI точно както по-горе.</td></tr>
