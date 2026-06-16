@@ -1,0 +1,1 @@
+{ "version": "0.0.1", "configurations": [ { "name": "dash", "runtimeExecutable": "/Users/privileged/Projects/theprivilegedcompany/theprivilegedcompany.com/dev/aipost247/.venv/bin/python", "runtimeArgs": ["/tmp/aipost247_dashtest.py"], "port": 8730 } ] }
