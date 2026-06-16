@@ -169,6 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("generate", help="Generate one post and print it (does NOT publish).")
     sub.add_parser("status", help="Show configuration and recent posts.")
     sub.add_parser("login-gemini", help="Log in to Google for the Gemini CLI.")
+    sub.add_parser("train", help="Open the 'train your business' form (saved as a skill).")
 
     add_k = sub.add_parser("add-knowledge", help="Add a knowledge snippet to memory.")
     add_k.add_argument("text", help="The knowledge text.")
@@ -193,13 +194,16 @@ def main(argv=None) -> int:
 
     if command == "login-gemini":
         try:
-            gemini_client.login()
-            ok = gemini_client.is_authenticated(load_config().gemini_model)
-            print("Gemini login " + ("confirmed." if ok else "could not be confirmed."))
-            return 0 if ok else 1
+            return 0 if gemini_client.login(load_config().gemini_model) else 1
         except GeminiError as exc:
             log.error("%s", exc)
             return 1
+
+    if command == "train":
+        from . import business
+
+        business.run_training(MEMORY_DIR)
+        return 0
 
     config = load_config()
 

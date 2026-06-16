@@ -238,13 +238,9 @@ def run_setup_wizard(existing: Config) -> None:
             print("Making sure the Gemini CLI is installed ...")
             gemini_client.ensure_installed()
             if input("Log in to Google for Gemini now? (Y/n): ").strip().lower() != "n":
-                gemini_client.login()
-                print("Verifying Gemini access ...")
-                if gemini_client.is_authenticated(gemini_model):
-                    print("  OK — Gemini is logged in and working.")
-                else:
-                    print("  WARNING: could not confirm Gemini login.")
-                    print("           You can retry later with:  python run.py login-gemini")
+                if gemini_client.login(gemini_model):
+                    print("  OK — Gemini is ready.")
+                # login() prints its own next-step guidance if it can't confirm.
         except gemini_client.GeminiError as exc:
             print(f"  WARNING: {exc}")
             print("  You can finish this later with:  python run.py login-gemini")
@@ -342,17 +338,14 @@ def run_setup_wizard(existing: Config) -> None:
         input(f"Language for posts [{existing.post_language}]: ").strip() or existing.post_language
     )
 
-    # 4) Brand voice ------------------------------------------------------
-    print("\n--- 4/4  Brand voice / instructions (optional) --------------------")
-    print("Describe your Page: audience, tone, topics, what to promote, what to avoid.")
-    print("Saved to memory/instructions.md and used as context for every post.")
-    brand = input("Brand description (Enter to skip): ").strip()
-    if brand:
-        instructions_file = MEMORY_DIR / "instructions.md"
-        header = "" if instructions_file.exists() else "# Brand voice & instructions\n\n"
-        with instructions_file.open("a", encoding="utf-8") as handle:
-            handle.write(f"{header}{brand}\n")
-        print("  Saved to memory/instructions.md")
+    # 4) Train your business ----------------------------------------------
+    print("\n--- 4/4  Train your business (recommended) ------------------------")
+    print("Add a short profile of your business so the AI writes relevant posts.")
+    print("A form opens (with a text fallback) and is saved as a reusable skill.")
+    if input("Open the business profile form now? (Y/n): ").strip().lower() != "n":
+        from . import business
+
+        business.run_training(MEMORY_DIR)
 
     _write_env(values)
     print("\n" + "=" * 68)
@@ -364,5 +357,8 @@ def run_setup_wizard(existing: Config) -> None:
     print()
     print(" It keeps posting for as long as it stays running. To run it in the")
     print(" background (survives closing the terminal):")
-    print("   nohup ./run.sh run > aipost247.out 2>&1 &")
+    if os.name == "nt":
+        print('   start "AIPost247" run.bat run')
+    else:
+        print("   nohup ./run.sh run > aipost247.out 2>&1 &")
     print("=" * 68 + "\n")

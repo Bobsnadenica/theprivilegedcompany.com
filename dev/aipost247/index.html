@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>AIPost247 — Connect Your Facebook Page</title>
+<title>AIPost247 — Свържете вашата Facebook страница</title>
 <style>
   :root {
     --bg: #f4f6fb;
@@ -43,7 +43,7 @@
     opacity: 0.85; margin: 0 0 8px;
   }
   header.hero h1 { margin: 0 0 10px; font-size: 1.9rem; line-height: 1.2; }
-  header.hero p { margin: 0; opacity: 0.95; max-width: 60ch; }
+  header.hero p { margin: 0; opacity: 0.95; max-width: 62ch; }
 
   .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
   .badge {
@@ -118,9 +118,6 @@
   th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { background: #f7f9fd; color: var(--muted); font-weight: 600; }
 
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 620px) { .grid2 { grid-template-columns: 1fr; } }
-
   footer { color: var(--muted); font-size: 0.86rem; margin-top: 44px; text-align: center; }
   .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
 </style>
@@ -129,161 +126,162 @@
 <div class="wrap">
 
   <header class="hero">
-    <p class="eyebrow">AIPost247 · Setup Guide</p>
-    <h1>Connect your Facebook Page</h1>
-    <p>Do this one-time setup (about 3–5 minutes), and then <strong>everything runs
-       locally from the script</strong> — it logs you in, finds your Page, writes
-       posts with AI, and publishes them on your schedule.</p>
+    <p class="eyebrow">AIPost247 · Ръководство за настройка</p>
+    <h1>Свържете вашата Facebook страница</h1>
+    <p>Направете тази еднократна настройка (около 3–5 минути) и след това
+       <strong>всичко работи локално от скрипта</strong> — той ви вписва, намира
+       страницата ви, пише публикации с AI и ги публикува по вашия график.</p>
     <div class="badge-row">
-      <span class="badge">⏱ One-time · ~3–5 min</span>
-      <span class="badge">🔒 Credentials stay on your computer</span>
-      <span class="badge">✅ No App Review for your own Pages</span>
+      <span class="badge">⏱ Еднократно · ~3–5 мин</span>
+      <span class="badge">🔒 Данните остават на вашия компютър</span>
+      <span class="badge">✅ Без App Review за вашите страници</span>
     </div>
   </header>
 
   <div class="callout local">
-    <strong>Good to know.</strong> You manage your <b>own</b> Pages in the app's
-    default <em>Development</em> mode — <b>no App Review and no Business
-    Verification required.</b> 
+    <strong>Полезно е да знаете.</strong> Управлявате <b>собствените</b> си
+    страници в режим <em>Development</em> (по подразбиране) — <b>без App Review и
+    без Business Verification.</b> Те са нужни само ако искате други хора да
+    използват вашето приложение.
   </div>
 
   <div class="callout">
-    <strong>Why is this needed?</strong> Facebook only lets a program post to a
-    Page through a <b>registered Meta app</b> — the same reason tools like Buffer
-    or Hootsuite ask you to “connect Facebook”. You create that app once; after
-    that the script handles the rest on your machine.
+    <strong>Защо е необходимо?</strong> Facebook позволява на програма да
+    публикува на страница само чрез <b>регистрирано Meta приложение</b> — по
+    същата причина инструменти като Buffer или Hootsuite искат да „свържете
+    Facebook“. Създавате това приложение веднъж; след това скриптът прави всичко
+    останало на вашата машина.
   </div>
 
-  <!-- PART 1 -->
-  <h2><span class="num">1</span>Create a Facebook developer account</h2>
-  <p class="sub">Free and instant — uses your normal Facebook login.</p>
+  <!-- СТЪПКА 1 -->
+  <h2><span class="num">1</span>Създайте акаунт за разработчици във Facebook</h2>
+  <p class="sub">Безплатно и веднага — използва обикновения ви Facebook вход.</p>
   <div class="card">
     <ol class="steps">
-      <li>Open <a href="https://developers.facebook.com/" target="_blank" rel="noopener">developers.facebook.com</a>.</li>
-      <li>Click <b>Get Started</b> (top-right) and sign in with your Facebook account.</li>
-      <li>Accept the developer terms and confirm your email or phone if prompted.</li>
+      <li>Отворете <a href="https://developers.facebook.com/" target="_blank" rel="noopener">developers.facebook.com</a>.</li>
+      <li>Натиснете <b>Get Started</b> (горе вдясно) и влезте с вашия Facebook акаунт.</li>
+      <li>Приемете условията за разработчици и потвърдете имейл или телефон, ако бъдете подканени.</li>
     </ol>
   </div>
 
-  <h2><span class="num">2</span>Create an app</h2>
-  <p class="sub">A container that lets the script talk to your Page.</p>
+  <h2><span class="num">2</span>Създайте приложение</h2>
+  <p class="sub">Контейнер, който позволява на скрипта да комуникира с вашата страница.</p>
   <div class="card">
     <ol class="steps">
-      <li>Go to <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b>.</li>
-      <li>If asked what you want to build, choose <b>Other</b> → <b>Next</b>.</li>
-      <li>Select app type <b>Business</b> → <b>Next</b>.</li>
-      <li>Enter an <b>App name</b> (anything, e.g. <span class="pill">My Page Poster</span>) and your contact email → <b>Create app</b> (re-enter your password if asked).</li>
+      <li>Отидете на <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b>.</li>
+      <li>Ако ви попитат какво искате да създадете, изберете <b>Other</b> → <b>Next</b>.</li>
+      <li>Изберете тип на приложението <b>Business</b> → <b>Next</b>.</li>
+      <li>Въведете <b>App name</b> (каквото и да е, напр. <span class="pill">My Page Poster</span>) и имейл за контакт → <b>Create app</b> (въведете отново паролата си, ако бъдете подканени).</li>
     </ol>
   </div>
 
-  <h2><span class="num">3</span>Add Facebook Login &amp; the redirect URI</h2>
-  <p class="sub">This lets the browser hand the login safely back to the script.</p>
+  <h2><span class="num">3</span>Добавете Facebook Login и redirect URI</h2>
+  <p class="sub">Това позволява на браузъра безопасно да върне входа към скрипта.</p>
   <div class="card">
     <ol class="steps">
-      <li>On the app dashboard, open <b>Add products</b> (or <b>Use cases</b>) and add <b>Facebook Login for Business</b> (or <b>Facebook Login</b>) → <b>Set up</b>.</li>
-      <li>Open that product's <b>Settings</b>.</li>
+      <li>В таблото на приложението отворете <b>Add products</b> (или <b>Use cases</b>) и добавете <b>Facebook Login for Business</b> (или <b>Facebook Login</b>) → <b>Set up</b>.</li>
+      <li>Отворете <b>Settings</b> на този продукт.</li>
       <li>
-        In <b>Valid OAuth Redirect URIs</b>, paste this <b>exactly</b> and click <b>Save</b>:
+        В <b>Valid OAuth Redirect URIs</b> поставете точно това и натиснете <b>Save</b>:
         <div class="codeblock">
           <pre data-copy>http://localhost:8723/</pre>
-          <button class="copy">Copy</button>
+          <button class="copy">Копирай</button>
         </div>
-        <div class="warn">It must be <code class="inline">http</code> (not https),
-          port <code class="inline">8723</code>, <b>with the trailing slash</b>.
-          A wrong value causes a “URL Blocked” error during login.</div>
+        <div class="warn">Трябва да е <code class="inline">http</code> (не https),
+          порт <code class="inline">8723</code>, <b>с наклонена черта в края</b>.
+          Грешна стойност води до грешка „URL Blocked“ при вход.</div>
       </li>
     </ol>
   </div>
 
-  <h2><span class="num">4</span>Copy your App ID &amp; App Secret</h2>
-  <p class="sub">The two values the script asks for — entered once.</p>
+  <h2><span class="num">4</span>Копирайте App ID и App Secret</h2>
+  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
   <div class="card">
     <ol class="steps">
-      <li>In the left menu, open <b>App settings → Basic</b>.</li>
-      <li>Copy the <b>App ID</b> shown at the top.</li>
-      <li>Next to <b>App Secret</b>, click <b>Show</b> (re-enter your password) and copy it.</li>
+      <li>В лявото меню отворете <b>App settings → Basic</b>.</li>
+      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
+      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете отново паролата си) и копирайте.</li>
     </ol>
   </div>
 
-  <!-- PART 2 -->
-  <h2><span class="num">5</span>Run the script — fully local from here</h2>
-  <p class="sub">Paste the two values once, log in, pick your Page, set a schedule.</p>
+  <h2><span class="num">5</span>Стартирайте скрипта — оттук всичко е локално</h2>
+  <p class="sub">Поставяте двете стойности веднъж, влизате, избирате страница, задавате график.</p>
   <div class="card">
     <ol class="steps">
       <li>
-        In a terminal:
+        В терминал:
         <div class="codeblock">
           <pre data-copy>cd dev/aipost247
 ./run.sh setup        # Windows: run.bat setup</pre>
-          <button class="copy">Copy</button>
+          <button class="copy">Копирай</button>
         </div>
       </li>
-      <li><b>Content generator</b> → choose <b>Gemini</b> and log in with Google (no API key).</li>
-      <li><b>Facebook</b> → choose <b>[1] Connect with Facebook</b>, paste your <b>App ID</b> and <b>App Secret</b>. A browser opens → approve → <b>pick your Page</b> from the list. The script stores a long-lived Page token for you.</li>
-      <li><b>Schedule</b> → type <span class="pill">2</span> to publish every 2 hours.</li>
+      <li><b>Content generator</b> → изберете <b>Gemini</b> и влезте с <b>Google</b> (без API ключ).</li>
+      <li><b>Facebook</b> → изберете <b>[1] Connect with Facebook</b>, поставете вашите <b>App ID</b> и <b>App Secret</b>. Отваря се браузър → одобрете → <b>изберете вашата страница</b> от списъка. Скриптът запазва дълготраен Page token вместо вас.</li>
+      <li><b>Schedule</b> → въведете <span class="pill">2</span>, за да публикувате на всеки 2 часа.</li>
       <li>
-        Go live (and keep it running in the background):
+        Пуснете на живо (и оставете да работи на заден план):
         <div class="codeblock">
           <pre data-copy>./run.sh run
-# background (survives closing the terminal):
+# на заден план (продължава и след затваряне на терминала):
 nohup ./run.sh run > aipost247.out 2>&1 &</pre>
-          <button class="copy">Copy</button>
+          <button class="copy">Копирай</button>
         </div>
       </li>
     </ol>
-    <p style="color:var(--muted)">Tip: run <code class="inline">./run.sh generate</code> first to preview a post <b>without</b> publishing.</p>
+    <p style="color:var(--muted)">Съвет: първо изпълнете <code class="inline">./run.sh generate</code>, за да прегледате публикация <b>без</b> да я публикувате.</p>
   </div>
 
-  <h2 style="margin-top:46px">Permissions requested</h2>
+  <h2 style="margin-top:46px">Изисквани права</h2>
   <div class="card" style="padding:18px 26px">
     <p style="margin:0">
       <code class="inline">pages_show_list</code>,
       <code class="inline">pages_read_engagement</code>,
-      <code class="inline">pages_manage_posts</code> — only enough to list your Pages
-      and publish to the one you choose. In Development mode these work for your
-      <b>own</b> Pages with no review.
+      <code class="inline">pages_manage_posts</code> — само колкото да изброи
+      вашите страници и да публикува в избраната. В режим Development те работят
+      за <b>вашите</b> страници без преглед.
     </p>
   </div>
 
-  <h2>Troubleshooting</h2>
+  <h2>Отстраняване на проблеми</h2>
   <div class="card" style="padding:8px 18px">
     <table>
-      <thead><tr><th style="width:46%">What you see</th><th>Fix</th></tr></thead>
+      <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
-        <tr><td>“URL Blocked” / “redirect_uri isn't allowed”</td><td>The redirect URI isn't saved. Add <span class="pill">http://localhost:8723/</span> <b>exactly</b> in Facebook Login → Settings, then Save.</td></tr>
-        <tr><td>Browser login never returns / times out</td><td>Same cause — the redirect URI must match exactly.</td></tr>
-        <tr><td>Your Page isn't in the list</td><td>You must be an <b>admin</b> of the Page and grant the permissions during login.</td></tr>
-        <tr><td>“Invalid or expired token” later on</td><td>Re-run <code class="inline">./run.sh setup</code> and log in again.</td></tr>
-        <tr><td><code class="inline">Port 8723 already in use</code></td><td>Close whatever is using it and retry.</td></tr>
+        <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>Redirect URI не е запазен. Добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
+        <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Същата причина — redirect URI трябва да съвпада точно.</td></tr>
+        <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>
+        <tr><td>„Invalid or expired token“ по-късно</td><td>Изпълнете отново <code class="inline">./run.sh setup</code> и влезте пак.</td></tr>
+        <tr><td><code class="inline">Port 8723 already in use</code></td><td>Затворете това, което го използва, и опитайте отново.</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h2>Security</h2>
+  <h2>Сигурност</h2>
   <div class="callout local" style="margin-top:10px">
-    Your <strong>App Secret</strong> and <strong>Page token</strong> live only in
-    <code class="inline">dev/aipost247/.env</code> (permissions <b>600</b>,
-    gitignored). They are never committed, uploaded, or shared. Post text goes only
-    to Google (Gemini); tokens go only to Facebook. The whole app runs on your
-    machine — nothing is hosted by anyone else.
+    Вашите <strong>App Secret</strong> и <strong>Page token</strong> се пазят само
+    в <code class="inline">dev/aipost247/.env</code> (права <b>600</b>, в
+    .gitignore). Никога не се комитват, качват или споделят. Текстът на
+    публикациите отива само към Google (Gemini); токените — само към Facebook.
+    Цялото приложение работи на вашата машина — нищо не се хоства от друг.
   </div>
 
   <footer>
-    AIPost247 · This guide is also available as
-    <a href="FACEBOOK_SETUP.md">FACEBOOK_SETUP.md</a>. Need the commands? See the
-    project <a href="README.md">README</a>.
+    AIPost247 · Това ръководство е налично и като
+    <a href="FACEBOOK_SETUP.md">FACEBOOK_SETUP.md</a>. Нужни са ви командите? Вижте
+    <a href="README.md">README</a>.
   </footer>
 </div>
 
 <script>
-  // Copy-to-clipboard for code blocks.
+  // Копиране на кодовите блокове.
   document.querySelectorAll('.copy').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var pre = btn.parentElement.querySelector('pre[data-copy]');
       var text = pre ? pre.innerText : '';
       var done = function () {
         var old = btn.textContent;
-        btn.textContent = 'Copied';
+        btn.textContent = 'Копирано';
         btn.classList.add('done');
         setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1400);
       };

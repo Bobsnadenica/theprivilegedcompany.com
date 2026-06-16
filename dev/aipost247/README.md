@@ -105,6 +105,7 @@ python run.py post-now         # generate AND publish one post immediately
 python run.py run              # start the autonomous loop (default if no command)
 python run.py status           # show config (secrets masked) + recent posts
 python run.py login-gemini     # (re)log in to Google for the Gemini CLI
+python run.py train            # open the "train your business" form (a skill)
 
 python run.py add-instruction "Always mention free shipping over $50."
 python run.py add-knowledge "Fall blend ships Oct 1." --topic products

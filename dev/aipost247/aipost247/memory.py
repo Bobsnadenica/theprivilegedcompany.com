@@ -118,6 +118,15 @@ class MemoryStore:
         return [dict(row) for row in rows]
 
     # --- folder layer ----------------------------------------------------
+    def read_business_file(self) -> str:
+        path = self.memory_dir / "business.md"
+        if path.exists():
+            try:
+                return path.read_text(encoding="utf-8").strip()
+            except OSError as exc:
+                log.warning("Could not read %s: %s", path, exc)
+        return ""
+
     def read_instructions_file(self) -> str:
         path = self.memory_dir / "instructions.md"
         if path.exists():
@@ -151,6 +160,10 @@ class MemoryStore:
     def build_context(self, max_recent: int = 8, max_knowledge_chars: int = 4000) -> str:
         """Blend every memory layer into a single prompt for the generator."""
         parts: list[str] = []
+
+        business = self.read_business_file()
+        if business:
+            parts.append("## Business profile\n" + business)
 
         instructions_file = self.read_instructions_file()
         if instructions_file:
