@@ -171,10 +171,11 @@
   .lightbox img { max-width: 96%; max-height: 92vh; border-radius: 10px; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); }
 
   /* police tape — first-visit notice, click to tear down */
-  .police-tape { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center;
+  .police-tape { position: fixed; inset: 0; z-index: 200;
     background: rgba(8,12,20,.45); cursor: pointer; overflow: hidden; }
   .police-tape[hidden] { display: none; }
-  .tape-band { position: relative; width: 190vw; height: 78px; transform: rotate(-16deg);
+  .tape-band { position: absolute; left: 50%; top: 50%; width: 190vw; height: 78px;
+    transform: translate(-50%, -50%) rotate(-16deg);
     box-shadow: 0 14px 34px -10px rgba(0,0,0,.55); }
   .tape-piece { position: absolute; top: 0; height: 100%; width: 50.5%;
     background:
@@ -197,7 +198,7 @@
   .police-tape.torn .tape-piece-left { transform: rotate(78deg) translate(-6px, 46px); opacity: 0; }
   .police-tape.torn .tape-piece-right { transform: rotate(-78deg) translate(6px, 46px); opacity: 0; }
   .police-tape.torn .tape-label, .police-tape.torn .tape-hint { opacity: 0; }
-  @media (max-width: 560px) { .tape-band { height: 64px; } .tape-label { font-size: .8rem; gap: 16px; } }
+  @media (max-width: 560px) { .tape-band { height: 64px; } .tape-label { font-size: .72rem; gap: 10px; padding: 0 8px; } .tape-label .pl { display: none; } }
   @media (prefers-reduced-motion: reduce) { .tape-piece { transition: opacity .3s ease; } }
 </style>
 </head>
