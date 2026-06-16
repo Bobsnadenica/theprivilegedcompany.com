@@ -195,6 +195,40 @@ def _valid_time(value: str) -> bool:
     return 0 <= hh <= 23 and 0 <= mm <= 59
 
 
+# --- small console helpers for a cleaner wizard -------------------------
+def _rule(char: str = "─", width: int = 70) -> str:
+    return char * width
+
+
+def _section(step: int, total: int, title: str) -> None:
+    print("\n" + _rule("═"))
+    print(f"  Step {step} of {total}  ·  {title}")
+    print(_rule("═"))
+
+
+def _ask_yes_no(question: str, default: bool = True) -> bool:
+    suffix = "Y/n" if default else "y/N"
+    answer = input(f"{question} ({suffix}): ").strip().lower()
+    return default if not answer else answer in {"y", "yes"}
+
+
+def _choose(intro: str, options: list[tuple[str, str]], default: int = 1) -> int:
+    """Print a numbered menu and return the chosen 1-based index."""
+    print(intro)
+    for index, (label, desc) in enumerate(options, 1):
+        mark = "   ← recommended" if index == default else ""
+        print(f"    [{index}] {label}{mark}")
+        if desc:
+            print(f"         {desc}")
+    while True:
+        raw = input(f"  Your choice [1-{len(options)}, Enter = {default}]: ").strip()
+        if not raw:
+            return default
+        if raw.isdigit() and 1 <= int(raw) <= len(options):
+            return int(raw)
+        print("  Please type one of the numbers shown.")
+
+
 # --- interactive setup wizard -------------------------------------------
 def run_setup_wizard(existing: Config) -> None:
     """Interactive, idempotent configuration wizard. Writes .env + seeds memory."""
@@ -203,69 +237,86 @@ def run_setup_wizard(existing: Config) -> None:
     from .fb_oauth import login_and_select_page
 
     ensure_dirs()
-    print("\n" + "=" * 68)
-    print(" AIPost247 — setup wizard")
-    print("=" * 68)
+    print("\n" + _rule("═"))
+    print("  AIPost247  ·  Setup")
+    print(_rule("═"))
+    print(
+        "  Takes about 3–5 minutes. We'll set up 4 things:\n"
+        "    1) The AI that writes your posts\n"
+        "    2) Your Facebook Page (log in and pick it)\n"
+        "    3) How often to post\n"
+        "    4) A short profile of your business\n"
+        "  You can re-run this anytime by choosing 'setup'."
+    )
 
     values: dict[str, str] = {}
 
     # 1) AI provider ------------------------------------------------------
-    print("\n--- 1/4  AI content generator -------------------------------------")
-    choice = input(
-        "How should posts be written?\n"
-        "  [1] Gemini — log in with your Google account (no API key)  (recommended)\n"
-        "  [2] OpenAI — paste an API key\n"
-        "Choose 1 or 2 [1]: "
-    ).strip() or "1"
+    _section(1, 4, "Choose the AI that writes your posts")
+    choice = _choose(
+        "  Both options are free to start:",
+        [
+            ("Gemini — sign in with Google (no API key)",
+             "Needs Node.js installed. Best if you already have it."),
+            ("OpenAI — paste an API key",
+             "Works without Node.js. Key from platform.openai.com/api-keys."),
+        ],
+        default=1,
+    )
 
-    if choice == "2":
+    if choice == 2:
         values["AI_PROVIDER"] = "openai"
-        print("Get a key at https://platform.openai.com/api-keys")
-        values["OPENAI_API_KEY"] = _prompt_secret("OpenAI API key", existing.openai_api_key)
+        values["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API key", existing.openai_api_key)
         values["OPENAI_MODEL"] = (
-            input(f"OpenAI model [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
+            input(f"  OpenAI model [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
             or existing.openai_model or DEFAULT_OPENAI_MODEL
         )
-        _pip_install("openai")  # only needed for this provider
+        print("  Installing the OpenAI library ...")
+        _pip_install("openai")
+        print("  ✓ OpenAI is set as your writer.")
     else:
         values["AI_PROVIDER"] = "gemini"
         gemini_model = (
-            input(f"Gemini model [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
+            input(f"  Gemini model [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
             or existing.gemini_model or DEFAULT_GEMINI_MODEL
         )
         values["GEMINI_MODEL"] = gemini_model
         try:
-            print("Making sure the Gemini CLI is installed ...")
+            print("  Checking the Gemini CLI ...")
             gemini_client.ensure_installed()
-            if input("Log in to Google for Gemini now? (Y/n): ").strip().lower() != "n":
+            if _ask_yes_no("  Sign in to Google for Gemini now?", default=True):
                 if gemini_client.login(gemini_model):
-                    print("  OK — Gemini is ready.")
-                # login() prints its own next-step guidance if it can't confirm.
+                    print("  ✓ Gemini is signed in and ready.")
         except gemini_client.GeminiError as exc:
-            print(f"  WARNING: {exc}")
-            print("  You can finish this later with:  python run.py login-gemini")
+            print(f"  ! {exc}")
+            print("    Tip: install Node.js (nodejs.org), or re-run setup and pick OpenAI.")
+            print("    You can also finish later by choosing 'login-gemini'.")
 
     # 2) Facebook ---------------------------------------------------------
-    print("\n--- 2/4  Connect your Facebook Page -------------------------------")
+    _section(2, 4, "Connect your Facebook Page")
     print(
-        "Log in with Facebook and pick your Page — then it auto-posts on your\n"
-        "schedule for as long as AIPost247 keeps running.\n"
-        "(One-time: Facebook requires a free Meta app to post to a Page — same as\n"
-        " Buffer/Hootsuite. The wizard walks you through creating it.)"
+        "  You'll log in with Facebook and pick your Page. One-time: Facebook\n"
+        "  needs a free Meta app to post to a Page (same as Buffer / Hootsuite).\n"
+        "  Need a picture guide? Open  index.html  in this folder."
     )
     api_version = existing.graph_api_version or DEFAULT_GRAPH_VERSION
     values["GRAPH_API_VERSION"] = api_version
 
-    fb_choice = input(
-        "\n  [1] Connect with Facebook (guided)  (recommended)\n"
-        "  [2] Paste a Page ID + token manually\n"
-        "Choose 1 or 2 [1]: "
-    ).strip() or "1"
+    fb_choice = _choose(
+        "  How would you like to connect?",
+        [
+            ("Connect with Facebook (guided)",
+             "Opens your browser — log in, then choose your Page."),
+            ("Paste a Page ID + token manually",
+             "For advanced users who already have them."),
+        ],
+        default=1,
+    )
 
     page_id = existing.fb_page_id
     page_token = existing.fb_page_access_token
 
-    if fb_choice == "1":
+    if fb_choice == 1:
         app_id, app_secret = _prompt_meta_app(existing)
         if app_id and app_secret:
             values["FB_APP_ID"] = app_id
@@ -276,89 +327,102 @@ def run_setup_wizard(existing: Config) -> None:
                     page_id, page_token, page_name = login_and_select_page(
                         app_id, app_secret, api_version
                     )
-                    print(f"  OK — connected Page: {page_name} (id {page_id})")
+                    print(f"  ✓ Connected Page: {page_name} (id {page_id})")
                     connected = True
                 except FacebookError as exc:
-                    print(f"\n  Facebook login didn't complete:\n  {exc}\n")
-                    if input("  Try the login again? (Y/n): ").strip().lower() == "n":
+                    print(f"\n  ! Facebook login didn't complete:\n    {exc}\n")
+                    if not _ask_yes_no("  Try the login again?", default=True):
                         break
-            if not connected and input(
-                "  Paste a Page token manually instead? (y/N): "
-            ).strip().lower() == "y":
-                page_id = input(f"Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
-                page_token = _prompt_secret("Page Access Token", existing.fb_page_access_token)
+            if not connected and _ask_yes_no(
+                "  Paste a Page token manually instead?", default=False
+            ):
+                page_id = input(f"  Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
+                page_token = _prompt_secret("  Page Access Token", existing.fb_page_access_token)
         else:
-            print("  Skipped Facebook — you can finish later with `python run.py setup`.")
+            print("  Skipped Facebook — you can finish later by running setup again.")
     else:
-        page_id = input(f"Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
-        page_token = _prompt_secret("Long-lived Page Access Token", existing.fb_page_access_token)
+        page_id = input(f"  Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
+        page_token = _prompt_secret("  Long-lived Page Access Token", existing.fb_page_access_token)
 
     values["FB_PAGE_ID"] = page_id
     values["FB_PAGE_ACCESS_TOKEN"] = page_token
 
-    # Validate the Page token (best effort).
-    try:
-        name = FacebookClient(page_id, page_token, api_version=api_version).validate()
-        print(f"  Connected to Facebook Page: {name!r}")
-    except FacebookError as exc:
-        print(f"  WARNING: could not validate the Page token: {exc}")
-        if input("  Save anyway? (y/N): ").strip().lower() != "y":
-            print("Setup aborted — nothing saved.")
-            return
+    if page_token:
+        try:
+            name = FacebookClient(page_id, page_token, api_version=api_version).validate()
+            print(f"  ✓ Verified Facebook Page: {name!r}")
+        except FacebookError as exc:
+            print(f"  ! Could not verify the Page token: {exc}")
+            if not _ask_yes_no("  Save anyway?", default=False):
+                print("  Setup aborted — nothing saved.")
+                return
 
     # 3) Schedule ---------------------------------------------------------
-    print("\n--- 3/4  Posting schedule -----------------------------------------")
-    sched = input(
-        "  [1] Every N hours/minutes\n"
-        "  [2] Daily at specific times\n"
-        "Choose 1 or 2 [1]: "
-    ).strip() or "1"
-    if sched == "2":
+    _section(3, 4, "Choose how often to post")
+    sched = _choose(
+        "  When should it publish?",
+        [
+            ("Every few hours/minutes", "e.g. every 2 hours."),
+            ("Daily at specific times", "e.g. 09:00 and 18:00."),
+        ],
+        default=1,
+    )
+    if sched == 2:
         while True:
-            raw = input("Times (24h, comma-separated, e.g. 09:00,18:00): ").strip()
+            raw = input("  Times (24h, comma-separated, e.g. 09:00,18:00): ").strip()
             times = [t.strip() for t in raw.split(",") if t.strip()]
             if times and all(_valid_time(t) for t in times):
                 break
-            print("  Please use HH:MM 24-hour times, comma separated.")
+            print("    Please use HH:MM 24-hour times, comma separated.")
         values["SCHEDULE_MODE"] = "daily"
         values["SCHEDULE_TIMES"] = ",".join(times)
+        print(f"  ✓ Will post daily at {', '.join(times)}.")
     else:
-        raw = input(
-            "Post every how often? e.g. '6' = 6 hours, '90m' = 90 minutes [6]: "
-        ).strip().lower() or "6"
-        minutes = _as_int(raw[:-1], 360) if raw.endswith("m") else int(_as_float(raw, 6.0) * 60)
+        raw = input("  Post every how often?  e.g. 2 = every 2 hours, 90m = 90 minutes [2]: ").strip().lower() or "2"
+        minutes = _as_int(raw[:-1], 120) if raw.endswith("m") else int(_as_float(raw, 2.0) * 60)
+        minutes = max(1, minutes)
         values["SCHEDULE_MODE"] = "interval"
-        values["SCHEDULE_INTERVAL_MINUTES"] = str(max(1, minutes))
+        values["SCHEDULE_INTERVAL_MINUTES"] = str(minutes)
+        print(f"  ✓ Will post about every {minutes} minutes.")
 
-    run_now = input("Publish one post immediately when the loop starts? (Y/n): ").strip().lower()
-    values["RUN_ON_START"] = "false" if run_now == "n" else "true"
-    dry = input("Dry-run mode — generate but DO NOT publish? (y/N): ").strip().lower()
-    values["DRY_RUN"] = "true" if dry == "y" else "false"
+    values["RUN_ON_START"] = (
+        "true" if _ask_yes_no("  Publish one post right away when it starts?", default=True) else "false"
+    )
+    values["DRY_RUN"] = (
+        "true" if _ask_yes_no("  Dry-run mode (write posts but DON'T publish them)?", default=False) else "false"
+    )
     values["POST_LANGUAGE"] = (
-        input(f"Language for posts [{existing.post_language}]: ").strip() or existing.post_language
+        input(f"  Language for posts [{existing.post_language}]: ").strip() or existing.post_language
     )
 
     # 4) Train your business ----------------------------------------------
-    print("\n--- 4/4  Train your business (recommended) ------------------------")
-    print("Add a short profile of your business so the AI writes relevant posts.")
-    print("A form opens (with a text fallback) and is saved as a reusable skill.")
-    if input("Open the business profile form now? (Y/n): ").strip().lower() != "n":
+    _section(4, 4, "Tell the AI about your business")
+    print(
+        "  A short profile so posts sound like you — name, audience, tone, topics.\n"
+        "  A small window opens to fill in; it's saved and reused for every post.\n"
+        "  You can edit it anytime by choosing 'train'."
+    )
+    if _ask_yes_no("  Open the business profile form now?", default=True):
         from . import business
 
         business.run_training(MEMORY_DIR)
 
     _write_env(values)
-    print("\n" + "=" * 68)
-    print(" Configuration saved to .env (permissions 600).")
-    print(" Try a preview first:")
-    print("   python run.py generate    # write a post WITHOUT publishing")
-    print(" Then go live:")
-    print("   python run.py run         # auto-posts on your schedule")
+
+    # Closing -------------------------------------------------------------
+    runner = "run.bat" if os.name == "nt" else "./run.sh"
+    print("\n" + _rule("═"))
+    print("  ✓ Setup complete — your settings are saved.")
+    print(_rule("═"))
+    print("  What to do next:")
+    print(f"    1) Preview a post (won't publish):   {runner} generate")
+    print(f"    2) Publish one right now:            {runner} post-now")
+    print(f"    3) Go live (auto-post on schedule):  {runner} run")
     print()
-    print(" It keeps posting for as long as it stays running. To run it in the")
-    print(" background (survives closing the terminal):")
+    print("  It keeps posting while it's running. To keep it running in the")
+    print("  background:")
     if os.name == "nt":
-        print('   start "AIPost247" run.bat run')
+        print('    start "AIPost247" run.bat run')
     else:
-        print("   nohup ./run.sh run > aipost247.out 2>&1 &")
-    print("=" * 68 + "\n")
+        print("    nohup ./run.sh run > aipost247.out 2>&1 &")
+    print(_rule("═") + "\n")

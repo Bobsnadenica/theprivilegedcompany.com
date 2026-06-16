@@ -19,7 +19,17 @@ local memory (SQLite + memory/*.md)
 
 ## 1. Quick start
 
-### Easiest — one command
+### Download &amp; run (no Git needed)
+
+Download **[aipost247.zip](download/aipost247.zip)** (or from the
+[guide page](index.html)), unzip it, then:
+
+- **macOS / Linux:** open a terminal in the folder and run `./run.sh`
+- **Windows:** double-click `run.bat`
+
+The launcher sets everything up and starts the setup wizard.
+
+### Easiest — one command (from a Git checkout)
 
 ```bash
 cd dev/aipost247
