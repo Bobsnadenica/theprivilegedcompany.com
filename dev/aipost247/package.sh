@@ -35,6 +35,7 @@ rsync -a \
   --exclude='data/' \
   --exclude='logs/' \
   --exclude='download/' \
+  --exclude='planning/' \
   --exclude='__pycache__/' \
   --exclude='*.pyc' \
   --exclude='*.log' \
