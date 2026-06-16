@@ -486,11 +486,32 @@ _PAGE = r"""<!DOCTYPE html>
   .muted{color:var(--muted);}
   .hide{display:none;}
   .busy{opacity:.6;pointer-events:none;}
+  .help-btn{cursor:pointer;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.16);color:#fff;
+    font:inherit;font-weight:700;font-size:.82rem;padding:6px 13px;border-radius:999px;white-space:nowrap;}
+  .help-btn:hover{background:rgba(255,255,255,.3);}
+  /* guided tour */
+  .tour-dim{position:fixed;inset:0;z-index:90;background:transparent;}
+  .tour-spot{position:fixed;z-index:91;border-radius:12px;pointer-events:none;
+    box-shadow:0 0 0 3px var(--accent),0 0 0 9999px rgba(8,14,22,.6);
+    transition:all .3s cubic-bezier(.4,.1,.3,1);}
+  .tour-card{position:fixed;z-index:92;background:#fff;border-radius:14px;max-width:330px;width:calc(100vw - 32px);
+    box-shadow:0 24px 50px -16px rgba(0,0,0,.5);padding:16px 18px;transition:left .25s ease,top .25s ease;}
+  .tour-card h4{margin:0 0 6px;font-size:1.02rem;}
+  .tour-card p{margin:0 0 13px;color:var(--muted);font-size:.9rem;line-height:1.5;}
+  .tour-card .tnav{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .tour-card .step-n{color:var(--muted);font-size:.78rem;}
+  .tour-card button{cursor:pointer;border:none;border-radius:8px;font:inherit;font-weight:700;font-size:.85rem;padding:7px 13px;margin-left:6px;}
+  .tour-card .skip{background:transparent;color:var(--muted);padding:7px 6px;}
+  .tour-card .prev{background:#eef2f8;color:var(--ink);}
+  .tour-card .next{background:var(--accent);color:#fff;}
 </style></head>
 <body>
 <header>
   <div><h1>AIPost247 · Табло</h1><div class="sub">Конфигурирайте и наблюдавайте — без терминал.</div></div>
-  <div class="pillbar" id="pills"></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <div class="pillbar" id="pills"></div>
+    <button class="help-btn" id="help-btn" title="Покажи обиколката">? Обиколка</button>
+  </div>
 </header>
 <div class="wrap">
   <nav>
@@ -570,7 +591,23 @@ _PAGE = r"""<!DOCTYPE html>
           <select id="post_language">
             <option value="Bulgarian">Български</option>
             <option value="English">English</option>
-          </select></div>
+            <option value="German">Deutsch</option>
+            <option value="Spanish">Español</option>
+            <option value="French">Français</option>
+            <option value="Italian">Italiano</option>
+            <option value="Portuguese">Português</option>
+            <option value="Dutch">Nederlands</option>
+            <option value="Russian">Русский</option>
+            <option value="Ukrainian">Українська</option>
+            <option value="Turkish">Türkçe</option>
+            <option value="Greek">Ελληνικά</option>
+            <option value="Romanian">Română</option>
+            <option value="Serbian">Српски</option>
+            <option value="Polish">Polski</option>
+            <option value="Arabic">العربية</option>
+            <option value="__custom__">Друг (въведете) …</option>
+          </select>
+          <input id="post_language_custom" class="hide" style="margin-top:8px" placeholder="Език на английски, напр. Japanese"/></div>
         <div><label>Макс. дължина (символи)</label><input id="post_max_chars" type="number" min="50"/></div>
       </div>
       <div class="check"><input type="checkbox" id="run_on_start"/><label style="margin:0">Публикувай веднага при стартиране</label></div>
@@ -678,7 +715,7 @@ function loadConfig(){
     $("schedule_mode").value=c.schedule_mode;
     $("schedule_interval_minutes").value=c.schedule_interval_minutes;
     $("schedule_times").value=c.schedule_times;
-    $("post_language").value=c.post_language==="English"?"English":"Bulgarian";
+    setLang(c.post_language);
     $("post_max_chars").value=c.post_max_chars;
     $("run_on_start").checked=c.run_on_start; $("dry_run").checked=c.dry_run;
     $("fb-status").textContent=c.has_fb_token?("свързана страница: "+(c.fb_page_id||"")):"не е свързана";
@@ -687,15 +724,23 @@ function loadConfig(){
 }
 function toggleProvider(){var o=$("ai_provider").value==="openai";$("openai-box").classList.toggle("hide",!o);$("gemini-box").classList.toggle("hide",o);}
 function toggleSchedule(){var d=$("schedule_mode").value==="daily";$("times-box").classList.toggle("hide",!d);$("interval-box").classList.toggle("hide",d);}
+function toggleLang(){$("post_language_custom").classList.toggle("hide",$("post_language").value!=="__custom__");}
+function getLang(){return $("post_language").value==="__custom__"?($("post_language_custom").value.trim()||"English"):$("post_language").value;}
+function setLang(v){var sel=$("post_language");var opts=[].map.call(sel.options,function(o){return o.value;});
+  if(v&&v!=="__custom__"&&opts.indexOf(v)>=0){sel.value=v;}
+  else if(v){sel.value="__custom__";$("post_language_custom").value=v;}
+  else{sel.value="Bulgarian";}
+  toggleLang();}
 $("ai_provider").addEventListener("change",toggleProvider);
 $("schedule_mode").addEventListener("change",toggleSchedule);
+$("post_language").addEventListener("change",toggleLang);
 
 function saveConfig(){
   var b={ai_provider:$("ai_provider").value,gemini_model:$("gemini_model").value,
     openai_model:$("openai_model").value,openai_api_key:$("openai_api_key").value,
     schedule_mode:$("schedule_mode").value,
     schedule_interval_minutes:parseInt($("schedule_interval_minutes").value||"120",10),
-    schedule_times:$("schedule_times").value,post_language:$("post_language").value,
+    schedule_times:$("schedule_times").value,post_language:getLang(),
     post_max_chars:parseInt($("post_max_chars").value||"600",10),
     run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
   postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
