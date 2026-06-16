@@ -58,9 +58,7 @@ def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
         "     (Ще видите бележка: 'http://localhost redirects are automatically\n"
         "      allowed while in development mode'.) Само ако сте в Live режим\n"
         f"     добавете този Valid OAuth Redirect URI и Save:\n         {redirect}\n"
-        "  6. App Settings -> Advanced: 'Native or desktop app?' трябва да е No\n"
-        "     (изключено). Като desktop app Facebook отказва App Secret, който е\n"
-        "     нужен за дълготрайния токен.\n"
+        "  6. App Settings -> Advanced: отбележете го като desktop / native app.\n"
         "  7. App Settings -> Basic: копирайте App ID и App Secret.\n"
         "  8. Активирайте правата (ако видите 'Invalid Scopes'):\n"
         "     - App Settings -> Basic: добавете Privacy Policy URL и Save;\n"
@@ -213,13 +211,6 @@ def login_and_select_page(
     payload = response.json() if response.content else {}
     if "access_token" not in payload:
         message = payload.get("error", {}).get("message", response.text[:200])
-        if "desktop app" in message.lower():
-            raise FacebookError(
-                "Приложението е настроено като desktop app, затова Facebook отказва\n"
-                "    App Secret. Поправка: App Settings -> Advanced -> 'Native or desktop\n"
-                "    app?' -> изберете No (изключено) и Save, после опитайте пак.\n"
-                f"    (Facebook: {message})"
-            )
         raise FacebookError(f"Could not exchange login code for a token: {message}")
     user_token = payload["access_token"]
 

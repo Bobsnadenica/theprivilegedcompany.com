@@ -56,14 +56,8 @@ local `.env` file and are never uploaded or shared.
    http://localhost:8723/
    ```
 
-### Step 6 · App type — do NOT mark it as desktop/native
-In **App Settings → Advanced**, find **"Native or desktop app?"** and make sure it
-is **No** (off), then save.
-
-> If this is set to **Yes**, Facebook assumes the app has **no** App Secret and
-> rejects login with *"the app is configured as a desktop app"*. The script needs
-> the App Secret to obtain a **long-lived** Page token (for 24/7 posting), so this
-> must stay **No**.
+### Step 6 · App type
+In **App Settings → Advanced**, mark the app as a **desktop / native app** and save.
 
 ### Step 7 · Copy your App ID and App Secret
 1. Open **App Settings → Basic**.
@@ -140,7 +134,6 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 | What you see | Fix |
 | --- | --- |
 | "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | The permissions aren't active yet. Add the **"Manage everything on your Page"** use case (Step 3) **and activate them per Step 8** (Privacy Policy URL + a one-time Graph API Explorer test). You do **not** need to Publish or pass App Review for your own Page. |
-| "the app is configured as a desktop app" (during code exchange) | In **App Settings → Advanced**, turn **"Native or desktop app?"** to **No** and Save (Step 6). A desktop app can't use an App Secret, which the script needs for the long-lived token. |
 | "URL Blocked" / "redirect_uri isn't allowed" | In **Development** mode localhost is allowed automatically, so this is rare. If it happens (or the app is in Live mode), add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
 | Browser login never returns / times out | Make sure the app is in **Development** mode. If it's Live, add the redirect URI exactly as above. |
 | Your Page is not in the list | You must be an **admin** of the Page, and grant the requested permissions during login. |

@@ -250,17 +250,11 @@
   </div>
 
   <h2><span class="num">6</span>App Settings → Advanced</h2>
-  <p class="sub">Важно: НЕ маркирайте приложението като desktop / native.</p>
+  <p class="sub">Задайте типа на приложението.</p>
   <div class="card">
     <ol class="steps">
       <li>Отворете <b>App Settings → Advanced</b>.</li>
-      <li>Намерете <b>„Native or desktop app?“</b> и се уверете, че е <b>No</b> (изключено).</li>
-      <li>
-        <div class="warn">Ако е <b>Yes</b>, Facebook очаква приложението да <b>няма</b> App Secret
-          и отказва входа с грешка <i>„the app is configured as a desktop app“</i>. Скриптът се
-          нуждае от App Secret, за да вземе <b>дълготраен</b> токен за страницата — затова трябва
-          да е <b>No</b>.</div>
-      </li>
+      <li>В секцията за типа на приложението укажете дали е <b>desktop / native app</b> и запазете.</li>
     </ol>
   </div>
 
@@ -363,7 +357,6 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
       <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
         <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Правата още не са активни. Добавете use case <b>„Manage everything on your Page“</b> (Стъпка 3) и ги <b>активирайте по Стъпка 8</b> (Privacy Policy URL + тест в Graph API Explorer). <b>Не</b> е нужно публикуване или App Review за вашата страница.</td></tr>
-        <tr><td>„the app is configured as a desktop app“ при размяна на кода</td><td>В <b>App Settings → Advanced</b> изключете <b>„Native or desktop app?“</b> (трябва да е <b>No</b>) и Save. Като desktop app Facebook не приема App Secret, а той е нужен за дълготрайния токен. (Стъпка 6)</td></tr>
         <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>В <b>Development</b> режим localhost се позволява автоматично, така че обикновено това не се случва. Ако се случи (или сте в Live режим), добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
         <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Уверете се, че приложението е в <b>Development</b> режим. Ако е в Live — добавете redirect URI точно както по-горе.</td></tr>
         <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>
