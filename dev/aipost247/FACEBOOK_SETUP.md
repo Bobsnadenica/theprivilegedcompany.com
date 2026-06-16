@@ -20,18 +20,29 @@ local `.env` file and are never uploaded or shared.
 2. Click **Get Started** (top-right) and sign in with your normal Facebook account.
 3. Accept the developer terms and confirm your email or phone number if prompted.
 
-### Step 2 · Create an app
+### Step 2 · Create an app (App details)
 1. Go to **https://developers.facebook.com/apps/** and click **Create app**.
-2. If asked *what you want your app to do*, choose **Other** → **Next**.
-3. Select app type **Business** → **Next**.
-4. Enter an **App name** (anything, e.g. `My Page Poster`) and your contact email,
-   then click **Create app** (re-enter your Facebook password if prompted).
+2. On **App details**, enter an **App name** (e.g. `My Page Poster`) and your
+   contact email → **Next**.
 
-### Step 3 · Add Facebook Login and the redirect URI
-1. On the app dashboard, open **Add products** (or **Use cases**) and add
-   **Facebook Login for Business** (or **Facebook Login**) → **Set up**.
-2. Open that product's **Settings**.
-3. In **Valid OAuth Redirect URIs**, paste the following **exactly**, then **Save**:
+### Step 3 · Use cases → "Manage everything on your Page"  (fixes "Invalid Scopes")
+1. On the **Use cases** step, filter by **All** (there is no longer an "Other" option).
+2. Choose **"Manage everything on your Page"** → **Next**.
+
+   > This use case enables `pages_manage_posts` + `pages_read_engagement`. Without
+   > it, Facebook rejects those scopes at login ("Invalid Scopes"). You do **not**
+   > need a long-lived token first — the script creates that after you log in.
+
+### Step 4 · Business portfolio, then create the app
+1. When asked *"Want to connect a new business portfolio?"*, click
+   **Create a business portfolio** (or connect an existing one). Give it a name
+   and email. (Free, ~1 min; it helps the Page permissions work.)
+2. Review **Requirements** and **Overview**, then click **Create app**.
+
+### Step 5 · Add the redirect URI
+1. Open the **Facebook Login** settings (your use case → **Customize**, or
+   **Facebook Login → Settings**).
+2. In **Valid OAuth Redirect URIs**, paste this **exactly**, then **Save**:
 
    ```
    http://localhost:8723/
@@ -39,8 +50,11 @@ local `.env` file and are never uploaded or shared.
 
    It must be `http` (not `https`), port `8723`, **with the trailing slash**.
 
-### Step 4 · Copy your App ID and App Secret
-1. In the left menu, open **App settings → Basic**.
+### Step 6 · App type
+In **App Settings → Advanced**, mark the app as a **desktop / native app** and save.
+
+### Step 7 · Copy your App ID and App Secret
+1. Open **App Settings → Basic**.
 2. Copy the **App ID** shown at the top.
 3. Next to **App Secret**, click **Show** (re-enter your password) and copy it.
 
@@ -80,15 +94,21 @@ Tip: run `./run.sh generate` first to preview a post **without** publishing.
 
 ---
 
-## Permissions requested
-`pages_show_list`, `pages_read_engagement`, `pages_manage_posts` — only enough to
-list your Pages and publish posts to the one you choose. In Development mode these
-work for **your own** Pages with no review.
+## Permissions used
+The **"Manage everything on your Page"** use case grants `pages_show_list`,
+`pages_read_engagement`, and `pages_manage_posts` — enough to list your Pages,
+**read engagement**, and **publish**. In Development mode these work for your
+**own** Pages with no review.
+
+Reading engagement also powers **self-improvement**: the script records which
+posts performed best in `memory/skill.md`, and the AI uses that as context to
+write better future posts. Refresh it manually anytime with `./run.sh learn`.
 
 ## Troubleshooting
 
 | What you see | Fix |
 | --- | --- |
+| "Invalid Scopes: pages_read_engagement, pages_manage_posts" / "This content isn't available right now" | Your app is missing those permissions. On the **Use cases** step add **"Manage everything on your Page"** (Step 3), then retry. You do **not** need a long-lived token first. |
 | "URL Blocked" / "redirect_uri isn't allowed" | The redirect URI isn't saved. Add `http://localhost:8723/` **exactly** under Facebook Login → Settings, then Save. |
 | Browser login never returns / times out | Same as above — the redirect URI must match exactly. |
 | Your Page is not in the list | You must be an **admin** of the Page, and grant the requested permissions during login. |

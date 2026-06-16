@@ -122,6 +122,24 @@ class FacebookClient:
             raise FacebookError(f"Post did not return an id. Response: {data}")
         return post_id
 
+    def get_post_engagement(self, post_id: str) -> dict:
+        """Return {likes, comments, shares} for a published post.
+
+        Uses pages_read_engagement. Powers the self-improvement loop.
+        """
+        data = self._request(
+            "GET",
+            f"{self.base}/{post_id}",
+            params={
+                "fields": "likes.summary(true),comments.summary(true),shares",
+                "access_token": self.page_token,
+            },
+        )
+        likes = (data.get("likes") or {}).get("summary", {}).get("total_count", 0)
+        comments = (data.get("comments") or {}).get("summary", {}).get("total_count", 0)
+        shares = (data.get("shares") or {}).get("count", 0)
+        return {"likes": int(likes or 0), "comments": int(comments or 0), "shares": int(shares or 0)}
+
     # --- token helpers (used by the setup wizard) ------------------------
     @staticmethod
     def exchange_long_lived_user_token(

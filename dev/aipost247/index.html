@@ -172,8 +172,8 @@
   <div class="callout">
     <strong>Защо е необходимо?</strong> Facebook позволява на програма да
     публикува на страница само чрез <b>регистрирано Meta приложение</b> — по
-    същата причина инструменти като Buffer или Hootsuite искат да „свържете
-    Facebook“. Създавате това приложение веднъж; след това скриптът прави всичко
+    същата причина инструменти като autopost24 искат да "свържете Facebook" и да
+    си платите. Създавате това приложение веднъж; след това скриптът прави всичко
     останало на вашата машина.
   </div>
 
@@ -188,23 +188,46 @@
     </ol>
   </div>
 
-  <h2><span class="num">2</span>Създайте приложение</h2>
-  <p class="sub">Контейнер, който позволява на скрипта да комуникира с вашата страница.</p>
+  <h2><span class="num">2</span>Създайте приложение (App details)</h2>
+  <p class="sub">Първата стъпка иска само име.</p>
   <div class="card">
     <ol class="steps">
       <li>Отидете на <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b>.</li>
-      <li>Ако ви попитат какво искате да създадете, изберете <b>Other</b> → <b>Next</b>.</li>
-      <li>Изберете тип на приложението <b>Business</b> → <b>Next</b>.</li>
-      <li>Въведете <b>App name</b> (каквото и да е, напр. <span class="pill">My Page Poster</span>) и имейл за контакт → <b>Create app</b> (въведете отново паролата си, ако бъдете подканени).</li>
+      <li>На <b>App details</b> въведете <b>App name</b> (напр. <span class="pill">My Page Poster</span>) и имейл за контакт → <b>Next</b>.</li>
     </ol>
   </div>
 
-  <h2><span class="num">3</span>Добавете Facebook Login и redirect URI</h2>
-  <p class="sub">Това позволява на браузъра безопасно да върне входа към скрипта.</p>
+  <h2><span class="num">3</span>Use cases → „Manage everything on your Page“</h2>
+  <p class="sub">Това дава правата за публикуване и за четене на ангажираността.</p>
   <div class="card">
     <ol class="steps">
-      <li>В таблото на приложението отворете <b>Add products</b> (или <b>Use cases</b>) и добавете <b>Facebook Login for Business</b> (или <b>Facebook Login</b>) → <b>Set up</b>.</li>
-      <li>Отворете <b>Settings</b> на този продукт.</li>
+      <li>На стъпка <b>Use cases</b> вляво филтрирайте по <b>All</b> (вече <b>няма</b> опция „Other“).</li>
+      <li>Изберете <b>„Manage everything on your Page“</b> → <b>Next</b>.</li>
+    </ol>
+    <div class="warn" style="background:#e8f8ef;border-color:#bce6cd">
+      <b>Това решава грешката „Invalid Scopes“.</b> Този use case включва
+      <code class="inline">pages_manage_posts</code> и
+      <code class="inline">pages_read_engagement</code>. Без него Facebook отказва
+      тези права при вход.
+    </div>
+  </div>
+
+  <h2><span class="num">4</span>Бизнес портфолио (Business)</h2>
+  <p class="sub">На въпроса „Want to connect a new business portfolio?“.</p>
+  <div class="card">
+    <ol class="steps">
+      <li>Натиснете <b>Create a business portfolio</b> (или свържете съществуващо, ако имате такова).</li>
+      <li>Въведете име (вашето или на бизнеса) и имейл → продължете.</li>
+      <li>На <b>Requirements</b> и <b>Overview</b> прегледайте и натиснете <b>Create app</b> (въведете паролата си).</li>
+    </ol>
+    <div class="warn">Безплатно е и отнема минута. Помага правата за страницата да работят правилно.</div>
+  </div>
+
+  <h2><span class="num">5</span>Добавете redirect URI</h2>
+  <p class="sub">Позволява на браузъра безопасно да върне входа към скрипта.</p>
+  <div class="card">
+    <ol class="steps">
+      <li>В лявото меню отворете настройките на <b>Facebook Login</b> (под избрания use case → <b>Customize</b>, или <b>Facebook Login → Settings</b>).</li>
       <li>
         В <b>Valid OAuth Redirect URIs</b> поставете точно това и натиснете <b>Save</b>:
         <div class="codeblock">
@@ -218,17 +241,26 @@
     </ol>
   </div>
 
-  <h2><span class="num">4</span>Копирайте App ID и App Secret</h2>
-  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
+  <h2><span class="num">6</span>App Settings → Advanced</h2>
+  <p class="sub">Задайте типа на приложението.</p>
   <div class="card">
     <ol class="steps">
-      <li>В лявото меню отворете <b>App settings → Basic</b>.</li>
-      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
-      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете отново паролата си) и копирайте.</li>
+      <li>Отворете <b>App Settings → Advanced</b>.</li>
+      <li>В секцията за типа на приложението укажете дали е <b>desktop / native app</b> и запазете.</li>
     </ol>
   </div>
 
-  <h2><span class="num">5</span>Стартирайте скрипта — оттук всичко е локално</h2>
+  <h2><span class="num">7</span>Копирайте App ID и App Secret</h2>
+  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
+  <div class="card">
+    <ol class="steps">
+      <li>Отворете <b>App Settings → Basic</b>.</li>
+      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
+      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете паролата си) и копирайте.</li>
+    </ol>
+  </div>
+
+  <h2><span class="num">8</span>Стартирайте скрипта — оттук всичко е локално</h2>
   <p class="sub">Поставяте двете стойности веднъж, влизате, избирате страница, задавате график.</p>
   <div class="card">
     <ol class="steps">
@@ -256,14 +288,21 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <p style="color:var(--muted)">Съвет: първо изпълнете <code class="inline">./run.sh generate</code>, за да прегледате публикация <b>без</b> да я публикувате.</p>
   </div>
 
-  <h2 style="margin-top:46px">Изисквани права</h2>
+  <h2 style="margin-top:46px">Какви права използваме</h2>
   <div class="card" style="padding:18px 26px">
-    <p style="margin:0">
+    <p style="margin:0 0 8px">
+      Use case-ът <b>„Manage everything on your Page“</b> включва
       <code class="inline">pages_show_list</code>,
-      <code class="inline">pages_read_engagement</code>,
-      <code class="inline">pages_manage_posts</code> — само колкото да изброи
-      вашите страници и да публикува в избраната. В режим Development те работят
+      <code class="inline">pages_read_engagement</code> и
+      <code class="inline">pages_manage_posts</code> — да изброи страниците ви, да
+      <b>чете ангажираността</b> и да <b>публикува</b>. В режим Development работят
       за <b>вашите</b> страници без преглед.
+    </p>
+    <p style="margin:0; color:var(--muted)">
+      Четенето на ангажираността включва и <b>самоусъвършенстване</b>: скриптът
+      записва кои публикации са се представили най-добре в
+      <code class="inline">memory/skill.md</code>, а AI ползва това като контекст,
+      за да пише по-добри бъдещи публикации.
     </p>
   </div>
 
@@ -272,6 +311,7 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     <table>
       <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
       <tbody>
+        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Приложението още няма тези права. На стъпка <b>Use cases</b> добавете <b>„Manage everything on your Page“</b> (Стъпка 3) и опитайте пак. <b>Не</b> е нужен дълготраен токен предварително — скриптът го прави след входа.</td></tr>
         <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>Redirect URI не е запазен. Добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
         <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Същата причина — redirect URI трябва да съвпада точно.</td></tr>
         <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>

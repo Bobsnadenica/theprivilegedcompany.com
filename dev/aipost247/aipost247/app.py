@@ -60,6 +60,11 @@ def generate_text(config: Config, context: str) -> str:
 
 # --- core cycle ----------------------------------------------------------
 def run_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_run: bool) -> bool:
+    # Self-improvement: refresh engagement + skill.md so context reflects what works.
+    from . import engagement
+
+    engagement.learn(memory, fb, MEMORY_DIR)
+
     log.info("Building context from local memory ...")
     context = memory.build_context()
 
@@ -170,6 +175,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="Show configuration and recent posts.")
     sub.add_parser("login-gemini", help="Log in to Google for the Gemini CLI.")
     sub.add_parser("train", help="Open the 'train your business' form (saved as a skill).")
+    sub.add_parser("learn", help="Read post engagement and refresh skill.md (what works).")
 
     add_k = sub.add_parser("add-knowledge", help="Add a knowledge snippet to memory.")
     add_k.add_argument("text", help="The knowledge text.")
@@ -236,6 +242,16 @@ def main(argv=None) -> int:
             api_version=config.graph_api_version,
         )
 
+        if command == "learn":
+            from . import engagement
+
+            updated = engagement.sync(memory, fb)
+            path = engagement.write_skill_md(memory, MEMORY_DIR)
+            log.info(
+                "Read engagement for %d post(s); skill.md %s.",
+                updated, "updated" if path else "not written yet (no engagement)",
+            )
+            return 0
         if command == "generate":
             return 0 if safe_cycle(config, memory, fb, dry_run=True) else 1
         if command == "post-now":

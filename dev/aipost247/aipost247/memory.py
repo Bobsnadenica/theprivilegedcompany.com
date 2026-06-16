@@ -24,12 +24,16 @@ log = get_logger("memory")
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS posts (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at  TEXT    NOT NULL,
-    content     TEXT    NOT NULL,
-    fb_post_id  TEXT,
-    status      TEXT    NOT NULL DEFAULT 'published',
-    model       TEXT
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at             TEXT    NOT NULL,
+    content                TEXT    NOT NULL,
+    fb_post_id             TEXT,
+    status                 TEXT    NOT NULL DEFAULT 'published',
+    model                  TEXT,
+    likes                  INTEGER DEFAULT 0,
+    comments               INTEGER DEFAULT 0,
+    shares                 INTEGER DEFAULT 0,
+    engagement_updated_at  TEXT
 );
 CREATE TABLE IF NOT EXISTS instructions (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +62,20 @@ class MemoryStore:
         self._conn.row_factory = sqlite3.Row
         with self._lock:
             self._conn.executescript(_SCHEMA)
+            self._migrate()
             self._conn.commit()
+
+    def _migrate(self) -> None:
+        """Add engagement columns to older databases that predate them."""
+        existing = {row["name"] for row in self._conn.execute("PRAGMA table_info(posts)")}
+        for column, ddl in (
+            ("likes", "INTEGER DEFAULT 0"),
+            ("comments", "INTEGER DEFAULT 0"),
+            ("shares", "INTEGER DEFAULT 0"),
+            ("engagement_updated_at", "TEXT"),
+        ):
+            if column not in existing:
+                self._conn.execute(f"ALTER TABLE posts ADD COLUMN {column} {ddl}")
 
     @staticmethod
     def _now() -> str:
@@ -103,6 +120,37 @@ class MemoryStore:
         with self._lock:
             return self._conn.execute("SELECT COUNT(*) AS c FROM posts").fetchone()["c"]
 
+    # --- engagement / self-improvement ----------------------------------
+    def published_with_fb_ids(self, limit: int = 25) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, fb_post_id, content FROM posts "
+                "WHERE status = 'published' AND fb_post_id IS NOT NULL "
+                "ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def update_post_engagement(self, fb_post_id: str, likes: int, comments: int, shares: int) -> None:
+        with self._lock:
+            self._conn.execute(
+                "UPDATE posts SET likes = ?, comments = ?, shares = ?, engagement_updated_at = ? "
+                "WHERE fb_post_id = ?",
+                (likes, comments, shares, self._now(), fb_post_id),
+            )
+            self._conn.commit()
+
+    def top_posts_by_engagement(self, limit: int = 5) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT content, likes, comments, shares, "
+                "(likes + 2 * comments + 3 * shares) AS score "
+                "FROM posts WHERE status = 'published' "
+                "ORDER BY score DESC, id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
     def get_instructions(self, limit: int = 50) -> list[str]:
         with self._lock:
             rows = self._conn.execute(
@@ -120,6 +168,16 @@ class MemoryStore:
     # --- folder layer ----------------------------------------------------
     def read_business_file(self) -> str:
         path = self.memory_dir / "business.md"
+        if path.exists():
+            try:
+                return path.read_text(encoding="utf-8").strip()
+            except OSError as exc:
+                log.warning("Could not read %s: %s", path, exc)
+        return ""
+
+    def read_skill_file(self) -> str:
+        """The auto-learned 'what works' file (written from engagement)."""
+        path = self.memory_dir / "skill.md"
         if path.exists():
             try:
                 return path.read_text(encoding="utf-8").strip()
@@ -164,6 +222,10 @@ class MemoryStore:
         business = self.read_business_file()
         if business:
             parts.append("## Business profile\n" + business)
+
+        skill = self.read_skill_file()
+        if skill:
+            parts.append("## What works on this Page (learned from engagement)\n" + skill)
 
         instructions_file = self.read_instructions_file()
         if instructions_file:
