@@ -248,18 +248,21 @@ def _setup_ai_provider(existing: Config) -> dict:
     if choice == 2:
         out["AI_PROVIDER"] = "openai"
         out["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API ключ", existing.openai_api_key)
+        default_openai = existing.openai_model or DEFAULT_OPENAI_MODEL
         out["OPENAI_MODEL"] = (
-            input(f"  OpenAI модел [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
-            or existing.openai_model or DEFAULT_OPENAI_MODEL
+            input(f"  OpenAI модел — натиснете Enter за стандартния [{default_openai}]: ").strip()
+            or default_openai
         )
         print("  Инсталиране на OpenAI библиотеката ...")
         _pip_install("openai")
         print("  ✓ OpenAI е избран за писане на публикациите.")
     else:
         out["AI_PROVIDER"] = "gemini"
+        default_gemini = existing.gemini_model or DEFAULT_GEMINI_MODEL
+        print("  (Стандартният модел е препоръчителен — просто натиснете Enter.)")
         gemini_model = (
-            input(f"  Gemini модел [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
-            or existing.gemini_model or DEFAULT_GEMINI_MODEL
+            input(f"  Gemini модел — натиснете Enter за стандартния [{default_gemini}]: ").strip()
+            or default_gemini
         )
         out["GEMINI_MODEL"] = gemini_model
         try:
@@ -472,8 +475,8 @@ def run_setup_wizard(existing: Config) -> None:
     _section(step, total, "Разкажете на AI за бизнеса си")
     print(
         "  Кратък профил, за да звучат публикациите като вас — име, аудитория, тон, теми.\n"
-        "  Отваря се малък прозорец за попълване; запазва се и се ползва за всяка публикация.\n"
-        "  Може да го редактирате по всяко време с командата 'train'."
+        "  Отваря се форма за попълване (в браузъра или като прозорец); запазва се и\n"
+        "  се ползва за всяка публикация. Може да я редактирате по всяко време с 'train'."
     )
     if _ask_yes_no("  Да отворя формата за бизнес профил сега?", default=True):
         from . import business

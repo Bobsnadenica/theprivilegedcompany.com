@@ -1,12 +1,22 @@
 """'Train your business' — capture a business profile used to prompt the AI.
 
-Opens a small desktop popup (tkinter) to enter your business details, then saves
-them as a skill at ``memory/business.md``. That file is blended into the prompt
-by ``MemoryStore.build_context()`` every time a post is generated. If no desktop
-GUI is available, it falls back to a terminal questionnaire.
+Opens a form to enter your business details, then saves them as a skill at
+``memory/business.md``. That file is blended into the prompt by
+``MemoryStore.build_context()`` every time a post is generated.
+
+The form is shown, in order of preference:
+  1. a native desktop window (tkinter), when available;
+  2. a professional form in your web browser (works everywhere — no extra
+     dependencies, since everyone has a browser);
+  3. a plain terminal questionnaire, as a last resort.
 """
 from __future__ import annotations
 
+import html as _html
+import http.server
+import time
+import urllib.parse
+import webbrowser
 from pathlib import Path
 
 from .logging_setup import get_logger
@@ -158,6 +168,147 @@ def _collect_via_gui(prefill: dict) -> dict | None:
     return result["data"]
 
 
+_BROWSER_PORTS = (8724, 8725, 8726, 8731)
+
+
+def _render_form_html(prefill: dict) -> str:
+    """A self-contained, professional form page (Facebook-blue, on-brand)."""
+    rows = []
+    for key, label, multiline in FIELDS:
+        hint = _HINTS.get(key, "")
+        value = _html.escape(prefill.get(key, "") or "")
+        hint_html = f'<p class="hint">{_html.escape(hint)}</p>' if hint else ""
+        if multiline:
+            field = f'<textarea name="{key}" rows="3">{value}</textarea>'
+        else:
+            field = f'<input type="text" name="{key}" value="{value}" />'
+        rows.append(
+            f'<div class="field"><label>{_html.escape(label)}</label>{hint_html}{field}</div>'
+        )
+    fields_html = "\n".join(rows)
+    return f"""<!DOCTYPE html>
+<html lang="bg"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AIPost247 — Профил на бизнеса</title>
+<style>
+  :root {{ --accent:#1877f2; --accent-ink:#0b5fd0; --ink:#16202c; --muted:#5b6b7e;
+           --line:#e2e8f2; --bg:#f4f6fb; --card:#fff; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; background:var(--bg); color:var(--ink);
+          font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }}
+  .wrap {{ max-width:680px; margin:0 auto; padding:28px 18px 60px; }}
+  .head {{ background:linear-gradient(135deg,#1877f2,#0b5fd0); color:#fff;
+           border-radius:14px; padding:22px 24px; box-shadow:0 16px 38px -22px rgba(24,119,242,.7); }}
+  .head h1 {{ margin:0 0 6px; font-size:1.4rem; }}
+  .head p {{ margin:0; opacity:.95; font-size:.94rem; }}
+  form {{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+          padding:22px 24px; margin-top:18px; box-shadow:0 12px 30px -22px rgba(16,32,44,.45); }}
+  .field {{ margin-bottom:16px; }}
+  label {{ display:block; font-weight:700; margin-bottom:3px; }}
+  .hint {{ margin:0 0 6px; color:var(--muted); font-size:.84rem; }}
+  input, textarea {{ width:100%; padding:10px 12px; border:1px solid var(--line);
+           border-radius:9px; font:inherit; color:var(--ink); background:#fff; resize:vertical; }}
+  input:focus, textarea:focus {{ outline:none; border-color:var(--accent);
+           box-shadow:0 0 0 3px rgba(24,119,242,.15); }}
+  .actions {{ display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }}
+  button {{ font:inherit; font-weight:700; border:none; border-radius:10px;
+            padding:12px 22px; cursor:pointer; }}
+  .save {{ background:var(--accent); color:#fff; }}
+  .save:hover {{ background:var(--accent-ink); }}
+  .skip {{ background:#e6ebf4; color:var(--ink); }}
+</style></head>
+<body><div class="wrap">
+  <div class="head">
+    <h1>Разкажете на AI за бизнеса си</h1>
+    <p>Ползва се като контекст при всяка публикация. Всички полета са по избор.</p>
+  </div>
+  <form method="POST" action="/">
+    {fields_html}
+    <div class="actions">
+      <button type="submit" name="__action" value="skip" class="skip">Прескочи</button>
+      <button type="submit" name="__action" value="save" class="save">Запази профила</button>
+    </div>
+  </form>
+</div></body></html>"""
+
+
+def _done_html(saved: bool) -> str:
+    msg = ("Профилът е запазен! Върнете се в терминала — може да затворите този раздел."
+           if saved else "Прескочено. Може да затворите този раздел.")
+    return ("<!DOCTYPE html><html lang='bg'><head><meta charset='UTF-8'></head>"
+            "<body style='font-family:sans-serif;text-align:center;margin-top:16%'>"
+            f"<h2 style='color:#1877f2'>AIPost247</h2><p>{msg}</p></body></html>")
+
+
+def _collect_via_browser(prefill: dict, timeout: int = 600) -> dict | None:
+    """Serve a one-page form on localhost, open it, and capture the submission."""
+    state: dict = {"data": None, "done": False, "saved": False}
+    page = _render_form_html(prefill)
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _send(self, body: str):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(body.encode("utf-8"))
+
+        def do_GET(self):  # noqa: N802
+            self._send(page)
+
+        def do_POST(self):  # noqa: N802
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            raw = self.rfile.read(length).decode("utf-8") if length else ""
+            params = urllib.parse.parse_qs(raw, keep_blank_values=True)
+            saved = params.get("__action", ["save"])[0] != "skip"
+            if saved:
+                state["data"] = {
+                    key: (params.get(key, [""])[0] or "").strip()
+                    for key, _label, _multiline in FIELDS
+                }
+            state["saved"] = saved
+            state["done"] = True
+            self._send(_done_html(saved))
+
+        def log_message(self, *_args):  # silence default logging
+            return
+
+    server = None
+    for port in _BROWSER_PORTS:
+        try:
+            server = http.server.HTTPServer(("localhost", port), Handler)
+            break
+        except OSError:
+            continue
+    if server is None:
+        raise GuiUnavailable("no free local port for the form")
+
+    server.timeout = 1
+    url = f"http://localhost:{server.server_port}/"
+    opened = False
+    try:
+        opened = webbrowser.open(url)
+    except Exception:  # noqa: BLE001
+        opened = False
+    if not opened:
+        server.server_close()
+        raise GuiUnavailable("no web browser available")
+
+    print(f"  Отворих формата в браузъра: {url}")
+    print("  Попълнете я там и натиснете „Запази профила“. (Ако не се отвори,")
+    print(f"  поставете адреса в браузъра ръчно: {url})")
+    deadline = time.time() + timeout
+    try:
+        while not state["done"] and time.time() < deadline:
+            server.handle_request()
+    finally:
+        server.server_close()
+
+    if not state["done"]:
+        print("  Времето за формата изтече — нищо не е променено.")
+        return None
+    return state["data"]
+
+
 def _collect_via_terminal(prefill: dict) -> dict:
     print("\n  Разкажете на AI за бизнеса си (Enter за да прескочите поле):")
     data = {}
@@ -191,12 +342,18 @@ def save_profile(memory_dir, data: dict) -> Path:
 
 
 def run_training(memory_dir, prefill: dict | None = None) -> bool:
-    """Show the popup (or terminal fallback) and save the business profile."""
+    """Show the form (native window → browser → terminal) and save the profile."""
     prefill = prefill or {}
-    try:
-        data = _collect_via_gui(prefill)
-    except GuiUnavailable:
-        print("  (Няма наличен прозорец — използваме бърза текстова форма.)")
+
+    data = None
+    for collector in (_collect_via_gui, _collect_via_browser):
+        try:
+            data = collector(prefill)
+            break
+        except GuiUnavailable:
+            continue
+    else:
+        print("  (Няма наличен прозорец или браузър — използваме текстова форма.)")
         data = _collect_via_terminal(prefill)
 
     if data is None:

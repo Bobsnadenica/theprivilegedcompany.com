@@ -137,7 +137,7 @@ class MemoryStore:
             self._conn.commit()
         return removed
 
-    def clear_learned_files(self, names=("business.md", "skill.md")) -> list[str]:
+    def clear_learned_files(self, names=("business.md", "skill.md", "steering.md")) -> list[str]:
         """Delete the named auto-generated memory files. Returns names removed."""
         removed: list[str] = []
         for name in names:
@@ -215,6 +215,23 @@ class MemoryStore:
                 log.warning("Could not read %s: %s", path, exc)
         return ""
 
+    def read_steering_file(self) -> str:
+        """The self-correcting style guide built from the owner's per-post feedback."""
+        path = self.memory_dir / "steering.md"
+        if path.exists():
+            try:
+                return path.read_text(encoding="utf-8").strip()
+            except OSError as exc:
+                log.warning("Could not read %s: %s", path, exc)
+        return ""
+
+    def write_steering_file(self, text: str) -> Path:
+        """Persist the consolidated style guide (single source — no accumulation)."""
+        path = self.memory_dir / "steering.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text((text or "").strip() + "\n", encoding="utf-8")
+        return path
+
     def read_instructions_file(self) -> str:
         path = self.memory_dir / "instructions.md"
         if path.exists():
@@ -256,6 +273,14 @@ class MemoryStore:
         skill = self.read_skill_file()
         if skill:
             parts.append("## What works on this Page (learned from engagement)\n" + skill)
+
+        steering = self.read_steering_file()
+        if steering:
+            parts.append(
+                "## Style rules from the owner (AUTHORITATIVE — always follow these; "
+                "they already reflect the owner's latest feedback and override anything "
+                "older that conflicts)\n" + steering
+            )
 
         instructions_file = self.read_instructions_file()
         if instructions_file:

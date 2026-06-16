@@ -44,6 +44,24 @@ def _clean(text: str, max_chars: int) -> str:
     return text
 
 
+def complete(config: Config, prompt: str, max_tokens: int = 400) -> str:
+    """A plain text completion (no post-writing system prompt). Used for steering."""
+    if not config.openai_api_key:
+        raise OpenAIAuthError("OPENAI_API_KEY is not set.")
+    try:
+        from openai import OpenAI
+    except ImportError as exc:
+        raise OpenAIError("The 'openai' package is not installed.") from exc
+    client = OpenAI(api_key=config.openai_api_key)
+    response = client.chat.completions.create(
+        model=config.openai_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
+        max_tokens=max_tokens,
+    )
+    return (response.choices[0].message.content or "").strip()
+
+
 def generate_post(config: Config, context: str, retries: int = 3) -> str:
     """Generate a single Facebook post from the memory-built ``context``."""
     if not config.openai_api_key:

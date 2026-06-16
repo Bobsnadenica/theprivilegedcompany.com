@@ -6,6 +6,7 @@ the Graph API -> record in memory -> repeat on a schedule.
 from __future__ import annotations
 
 import argparse
+import sys
 
 from . import __version__, gemini_client
 from .config import (
@@ -148,7 +149,7 @@ def cmd_clear_memory(memory: MemoryStore) -> int:
     print("  Паметта е това, което AI ползва като контекст: история на")
     print("  публикациите, наученото от ангажираността и бизнес профилът.")
     print("  Какво да изтрия?")
-    print("    [1] Всичко (история, знания, инструкции, business.md, skill.md)")
+    print("    [1] Всичко (история, знания, инструкции, business.md, skill.md, steering.md)")
     print("    [2] Само историята на публикациите")
     print("    [3] Само наученото от ангажираността (skill.md)")
     print("    [4] Отказ")
@@ -190,6 +191,81 @@ def cmd_clear_memory(memory: MemoryStore) -> int:
 
     print("  Невалиден избор — нищо не е променено.")
     return 0
+
+
+def _ai_text(config: Config, prompt: str) -> str:
+    """Raw text completion via the configured provider (used for steering)."""
+    if config.ai_provider == "openai":
+        from .openai_client import complete
+
+        return complete(config, prompt)
+    return gemini_client.generate(prompt, model=config.gemini_model)
+
+
+_STEERING_PROMPT = (
+    "You maintain a SHORT style guide for one Facebook Page's posts, as a concise "
+    "bullet list of concrete, actionable rules.\n\n"
+    "CURRENT STYLE GUIDE:\n{current}\n\n"
+    'NEW FEEDBACK from the Page owner about the latest post:\n"{feedback}"\n\n'
+    "Rewrite the style guide so it incorporates the new feedback:\n"
+    "- If the new feedback CONTRADICTS an existing rule, REPLACE the old rule "
+    "(newest wins). Never keep both sides of a contradiction.\n"
+    "- Merge related points, remove redundancy, keep at most 8 short bullets.\n"
+    "- Each bullet is one concrete instruction.\n"
+    "- Write the rules in {language}.\n"
+    '- Output ONLY the bullet list (each line starting with "- "). No preamble.'
+)
+
+
+def _consolidate_steering(config: Config, memory: MemoryStore, feedback: str) -> bool:
+    """Merge feedback into ONE non-contradictory style guide (self-correcting; no drift).
+
+    Returns True if the AI consolidated it; False if it fell back to a simple merge.
+    """
+    current = memory.read_steering_file() or "(empty)"
+    prompt = _STEERING_PROMPT.format(
+        current=current, feedback=feedback, language=config.post_language
+    )
+    try:
+        updated = _ai_text(config, prompt).strip()
+        lines = [ln for ln in updated.splitlines() if ln.strip().startswith(("-", "•", "*"))]
+        guide = "\n".join(lines).strip()
+        if not guide:
+            raise ValueError("empty consolidation result")
+        memory.write_steering_file("# Style rules (auto-updated from your feedback)\n\n" + guide)
+        return True
+    except Exception as exc:  # noqa: BLE001 - fall back to a bounded, newest-wins merge
+        log.warning("Steering consolidation via AI failed (%s); using simple merge.", exc)
+        existing = memory.read_steering_file()
+        bullets = [ln for ln in existing.splitlines() if ln.strip().startswith("-")]
+        new_bullet = f"- {feedback.strip()}"
+        merged = [new_bullet] + [b for b in bullets if b.strip().lower() != new_bullet.lower()]
+        memory.write_steering_file(
+            "# Style rules (newest first; newer overrides older)\n\n" + "\n".join(merged[:8])
+        )
+        return False
+
+
+def _prompt_post_feedback(config: Config, memory: MemoryStore) -> None:
+    """After a post, let the user steer the next one. Interactive sessions only."""
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        return
+    print("\n  ----------------------------------------------------------------")
+    print("  Насочете следващите публикации (по избор):")
+    print("    • Какво харесахте, или какво да променим — напр. „по-кратко“,")
+    print("      „повече емоджи“, „по-малко продажбено“, „добави подкана за действие“.")
+    print("    • Натиснете Enter, за да пропуснете.")
+    try:
+        feedback = input("  Вашата обратна връзка: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return
+    if not feedback:
+        print("  Пропуснато.")
+        return
+    print("  Обновявам стила на писане (съгласувам с предишните указания) ...")
+    _consolidate_steering(config, memory, feedback)
+    print("  ✓ Готово — стилът е обновен без противоречия и важи за следващите публикации.")
 
 
 def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
@@ -326,9 +402,15 @@ def main(argv=None) -> int:
             )
             return 0
         if command == "generate":
-            return 0 if safe_cycle(config, memory, fb, dry_run=True) else 1
+            ok = safe_cycle(config, memory, fb, dry_run=True)
+            if ok:
+                _prompt_post_feedback(config, memory)
+            return 0 if ok else 1
         if command == "post-now":
-            return 0 if safe_cycle(config, memory, fb, dry_run=False) else 1
+            ok = safe_cycle(config, memory, fb, dry_run=False)
+            if ok:
+                _prompt_post_feedback(config, memory)
+            return 0 if ok else 1
         if command == "run":
             return run_loop(config, memory, fb)
 

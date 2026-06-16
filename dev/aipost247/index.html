@@ -138,10 +138,46 @@
 
   footer { color: var(--muted); font-size: 0.86rem; margin-top: 44px; text-align: center; }
   .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 14px 16px; margin: 14px 0; }
+
+  /* top bar: back link + screenshots button */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .back-link { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
+  .back-link:hover { color: var(--accent-ink); }
+  .shots-btn { cursor: pointer; border: 1px solid var(--accent); background: #fff; color: var(--accent);
+    font: inherit; font-weight: 700; font-size: 0.9rem; padding: 8px 15px; border-radius: 999px; transition: background .15s, color .15s; }
+  .shots-btn:hover { background: var(--accent); color: #fff; }
+
+  /* screenshots modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(10,20,30,.55); display: flex;
+    align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal-overlay[hidden] { display: none; }
+  .modal { background: var(--card); border-radius: 16px; max-width: 900px; width: 100%; max-height: 88vh;
+    display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid var(--line); }
+  .modal-head h3 { margin: 0; font-size: 1.08rem; }
+  .modal-close { cursor: pointer; border: none; background: #eef2f8; color: var(--ink); width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; }
+  .modal-close:hover { background: #e0e6f0; }
+  .modal-body { padding: 18px 20px; overflow: auto; }
+  .shots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fafcff; cursor: zoom-in; text-align: left; padding: 0; }
+  .shot img { width: 100%; height: 160px; object-fit: cover; display: block; }
+  .shot .cap { padding: 8px 10px; font-size: 0.85rem; color: var(--muted); }
+  .shots-empty { color: var(--muted); text-align: center; padding: 30px 10px; }
+
+  /* lightbox (enlarge a single screenshot) */
+  .lightbox { position: fixed; inset: 0; background: rgba(8,14,22,.9); display: flex;
+    align-items: center; justify-content: center; padding: 24px; z-index: 60; cursor: zoom-out; }
+  .lightbox[hidden] { display: none; }
+  .lightbox img { max-width: 96%; max-height: 92vh; border-radius: 10px; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <div class="topbar">
+    <a class="back-link" href="https://www.theprivilegedcompany.com/">← The Privileged Company</a>
+    <button type="button" class="shots-btn" id="open-shots">📷 Снимки, за по-лесно</button>
+  </div>
 
   <header class="hero">
     <p class="eyebrow">AIPost247 · Ръководство за настройка</p>
@@ -163,8 +199,18 @@
     </div>
     <div class="dl-cta">
       <a class="dl-btn" href="download/aipost247.zip" download>⬇ Изтегли .zip</a>
-      <div class="dl-ver" id="dl-ver">Версия 1.1.0 · обновена 2026-06-16</div>
+      <div class="dl-ver" id="dl-ver">Версия 1.1.0 · обновена 2026-06-17</div>
     </div>
+  </div>
+
+  <div class="callout">
+    <strong>🧠 Обучавайте AI с всяка публикация.</strong> След като генерирате или
+    публикувате (<code class="inline">generate</code> / <code class="inline">post-now</code>)
+    можете да напишете какво харесвате или какво да се промени — напр. „по-кратко“,
+    „повече емоджи“, „по-малко продажбено“. AI <b>сам съгласува</b> указанията ви в
+    единен стил (по-новата обратна връзка отменя по-старата при противоречие), така
+    че моделът се подобрява без да „блуждае“. Освен това четенето на ангажираността
+    автоматично записва кои публикации работят най-добре.
   </div>
 
   <div class="callout local">
@@ -295,11 +341,11 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
       <thead><tr><th style="width:34%">Команда</th><th>Какво прави</th></tr></thead>
       <tbody>
         <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка (AI, Facebook, график, бизнес профил).</td></tr>
-        <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува.</td></tr>
-        <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага.</td></tr>
+        <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува. После може да дадете обратна връзка, за да насочите следващата.</td></tr>
+        <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага. После може да напишете какво да променим за следващата.</td></tr>
         <tr><td><code class="inline">./run.sh run</code></td><td>Стартира автоматичния режим по график (по подразбиране).</td></tr>
         <tr><td><code class="inline">./run.sh status</code></td><td>Показва настройките (скрити тайни) и последните публикации.</td></tr>
-        <tr><td><code class="inline">./run.sh train</code></td><td>Отваря формата „Профил на бизнеса“.</td></tr>
+        <tr><td><code class="inline">./run.sh train</code></td><td>Отваря формата „Профил на бизнеса“ (в браузъра или като прозорец).</td></tr>
         <tr><td><code class="inline">./run.sh learn</code></td><td>Чете ангажираността и обновява <code class="inline">skill.md</code> (какво работи).</td></tr>
         <tr><td><code class="inline">./run.sh clear-memory</code></td><td>Изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</td></tr>
         <tr><td><code class="inline">./run.sh login-gemini</code></td><td>(Повторен) вход в Google за Gemini.</td></tr>
@@ -357,6 +403,19 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
   </footer>
 </div>
 
+<div class="modal-overlay" id="shots-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Снимки за настройката">
+    <div class="modal-head">
+      <h3>📷 Снимки за по-лесна настройка</h3>
+      <button type="button" class="modal-close" id="close-shots" aria-label="Затвори">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="shots-grid" id="shots-grid"><p class="shots-empty">Зареждане…</p></div>
+    </div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox" hidden><img id="lightbox-img" alt="Снимка" /></div>
+
 <script>
   // Копиране на кодовите блокове.
   document.querySelectorAll('.copy').forEach(function (btn) {
@@ -382,6 +441,63 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
     try { document.execCommand('copy'); done(); } catch (e) {}
     document.body.removeChild(ta);
   }
+
+  // „Снимки, за по-лесно“ — галерия от /assets/aipost247/ (чете images.json).
+  (function () {
+    var ASSETS = '/assets/aipost247/';
+    var modal = document.getElementById('shots-modal');
+    var grid = document.getElementById('shots-grid');
+    var lightbox = document.getElementById('lightbox');
+    var lightImg = document.getElementById('lightbox-img');
+    var loaded = false;
+
+    function openLightbox(src, alt) {
+      lightImg.src = src; lightImg.alt = alt || 'Снимка';
+      lightbox.hidden = false;
+    }
+    function renderEmpty() {
+      grid.innerHTML = '<p class="shots-empty">Все още няма качени снимки. ' +
+        'Добавете изображения в <code>/assets/aipost247/</code> и ги впишете в ' +
+        '<code>images.json</code>.</p>';
+    }
+    function render(items) {
+      if (!items || !items.length) { renderEmpty(); return; }
+      grid.innerHTML = '';
+      items.forEach(function (it) {
+        var name = typeof it === 'string' ? it : (it.src || '');
+        if (!name) return;
+        var cap = (typeof it === 'object' && it.caption) ? it.caption : '';
+        var src = /^https?:|^\//.test(name) ? name : ASSETS + name;
+        var card = document.createElement('button');
+        card.type = 'button'; card.className = 'shot';
+        var img = document.createElement('img');
+        img.loading = 'lazy'; img.src = src; img.alt = cap || name;
+        card.appendChild(img);
+        if (cap) { var c = document.createElement('div'); c.className = 'cap'; c.textContent = cap; card.appendChild(c); }
+        card.addEventListener('click', function () { openLightbox(src, cap || name); });
+        grid.appendChild(card);
+      });
+    }
+    function load() {
+      if (loaded) return; loaded = true;
+      fetch(ASSETS + 'images.json', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('no manifest'); return r.json(); })
+        .then(function (data) { render(Array.isArray(data) ? data : (data.images || [])); })
+        .catch(function () { renderEmpty(); });
+    }
+    function openModal() { modal.hidden = false; load(); }
+    function closeModal() { modal.hidden = true; }
+
+    document.getElementById('open-shots').addEventListener('click', openModal);
+    document.getElementById('close-shots').addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+    lightbox.addEventListener('click', function () { lightbox.hidden = true; lightImg.src = ''; });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!lightbox.hidden) { lightbox.hidden = true; lightImg.src = ''; }
+      else if (!modal.hidden) closeModal();
+    });
+  })();
 </script>
 </body>
 </html>

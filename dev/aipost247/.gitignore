@@ -18,3 +18,7 @@ env/
 
 # OS noise
 .DS_Store
+
+# Build output: keep download/aipost247.zip, but never commit an EXTRACTED copy
+# of it (created by unzipping in place to test). The zip is the only artifact.
+/download/aipost247/
