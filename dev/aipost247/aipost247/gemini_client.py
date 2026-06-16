@@ -163,21 +163,21 @@ def login(model: str = DEFAULT_MODEL) -> bool:
     path = ensure_installed()
 
     if is_authenticated(model, timeout=30):
-        print("  Gemini is already logged in.")
+        print("  Gemini вече е влязъл.")
         return True
 
     _select_oauth_auth_type()
     print(
-        "  Logging in to Google for Gemini ...\n"
-        "  A browser window will open — complete the login there. This will\n"
-        "  continue automatically (the Gemini chat will NOT open)."
+        "  Влизане в Google за Gemini ...\n"
+        "  Ще се отвори браузър — завършете входа там. Това ще продължи\n"
+        "  автоматично (Gemini чатът НЯМА да се отвори)."
     )
     try:
         # One-shot request: on first use this triggers the Google OAuth browser
         # flow and then exits. Terminal is inherited so any prompts are visible.
         subprocess.run([path, "-m", model, "-p", "Reply with: OK"], timeout=300)
     except subprocess.TimeoutExpired:
-        print("  Login timed out.")
+        print("  Времето за вход изтече.")
     except OSError as exc:
         log.warning("Could not start the Gemini login: %s", exc)
 
@@ -185,9 +185,9 @@ def login(model: str = DEFAULT_MODEL) -> bool:
         return True
 
     print(
-        "  Could not confirm the Gemini login automatically.\n"
-        "  Finish it manually: run `gemini` once, choose 'Login with Google',\n"
-        "  complete the browser login, then type /quit. Re-check with:\n"
-        "      python run.py login-gemini"
+        "  Входът в Gemini не може да се потвърди автоматично.\n"
+        "  Завършете го ръчно: стартирайте `gemini` веднъж, изберете\n"
+        "  'Login with Google', завършете входа в браузъра, после /quit.\n"
+        "  После проверете пак с командата 'login-gemini'."
     )
     return False

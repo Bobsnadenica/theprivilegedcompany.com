@@ -41,31 +41,35 @@ def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
     redirect = f"http://localhost:{port}/"
     print(
         "\n  ------------------------------------------------------------------\n"
-        "  Create your Meta app — one time, about 3-5 minutes\n"
-        "  (Facebook only lets apps post to a Page through a registered app —\n"
-        "   the same reason tools like autopost24 charge to 'connect Facebook'.)\n"
+        "  Създайте Meta приложение — еднократно, около 3-5 минути\n"
+        "  (Facebook позволява публикуване на страница само през регистрирано\n"
+        "   приложение — затова autopost24 искат пари да 'свържете Facebook'.)\n"
         "  ------------------------------------------------------------------\n"
-        "  1. A browser opens to Meta for Developers. Log in with Facebook.\n"
-        "  2. 'Create app' -> App details: enter an App name + email -> Next.\n"
-        "  3. Use cases: filter by 'All' and choose\n"
+        "  1. Отваря се Meta for Developers. Влезте с Facebook.\n"
+        "  2. 'Create app' -> App details: въведете App name + имейл -> Next.\n"
+        "  3. Use cases: филтрирайте по 'All' и изберете\n"
         "     'Manage everything on your Page' -> Next.\n"
-        "     (This enables pages_manage_posts + pages_read_engagement and\n"
-        "      fixes the 'Invalid Scopes' error.)\n"
-        "  4. Business: click 'Create a business portfolio' (or connect one),\n"
-        "     then finish -> Create app.\n"
-        "  5. Facebook Login settings (use case -> Customize, or\n"
-        "     'Facebook Login -> Settings'): add this EXACT Valid OAuth Redirect\n"
-        f"     URI and Save:\n         {redirect}\n"
-        "  6. App Settings -> Advanced: mark it as a desktop / native app.\n"
-        "  7. App Settings -> Basic: copy your App ID and App Secret.\n"
+        "     (Това включва pages_manage_posts + pages_read_engagement и\n"
+        "      поправя грешката 'Invalid Scopes'.)\n"
+        "  4. Business: натиснете 'Create a business portfolio' (или свържете\n"
+        "     съществуващо), после довършете -> Create app.\n"
+        "  5. Настройки на Facebook Login (use case -> Customize, или\n"
+        "     'Facebook Login -> Settings'): добавете ТОЧНО този Valid OAuth\n"
+        f"     Redirect URI и Save:\n         {redirect}\n"
+        "  6. App Settings -> Advanced: отбележете го като desktop / native app.\n"
+        "  7. App Settings -> Basic: копирайте App ID и App Secret.\n"
+        "  8. Активирайте правата (ако видите 'Invalid Scopes'):\n"
+        "     - App Settings -> Basic: добавете Privacy Policy URL и Save;\n"
+        "     - тествайте веднъж в Graph API Explorer: изберете приложението,\n"
+        "       добавете правата, 'Generate Access Token'. (Без App Review.)\n"
         "  ------------------------------------------------------------------\n"
-        "  Prefer a visual guide? Open dev/aipost247/index.html in your browser.\n"
+        "  Предпочитате ръководство с картинки? Отворете index.html.\n"
     )
     try:
         webbrowser.open(APP_DASHBOARD_URL)
     except Exception:  # noqa: BLE001
-        print("  (Open this URL yourself: " + APP_DASHBOARD_URL + ")")
-    input("  Press Enter once you have your App ID and App Secret ... ")
+        print("  (Отворете този адрес сами: " + APP_DASHBOARD_URL + ")")
+    input("  Натиснете Enter, щом имате App ID и App Secret ... ")
 
 
 class _CallbackHandler(http.server.BaseHTTPRequestHandler):
@@ -126,16 +130,16 @@ def _wait_for_code(port: int, state: str, redirect_uri: str, timeout: int = 300)
         raise FacebookError(f"Facebook login: {_CallbackHandler.error}")
     if not _CallbackHandler.code:
         raise FacebookError(
-            "Timed out waiting for the Facebook login. Common causes:\n"
+            "Времето за Facebook вход изтече. Чести причини:\n"
             "  • 'Invalid Scopes: pages_read_engagement, pages_manage_posts' —\n"
-            "    those permissions aren't ACTIVE yet. (1) Add the use case\n"
-            "    'Manage everything on your Page'. (2) Add a Privacy Policy URL\n"
-            "    (App Settings -> Basic). (3) Test once in Graph API Explorer:\n"
-            "    pick your app, add the permissions, Generate Access Token.\n"
-            "    No App Review or 'Publish' needed for your own Page. (See the\n"
-            "    guide: index.html, step 8.)\n"
-            "  • 'URL blocked' / 'redirect_uri is not allowed' — add this EXACT\n"
-            f"    redirect URI to the app and Save, then retry:\n        {redirect_uri}\n"
+            "    тези права още не са АКТИВНИ. (1) Добавете use case\n"
+            "    'Manage everything on your Page'. (2) Добавете Privacy Policy URL\n"
+            "    (App Settings -> Basic). (3) Тествайте веднъж в Graph API Explorer:\n"
+            "    изберете приложението, добавете правата, 'Generate Access Token'.\n"
+            "    Без App Review или 'Publish' за вашата страница. (Вижте\n"
+            "    ръководството index.html, стъпка 8.)\n"
+            "  • 'URL blocked' / 'redirect_uri is not allowed' — добавете ТОЧНО\n"
+            f"    този redirect URI в приложението и Save, после пак:\n        {redirect_uri}\n"
             "    (Facebook Login -> Settings -> Valid OAuth Redirect URIs)"
         )
     return _CallbackHandler.code
@@ -144,14 +148,14 @@ def _wait_for_code(port: int, state: str, redirect_uri: str, timeout: int = 300)
 def _choose_default(pages: list[dict]) -> dict:
     if len(pages) == 1:
         return pages[0]
-    print("\nSelect the Page to post to:")
+    print("\n  Изберете страницата за публикуване:")
     for index, page in enumerate(pages, 1):
-        print(f"  [{index}] {page.get('name', '(no name)')}  (id {page.get('id')})")
+        print(f"    [{index}] {page.get('name', '(без име)')}  (id {page.get('id')})")
     while True:
-        choice = input(f"Choice (1-{len(pages)}): ").strip()
+        choice = input(f"  Избор (1-{len(pages)}): ").strip()
         if choice.isdigit() and 1 <= int(choice) <= len(pages):
             return pages[int(choice) - 1]
-        print("  Invalid choice — try again.")
+        print("    Невалиден избор — опитайте пак.")
 
 
 def login_and_select_page(
@@ -178,8 +182,8 @@ def login_and_select_page(
     )
     auth_url = f"https://www.facebook.com/{api_version}/dialog/oauth?{query}"
 
-    print("\nOpening Facebook login in your browser ...")
-    print("If it doesn't open, paste this URL into your browser:\n  " + auth_url + "\n")
+    print("\n  Отваряне на Facebook вход в браузъра ...")
+    print("  Ако не се отвори, поставете този адрес в браузъра:\n  " + auth_url + "\n")
     try:
         webbrowser.open(auth_url)
     except Exception:  # noqa: BLE001 - headless box, just show the URL

@@ -15,38 +15,38 @@ log = get_logger("business")
 
 # (key, label, multiline?)
 FIELDS = [
-    ("name", "Business / Page name", False),
-    ("description", "What you do (products / services)", True),
-    ("audience", "Who is your audience?", False),
-    ("tone", "Tone & style", False),
-    ("topics", "Topics to post about", True),
-    ("avoid", "Things to avoid", False),
-    ("cta", "Usual call to action", False),
-    ("links", "Website / links / handles", False),
-    ("notes", "Anything else the AI should know", True),
+    ("name", "Име на бизнеса / страницата", False),
+    ("description", "С какво се занимавате (продукти / услуги)", True),
+    ("audience", "Каква е вашата аудитория?", False),
+    ("tone", "Тон и стил", False),
+    ("topics", "Теми за публикуване", True),
+    ("avoid", "Какво да се избягва", False),
+    ("cta", "Обичайна подкана за действие", False),
+    ("links", "Уебсайт / връзки / профили", False),
+    ("notes", "Друго, което AI трябва да знае", True),
 ]
 
 _HINTS = {
-    "name": "e.g. Joe's Coffee Roasters",
-    "description": "What you sell or offer, in a sentence or two.",
-    "audience": "Who you're talking to — e.g. home brewers, busy parents.",
-    "tone": "How posts should feel — friendly, professional, witty, bold…",
-    "topics": "What to post about — tips, offers, behind-the-scenes…",
-    "avoid": "Anything off-limits — politics, competitors, hard selling…",
-    "cta": "What readers should do — visit site, comment, message us…",
-    "links": "Website, Instagram handle, etc.",
-    "notes": "Promotions, key facts, anything else useful.",
+    "name": "напр. „Кафене Joe's“",
+    "description": "Какво продавате или предлагате, в едно-две изречения.",
+    "audience": "Към кого се обръщате — напр. любители на кафе, заети родители.",
+    "tone": "Как да звучат публикациите — приятелски, професионално, забавно…",
+    "topics": "За какво да публикувате — съвети, оферти, зад кулисите…",
+    "avoid": "Какво е забранено — политика, конкуренти, агресивна продажба…",
+    "cta": "Какво да направят читателите — да посетят сайта, да коментират, да пишат…",
+    "links": "Уебсайт, Instagram профил и т.н.",
+    "notes": "Промоции, важни факти, друго полезно.",
 }
 
 _PRETTY = {
-    "name": "Business",
-    "description": "What we do",
-    "audience": "Audience",
-    "tone": "Tone & style",
-    "topics": "Topics to post about",
-    "avoid": "Avoid",
-    "cta": "Call to action",
-    "links": "Links / handles",
+    "name": "Бизнес",
+    "description": "С какво се занимаваме",
+    "audience": "Аудитория",
+    "tone": "Тон и стил",
+    "topics": "Теми за публикуване",
+    "avoid": "Избягвай",
+    "cta": "Подкана за действие",
+    "links": "Връзки / профили",
 }
 
 
@@ -70,7 +70,7 @@ def _collect_via_gui(prefill: dict) -> dict | None:
     result: dict = {"data": None}
     widgets: dict = {}
 
-    root.title("AIPost247 — Train your business")
+    root.title("AIPost247 — Профил на бизнеса")
     root.geometry("620x720")
     root.minsize(520, 520)
     root.configure(bg=bg)
@@ -78,9 +78,9 @@ def _collect_via_gui(prefill: dict) -> dict | None:
     # Header bar
     head = tk.Frame(root, bg=accent)
     head.pack(fill="x")
-    tk.Label(head, text="Tell the AI about your business", bg=accent, fg="white",
+    tk.Label(head, text="Разкажете на AI за бизнеса си", bg=accent, fg="white",
              font=("Helvetica", 15, "bold")).pack(anchor="w", padx=18, pady=(14, 0))
-    tk.Label(head, text="Used as context every time it writes a post. Every field is optional.",
+    tk.Label(head, text="Ползва се като контекст при всяка публикация. Всички полета са по избор.",
              bg=accent, fg="#dbe9ff", font=("Helvetica", 10)).pack(anchor="w", padx=18, pady=(2, 14))
 
     # Scrollable body
@@ -142,8 +142,8 @@ def _collect_via_gui(prefill: dict) -> dict | None:
             widget.bind("<Leave>", lambda _e: widget.configure(bg=accent))
         return widget
 
-    _button(footer, "Save profile", on_save, primary=True).pack(side="right")
-    _button(footer, "Skip for now", on_skip).pack(side="right", padx=(0, 10))
+    _button(footer, "Запази профила", on_save, primary=True).pack(side="right")
+    _button(footer, "Прескочи", on_skip).pack(side="right", padx=(0, 10))
 
     root.bind("<Escape>", lambda _e: on_skip())
     root.update_idletasks()
@@ -159,7 +159,7 @@ def _collect_via_gui(prefill: dict) -> dict | None:
 
 
 def _collect_via_terminal(prefill: dict) -> dict:
-    print("\n  Tell the AI about your business (press Enter to skip a field):")
+    print("\n  Разкажете на AI за бизнеса си (Enter за да прескочите поле):")
     data = {}
     for key, label, _multiline in FIELDS:
         current = prefill.get(key, "")
@@ -172,7 +172,7 @@ def _collect_via_terminal(prefill: dict) -> dict:
 
 
 def render_markdown(data: dict) -> str:
-    lines = ["# Business profile (AIPost247 skill)", ""]
+    lines = ["# Профил на бизнеса (AIPost247 умение)", ""]
     for key in ("name", "description", "audience", "tone", "topics", "avoid", "cta", "links"):
         value = (data.get(key) or "").strip()
         if value:
@@ -196,16 +196,16 @@ def run_training(memory_dir, prefill: dict | None = None) -> bool:
     try:
         data = _collect_via_gui(prefill)
     except GuiUnavailable:
-        print("  (No desktop window available — using a quick text form instead.)")
+        print("  (Няма наличен прозорец — използваме бърза текстова форма.)")
         data = _collect_via_terminal(prefill)
 
     if data is None:
-        print("  Skipped — business profile unchanged.")
+        print("  Прескочено — бизнес профилът е непроменен.")
         return False
     if not any((data.get(key) or "").strip() for key, _label, _multiline in FIELDS):
-        print("  Nothing entered — skipped.")
+        print("  Нищо не е въведено — прескочено.")
         return False
 
     path = save_profile(memory_dir, data)
-    print(f"  ✓ Saved your business profile to {path}")
+    print(f"  ✓ Бизнес профилът е запазен в {path}")
     return True

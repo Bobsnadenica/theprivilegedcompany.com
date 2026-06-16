@@ -154,30 +154,30 @@ def _pip_install(package: str) -> bool:
 
 def _prompt_secret(label: str, existing: str) -> str:
     if existing:
-        value = getpass.getpass(f"{label} [press Enter to keep existing]: ").strip()
+        value = getpass.getpass(f"{label} [Enter за да запазите текущата]: ").strip()
         return value or existing
     return getpass.getpass(f"{label}: ").strip()
 
 
 def _prompt_meta_app(existing: Config) -> tuple[str, str]:
-    """Return (app_id, app_secret), guiding the user to create a Meta app if needed."""
+    """Връща (app_id, app_secret), като упътва създаването на Meta приложение."""
     from .fb_oauth import guided_meta_app_setup
 
     if existing.fb_app_id and existing.fb_app_secret:
-        if input(f"Use the saved Meta app (App ID {existing.fb_app_id})? (Y/n): ").strip().lower() != "n":
+        if input(f"  Да ползвам запазеното Meta приложение (App ID {existing.fb_app_id})? (Y/n): ").strip().lower() != "n":
             return existing.fb_app_id, existing.fb_app_secret
 
-    if input("Do you already have a Meta app (App ID + Secret)? (y/N): ").strip().lower() != "y":
+    if input("  Имате ли вече Meta приложение (App ID + Secret)? (y/N): ").strip().lower() != "y":
         guided_meta_app_setup()
 
     while True:
-        app_id = input(f"Meta App ID [{existing.fb_app_id}]: ").strip() or existing.fb_app_id
-        app_secret = _prompt_secret("Meta App Secret", existing.fb_app_secret)
+        app_id = input(f"  App ID [{existing.fb_app_id}]: ").strip() or existing.fb_app_id
+        app_secret = _prompt_secret("  App Secret", existing.fb_app_secret)
         if app_id and app_secret:
             return app_id, app_secret
         nxt = input(
-            "  Both App ID and App Secret are required. "
-            "Press Enter to re-open the guide, or type 'skip': "
+            "  Нужни са и App ID, и App Secret. "
+            "Enter за да отворите упътването пак, или напишете 'skip': "
         ).strip().lower()
         if nxt == "skip":
             return "", ""
@@ -202,31 +202,31 @@ def _rule(char: str = "─", width: int = 70) -> str:
 
 def _section(step: int, total: int, title: str) -> None:
     print("\n" + _rule("═"))
-    print(f"  Step {step} of {total}  ·  {title}")
+    print(f"  Стъпка {step} от {total}  ·  {title}")
     print(_rule("═"))
 
 
 def _ask_yes_no(question: str, default: bool = True) -> bool:
     suffix = "Y/n" if default else "y/N"
     answer = input(f"{question} ({suffix}): ").strip().lower()
-    return default if not answer else answer in {"y", "yes"}
+    return default if not answer else answer in {"y", "yes", "д", "да"}
 
 
 def _choose(intro: str, options: list[tuple[str, str]], default: int = 1) -> int:
-    """Print a numbered menu and return the chosen 1-based index."""
+    """Печата номериран списък и връща избора (1-базиран)."""
     print(intro)
     for index, (label, desc) in enumerate(options, 1):
-        mark = "   ← recommended" if index == default else ""
+        mark = "   ← препоръчано" if index == default else ""
         print(f"    [{index}] {label}{mark}")
         if desc:
             print(f"         {desc}")
     while True:
-        raw = input(f"  Your choice [1-{len(options)}, Enter = {default}]: ").strip()
+        raw = input(f"  Вашият избор [1-{len(options)}, Enter = {default}]: ").strip()
         if not raw:
             return default
         if raw.isdigit() and 1 <= int(raw) <= len(options):
             return int(raw)
-        print("  Please type one of the numbers shown.")
+        print("  Напишете един от показаните номера.")
 
 
 # --- interactive setup wizard -------------------------------------------
@@ -238,77 +238,78 @@ def run_setup_wizard(existing: Config) -> None:
 
     ensure_dirs()
     print("\n" + _rule("═"))
-    print("  AIPost247  ·  Setup")
+    print("  AIPost247  ·  Настройка")
     print(_rule("═"))
     print(
-        "  Takes about 3–5 minutes. We'll set up 4 things:\n"
-        "    1) The AI that writes your posts\n"
-        "    2) Your Facebook Page (log in and pick it)\n"
-        "    3) How often to post\n"
-        "    4) A short profile of your business\n"
-        "  You can re-run this anytime by choosing 'setup'."
+        "  Отнема около 3–5 минути. Ще настроим 4 неща:\n"
+        "    1) AI, който пише публикациите\n"
+        "    2) Вашата Facebook страница (вход и избор)\n"
+        "    3) Колко често да публикува\n"
+        "    4) Кратък профил на бизнеса ви\n"
+        "  Може да стартирате това пак по всяко време с командата 'setup'.\n"
+        "  Подробно ръководство с картинки: отворете index.html в тази папка."
     )
 
     values: dict[str, str] = {}
 
     # 1) AI provider ------------------------------------------------------
-    _section(1, 4, "Choose the AI that writes your posts")
+    _section(1, 4, "Изберете AI, който пише публикациите")
     choice = _choose(
-        "  Both options are free to start:",
+        "  И двата варианта са безплатни за начало:",
         [
-            ("Gemini — sign in with Google (no API key)",
-             "Needs Node.js installed. Best if you already have it."),
-            ("OpenAI — paste an API key",
-             "Works without Node.js. Key from platform.openai.com/api-keys."),
+            ("Gemini — вход с Google (без API ключ)",
+             "Нужен е инсталиран Node.js. Най-добре, ако вече го имате."),
+            ("OpenAI — поставяте API ключ",
+             "Работи без Node.js. Ключ от platform.openai.com/api-keys."),
         ],
         default=1,
     )
 
     if choice == 2:
         values["AI_PROVIDER"] = "openai"
-        values["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API key", existing.openai_api_key)
+        values["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API ключ", existing.openai_api_key)
         values["OPENAI_MODEL"] = (
-            input(f"  OpenAI model [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
+            input(f"  OpenAI модел [{existing.openai_model or DEFAULT_OPENAI_MODEL}]: ").strip()
             or existing.openai_model or DEFAULT_OPENAI_MODEL
         )
-        print("  Installing the OpenAI library ...")
+        print("  Инсталиране на OpenAI библиотеката ...")
         _pip_install("openai")
-        print("  ✓ OpenAI is set as your writer.")
+        print("  ✓ OpenAI е избран за писане на публикациите.")
     else:
         values["AI_PROVIDER"] = "gemini"
         gemini_model = (
-            input(f"  Gemini model [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
+            input(f"  Gemini модел [{existing.gemini_model or DEFAULT_GEMINI_MODEL}]: ").strip()
             or existing.gemini_model or DEFAULT_GEMINI_MODEL
         )
         values["GEMINI_MODEL"] = gemini_model
         try:
-            print("  Checking the Gemini CLI ...")
+            print("  Проверка на Gemini CLI ...")
             gemini_client.ensure_installed()
-            if _ask_yes_no("  Sign in to Google for Gemini now?", default=True):
+            if _ask_yes_no("  Да влезете в Google за Gemini сега?", default=True):
                 if gemini_client.login(gemini_model):
-                    print("  ✓ Gemini is signed in and ready.")
+                    print("  ✓ Gemini е влязъл и готов.")
         except gemini_client.GeminiError as exc:
             print(f"  ! {exc}")
-            print("    Tip: install Node.js (nodejs.org), or re-run setup and pick OpenAI.")
-            print("    You can also finish later by choosing 'login-gemini'.")
+            print("    Съвет: инсталирайте Node.js (nodejs.org), или стартирайте setup пак и изберете OpenAI.")
+            print("    Може и по-късно с командата 'login-gemini'.")
 
     # 2) Facebook ---------------------------------------------------------
-    _section(2, 4, "Connect your Facebook Page")
+    _section(2, 4, "Свържете вашата Facebook страница")
     print(
-        "  You'll log in with Facebook and pick your Page. One-time: Facebook\n"
-        "  needs a free Meta app to post to a Page (same as Buffer / Hootsuite).\n"
-        "  Need a picture guide? Open  index.html  in this folder."
+        "  Ще влезете с Facebook и ще изберете страницата си. Еднократно: Facebook\n"
+        "  изисква безплатно Meta приложение, за да публикува на страница (както\n"
+        "  autopost24 — но безплатно). Пълно ръководство с картинки: index.html."
     )
     api_version = existing.graph_api_version or DEFAULT_GRAPH_VERSION
     values["GRAPH_API_VERSION"] = api_version
 
     fb_choice = _choose(
-        "  How would you like to connect?",
+        "  Как искате да се свържете?",
         [
-            ("Connect with Facebook (guided)",
-             "Opens your browser — log in, then choose your Page."),
-            ("Paste a Page ID + token manually",
-             "For advanced users who already have them."),
+            ("Свързване с Facebook (с упътване)",
+             "Отваря браузъра — влизате и избирате страницата си."),
+            ("Ръчно поставяне на Page ID + токен",
+             "За напреднали, които вече ги имат."),
         ],
         default=1,
     )
@@ -327,22 +328,22 @@ def run_setup_wizard(existing: Config) -> None:
                     page_id, page_token, page_name = login_and_select_page(
                         app_id, app_secret, api_version
                     )
-                    print(f"  ✓ Connected Page: {page_name} (id {page_id})")
+                    print(f"  ✓ Свързана страница: {page_name} (id {page_id})")
                     connected = True
                 except FacebookError as exc:
-                    print(f"\n  ! Facebook login didn't complete:\n    {exc}\n")
-                    if not _ask_yes_no("  Try the login again?", default=True):
+                    print(f"\n  ! Facebook входът не завърши:\n    {exc}\n")
+                    if not _ask_yes_no("  Да опитаме входа пак?", default=True):
                         break
             if not connected and _ask_yes_no(
-                "  Paste a Page token manually instead?", default=False
+                "  Да поставите Page токен ръчно вместо това?", default=False
             ):
                 page_id = input(f"  Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
                 page_token = _prompt_secret("  Page Access Token", existing.fb_page_access_token)
         else:
-            print("  Skipped Facebook — you can finish later by running setup again.")
+            print("  Facebook е пропуснат — може да довършите по-късно с командата 'setup'.")
     else:
         page_id = input(f"  Facebook Page ID [{existing.fb_page_id}]: ").strip() or existing.fb_page_id
-        page_token = _prompt_secret("  Long-lived Page Access Token", existing.fb_page_access_token)
+        page_token = _prompt_secret("  Дълготраен Page Access Token", existing.fb_page_access_token)
 
     values["FB_PAGE_ID"] = page_id
     values["FB_PAGE_ACCESS_TOKEN"] = page_token
@@ -350,59 +351,59 @@ def run_setup_wizard(existing: Config) -> None:
     if page_token:
         try:
             name = FacebookClient(page_id, page_token, api_version=api_version).validate()
-            print(f"  ✓ Verified Facebook Page: {name!r}")
+            print(f"  ✓ Потвърдена Facebook страница: {name!r}")
         except FacebookError as exc:
-            print(f"  ! Could not verify the Page token: {exc}")
-            if not _ask_yes_no("  Save anyway?", default=False):
-                print("  Setup aborted — nothing saved.")
+            print(f"  ! Токенът за страницата не може да се потвърди: {exc}")
+            if not _ask_yes_no("  Да запазя въпреки това?", default=False):
+                print("  Настройката е прекъсната — нищо не е запазено.")
                 return
 
     # 3) Schedule ---------------------------------------------------------
-    _section(3, 4, "Choose how often to post")
+    _section(3, 4, "Колко често да публикува")
     sched = _choose(
-        "  When should it publish?",
+        "  Кога да публикува?",
         [
-            ("Every few hours/minutes", "e.g. every 2 hours."),
-            ("Daily at specific times", "e.g. 09:00 and 18:00."),
+            ("На всеки няколко часа/минути", "напр. на всеки 2 часа."),
+            ("Всеки ден в определени часове", "напр. 09:00 и 18:00."),
         ],
         default=1,
     )
     if sched == 2:
         while True:
-            raw = input("  Times (24h, comma-separated, e.g. 09:00,18:00): ").strip()
+            raw = input("  Часове (24ч, разделени със запетая, напр. 09:00,18:00): ").strip()
             times = [t.strip() for t in raw.split(",") if t.strip()]
             if times and all(_valid_time(t) for t in times):
                 break
-            print("    Please use HH:MM 24-hour times, comma separated.")
+            print("    Използвайте часове във формат HH:MM, разделени със запетая.")
         values["SCHEDULE_MODE"] = "daily"
         values["SCHEDULE_TIMES"] = ",".join(times)
-        print(f"  ✓ Will post daily at {', '.join(times)}.")
+        print(f"  ✓ Ще публикува всеки ден в {', '.join(times)}.")
     else:
-        raw = input("  Post every how often?  e.g. 2 = every 2 hours, 90m = 90 minutes [2]: ").strip().lower() or "2"
+        raw = input("  На колко време да публикува?  напр. 2 = на 2 часа, 90m = 90 минути [2]: ").strip().lower() or "2"
         minutes = _as_int(raw[:-1], 120) if raw.endswith("m") else int(_as_float(raw, 2.0) * 60)
         minutes = max(1, minutes)
         values["SCHEDULE_MODE"] = "interval"
         values["SCHEDULE_INTERVAL_MINUTES"] = str(minutes)
-        print(f"  ✓ Will post about every {minutes} minutes.")
+        print(f"  ✓ Ще публикува на около {minutes} минути.")
 
     values["RUN_ON_START"] = (
-        "true" if _ask_yes_no("  Publish one post right away when it starts?", default=True) else "false"
+        "true" if _ask_yes_no("  Да публикува веднага при стартиране?", default=True) else "false"
     )
     values["DRY_RUN"] = (
-        "true" if _ask_yes_no("  Dry-run mode (write posts but DON'T publish them)?", default=False) else "false"
+        "true" if _ask_yes_no("  Тестов режим (пише публикации, но НЕ ги публикува)?", default=False) else "false"
     )
     values["POST_LANGUAGE"] = (
-        input(f"  Language for posts [{existing.post_language}]: ").strip() or existing.post_language
+        input(f"  Език на публикациите [{existing.post_language}]: ").strip() or existing.post_language
     )
 
     # 4) Train your business ----------------------------------------------
-    _section(4, 4, "Tell the AI about your business")
+    _section(4, 4, "Разкажете на AI за бизнеса си")
     print(
-        "  A short profile so posts sound like you — name, audience, tone, topics.\n"
-        "  A small window opens to fill in; it's saved and reused for every post.\n"
-        "  You can edit it anytime by choosing 'train'."
+        "  Кратък профил, за да звучат публикациите като вас — име, аудитория, тон, теми.\n"
+        "  Отваря се малък прозорец за попълване; запазва се и се ползва за всяка публикация.\n"
+        "  Може да го редактирате по всяко време с командата 'train'."
     )
-    if _ask_yes_no("  Open the business profile form now?", default=True):
+    if _ask_yes_no("  Да отворя формата за бизнес профил сега?", default=True):
         from . import business
 
         business.run_training(MEMORY_DIR)
@@ -412,15 +413,15 @@ def run_setup_wizard(existing: Config) -> None:
     # Closing -------------------------------------------------------------
     runner = "run.bat" if os.name == "nt" else "./run.sh"
     print("\n" + _rule("═"))
-    print("  ✓ Setup complete — your settings are saved.")
+    print("  ✓ Готово — настройките са запазени.")
     print(_rule("═"))
-    print("  What to do next:")
-    print(f"    1) Preview a post (won't publish):   {runner} generate")
-    print(f"    2) Publish one right now:            {runner} post-now")
-    print(f"    3) Go live (auto-post on schedule):  {runner} run")
+    print("  Какво да направите сега:")
+    print(f"    1) Преглед на публикация (без публикуване):  {runner} generate")
+    print(f"    2) Публикувай една сега:                     {runner} post-now")
+    print(f"    3) Пусни на живо (авто-публикуване):         {runner} run")
     print()
-    print("  It keeps posting while it's running. To keep it running in the")
-    print("  background:")
+    print("  Публикува, докато скриптът работи. За да работи на заден план")
+    print("  (и след затваряне на терминала):")
     if os.name == "nt":
         print('    start "AIPost247" run.bat run')
     else:
