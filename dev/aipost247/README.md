@@ -118,6 +118,7 @@ python run.py status           # show config (secrets masked) + recent posts
 python run.py login-gemini     # (re)log in to Google for the Gemini CLI
 python run.py train            # open the "train your business" form (a skill)
 python run.py learn            # read engagement → refresh skill.md (what works)
+python run.py clear-memory     # wipe accumulated memory (history/learnings/profile)
 
 python run.py add-instruction "Always mention free shipping over $50."
 python run.py add-knowledge "Fall blend ships Oct 1." --topic products

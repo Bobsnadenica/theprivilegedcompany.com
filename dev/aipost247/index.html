@@ -264,17 +264,7 @@
     </ol>
   </div>
 
-  <h2><span class="num">7</span>Копирайте App ID и App Secret</h2>
-  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
-  <div class="card">
-    <ol class="steps">
-      <li>Отворете <b>App Settings → Basic</b>.</li>
-      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
-      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете паролата си) и копирайте.</li>
-    </ol>
-  </div>
-
-  <h2><span class="num">8</span>Активирайте правата (поправка на „Invalid Scopes“)</h2>
+  <h2><span class="num">7</span>Активирайте правата (поправка на „Invalid Scopes“)</h2>
   <p class="sub">Двете права за страница трябва да се активират веднъж. <b>Не</b> е нужно публикуване или App Review за вашата страница.</p>
   <div class="card">
     <div class="warn">
@@ -301,7 +291,7 @@
           <li>Ако токенът се генерира успешно, правата вече работят. (Тестовите данни понякога се появяват до 24 ч., но обикновено е веднага.)</li>
         </ul>
       </li>
-      <li>Опитайте отново скрипта — <code class="inline">./run.sh setup</code> → Facebook входът минава.</li>
+      <li>Готово — правата са активни. Продължете към App ID и App Secret по-долу.</li>
     </ol>
     <div class="warn" style="background:#e8f8ef;border-color:#bce6cd">
       <b>Трябва ли да публикувам приложението (Publish)?</b> За <b>собствената</b> ви
@@ -309,6 +299,16 @@
       докато вие сте admin. Публикуване (Live) и App Review са нужни само ако
       <b>други хора</b> ще ползват приложението ви.
     </div>
+  </div>
+
+  <h2><span class="num">8</span>Копирайте App ID и App Secret</h2>
+  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
+  <div class="card">
+    <ol class="steps">
+      <li>Отворете <b>App Settings → Basic</b>.</li>
+      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
+      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете паролата си) и копирайте.</li>
+    </ol>
   </div>
 
   <h2><span class="num">9</span>Стартирайте скрипта — оттук всичко е локално</h2>
@@ -337,6 +337,7 @@ nohup ./run.sh run > aipost247.out 2>&1 &</pre>
       </li>
     </ol>
     <p style="color:var(--muted)">Съвет: първо изпълнете <code class="inline">./run.sh generate</code>, за да прегледате публикация <b>без</b> да я публикувате.</p>
+    <p style="color:var(--muted)">Нужен е чист старт? <code class="inline">./run.sh clear-memory</code> изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</p>
   </div>
 
   <h2 style="margin-top:46px">Какви права използваме</h2>

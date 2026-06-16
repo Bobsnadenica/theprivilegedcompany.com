@@ -20,6 +20,7 @@ trap 'rm -rf "$STAGE"' EXIT
 rsync -a \
   --exclude='.venv/' \
   --exclude='.env' \
+  --exclude='*.env' \
   --exclude='data/' \
   --exclude='logs/' \
   --exclude='download/' \
@@ -28,9 +29,27 @@ rsync -a \
   --exclude='*.log' \
   --exclude='*.out' \
   --exclude='.DS_Store' \
+  --exclude='*.db' \
+  --exclude='*.sqlite3' \
   --exclude='memory/business.md' \
+  --exclude='memory/skill.md' \
   --exclude='package.sh' \
   "$HERE/" "$DEST/"
+
+# *.env excludes secrets but also the safe template — restore the template.
+cp -f "$HERE/.env.example" "$DEST/.env.example" 2>/dev/null || true
+
+# Safety net: refuse to ship if any personal/secret file slipped in, so the
+# public download can never contain user data — enforced on every build.
+FORBIDDEN="$(cd "$STAGE" && find aipost247 \
+  \( -name '.env' -o -name '*.db' -o -name '*.sqlite3' \
+     -o -name 'business.md' -o -name 'skill.md' -o -name 'oauth_creds.json' \) \
+  ! -name '.env.example' -print)"
+if [ -n "$FORBIDDEN" ]; then
+  echo "ABORT: personal/secret files would be packaged:" >&2
+  echo "$FORBIDDEN" | sed 's/^/  /' >&2
+  exit 1
+fi
 
 rm -f "$OUT"
 ( cd "$STAGE" && zip -r -q "$OUT" "aipost247" )

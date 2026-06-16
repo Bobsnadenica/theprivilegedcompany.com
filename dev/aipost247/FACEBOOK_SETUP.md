@@ -65,12 +65,7 @@ is **No** (off), then save.
 > the App Secret to obtain a **long-lived** Page token (for 24/7 posting), so this
 > must stay **No**.
 
-### Step 7 · Copy your App ID and App Secret
-1. Open **App Settings → Basic**.
-2. Copy the **App ID** shown at the top.
-3. Next to **App Secret**, click **Show** (re-enter your password) and copy it.
-
-### Step 8 · Activate the permissions (fixes "Invalid Scopes")
+### Step 7 · Activate the permissions (fixes "Invalid Scopes")
 
 `pages_read_engagement` and `pages_manage_posts` must be **activated** once. You
 do **NOT** need to Publish the app or pass App Review for your **own** Page —
@@ -87,9 +82,14 @@ Standard Access in Development mode is enough while you're the app admin.
      `pages_manage_posts`.
    - Click **Generate Access Token** → log in → grant for your Page.
    - A token generating successfully means the permissions now work.
-4. Re-run `./run.sh setup` — the Facebook login will go through.
 
-Keep the App ID and App Secret handy for Part 2.
+### Step 8 · Copy your App ID and App Secret
+1. Open **App Settings → Basic**.
+2. Copy the **App ID** shown at the top.
+3. Next to **App Secret**, click **Show** (re-enter your password) and copy it.
+
+Keep the App ID and App Secret handy for Part 2, then re-run `./run.sh setup` —
+the Facebook login will go through.
 
 ---
 

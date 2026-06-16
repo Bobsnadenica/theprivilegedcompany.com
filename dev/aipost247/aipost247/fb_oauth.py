@@ -61,11 +61,11 @@ def guided_meta_app_setup(port: int = DEFAULT_PORT) -> None:
         "  6. App Settings -> Advanced: 'Native or desktop app?' трябва да е No\n"
         "     (изключено). Като desktop app Facebook отказва App Secret, който е\n"
         "     нужен за дълготрайния токен.\n"
-        "  7. App Settings -> Basic: копирайте App ID и App Secret.\n"
-        "  8. Активирайте правата (ако видите 'Invalid Scopes'):\n"
+        "  7. Активирайте правата (ако видите 'Invalid Scopes'):\n"
         "     - App Settings -> Basic: добавете Privacy Policy URL и Save;\n"
         "     - тествайте веднъж в Graph API Explorer: изберете приложението,\n"
         "       добавете правата, 'Generate Access Token'. (Без App Review.)\n"
+        "  8. App Settings -> Basic: копирайте App ID и App Secret.\n"
         "  ------------------------------------------------------------------\n"
         "  Предпочитате ръководство с картинки? Отворете index.html.\n"
     )
