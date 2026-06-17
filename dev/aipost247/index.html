@@ -359,6 +359,17 @@
     <p style="color:var(--muted)">Предпочитате терминал? Работят и <code class="inline">./run.sh setup</code>, <code class="inline">./run.sh run</code>, <code class="inline">generate</code>, <code class="inline">post-now</code> и т.н.</p>
   </div>
 
+  <div class="callout">
+    <strong>🗂 Няколко страници едновременно.</strong> Може да управлявате повече от
+    една Facebook страница. Стартирайте всяка инстанция от <b>отделна папка</b>
+    (отделно разархивирано копие) — всяка има собствена настройка, история и
+    страница, а таблото <b>само избира свободен порт</b> (8730, 8731, 8732 …), така
+    че не се сблъскват. Входът в AI се <b>споделя</b> (един и същ Google/ChatGPT
+    акаунт) — това е наред. <b>Не</b> стартирайте две инстанции от <b>една и съща</b>
+    папка — ще си пречат (обща база данни и настройки). Може и да фиксирате порт с
+    <code class="inline">AIPOST_DASHBOARD_PORT</code> в <code class="inline">.env</code>.
+  </div>
+
   <h2 style="margin-top:46px">Команди</h2>
   <p class="sub">Изпълняват се с <code class="inline">./run.sh &lt;команда&gt;</code> (Windows: <code class="inline">run.bat &lt;команда&gt;</code>).</p>
   <div class="card" style="padding:8px 18px">
