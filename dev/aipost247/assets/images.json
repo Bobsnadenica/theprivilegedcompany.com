@@ -1,19 +1,19 @@
 [
   {
     "src": "1.jpg",
-    "caption": "Download and extract"
+    "caption": "Сваляте и разархивирате"
   },
   {
     "src": "2.jpg",
-    "caption": "You open it by starting run.sh for Mac/Linux or double click on run.bat for windows"
+    "caption": "Отваряте го като пуснете ./run.sh за Linux/MAC или цъкнете на run.bat за Windows"
   },
   {
     "src": "3.jpg",
-    "caption": "when you run it it might take a bit just wait"
+    "caption": "Когато го пуснете, може да отнеме време докато свали всичко, изчакайте го."
   },
   {
     "src": "4.jpg",
-    "caption": "it opens a dashboard this is where you configure"
+    "caption": "Отваря ви dashboard където да управлявате настройките."
   },
   {
     "src": "soon copy 4.jpg"

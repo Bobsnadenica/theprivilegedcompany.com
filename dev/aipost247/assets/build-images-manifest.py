@@ -33,7 +33,7 @@ def _key(name: str):
     return (1, int(m.group(1)) if m else 0, stem)
 
 
-def _how_to_captions() -> dict[str, str]:
+def _how_to_captions(existing_files: set[str]) -> dict[str, str]:
     path = os.path.join(HERE, HOW_TO)
     captions: dict[str, str] = {}
     try:
@@ -42,15 +42,25 @@ def _how_to_captions() -> dict[str, str]:
     except OSError:
         return captions
 
+    missing: list[str] = []
     for line in lines:
         parts = re.split(r"\s+-\s+", line.strip(), maxsplit=1)
         if len(parts) != 2:
             continue
         name, caption = (part.strip() for part in parts)
+        normalized = name.lower()
+        stem = os.path.splitext(normalized)[0]
+        if normalized not in existing_files and stem not in existing_files:
+            missing.append(name)
+            continue
         if name and caption:
-            normalized = name.lower()
             captions[normalized] = caption
-            captions[os.path.splitext(normalized)[0]] = caption
+            captions[stem] = caption
+    if missing:
+        raise SystemExit(
+            "ABORT: how_to.txt references missing image file(s): "
+            + ", ".join(sorted(set(missing), key=str.lower))
+        )
     return captions
 
 
@@ -59,7 +69,9 @@ def main() -> None:
         (f for f in os.listdir(HERE) if os.path.splitext(f)[1].lower() in EXTS),
         key=_key,
     )
-    how_to = _how_to_captions()
+    existing = {f.lower() for f in files}
+    existing.update(os.path.splitext(f)[0].lower() for f in files)
+    how_to = _how_to_captions(existing)
     manifest = []
     for f in files:
         entry = {"src": f}

@@ -16,14 +16,27 @@ mkdir -p "$HERE/download"
 # the website and the zip always advertise the same, current version.
 VER="$(grep -oE '__version__ *= *"[^"]+"' "$HERE/aipost247/__init__.py" | sed -E 's/.*"([^"]+)".*/\1/')"
 DATE="$(date +%Y-%m-%d)"
+python3 "$HERE/assets/build-images-manifest.py"
+python3 "$HERE/assets/video/validate-videos.py"
+ASSET_HASH="$(
+  find "$HERE/assets" -type f \
+    ! -path '*/__pycache__/*' \
+    ! -name '.DS_Store' \
+    -print \
+  | LC_ALL=C sort \
+  | while IFS= read -r f; do shasum "$f"; done \
+  | shasum \
+  | awk '{print substr($1, 1, 12)}'
+)"
 if [ -n "$VER" ] && grep -q 'id="dl-ver"' "$HERE/index.html"; then
   STAMP="$(mktemp)"
-  sed -E "s#(<div class=\"dl-ver\" id=\"dl-ver\">).*(</div>)#\1Версия ${VER} · обновена ${DATE}\2#" \
+  sed -E \
+    -e "s#(<html lang=\"bg\" data-assets-version=\")[^\"]*(\")#\1${VER}-${ASSET_HASH}\2#" \
+    -e "s#(<div class=\"dl-ver\" id=\"dl-ver\">).*(</div>)#\1Версия ${VER} · обновена ${DATE}\2#" \
     "$HERE/index.html" > "$STAMP" && mv "$STAMP" "$HERE/index.html"
   echo "Stamped version: $VER ($DATE)"
+  echo "Stamped asset version: ${VER}-${ASSET_HASH}"
 fi
-
-python3 "$HERE/assets/video/validate-videos.py"
 
 STAGE="$(mktemp -d)"
 DEST="$STAGE/aipost247"
