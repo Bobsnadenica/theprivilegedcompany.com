@@ -25,8 +25,12 @@ CAPTIONS: dict[str, str] = {}
 
 
 def _key(name: str):
-    m = re.search(r"(\d+)", name)
-    return (0 if name.lower() == "soon.jpg" else 1, int(m.group(1)) if m else 0, name.lower())
+    stem = os.path.splitext(name)[0].lower()
+    leading = re.match(r"^(\d+)(?:\D|$)", stem)
+    if leading:
+        return (0, int(leading.group(1)), stem)
+    m = re.search(r"(\d+)", stem)
+    return (1, int(m.group(1)) if m else 0, stem)
 
 
 def _how_to_captions() -> dict[str, str]:
@@ -44,7 +48,9 @@ def _how_to_captions() -> dict[str, str]:
             continue
         name, caption = (part.strip() for part in parts)
         if name and caption:
-            captions[name.lower()] = caption
+            normalized = name.lower()
+            captions[normalized] = caption
+            captions[os.path.splitext(normalized)[0]] = caption
     return captions
 
 
@@ -57,7 +63,8 @@ def main() -> None:
     manifest = []
     for f in files:
         entry = {"src": f}
-        caption = CAPTIONS.get(f) or how_to.get(f.lower())
+        stem = os.path.splitext(f)[0].lower()
+        caption = CAPTIONS.get(f) or how_to.get(f.lower()) or how_to.get(stem)
         if caption:
             entry["caption"] = caption
         manifest.append(entry)
