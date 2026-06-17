@@ -159,16 +159,21 @@
   .modal-close:hover { background: #e0e6f0; }
   .modal-body { padding: 18px 20px; overflow: auto; }
   .shots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-  .shot { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fafcff; cursor: zoom-in; text-align: left; padding: 0; }
-  .shot img { width: 100%; height: 160px; object-fit: cover; display: block; }
-  .shot .cap { padding: 8px 10px; font-size: 0.85rem; color: var(--muted); }
+  .shot { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fafcff; cursor: zoom-in; text-align: left; padding: 0; }
+  .shot img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .shot .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 42px 12px 10px;
+    background: linear-gradient(to top, rgba(9, 18, 31, .86), rgba(9, 18, 31, .54), transparent);
+    color: #fff; font-size: 0.85rem; font-weight: 650; line-height: 1.3; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
   .shots-empty { color: var(--muted); text-align: center; padding: 30px 10px; }
 
   /* lightbox (enlarge a single screenshot) */
   .lightbox { position: fixed; inset: 0; background: rgba(8,14,22,.9); display: flex;
-    align-items: center; justify-content: center; padding: 24px; z-index: 60; cursor: zoom-out; }
+    flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; z-index: 60; cursor: zoom-out; }
   .lightbox[hidden] { display: none; }
   .lightbox img { max-width: 96%; max-height: 92vh; border-radius: 10px; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); }
+  .lightbox-caption { max-width: min(760px, 96%); color: #fff; text-align: center; font-weight: 650;
+    background: rgba(8,14,22,.68); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 9px 13px; }
+  .lightbox-caption[hidden] { display: none; }
 
   /* police tape — first-visit notice, click to tear down */
   .police-tape { position: fixed; inset: 0; z-index: 200;
@@ -433,7 +438,10 @@
     </div>
   </div>
 </div>
-<div class="lightbox" id="lightbox" hidden><img id="lightbox-img" alt="Снимка" /></div>
+<div class="lightbox" id="lightbox" hidden>
+  <img id="lightbox-img" alt="Снимка" />
+  <div class="lightbox-caption" id="lightbox-caption" hidden></div>
+</div>
 
 <div class="police-tape" id="police-tape" role="button" tabindex="0" aria-label="Премахни лентата" hidden>
   <div class="tape-band">
@@ -474,47 +482,77 @@
     document.body.removeChild(ta);
   }
 
-  // „Снимки, за по-лесно“ — галерия от /assets/aipost247/ (чете images.json).
+  // „Снимки, за по-лесно“ — галерия от ./assets/ (чете images.json + how_to.txt).
   (function () {
-    var ASSETS = '/assets/aipost247/';
+    var ASSETS = new URL('assets/', document.baseURI).href;
     var modal = document.getElementById('shots-modal');
     var grid = document.getElementById('shots-grid');
     var lightbox = document.getElementById('lightbox');
     var lightImg = document.getElementById('lightbox-img');
+    var lightCaption = document.getElementById('lightbox-caption');
     var loaded = false;
 
-    function openLightbox(src, alt) {
+    function normalizedName(name) {
+      return String(name || '').split(/[\\/]/).pop().trim().toLowerCase();
+    }
+    function parseHowTo(text) {
+      var notes = {};
+      String(text || '').split(/\r?\n/).forEach(function (line) {
+        var parts = line.trim().split(/\s+-\s+/);
+        if (parts.length < 2) return;
+        var name = parts.shift().trim();
+        var description = parts.join(' - ').trim();
+        if (name && description) notes[normalizedName(name)] = description;
+      });
+      return notes;
+    }
+    function resolveAsset(name) {
+      return /^(https?:|data:|blob:|\/)/.test(name) ? name : new URL(name, ASSETS).href;
+    }
+    function openLightbox(src, alt, caption) {
       lightImg.src = src; lightImg.alt = alt || 'Снимка';
+      lightCaption.textContent = caption || '';
+      lightCaption.hidden = !caption;
       lightbox.hidden = false;
     }
     function renderEmpty() {
       grid.innerHTML = '<p class="shots-empty">Все още няма качени снимки. ' +
-        'Добавете изображения в <code>/assets/aipost247/</code> и ги впишете в ' +
-        '<code>images.json</code>.</p>';
+        'Добавете изображения в <code>assets/</code> и ги впишете в ' +
+        '<code>images.json</code>. Описанията се четат от <code>how_to.txt</code>.</p>';
     }
-    function render(items) {
+    function render(items, notes) {
       if (!items || !items.length) { renderEmpty(); return; }
       grid.innerHTML = '';
       items.forEach(function (it) {
         var name = typeof it === 'string' ? it : (it.src || '');
         if (!name) return;
-        var cap = (typeof it === 'object' && it.caption) ? it.caption : '';
-        var src = /^https?:|^\//.test(name) ? name : ASSETS + name;
+        var manifestCaption = (typeof it === 'object' && it.caption) ? it.caption : '';
+        var cap = notes[normalizedName(name)] || manifestCaption;
+        var src = resolveAsset(name);
         var card = document.createElement('button');
-        card.type = 'button'; card.className = 'shot';
+        card.type = 'button'; card.className = 'shot'; card.setAttribute('aria-label', cap || name);
         var img = document.createElement('img');
         img.loading = 'lazy'; img.src = src; img.alt = cap || name;
         card.appendChild(img);
         if (cap) { var c = document.createElement('div'); c.className = 'cap'; c.textContent = cap; card.appendChild(c); }
-        card.addEventListener('click', function () { openLightbox(src, cap || name); });
+        card.addEventListener('click', function () { openLightbox(src, cap || name, cap); });
         grid.appendChild(card);
       });
     }
     function load() {
       if (loaded) return; loaded = true;
-      fetch(ASSETS + 'images.json', { cache: 'no-store' })
-        .then(function (r) { if (!r.ok) throw new Error('no manifest'); return r.json(); })
-        .then(function (data) { render(Array.isArray(data) ? data : (data.images || [])); })
+      Promise.all([
+        fetch(ASSETS + 'images.json', { cache: 'no-store' })
+          .then(function (r) { if (!r.ok) throw new Error('no manifest'); return r.json(); }),
+        fetch(ASSETS + 'how_to.txt', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.text() : ''; })
+          .catch(function () { return ''; })
+      ])
+        .then(function (result) {
+          var data = result[0];
+          var notes = parseHowTo(result[1]);
+          render(Array.isArray(data) ? data : (data.images || []), notes);
+        })
         .catch(function () { renderEmpty(); });
     }
     function openModal() { modal.hidden = false; load(); }
@@ -523,10 +561,10 @@
     document.getElementById('open-shots').addEventListener('click', openModal);
     document.getElementById('close-shots').addEventListener('click', closeModal);
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    lightbox.addEventListener('click', function () { lightbox.hidden = true; lightImg.src = ''; });
+    lightbox.addEventListener('click', function () { lightbox.hidden = true; lightImg.src = ''; lightCaption.hidden = true; });
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
-      if (!lightbox.hidden) { lightbox.hidden = true; lightImg.src = ''; }
+      if (!lightbox.hidden) { lightbox.hidden = true; lightImg.src = ''; lightCaption.hidden = true; }
       else if (!modal.hidden) closeModal();
     });
   })();

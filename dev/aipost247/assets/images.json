@@ -1,15 +1,19 @@
 [
   {
-    "src": "soon.jpg"
+    "src": "soon.jpg",
+    "caption": "Download and extract"
   },
   {
-    "src": "soon copy.jpg"
+    "src": "soon copy.jpg",
+    "caption": "You open it by starting run.sh for Mac/Linux or double click on run.bat for windows"
   },
   {
-    "src": "soon copy 2.jpg"
+    "src": "soon copy 2.jpg",
+    "caption": "when you run it it might take a bit just wait"
   },
   {
-    "src": "soon copy 3.jpg"
+    "src": "soon copy 3.jpg",
+    "caption": "it opens a dashboard this is where you configure"
   },
   {
     "src": "soon copy 4.jpg"
