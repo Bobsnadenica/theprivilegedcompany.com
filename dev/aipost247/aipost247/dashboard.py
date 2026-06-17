@@ -7,9 +7,11 @@ API. Everything stays on your machine; secrets are never sent to the browser.
 from __future__ import annotations
 
 import json
+import os
+import secrets
 import threading
 import time
-import os
+import urllib.parse
 import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -97,6 +99,36 @@ class Autopilot:
 
 _AUTOPILOT = Autopilot()
 _LOGIN_RUNNING = threading.Event()
+
+# Long operations (generate / post / learn) run as background JOBS and the
+# browser polls for the result. This keeps HTTP requests short — a slow CLI no
+# longer holds the connection open until it breaks (BrokenPipe) or times out.
+_JOBS: dict[str, dict] = {}
+_JOBS_LOCK = threading.Lock()
+
+
+def _start_job(fn) -> str:
+    job_id = secrets.token_hex(8)
+    with _JOBS_LOCK:
+        _JOBS[job_id] = {"status": "running", "result": None}
+        for stale in list(_JOBS)[:-40]:  # bound memory
+            _JOBS.pop(stale, None)
+
+    def _run():
+        try:
+            result = fn()
+        except Exception as exc:  # noqa: BLE001
+            result = {"ok": False, "error": str(exc)}
+        with _JOBS_LOCK:
+            _JOBS[job_id] = {"status": "done", "result": result}
+
+    threading.Thread(target=_run, daemon=True).start()
+    return job_id
+
+
+def _job_state(job_id: str) -> dict | None:
+    with _JOBS_LOCK:
+        return _JOBS.get(job_id)
 
 
 # --------------------------------------------------------------------------
@@ -235,11 +267,16 @@ class _Handler(BaseHTTPRequestHandler):
     memory: MemoryStore = None  # type: ignore[assignment]
 
     def _send(self, code: int, body: bytes, ctype: str) -> None:
-        self.send_response(code)
-        self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # The browser closed the connection (navigated away / slow request).
+            # Harmless — don't crash the worker thread with a traceback.
+            log.debug("Client disconnected before response was sent.")
 
     def _json(self, obj, code: int = 200) -> None:
         self._send(code, json.dumps(obj, ensure_ascii=False).encode("utf-8"),
@@ -277,6 +314,10 @@ class _Handler(BaseHTTPRequestHandler):
             })
         elif path == "/api/logs":
             self._json({"log": _tail_log()})
+        elif path == "/api/job":
+            qs = urllib.parse.parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
+            state = _job_state((qs.get("id") or [""])[0])
+            self._json(state or {"status": "unknown"})
         else:
             self._json({"error": "not found"}, 404)
 
@@ -289,11 +330,13 @@ class _Handler(BaseHTTPRequestHandler):
                 _save_config(data)
                 self._json({"ok": True})
             elif path == "/api/generate":
-                self._json(_do_cycle(self.memory, dry_run=True))
+                mem = self.memory
+                self._json({"ok": True, "job": _start_job(lambda: _do_cycle(mem, dry_run=True))})
             elif path == "/api/post-now":
-                self._json(_do_cycle(self.memory, dry_run=False))
+                mem = self.memory
+                self._json({"ok": True, "job": _start_job(lambda: _do_cycle(mem, dry_run=False))})
             elif path == "/api/learn":
-                self._json(self._learn())
+                self._json({"ok": True, "job": _start_job(self._learn)})
             elif path == "/api/login-gemini":
                 self._json(self._login_gemini(data))
             elif path == "/api/check-login":
@@ -841,11 +884,21 @@ function fbConnect(){toast("Отваря се браузър за Facebook…");
     $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
     $("fb_app_secret").value="";loadStatus();});}
 
-function act(url,msg){toast(msg);var o=$("action-out");o.classList.remove("hide");o.textContent=msg;document.body.classList.add("busy");
-  postJSON(url,{}).then(function(r){document.body.classList.remove("busy");
-    if(r.ok){o.textContent=(r.text!==undefined?r.text:("Готово · обновени: "+(r.updated!==undefined?r.updated:"")))+(r.published?"\\n\\n✓ Публикувано (id "+r.post_id+")":(r.published===false?"\\n\\n(тестов преглед — не е публикувано)":""));}
-    else{o.textContent="✕ "+(r.error||"Грешка");}
-    loadStatus();});}
+function showActionResult(r,o){
+  if(r&&r.ok){o.textContent=(r.text!==undefined?r.text:("Готово · обновени: "+(r.updated!==undefined?r.updated:"")))+(r.published?"\n\n✓ Публикувано (id "+r.post_id+")":(r.published===false?"\n\n(тестов преглед — не е публикувано)":""));}
+  else{o.textContent="✕ "+((r&&r.error)||"Грешка");}
+}
+function act(url,msg){toast(msg);var o=$("action-out");o.classList.remove("hide");o.textContent=msg+" (може да отнеме до минута) …";
+  postJSON(url,{}).then(function(r){
+    if(r&&r.job){
+      var t=setInterval(function(){
+        getJSON("/api/job?id="+r.job).then(function(j){
+          if(j&&j.status==="done"){clearInterval(t);showActionResult(j.result,o);loadStatus();}
+        }).catch(function(){});
+      },1500);
+    } else { showActionResult(r,o); loadStatus(); }
+  }).catch(function(){o.textContent="✕ Грешка при заявката";});
+}
 
 function autopilot(a){postJSON("/api/autopilot",{action:a}).then(function(r){if(!r.ok)toast(r.error||"Грешка");loadStatus();});}
 

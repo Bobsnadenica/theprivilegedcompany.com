@@ -246,7 +246,7 @@ def login(provider: str, timeout: int = 300) -> bool:
     return False
 
 
-def generate(provider: str, prompt: str, timeout: int = 180) -> str:
+def generate(provider: str, prompt: str, timeout: int = 120) -> str:
     """One-shot text completion via the provider's CLI. Raises typed errors."""
     spec = _spec(provider)
     path = cli_path(provider)
