@@ -23,6 +23,8 @@ if [ -n "$VER" ] && grep -q 'id="dl-ver"' "$HERE/index.html"; then
   echo "Stamped version: $VER ($DATE)"
 fi
 
+python3 "$HERE/assets/video/validate-videos.py"
+
 STAGE="$(mktemp -d)"
 DEST="$STAGE/aipost247"
 mkdir -p "$DEST"

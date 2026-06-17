@@ -1,0 +1,5 @@
+# Add one YouTube link per line.
+# Optional formats:
+#   https://www.youtube.com/watch?v=VIDEO_ID
+#   Setup overview - https://youtu.be/VIDEO_ID
+#   https://www.youtube.com/shorts/VIDEO_ID - Short title
