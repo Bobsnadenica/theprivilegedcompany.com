@@ -14,12 +14,16 @@ from urllib.parse import parse_qs, urlparse
 
 HERE = Path(__file__).resolve().parent
 VIDEO_TXT = HERE / "video.txt"
-YOUTUBE_URL_RE = re.compile(r"https?://(?:[^\s]+\.)?(?:youtube\.com|youtu\.be)/[^\s<>\"']+", re.I)
+YOUTUBE_URL_RE = re.compile(r"(?:https?://)?(?:[^\s]+\.)?(?:youtube\.com|youtu\.be)/[^\s<>\"']+", re.I)
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,}$")
 
 
+def _normalize_url(raw_url: str) -> str:
+    return raw_url if re.match(r"^https?://", raw_url, re.I) else f"https://{raw_url}"
+
+
 def _video_id(url: str) -> str:
-    parsed = urlparse(url.strip().rstrip("),.;"))
+    parsed = urlparse(_normalize_url(url.strip().rstrip("),.;")))
     host = (parsed.hostname or "").lower()
     for prefix in ("www.", "m."):
         if host.startswith(prefix):
