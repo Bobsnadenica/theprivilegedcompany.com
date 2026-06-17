@@ -238,15 +238,16 @@ def _do_cycle(memory: MemoryStore, dry_run: bool) -> dict:
             api_version=config.graph_api_version,
         )
         try:
-            engagement.learn(memory, fb, cfg.MEMORY_DIR)
-        except Exception:  # noqa: BLE001 - learning must never block a post
+            engagement.write_skill_md(memory, cfg.MEMORY_DIR)
+        except Exception:  # noqa: BLE001 - learning must never block generation
             pass
-        text = _app.generate_text(config, memory.build_context())
+        text = _app.generate_text(config, memory.build_context(max_recent=6, max_knowledge_chars=3000))
         if dry_run:
             memory.add_post(text, fb_post_id=None, status="dry_run", model=config.ai_provider)
             return {"ok": True, "published": False, "text": text}
         post_id = fb.post(text)
         memory.add_post(text, fb_post_id=post_id, status="published", model=config.ai_provider)
+        engagement.learn_background(memory, fb, cfg.MEMORY_DIR)
         return {"ok": True, "published": True, "post_id": post_id, "text": text}
     except FacebookError as exc:
         return {"ok": False, "error": f"Facebook: {exc}"}
@@ -379,7 +380,7 @@ class _Handler(BaseHTTPRequestHandler):
             api_version=config.graph_api_version,
         )
         try:
-            updated = engagement.sync(self.memory, fb)
+            updated = engagement.sync(self.memory, fb, limit=25)
             engagement.write_skill_md(self.memory, cfg.MEMORY_DIR)
             return {"ok": True, "updated": updated}
         except FacebookError as exc:
@@ -511,9 +512,19 @@ class _Handler(BaseHTTPRequestHandler):
         text = (data.get("feedback") or "").strip()
         if not text:
             return {"ok": False, "error": "Празна обратна връзка."}
-        consolidated = _app._consolidate_steering(cfg.load_config(), self.memory, text)
-        return {"ok": True, "ai_consolidated": consolidated,
-                "steering": self.memory.read_steering_file()}
+        _app.apply_feedback_fast(self.memory, text)
+        job = _start_job(lambda: {
+            "ok": True,
+            "ai_consolidated": _app._consolidate_steering(cfg.load_config(), self.memory, text),
+            "steering": self.memory.read_steering_file(),
+        })
+        return {
+            "ok": True,
+            "queued": True,
+            "job": job,
+            "ai_consolidated": False,
+            "steering": self.memory.read_steering_file(),
+        }
 
     def _autopilot(self, data: dict) -> dict:
         action = data.get("action")
@@ -1039,8 +1050,17 @@ function loadMemory(){getJSON("/api/memory").then(function(m){
 
 function saveBusiness(){var b={};BIZ.forEach(function(f){b[f[0]]=$("biz_"+f[0]).value;});
   postJSON("/api/business",b).then(function(r){toast(r.ok?"Профилът е запазен":(r.error||"Грешка"));});}
-function sendFeedback(){var t=$("feedback").value.trim();if(!t){toast("Напишете нещо");return;}toast("Съгласувам стила…");
-  postJSON("/api/feedback",{feedback:t}).then(function(r){if(r.ok){$("feedback").value="";$("steering-view").textContent=r.steering;toast("Стилът е обновен");}else toast(r.error||"Грешка");});}
+function pollFeedbackJob(job){var tries=0,t=setInterval(function(){
+  getJSON("/api/job?id="+job).then(function(j){
+    tries++;
+    if(j&&j.status==="done"){clearInterval(t);var r=j.result||{};
+      if(r.steering)$("steering-view").textContent=r.steering;
+      toast(r.ai_consolidated?"Стилът е подреден от AI":"Стилът е записан");
+    } else if(tries>30){clearInterval(t);}
+  }).catch(function(){tries++;if(tries>30)clearInterval(t);});
+},1200);}
+function sendFeedback(){var t=$("feedback").value.trim();if(!t){toast("Напишете нещо");return;}toast("Записвам стила…");
+  postJSON("/api/feedback",{feedback:t}).then(function(r){if(r.ok){$("feedback").value="";$("steering-view").textContent=r.steering;toast(r.queued?"Стилът е записан веднага; AI го подрежда във фон":"Стилът е обновен");if(r.job)pollFeedbackJob(r.job);}else toast(r.error||"Грешка");});}
 
 loadStatus();loadConfig();
 setInterval(function(){loadStatus();var l=$("tab-logs");if(l&&!l.classList.contains("hide"))loadLogs();var p=$("tab-posts");if(p&&!p.classList.contains("hide"))loadPosts();},5000);

@@ -202,6 +202,15 @@ class MemoryStore:
             )
             self._conn.commit()
 
+    def latest_engagement_updated_at(self) -> str | None:
+        """Most recent engagement refresh timestamp, used to throttle Facebook reads."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT MAX(engagement_updated_at) AS updated_at FROM posts "
+                "WHERE engagement_updated_at IS NOT NULL"
+            ).fetchone()
+        return row["updated_at"] if row and row["updated_at"] else None
+
     def top_posts_by_engagement(self, limit: int = 5) -> list[dict]:
         with self._lock:
             rows = self._conn.execute(
@@ -342,9 +351,15 @@ class MemoryStore:
 
         recent = self.recent_posts(max_recent)
         if recent:
+            lines: list[str] = []
+            for row in recent:
+                content = " ".join(row["content"].split())
+                if len(content) > 280:
+                    content = content[:280].rstrip() + "..."
+                lines.append(f"- {content}")
             parts.append(
                 "## Recent posts — do NOT repeat these; write something clearly different\n"
-                + "\n".join(f"- {row['content']}" for row in recent)
+                + "\n".join(lines)
             )
 
         parts.append(

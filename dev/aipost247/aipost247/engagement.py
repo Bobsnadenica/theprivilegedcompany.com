@@ -7,6 +7,8 @@ writes better posts over time based on what actually worked.
 """
 from __future__ import annotations
 
+import threading
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .facebook_client import FacebookError
@@ -14,8 +16,31 @@ from .logging_setup import get_logger
 
 log = get_logger("engagement")
 
+DEFAULT_AUTO_LIMIT = 8
+DEFAULT_AUTO_MIN_INTERVAL_MINUTES = 30
 
-def sync(memory, fb, limit: int = 25) -> int:
+
+def _parse_ts(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def should_sync(memory, min_interval_minutes: int = DEFAULT_AUTO_MIN_INTERVAL_MINUTES) -> bool:
+    """True when the automatic engagement refresh is old enough to run again."""
+    last = _parse_ts(memory.latest_engagement_updated_at())
+    if not last:
+        return True
+    return datetime.now(timezone.utc) - last >= timedelta(minutes=min_interval_minutes)
+
+
+def sync(memory, fb, limit: int = DEFAULT_AUTO_LIMIT) -> int:
     """Refresh stored engagement for recent published posts. Returns # updated."""
     updated = 0
     for post in memory.published_with_fb_ids(limit):
@@ -63,10 +88,23 @@ def write_skill_md(memory, memory_dir, top_n: int = 5) -> Path | None:
     return path
 
 
-def learn(memory, fb, memory_dir) -> bool:
+def learn(
+    memory,
+    fb,
+    memory_dir,
+    *,
+    force: bool = False,
+    limit: int = DEFAULT_AUTO_LIMIT,
+    min_interval_minutes: int = DEFAULT_AUTO_MIN_INTERVAL_MINUTES,
+) -> bool:
     """Sync engagement then refresh skill.md. Never raises (safe in the loop)."""
     try:
-        updated = sync(memory, fb)
+        if not force and not should_sync(memory, min_interval_minutes):
+            write_skill_md(memory, memory_dir)
+            log.debug("Engagement learning skipped; last refresh is still fresh.")
+            return True
+
+        updated = sync(memory, fb, limit=limit)
         path = write_skill_md(memory, memory_dir)
         if path:
             log.info("Learned from %d post(s) → refreshed %s", updated, path.name)
@@ -74,3 +112,12 @@ def learn(memory, fb, memory_dir) -> bool:
     except Exception as exc:  # noqa: BLE001 - must not break the posting loop
         log.warning("Engagement learning skipped this cycle: %s", exc)
         return False
+
+
+def learn_background(memory, fb, memory_dir, **kwargs) -> None:
+    """Run engagement learning without holding up post generation or the dashboard."""
+    thread = threading.Thread(
+        target=lambda: learn(memory, fb, memory_dir, **kwargs),
+        daemon=True,
+    )
+    thread.start()

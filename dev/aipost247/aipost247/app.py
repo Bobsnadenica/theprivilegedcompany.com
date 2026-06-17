@@ -70,13 +70,17 @@ def generate_text(config: Config, context: str) -> str:
 
 # --- core cycle ----------------------------------------------------------
 def run_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_run: bool) -> bool:
-    # Self-improvement: refresh engagement + skill.md so context reflects what works.
+    # Use existing engagement learnings immediately. Slow Facebook engagement reads
+    # run after publishing, so generation never waits on up to several API calls.
     from . import engagement
 
-    engagement.learn(memory, fb, MEMORY_DIR)
+    try:
+        engagement.write_skill_md(memory, MEMORY_DIR)
+    except Exception as exc:  # noqa: BLE001 - learning must never block generation
+        log.debug("Could not refresh skill.md from existing data: %s", exc)
 
     log.info("Building context from local memory ...")
-    context = memory.build_context()
+    context = memory.build_context(max_recent=6, max_knowledge_chars=3000)
 
     from . import cli_provider
 
@@ -93,6 +97,7 @@ def run_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_ru
     log.info("Publishing to Facebook Page %s ...", config.fb_page_id)
     post_id = fb.post(text)
     memory.add_post(text, fb_post_id=post_id, status="published", model=config.ai_provider)
+    engagement.learn_background(memory, fb, MEMORY_DIR)
     log.info("Published successfully. Facebook post id: %s", post_id)
     return True
 
@@ -233,6 +238,24 @@ _STEERING_PROMPT = (
 )
 
 
+def apply_feedback_fast(memory: MemoryStore, feedback: str) -> None:
+    """Write owner feedback to steering.md immediately, without waiting for AI."""
+    text = feedback.strip()
+    if not text:
+        return
+    existing = memory.read_steering_file()
+    bullets = [ln.strip() for ln in existing.splitlines() if ln.strip().startswith("-")]
+    new_bullet = f"- {text}"
+    merged = [new_bullet]
+    for bullet in bullets:
+        if bullet.lower() != new_bullet.lower():
+            merged.append(bullet)
+    memory.write_steering_file(
+        "# Style rules (newest first; AI may consolidate these in the background)\n\n"
+        + "\n".join(merged[:8])
+    )
+
+
 def _consolidate_steering(config: Config, memory: MemoryStore, feedback: str) -> bool:
     """Merge feedback into ONE non-contradictory style guide (self-correcting; no drift).
 
@@ -252,13 +275,7 @@ def _consolidate_steering(config: Config, memory: MemoryStore, feedback: str) ->
         return True
     except Exception as exc:  # noqa: BLE001 - fall back to a bounded, newest-wins merge
         log.warning("Steering consolidation via AI failed (%s); using simple merge.", exc)
-        existing = memory.read_steering_file()
-        bullets = [ln for ln in existing.splitlines() if ln.strip().startswith("-")]
-        new_bullet = f"- {feedback.strip()}"
-        merged = [new_bullet] + [b for b in bullets if b.strip().lower() != new_bullet.lower()]
-        memory.write_steering_file(
-            "# Style rules (newest first; newer overrides older)\n\n" + "\n".join(merged[:8])
-        )
+        apply_feedback_fast(memory, feedback)
         return False
 
 
@@ -279,9 +296,8 @@ def _prompt_post_feedback(config: Config, memory: MemoryStore) -> None:
     if not feedback:
         print("  Пропуснато.")
         return
-    print("  Обновявам стила на писане (съгласувам с предишните указания) ...")
-    _consolidate_steering(config, memory, feedback)
-    print("  ✓ Готово — стилът е обновен без противоречия и важи за следващите публикации.")
+    apply_feedback_fast(memory, feedback)
+    print("  ✓ Готово — стилът е записан веднага и важи за следващите публикации.")
 
 
 def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
@@ -419,7 +435,7 @@ def main(argv=None) -> int:
         if command == "learn":
             from . import engagement
 
-            updated = engagement.sync(memory, fb)
+            updated = engagement.sync(memory, fb, limit=25)
             path = engagement.write_skill_md(memory, MEMORY_DIR)
             log.info(
                 "Read engagement for %d post(s); skill.md %s.",
