@@ -17,7 +17,9 @@ keeps catching them unchanged.
 """
 from __future__ import annotations
 
+import ast
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -33,6 +35,9 @@ from .gemini_client import (
 from .logging_setup import get_logger
 
 log = get_logger("cli_provider")
+
+_CODEX_PROJECT_HEADER_RE = re.compile(r'^\s*\[projects\."((?:\\.|[^"\\])*)"\]\s*$')
+_CODEX_TRUST_LINE_RE = re.compile(r'^\s*trust_level\s*=\s*["\']trusted["\']\s*(?:#.*)?$')
 
 # Each provider is described by a small spec so adding/adjusting one is a
 # one-line change once its exact CLI contract is confirmed on a real machine.
@@ -197,7 +202,10 @@ def _set_authok(provider: str, ok: bool) -> None:
 
 
 def _has_creds_file(provider: str) -> bool:
-    for cand in _spec(provider).get("creds", []):
+    candidates = list(_spec(provider).get("creds", []))
+    if provider == "codex":
+        candidates.append(str(_codex_config_file().with_name("auth.json")))
+    for cand in candidates:
         path = Path(os.path.expanduser(cand))
         try:
             if path.is_file() and path.stat().st_size > 2:
@@ -207,15 +215,106 @@ def _has_creds_file(provider: str) -> bool:
     return False
 
 
+def _codex_config_file() -> Path:
+    home = os.environ.get("CODEX_HOME")
+    if home:
+        return Path(os.path.expanduser(home)) / "config.toml"
+    return Path(os.path.expanduser("~")) / ".codex" / "config.toml"
+
+
+def _toml_basic_string(raw: str) -> str:
+    try:
+        return ast.literal_eval(f'"{raw}"')
+    except (SyntaxError, ValueError):
+        return raw.replace(r"\"", '"').replace(r"\\", "\\")
+
+
+def _path_is_or_inside(child: Path, parent: Path) -> bool:
+    try:
+        child_s = os.path.normcase(str(child.expanduser().resolve()))
+        parent_s = os.path.normcase(str(parent.expanduser().resolve()))
+        rel = os.path.relpath(child_s, parent_s)
+    except (OSError, ValueError):
+        return False
+    return rel == "." or (rel and not rel.startswith(".." + os.sep) and rel != "..")
+
+
+def _codex_project_is_trusted(directory: Path | None = None) -> bool:
+    """Best-effort local check for Codex's persisted project trust setting."""
+    directory = directory or Path.cwd()
+    config = _codex_config_file()
+    try:
+        text = config.read_text(encoding="utf-8")
+    except OSError:
+        return False
+
+    current_project: Path | None = None
+    for line in text.splitlines():
+        header = _CODEX_PROJECT_HEADER_RE.match(line)
+        if header:
+            current_project = Path(_toml_basic_string(header.group(1)))
+            continue
+        if line.lstrip().startswith("["):
+            current_project = None
+            continue
+        if current_project and _CODEX_TRUST_LINE_RE.match(line):
+            if _path_is_or_inside(directory, current_project):
+                return True
+    return False
+
+
+def _is_codex_trust_error(text: str) -> bool:
+    haystack = (text or "").lower()
+    return (
+        "not inside a trusted directory" in haystack
+        or ("--skip-git-repo-check" in haystack and "trusted director" in haystack)
+    )
+
+
+def _codex_trust_command(directory: Path | None = None) -> str:
+    directory = directory or Path.cwd()
+    return f'codex --cd "{directory}" --no-alt-screen'
+
+
+def _codex_trust_message(directory: Path | None = None) -> str:
+    return (
+        "Codex трябва първо да довери тази папка. Натиснете вход за Codex в "
+        "таблото и потвърдете trust/yes в прозореца на терминала, или изпълнете: "
+        f"{_codex_trust_command(directory)}"
+    )
+
+
+def _prompt_codex_trust(path: str, timeout: int = 300) -> None:
+    directory = Path.cwd()
+    print(
+        "  Codex трябва еднократно да довери тази папка:\n"
+        f"    {directory}\n"
+        "  В прозореца на Codex изберете trust/yes, после излезте от Codex "
+        "(например с Ctrl+C), за да се върнете в таблото."
+    )
+    try:
+        subprocess.run([path, "--cd", str(directory), "--no-alt-screen"], timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print("  Времето за доверяване на папката изтече.")
+    except OSError as exc:
+        log.warning("Could not open Codex trust prompt: %s", exc)
+        print(f"  Не мога да отворя Codex prompt: {exc}")
+
+
 def is_authenticated(provider: str) -> bool:
     """True if the CLI has cached login credentials (file) OR a confirmed marker."""
-    return _has_creds_file(provider) or _marker(provider).exists()
+    has_login = _has_creds_file(provider) or _marker(provider).exists()
+    if provider == "codex":
+        return has_login and _codex_project_is_trusted()
+    return has_login
 
 
 def _confirm_authed(provider: str) -> bool:
     """Confirm login by a real one-shot generation (works for keyring creds too)."""
     if is_authenticated(provider):
         return True
+    if provider == "codex" and not _codex_project_is_trusted():
+        return False
     try:
         generate(provider, "Reply with: OK", timeout=60)
     except GeminiRateLimitError:
@@ -230,6 +329,43 @@ def _confirm_authed(provider: str) -> bool:
 def login(provider: str, timeout: int = 300) -> bool:
     spec = _spec(provider)
     path = ensure_installed(provider)
+    if provider == "codex":
+        has_login = _has_creds_file(provider) or _marker(provider).exists()
+        if has_login:
+            print(f"  Вече сте влезли ({spec['bin']}).")
+        else:
+            print(
+                f"  Влизане през {spec['bin']} ...\n"
+                "  Завършете входа в ТОЗИ прозорец на терминала (отворете показаната\n"
+                "  връзка в браузъра; ако се поиска код — поставете го тук и Enter). Без ключ."
+            )
+            for args in spec.get("login_cmds", []):
+                try:
+                    subprocess.run([path] + args, timeout=timeout)
+                except subprocess.TimeoutExpired:
+                    print("  Времето за вход изтече.")
+                except OSError as exc:
+                    log.warning("Could not run %s %s: %s", spec["bin"], args, exc)
+                if _has_creds_file(provider) or _marker(provider).exists():
+                    has_login = True
+                    break
+
+        if has_login and not _codex_project_is_trusted():
+            _prompt_codex_trust(path, timeout=timeout)
+
+        if is_authenticated(provider):
+            print("  ✓ Codex е влязъл и тази папка е доверена.")
+            return True
+
+        manual = spec.get("login_manual", f"{spec['bin']} login")
+        print(
+            "  Codex още не е готов. Проверете входа и доверието към папката ръчно:\n"
+            f"    1) вход:       {manual}\n"
+            f"    2) доверяване: {_codex_trust_command()}\n"
+            "    3) върнете се в таблото и натиснете „Обнови / провери състоянието“."
+        )
+        return False
+
     if is_authenticated(provider):
         print(f"  Вече сте влезли ({spec['bin']}).")
         return True
@@ -286,6 +422,8 @@ def generate(provider: str, prompt: str, timeout: int = 120) -> str:
         haystack = f"{stderr}\n{stdout}".lower()
         if any(hint in haystack for hint in _CAPACITY_HINTS):
             raise GeminiRateLimitError(f"{spec['bin']} is temporarily at capacity / rate limited.")
+        if provider == "codex" and _is_codex_trust_error(haystack):
+            raise GeminiAuthError(_codex_trust_message())
         # Use the credentials FILE (not the lenient marker) so a real auth failure
         # is detected even if an old success marker is still around.
         if not _has_creds_file(provider):
@@ -370,10 +508,17 @@ def raw_probe(config, prompt: str = "Reply with the single word: OK", timeout: i
         return {"ok": False, "error": f"timeout {timeout}s", "cmd": " ".join(cmd)}
     except OSError as exc:
         return {"ok": False, "error": str(exc), "cmd": " ".join(cmd)}
-    return {
+    result = {
         "ok": proc.returncode == 0,
         "returncode": proc.returncode,
         "cmd": " ".join(cmd),
         "stdout": (proc.stdout or "")[:2000],
         "stderr": (proc.stderr or "")[:2000],
     }
+    if (
+        config.ai_provider == "codex"
+        and proc.returncode != 0
+        and _is_codex_trust_error(f"{proc.stderr or ''}\n{proc.stdout or ''}")
+    ):
+        result["error"] = _codex_trust_message()
+    return result

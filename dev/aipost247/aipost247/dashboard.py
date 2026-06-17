@@ -507,10 +507,17 @@ class _Handler(BaseHTTPRequestHandler):
                 _LOGIN_RUNNING.clear()
 
         threading.Thread(target=_bg, daemon=True).start()
+        if config.ai_provider == "codex":
+            msg = ("Завършете входа/доверяването в прозореца на ТЕРМИНАЛА. "
+                   "Ако вече сте влезли в ChatGPT, Codex ще поиска само trust/yes "
+                   "за тази папка; после излезте от Codex с Ctrl+C. Състоянието "
+                   "тук ще се обнови само.")
+        else:
+            msg = ("Завършете входа в прозореца на ТЕРМИНАЛА, където стартирахте "
+                   "програмата (отворете показаната връзка; ако се поиска код — "
+                   "поставете го там). Състоянието тук ще се обнови само.")
         return {"ok": True, "started": True, "provider": config.ai_provider,
-                "message": ("Завършете входа в прозореца на ТЕРМИНАЛА, където стартирахте "
-                            "програмата (отворете показаната връзка; ако се поиска код — "
-                            "поставете го там). Състоянието тук ще се обнови само.")}
+                "message": msg}
 
     def _fb_connect(self, data: dict) -> dict:
         from .facebook_client import FacebookError
@@ -1047,7 +1054,7 @@ function loadConfig(){
 }
 var CLI_HINTS={gemini:"Влезте с Google — безплатно, без API ключ.",
   antigravity:"Заместникът на Gemini CLI. Влезте с Google — без ключ. (Изисква инсталиран Antigravity CLI „agy“.)",
-  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. (Изисква Codex CLI.)"};
+  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. При първо ползване Codex ще поиска да доверите тази папка в терминала."};
 function toggleProvider(){var p=$("ai_provider").value,o=(p==="openai");
   $("openai-box").classList.toggle("hide",!o);$("cli-box").classList.toggle("hide",o);
   $("gemini-model-row").classList.toggle("hide",p!=="gemini");

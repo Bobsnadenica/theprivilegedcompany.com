@@ -283,7 +283,10 @@ def _setup_ai_provider(existing: Config) -> dict:
         try:
             print(f"  Инсталиране/проверка на {provider} ...")
             cli_provider.ensure_installed(provider)
-            if _ask_yes_no("  Да влезете сега (отваря браузър, без ключ)?", default=True):
+            prompt = "  Да влезете сега (отваря браузър, без ключ)?"
+            if provider == "codex":
+                prompt = "  Да влезете и да доверите тази папка сега (без ключ)?"
+            if _ask_yes_no(prompt, default=True):
                 if cli_provider.login(provider):
                     print("  ✓ Готово — доставчикът е влязъл.")
         except gemini_client.GeminiError as exc:
