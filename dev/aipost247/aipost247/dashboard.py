@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+import os
 import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -295,6 +296,10 @@ class _Handler(BaseHTTPRequestHandler):
                 self._json(self._learn())
             elif path == "/api/login-gemini":
                 self._json(self._login_gemini(data))
+            elif path == "/api/check-login":
+                from . import cli_provider
+
+                self._json({"ok": True, "logged_in": cli_provider.recheck(cfg.load_config())})
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
             elif path == "/api/business":
@@ -335,7 +340,8 @@ class _Handler(BaseHTTPRequestHandler):
         if prov and prov != cfg.load_config().ai_provider:
             cfg._write_env({"AI_PROVIDER": prov})
         config = cfg.load_config()
-        if cli_provider.is_logged_in(config):
+        # Probe first — catches a login already done (here or manually elsewhere).
+        if cli_provider.recheck(config):
             return {"ok": True, "logged_in": True, "already": True, "provider": config.ai_provider}
         if _LOGIN_RUNNING.is_set():
             return {"ok": True, "started": True,
@@ -418,8 +424,30 @@ class _Handler(BaseHTTPRequestHandler):
 # --------------------------------------------------------------------------
 # Entry point
 # --------------------------------------------------------------------------
-def run_dashboard(port: int = DEFAULT_PORT, open_browser: bool = True) -> int:
+def _bind_server(start_port: int, attempts: int = 25):
+    """Bind to the first FREE port from ``start_port`` so several copies of the
+    app can run side by side. Falls back to an OS-assigned free port."""
+    last_exc: OSError | None = None
+    for candidate in range(start_port, start_port + attempts):
+        try:
+            return ThreadingHTTPServer(("127.0.0.1", candidate), _Handler)
+        except OSError as exc:
+            last_exc = exc  # port in use (or not allowed) — try the next one
+    # Last resort: let the OS pick any free port.
+    try:
+        return ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
+    except OSError as exc:
+        raise (last_exc or exc)
+
+
+def run_dashboard(port: int | None = None, open_browser: bool = True) -> int:
     cfg.ensure_dirs()
+    cfg.load_config()  # side effect: loads .env into the environment
+    if port is None:
+        try:
+            port = int(os.environ.get("AIPOST_DASHBOARD_PORT", DEFAULT_PORT))
+        except (TypeError, ValueError):
+            port = DEFAULT_PORT
     _Handler.memory = MemoryStore(str(cfg.DB_PATH), str(cfg.MEMORY_DIR))
 
     # Best-effort: install the configured AI CLI (default: Antigravity) NOW, before
@@ -435,13 +463,17 @@ def run_dashboard(port: int = DEFAULT_PORT, open_browser: bool = True) -> int:
             print(f"  ✓ {config.ai_provider} е готов.")
     except Exception as exc:  # noqa: BLE001 - never block the dashboard
         log.warning("AI CLI авто-инсталация прескочена (%s) — ще се инсталира при вход.", exc)
+    requested = port
     try:
-        server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
+        server = _bind_server(requested)
     except OSError as exc:
-        log.error("Не мога да стартирам таблото на порт %d: %s", port, exc)
+        log.error("Не мога да стартирам таблото: %s", exc)
         return 1
+    port = server.server_address[1]
     url = f"http://localhost:{port}/"
     print("\n  " + "=" * 58)
+    if port != requested:
+        print(f"  (Порт {requested} е зает — използвам свободен порт {port}.)")
     print(f"  AIPost247 · Таблото е активно:  {url}")
     print("  Отворете го в браузъра. Спрете с Ctrl+C.")
     print("  " + "=" * 58 + "\n")
@@ -595,6 +627,7 @@ _PAGE = r"""<!DOCTYPE html>
         </div>
         <p class="hint" id="cli-hint" style="margin-top:10px"></p>
         <button class="btn ghost" onclick="loginAI()">Вход с акаунт (отваря браузър)</button>
+        <button class="btn ghost" onclick="checkLogin()">Провери входа</button>
         <span id="ai-login-status" class="muted"></span>
       </div>
       <div id="openai-box" class="hide">
@@ -794,6 +827,8 @@ function saveConfig(){
     run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
   postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
 }
+function checkLogin(){$("ai-login-status").textContent="проверявам…";
+  postJSON("/api/check-login",{}).then(function(r){$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"✕ още не сте влезли";loadStatus();});}
 function loginAI(){var p=$("ai_provider").value;$("ai-login-status").textContent="влизане…";
   postJSON("/api/login-gemini",{provider:p}).then(function(r){
     if(r.already){$("ai-login-status").textContent="✓ вече сте влезли";}

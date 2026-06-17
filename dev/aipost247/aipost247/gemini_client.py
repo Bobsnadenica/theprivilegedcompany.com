@@ -127,7 +127,11 @@ def _run_once(prompt: str, model: str, timeout: int) -> str:
 
     cmd = [path, "-m", model, "-p", prompt]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        # stdin=DEVNULL -> truly non-interactive (fails fast if not logged in,
+        # instead of hanging on the OAuth code prompt).
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
+        )
     except subprocess.TimeoutExpired as exc:
         raise GeminiError(f"Gemini CLI timed out after {timeout}s.") from exc
     except OSError as exc:

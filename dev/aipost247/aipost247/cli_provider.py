@@ -67,6 +67,7 @@ PROVIDERS: dict[str, dict] = {
         # subcommand authenticates and EXITS (no post-auth generation that could
         # hang in interactive mode).
         "login_cmds": [["login"], ["auth", "login"]],
+        "login_manual": "agy login",
         "creds": ["~/.antigravity/oauth_creds.json", "~/.config/antigravity/oauth_creds.json"],
     },
     "codex": {
@@ -76,6 +77,7 @@ PROVIDERS: dict[str, dict] = {
         "install": "Инсталирайте Codex CLI:  npm install -g @openai/codex",
         "gen_args": lambda prompt: ["exec", prompt],
         "login_cmds": [["login"]],  # `codex login` -> Sign in with ChatGPT
+        "login_manual": "codex login",
         "creds": ["~/.codex/auth.json"],
     },
 }
@@ -220,11 +222,10 @@ def login(provider: str, timeout: int = 300) -> bool:
         "  Завършете входа в ТОЗИ прозорец на терминала (отворете показаната\n"
         "  връзка в браузъра; ако се поиска код — поставете го тук и Enter). Без ключ."
     )
-    # Prefer a dedicated `login` subcommand (auths and exits); fall back to a
-    # one-shot generation that triggers the OAuth on first use.
-    attempts = [list(a) for a in spec.get("login_cmds", [])]
-    attempts.append(list(spec["gen_args"]("Reply with: OK")))
-    for args in attempts:
+    # Only use DEDICATED login subcommands — these authenticate and exit.
+    # We intentionally do NOT fall back to `-p` here: with an attached terminal
+    # that drops into an interactive session and hangs after sign-in.
+    for args in spec.get("login_cmds", []):
         try:
             subprocess.run([path] + args, timeout=timeout)
         except subprocess.TimeoutExpired:
@@ -234,9 +235,13 @@ def login(provider: str, timeout: int = 300) -> bool:
         if _confirm_authed(provider):
             print("  ✓ Влязохте успешно.")
             return True
+    manual = spec.get("login_manual", f"{spec['bin']} login")
     print(
-        f"  Входът не може да се потвърди. Опитайте ръчно: `{spec['bin']} login`, "
-        "после се върнете в таблото."
+        f"  Не мога да завърша входа автоматично. Влезте РЪЧНО:\n"
+        f"    1) отворете терминал/команден ред,\n"
+        f"    2) изпълнете:  {manual}\n"
+        f"    3) завършете входа с Google,\n"
+        "    4) върнете се в таблото и натиснете „Обнови / провери състоянието“."
     )
     return False
 
@@ -249,7 +254,11 @@ def generate(provider: str, prompt: str, timeout: int = 180) -> str:
         raise GeminiNotInstalled(spec["install"])
     cmd = [path] + spec["gen_args"](prompt)
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        # stdin=DEVNULL makes this TRULY non-interactive: if the CLI isn't logged
+        # in it fails fast instead of hanging on the OAuth code prompt.
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
+        )
     except subprocess.TimeoutExpired as exc:
         raise GeminiError(f"{spec['bin']} timed out after {timeout}s.") from exc
     except OSError as exc:
@@ -303,3 +312,18 @@ def login_provider(config) -> bool:
     if is_cli_provider(config.ai_provider):
         return login(config.ai_provider)
     return True
+
+
+def recheck(config) -> bool:
+    """Actively confirm the configured provider is logged in (runs one probe).
+
+    Detects a login done MANUALLY in another terminal — including keyring-based
+    creds with no file — and caches the marker so the dashboard reflects it.
+    """
+    if config.ai_provider == "gemini":
+        from . import gemini_client
+
+        return gemini_client.is_authenticated(config.gemini_model)
+    if is_cli_provider(config.ai_provider):
+        return _confirm_authed(config.ai_provider)
+    return True  # openai
