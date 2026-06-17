@@ -5,4 +5,4 @@ store as context) and publishes them to a Facebook Page via the Graph API on a
 schedule.
 """
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"

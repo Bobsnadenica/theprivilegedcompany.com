@@ -63,7 +63,10 @@ PROVIDERS: dict[str, dict] = {
             "        (или изтеглете от https://antigravity.google/download), после опитайте пак."
         ),
         "gen_args": lambda prompt: ["-p", prompt],
-        "login_args": None,  # first `agy -p ...` opens the Google sign-in
+        # Dedicated auth command(s) tried before the `-p` fallback. A real login
+        # subcommand authenticates and EXITS (no post-auth generation that could
+        # hang in interactive mode).
+        "login_cmds": [["login"], ["auth", "login"]],
         "creds": ["~/.antigravity/oauth_creds.json", "~/.config/antigravity/oauth_creds.json"],
     },
     "codex": {
@@ -72,7 +75,7 @@ PROVIDERS: dict[str, dict] = {
         "npm": "@openai/codex",
         "install": "Инсталирайте Codex CLI:  npm install -g @openai/codex",
         "gen_args": lambda prompt: ["exec", prompt],
-        "login_args": ["login"],  # `codex login` -> Sign in with ChatGPT
+        "login_cmds": [["login"]],  # `codex login` -> Sign in with ChatGPT
         "creds": ["~/.codex/auth.json"],
     },
 }
@@ -154,8 +157,28 @@ def ensure_installed(provider: str, auto_install: bool = True) -> str:
     )
 
 
-def is_authenticated(provider: str) -> bool:
-    """True if the CLI has cached login credentials on disk (best-effort)."""
+def _marker(provider: str) -> Path:
+    """Our own 'this provider can generate' flag — set after a successful probe.
+
+    Some CLIs (e.g. Antigravity) keep credentials in the OS keyring, not a file,
+    so a one-shot probe is the only reliable way to know we're logged in.
+    """
+    return Path(os.path.expanduser("~")) / ".aipost247" / f"{provider}.authok"
+
+
+def _set_authok(provider: str, ok: bool) -> None:
+    marker = _marker(provider)
+    try:
+        if ok:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text("ok", encoding="utf-8")
+        elif marker.exists():
+            marker.unlink()
+    except OSError:
+        pass
+
+
+def _has_creds_file(provider: str) -> bool:
     for cand in _spec(provider).get("creds", []):
         path = Path(os.path.expanduser(cand))
         try:
@@ -166,30 +189,54 @@ def is_authenticated(provider: str) -> bool:
     return False
 
 
+def is_authenticated(provider: str) -> bool:
+    """True if the CLI has cached login credentials (file) OR a confirmed marker."""
+    return _has_creds_file(provider) or _marker(provider).exists()
+
+
+def _confirm_authed(provider: str) -> bool:
+    """Confirm login by a real one-shot generation (works for keyring creds too)."""
+    if is_authenticated(provider):
+        return True
+    try:
+        generate(provider, "Reply with: OK", timeout=60)
+    except GeminiRateLimitError:
+        _set_authok(provider, True)  # logged in, just busy
+        return True
+    except GeminiError:
+        return False
+    _set_authok(provider, True)
+    return True
+
+
 def login(provider: str, timeout: int = 300) -> bool:
     spec = _spec(provider)
     path = ensure_installed(provider)
     if is_authenticated(provider):
         print(f"  Вече сте влезли ({spec['bin']}).")
         return True
-    args = spec.get("login_args")
-    cmd = [path] + (args if args else spec["gen_args"]("Reply with: OK"))
     print(
         f"  Влизане през {spec['bin']} ...\n"
-        "  Ще се отвори браузър — завършете входа там (без API ключ)."
+        "  Завършете входа в ТОЗИ прозорец на терминала (отворете показаната\n"
+        "  връзка в браузъра; ако се поиска код — поставете го тук и Enter). Без ключ."
     )
-    try:
-        subprocess.run(cmd, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        print("  Времето за вход изтече.")
-    except OSError as exc:
-        log.warning("Could not start %s login: %s", spec["bin"], exc)
-    if is_authenticated(provider):
-        print("  ✓ Влязохте успешно.")
-        return True
+    # Prefer a dedicated `login` subcommand (auths and exits); fall back to a
+    # one-shot generation that triggers the OAuth on first use.
+    attempts = [list(a) for a in spec.get("login_cmds", [])]
+    attempts.append(list(spec["gen_args"]("Reply with: OK")))
+    for args in attempts:
+        try:
+            subprocess.run([path] + args, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            print("  Времето за вход изтече.")
+        except OSError as exc:
+            log.warning("Could not run %s %s: %s", spec["bin"], args, exc)
+        if _confirm_authed(provider):
+            print("  ✓ Влязохте успешно.")
+            return True
     print(
-        f"  Входът не може да се потвърди автоматично. Стартирайте `{spec['bin']}` "
-        "веднъж ръчно, завършете входа в браузъра, после проверете пак."
+        f"  Входът не може да се потвърди. Опитайте ръчно: `{spec['bin']} login`, "
+        "после се върнете в таблото."
     )
     return False
 
@@ -214,7 +261,10 @@ def generate(provider: str, prompt: str, timeout: int = 180) -> str:
         haystack = f"{stderr}\n{stdout}".lower()
         if any(hint in haystack for hint in _CAPACITY_HINTS):
             raise GeminiRateLimitError(f"{spec['bin']} is temporarily at capacity / rate limited.")
-        if not is_authenticated(provider):
+        # Use the credentials FILE (not the lenient marker) so a real auth failure
+        # is detected even if an old success marker is still around.
+        if not _has_creds_file(provider):
+            _set_authok(provider, False)
             raise GeminiAuthError(
                 f"{spec['bin']} не е влязъл. Изпълнете вход за този доставчик."
             )

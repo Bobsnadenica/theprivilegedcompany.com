@@ -95,6 +95,7 @@ class Autopilot:
 
 
 _AUTOPILOT = Autopilot()
+_LOGIN_RUNNING = threading.Event()
 
 
 # --------------------------------------------------------------------------
@@ -327,18 +328,37 @@ class _Handler(BaseHTTPRequestHandler):
             return {"ok": False, "error": str(exc)}
 
     def _login_gemini(self, data: dict) -> dict:
-        from . import cli_provider, gemini_client
+        from . import cli_provider
 
         # If the UI picked a provider but hasn't saved yet, honour it for login.
         prov = (data or {}).get("provider")
         if prov and prov != cfg.load_config().ai_provider:
             cfg._write_env({"AI_PROVIDER": prov})
         config = cfg.load_config()
-        try:
-            ok = cli_provider.login_provider(config)
-            return {"ok": ok, "logged_in": cli_provider.is_logged_in(config), "provider": config.ai_provider}
-        except gemini_client.GeminiError as exc:
-            return {"ok": False, "error": str(exc)}
+        if cli_provider.is_logged_in(config):
+            return {"ok": True, "logged_in": True, "already": True, "provider": config.ai_provider}
+        if _LOGIN_RUNNING.is_set():
+            return {"ok": True, "started": True,
+                    "message": "Входът вече тече — завършете го в прозореца на ТЕРМИНАЛА."}
+
+        # The CLI login is terminal-interactive (open a URL, maybe paste a code),
+        # so run it in the background and let the user complete it in the terminal
+        # window. The status panel updates itself once it succeeds.
+        _LOGIN_RUNNING.set()
+
+        def _bg():
+            try:
+                cli_provider.login_provider(config)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("Login (%s) failed: %s", config.ai_provider, exc)
+            finally:
+                _LOGIN_RUNNING.clear()
+
+        threading.Thread(target=_bg, daemon=True).start()
+        return {"ok": True, "started": True, "provider": config.ai_provider,
+                "message": ("Завършете входа в прозореца на ТЕРМИНАЛА, където стартирахте "
+                            "програмата (отворете показаната връзка; ако се поиска код — "
+                            "поставете го там). Състоянието тук ще се обнови само.")}
 
     def _fb_connect(self, data: dict) -> dict:
         from .facebook_client import FacebookError
@@ -774,8 +794,13 @@ function saveConfig(){
     run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
   postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
 }
-function loginAI(){var p=$("ai_provider").value;toast("Отваря се браузър за вход…");$("ai-login-status").textContent="влизане…";
-  postJSON("/api/login-gemini",{provider:p}).then(function(r){$("ai-login-status").textContent=r.logged_in?"✓ влязъл":("✕ "+(r.error||"неуспех"));loadStatus();});}
+function loginAI(){var p=$("ai_provider").value;$("ai-login-status").textContent="влизане…";
+  postJSON("/api/login-gemini",{provider:p}).then(function(r){
+    if(r.already){$("ai-login-status").textContent="✓ вече сте влезли";}
+    else if(r.message){$("ai-login-status").innerHTML="↪ "+r.message;toast("Вижте прозореца на терминала");}
+    else if(r.error){$("ai-login-status").textContent="✕ "+r.error;}
+    else{$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"…";}
+    loadStatus();});}
 function fbConnect(){toast("Отваря се браузър за Facebook…");$("fb-status").textContent="свързване…";
   postJSON("/api/facebook/connect",{fb_app_id:$("fb_app_id").value,fb_app_secret:$("fb_app_secret").value}).then(function(r){
     $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
