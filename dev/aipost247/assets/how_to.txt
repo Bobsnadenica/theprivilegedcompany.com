@@ -1,7 +1,7 @@
-1.jpg - Download and extract 
+Soon.jpg - Сваляте и разархивирате
 
-2.jpg - You open it by starting run.sh for Mac/Linux or double click on run.bat for windows
+Soon copy.jpg - Отваряте го като пуснете ./run.sh за Linux/MAC или цъкнете на run.bat за Windows
 
-3.jpg - when you run it it might take a bit just wait
+Soon copy 2.jpg - Когато го пуснете, може да отнеме време докато свали всичко, изчакайте го.
 
-4.jpg - it opens a dashboard this is where you configure
+Soon copy 3.jpg - Отваря ви dashboard където да управлявате настройките.
