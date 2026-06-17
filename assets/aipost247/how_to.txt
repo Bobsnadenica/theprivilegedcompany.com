@@ -1,0 +1,4 @@
+Soon.jpg - Download and extract 
+Soon copy.jpg - You open it by starting run.sh for Mac/Linux or double click on run.bat for windows
+Soon copy 2.jpg - when you run it it might take a bit just wait
+Soon copy 3.jpg - it opens a dashboard this is where you configure
