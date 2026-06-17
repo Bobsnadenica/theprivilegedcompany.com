@@ -327,3 +327,37 @@ def recheck(config) -> bool:
     if is_cli_provider(config.ai_provider):
         return _confirm_authed(config.ai_provider)
     return True  # openai
+
+
+def raw_probe(config, prompt: str = "Reply with the single word: OK", timeout: int = 120) -> dict:
+    """Run the configured provider's CLI with a tiny prompt and return the RAW
+    command + output + exit code (uncleaned). For debugging what the CLI does."""
+    if config.ai_provider == "gemini":
+        from . import gemini_client
+
+        path = gemini_client.cli_path()
+        if not path:
+            return {"ok": False, "error": "Gemini CLI не е инсталиран."}
+        cmd = [path, "-m", config.gemini_model or gemini_client.DEFAULT_MODEL, "-p", prompt]
+    elif is_cli_provider(config.ai_provider):
+        path = cli_path(config.ai_provider)
+        if not path:
+            return {"ok": False, "error": f"{_spec(config.ai_provider)['bin']} не е инсталиран."}
+        cmd = [path] + _spec(config.ai_provider)["gen_args"](prompt)
+    else:
+        return {"ok": False, "error": "OpenAI няма CLI за тест."}
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
+        )
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": f"timeout {timeout}s", "cmd": " ".join(cmd)}
+    except OSError as exc:
+        return {"ok": False, "error": str(exc), "cmd": " ".join(cmd)}
+    return {
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "cmd": " ".join(cmd),
+        "stdout": (proc.stdout or "")[:2000],
+        "stderr": (proc.stderr or "")[:2000],
+    }

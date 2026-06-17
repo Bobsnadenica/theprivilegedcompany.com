@@ -343,6 +343,11 @@ class _Handler(BaseHTTPRequestHandler):
                 from . import cli_provider
 
                 self._json({"ok": True, "logged_in": cli_provider.recheck(cfg.load_config())})
+            elif path == "/api/test-provider":
+                from . import cli_provider
+
+                self._json({"ok": True, "job": _start_job(
+                    lambda: cli_provider.raw_probe(cfg.load_config()))})
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
             elif path == "/api/business":
@@ -671,7 +676,9 @@ _PAGE = r"""<!DOCTYPE html>
         <p class="hint" id="cli-hint" style="margin-top:10px"></p>
         <button class="btn ghost" onclick="loginAI()">Вход с акаунт (отваря браузър)</button>
         <button class="btn ghost" onclick="checkLogin()">Провери входа</button>
+        <button class="btn ghost" onclick="testProvider()">Тест на доставчика</button>
         <span id="ai-login-status" class="muted"></span>
+        <pre class="log" id="provider-test" style="max-height:24vh;display:none;margin-top:10px"></pre>
       </div>
       <div id="openai-box" class="hide">
         <div class="row">
@@ -870,6 +877,16 @@ function saveConfig(){
     run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
   postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
 }
+function testProvider(){var o=$("provider-test");o.style.display="block";o.textContent="Тествам доставчика… (до 2 мин)";
+  postJSON("/api/test-provider",{}).then(function(r){
+    if(!r.job){o.textContent="✕ "+(r.error||"Грешка");return;}
+    var t=setInterval(function(){getJSON("/api/job?id="+r.job).then(function(j){
+      if(j&&j.status==="done"){clearInterval(t);var x=j.result||{};
+        o.textContent="команда: "+(x.cmd||"-")+"\nexit: "+(x.returncode!==undefined?x.returncode:"-")+
+          "\n\n=== STDOUT ===\n"+(x.stdout||"(празно)")+"\n\n=== STDERR ===\n"+(x.stderr||"(празно)")+
+          (x.error?("\n\nгрешка: "+x.error):"");}
+    }).catch(function(){});},1500);
+  });}
 function checkLogin(){$("ai-login-status").textContent="проверявам…";
   postJSON("/api/check-login",{}).then(function(r){$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"✕ още не сте влезли";loadStatus();});}
 function loginAI(){var p=$("ai_provider").value;$("ai-login-status").textContent="влизане…";
