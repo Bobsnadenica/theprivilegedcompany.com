@@ -37,6 +37,7 @@ from .logging_setup import get_logger
 log = get_logger("cli_provider")
 
 _CODEX_PROJECT_HEADER_RE = re.compile(r'^\s*\[projects\."((?:\\.|[^"\\])*)"\]\s*$')
+_CODEX_TRUST_KEY_RE = re.compile(r"^\s*trust_level\s*=")
 _CODEX_TRUST_LINE_RE = re.compile(r'^\s*trust_level\s*=\s*["\']trusted["\']\s*(?:#.*)?$')
 
 # Each provider is described by a small spec so adding/adjusting one is a
@@ -229,14 +230,29 @@ def _toml_basic_string(raw: str) -> str:
         return raw.replace(r"\"", '"').replace(r"\\", "\\")
 
 
+def _toml_quote_basic(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', r"\"")
+
+
+def _resolved_path(path: Path) -> Path:
+    try:
+        return path.expanduser().resolve()
+    except OSError:
+        return path.expanduser().absolute()
+
+
 def _path_is_or_inside(child: Path, parent: Path) -> bool:
     try:
-        child_s = os.path.normcase(str(child.expanduser().resolve()))
-        parent_s = os.path.normcase(str(parent.expanduser().resolve()))
+        child_s = os.path.normcase(str(_resolved_path(child)))
+        parent_s = os.path.normcase(str(_resolved_path(parent)))
         rel = os.path.relpath(child_s, parent_s)
     except (OSError, ValueError):
         return False
     return rel == "." or (rel and not rel.startswith(".." + os.sep) and rel != "..")
+
+
+def _same_path(left: Path, right: Path) -> bool:
+    return _path_is_or_inside(left, right) and _path_is_or_inside(right, left)
 
 
 def _codex_project_is_trusted(directory: Path | None = None) -> bool:
@@ -276,10 +292,85 @@ def _codex_trust_command(directory: Path | None = None) -> str:
     return f'codex --cd "{directory}" --no-alt-screen'
 
 
+def _auto_trust_codex_project(directory: Path | None = None) -> bool:
+    """Persist Codex project trust for the current AIPost247 folder.
+
+    This mirrors the entry Codex writes after the interactive trust prompt, but
+    scopes it to exactly the folder the app is running from.
+    """
+    directory = _resolved_path(directory or Path.cwd())
+    if _codex_project_is_trusted(directory):
+        return True
+
+    config = _codex_config_file()
+    header_path = str(directory)
+    try:
+        text = config.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        text = ""
+    except OSError as exc:
+        log.warning("Could not read Codex config for auto-trust: %s", exc)
+        return False
+
+    lines = text.splitlines()
+    output: list[str] = []
+    found_section = False
+    in_target = False
+    wrote_trust = False
+
+    for line in lines:
+        header = _CODEX_PROJECT_HEADER_RE.match(line)
+        if header:
+            if in_target and not wrote_trust:
+                output.append('trust_level = "trusted"')
+                wrote_trust = True
+            project_path = Path(_toml_basic_string(header.group(1)))
+            in_target = _same_path(project_path, directory)
+            found_section = found_section or in_target
+            output.append(line)
+            continue
+
+        if in_target and line.lstrip().startswith("["):
+            if not wrote_trust:
+                output.append('trust_level = "trusted"')
+                wrote_trust = True
+            in_target = False
+
+        if in_target and _CODEX_TRUST_KEY_RE.match(line):
+            output.append('trust_level = "trusted"')
+            wrote_trust = True
+        else:
+            output.append(line)
+
+    if in_target and not wrote_trust:
+        output.append('trust_level = "trusted"')
+
+    if not found_section:
+        if output and output[-1].strip():
+            output.append("")
+        output.extend([
+            f'[projects."{_toml_quote_basic(header_path)}"]',
+            'trust_level = "trusted"',
+        ])
+
+    new_text = "\n".join(output).rstrip() + "\n"
+    try:
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.write_text(new_text, encoding="utf-8")
+    except OSError as exc:
+        log.warning("Could not write Codex config for auto-trust: %s", exc)
+        return False
+
+    if _codex_project_is_trusted(directory):
+        log.info("Codex project auto-trusted: %s", directory)
+        return True
+    return False
+
+
 def _codex_trust_message(directory: Path | None = None) -> str:
     return (
-        "Codex трябва първо да довери тази папка. Натиснете вход за Codex в "
-        "таблото и потвърдете trust/yes в прозореца на терминала, или изпълнете: "
+        "Codex още не приема тази папка като доверена. AIPost247 опитва да я "
+        "добави автоматично; ако пак виждате това, изпълнете: "
         f"{_codex_trust_command(directory)}"
     )
 
@@ -350,7 +441,7 @@ def login(provider: str, timeout: int = 300) -> bool:
                     has_login = True
                     break
 
-        if has_login and not _codex_project_is_trusted():
+        if has_login and not _codex_project_is_trusted() and not _auto_trust_codex_project():
             _prompt_codex_trust(path, timeout=timeout)
 
         if is_authenticated(provider):
@@ -404,6 +495,8 @@ def generate(provider: str, prompt: str, timeout: int = 120) -> str:
     path = cli_path(provider)
     if not path:
         raise GeminiNotInstalled(spec["install"])
+    if provider == "codex" and not _codex_project_is_trusted():
+        _auto_trust_codex_project()
     cmd = [path] + spec["gen_args"](prompt)
     try:
         # stdin=DEVNULL makes this TRULY non-interactive: if the CLI isn't logged
@@ -497,6 +590,8 @@ def raw_probe(config, prompt: str = "Reply with the single word: OK", timeout: i
         path = cli_path(config.ai_provider)
         if not path:
             return {"ok": False, "error": f"{_spec(config.ai_provider)['bin']} не е инсталиран."}
+        if config.ai_provider == "codex" and not _codex_project_is_trusted():
+            _auto_trust_codex_project()
         cmd = [path] + _spec(config.ai_provider)["gen_args"](prompt)
     else:
         return {"ok": False, "error": "OpenAI няма CLI за тест."}

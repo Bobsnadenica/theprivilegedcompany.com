@@ -508,9 +508,8 @@ class _Handler(BaseHTTPRequestHandler):
 
         threading.Thread(target=_bg, daemon=True).start()
         if config.ai_provider == "codex":
-            msg = ("Завършете входа/доверяването в прозореца на ТЕРМИНАЛА. "
-                   "Ако вече сте влезли в ChatGPT, Codex ще поиска само trust/yes "
-                   "за тази папка; после излезте от Codex с Ctrl+C. Състоянието "
+            msg = ("Завършете входа в прозореца на ТЕРМИНАЛА, ако Codex го поиска. "
+                   "AIPost247 ще довери текущата папка автоматично. Състоянието "
                    "тук ще се обнови само.")
         else:
             msg = ("Завършете входа в прозореца на ТЕРМИНАЛА, където стартирахте "
@@ -1054,7 +1053,7 @@ function loadConfig(){
 }
 var CLI_HINTS={gemini:"Влезте с Google — безплатно, без API ключ.",
   antigravity:"Заместникът на Gemini CLI. Влезте с Google — без ключ. (Изисква инсталиран Antigravity CLI „agy“.)",
-  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. При първо ползване Codex ще поиска да доверите тази папка в терминала."};
+  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. AIPost247 автоматично доверява текущата папка за Codex."};
 function toggleProvider(){var p=$("ai_provider").value,o=(p==="openai");
   $("openai-box").classList.toggle("hide",!o);$("cli-box").classList.toggle("hide",o);
   $("gemini-model-row").classList.toggle("hide",p!=="gemini");
