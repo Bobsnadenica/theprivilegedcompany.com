@@ -101,19 +101,19 @@ _AUTOPILOT = Autopilot()
 # Data helpers
 # --------------------------------------------------------------------------
 def _status(memory: MemoryStore) -> dict:
-    from . import cli_provider
+    from . import gemini_client
 
     config = cfg.load_config()
-    ai_logged_in = False
+    gemini_ok = False
     if config.ai_provider != "openai":
         try:
-            ai_logged_in = cli_provider.is_logged_in(config)
+            gemini_ok = gemini_client.is_authenticated(config.gemini_model)
         except Exception:  # noqa: BLE001
-            ai_logged_in = False
+            gemini_ok = False
     return {
         "ai_provider": config.ai_provider,
-        "ai_ready": config.ai_ready() and (config.ai_provider == "openai" or ai_logged_in),
-        "gemini_logged_in": ai_logged_in,
+        "ai_ready": config.ai_ready() and (config.ai_provider == "openai" or gemini_ok),
+        "gemini_logged_in": gemini_ok,
         "facebook_connected": bool(config.fb_page_id and config.fb_page_access_token),
         "facebook_page_id": config.fb_page_id,
         "configured": config.is_ready(),
@@ -293,7 +293,7 @@ class _Handler(BaseHTTPRequestHandler):
             elif path == "/api/learn":
                 self._json(self._learn())
             elif path == "/api/login-gemini":
-                self._json(self._login_gemini(data))
+                self._json(self._login_gemini())
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
             elif path == "/api/business":
@@ -326,17 +326,13 @@ class _Handler(BaseHTTPRequestHandler):
         except FacebookError as exc:
             return {"ok": False, "error": str(exc)}
 
-    def _login_gemini(self, data: dict) -> dict:
-        from . import cli_provider, gemini_client
+    def _login_gemini(self) -> dict:
+        from . import gemini_client
 
-        # If the UI picked a provider but hasn't saved yet, honour it for login.
-        prov = (data or {}).get("provider")
-        if prov and prov != cfg.load_config().ai_provider:
-            cfg._write_env({"AI_PROVIDER": prov})
         config = cfg.load_config()
         try:
-            ok = cli_provider.login_provider(config)
-            return {"ok": ok, "logged_in": cli_provider.is_logged_in(config), "provider": config.ai_provider}
+            ok = gemini_client.login(config.gemini_model)
+            return {"ok": ok, "logged_in": gemini_client.is_authenticated(config.gemini_model)}
         except gemini_client.GeminiError as exc:
             return {"ok": False, "error": str(exc)}
 
@@ -401,20 +397,6 @@ class _Handler(BaseHTTPRequestHandler):
 def run_dashboard(port: int = DEFAULT_PORT, open_browser: bool = True) -> int:
     cfg.ensure_dirs()
     _Handler.memory = MemoryStore(str(cfg.DB_PATH), str(cfg.MEMORY_DIR))
-
-    # Best-effort: install the configured AI CLI (default: Antigravity) NOW, before
-    # the dashboard opens, so the first action isn't blocked. No-op once installed;
-    # never fatal — on failure the dashboard still opens and you can pick another.
-    try:
-        config = cfg.load_config()
-        if config.ai_provider != "openai":
-            from . import cli_provider
-
-            print(f"  Проверка/инсталиране на AI CLI ({config.ai_provider}) ...")
-            cli_provider.ensure_provider(config)
-            print(f"  ✓ {config.ai_provider} е готов.")
-    except Exception as exc:  # noqa: BLE001 - never block the dashboard
-        log.warning("AI CLI авто-инсталация прескочена (%s) — ще се инсталира при вход.", exc)
     try:
         server = ThreadingHTTPServer(("127.0.0.1", port), _Handler)
     except OSError as exc:
@@ -561,21 +543,16 @@ _PAGE = r"""<!DOCTYPE html>
   <section id="tab-setup" class="hide">
     <div class="card">
       <h2>1 · AI, който пише</h2>
-      <label>Доставчик (безплатно — само вход, без API ключ)</label>
+      <label>Доставчик</label>
       <select id="ai_provider">
-        <option value="antigravity">Antigravity (Google) — препоръчано, без ключ</option>
-        <option value="gemini">Gemini — вход с Google (Google я спира скоро)</option>
-        <option value="codex">ChatGPT (Codex) — вход с ChatGPT, вкл. безплатен план</option>
-        <option value="openai">OpenAI — с API ключ (платено)</option>
+        <option value="gemini">Gemini — вход с Google (без ключ)</option>
+        <option value="openai">OpenAI — с API ключ</option>
       </select>
-      <div id="cli-box">
-        <div id="gemini-model-row">
-          <label>Gemini модел</label>
-          <input id="gemini_model"/>
-        </div>
-        <p class="hint" id="cli-hint" style="margin-top:10px"></p>
-        <button class="btn ghost" onclick="loginAI()">Вход с акаунт (отваря браузър)</button>
-        <span id="ai-login-status" class="muted"></span>
+      <div id="gemini-box">
+        <label>Gemini модел</label>
+        <input id="gemini_model"/>
+        <button class="btn ghost" onclick="loginGemini()">Вход в Google за Gemini</button>
+        <span id="gemini-status" class="muted"></span>
       </div>
       <div id="openai-box" class="hide">
         <div class="row">
@@ -745,13 +722,7 @@ function loadConfig(){
     toggleProvider(); toggleSchedule();
   });
 }
-var CLI_HINTS={gemini:"Влезте с Google — безплатно, без API ключ.",
-  antigravity:"Заместникът на Gemini CLI. Влезте с Google — без ключ. (Изисква инсталиран Antigravity CLI „agy“.)",
-  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. (Изисква Codex CLI.)"};
-function toggleProvider(){var p=$("ai_provider").value,o=(p==="openai");
-  $("openai-box").classList.toggle("hide",!o);$("cli-box").classList.toggle("hide",o);
-  $("gemini-model-row").classList.toggle("hide",p!=="gemini");
-  $("cli-hint").textContent=CLI_HINTS[p]||"";}
+function toggleProvider(){var o=$("ai_provider").value==="openai";$("openai-box").classList.toggle("hide",!o);$("gemini-box").classList.toggle("hide",o);}
 function toggleSchedule(){var d=$("schedule_mode").value==="daily";$("times-box").classList.toggle("hide",!d);$("interval-box").classList.toggle("hide",d);}
 function toggleLang(){$("post_language_custom").classList.toggle("hide",$("post_language").value!=="__custom__");}
 function getLang(){return $("post_language").value==="__custom__"?($("post_language_custom").value.trim()||"English"):$("post_language").value;}
@@ -774,8 +745,8 @@ function saveConfig(){
     run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
   postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
 }
-function loginAI(){var p=$("ai_provider").value;toast("Отваря се браузър за вход…");$("ai-login-status").textContent="влизане…";
-  postJSON("/api/login-gemini",{provider:p}).then(function(r){$("ai-login-status").textContent=r.logged_in?"✓ влязъл":("✕ "+(r.error||"неуспех"));loadStatus();});}
+function loginGemini(){toast("Отваря се браузър за вход…");$("gemini-status").textContent="влизане…";
+  postJSON("/api/login-gemini",{}).then(function(r){$("gemini-status").textContent=r.logged_in?"✓ влязъл":("✕ "+(r.error||"неуспех"));loadStatus();});}
 function fbConnect(){toast("Отваря се браузър за Facebook…");$("fb-status").textContent="свързване…";
   postJSON("/api/facebook/connect",{fb_app_id:$("fb_app_id").value,fb_app_secret:$("fb_app_secret").value}).then(function(r){
     $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
@@ -813,7 +784,7 @@ setInterval(function(){loadStatus();var l=$("tab-logs");if(l&&!l.classList.conta
   var KEY="aipost247_tour_v1";
   var steps=[
     {title:"Добре дошли! 👋",text:"Това е таблото на AIPost247 — настройка и наблюдение без терминал. Ще ви преведа за по-малко от минута."},
-    {tab:"setup",sel:"#cli-box",title:"1 · AI, който пише",text:"Започнете оттук: изберете безплатен доставчик (Gemini, Antigravity или ChatGPT) и натиснете „Вход с акаунт“ — без API ключ."},
+    {tab:"setup",sel:"#gemini-box",title:"1 · AI, който пише",text:"Започнете оттук: изберете Gemini и натиснете „Вход в Google“ (безплатно, без ключ). Или OpenAI с API ключ."},
     {tab:"setup",sel:"#fb_app_id",title:"2 · Facebook",text:"Поставете App ID и App Secret от вашето Meta приложение, после „Свържи Facebook“ и одобрете в браузъра."},
     {tab:"setup",sel:"#schedule_mode",title:"3 · График и език",text:"Изберете на колко време да публикува и на какъв език, после „Запази настройките“."},
     {tab:"business",sel:"#business-fields",title:"4 · Бизнес и стил",text:"Опишете бизнеса си — така публикациите звучат като вас. По-късно може да насочвате стила с обратна връзка."},

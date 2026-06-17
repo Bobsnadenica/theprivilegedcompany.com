@@ -39,8 +39,8 @@ def ensure_dirs() -> None:
 
 @dataclass
 class Config:
-    # AI provider: "antigravity"/"gemini"/"codex" (login, no key) or "openai" (API key)
-    ai_provider: str = "antigravity"
+    # AI provider: "gemini" (login with Google, no key) or "openai" (API key)
+    ai_provider: str = "gemini"
     gemini_model: str = DEFAULT_GEMINI_MODEL
     openai_api_key: str = ""
     openai_model: str = DEFAULT_OPENAI_MODEL
@@ -106,7 +106,7 @@ def load_config() -> Config:
     get = os.getenv
     times = [t.strip() for t in (get("SCHEDULE_TIMES", "") or "").split(",") if t.strip()]
     return Config(
-        ai_provider=(get("AI_PROVIDER", "antigravity") or "antigravity").lower(),
+        ai_provider=(get("AI_PROVIDER", "gemini") or "gemini").lower(),
         gemini_model=get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL) or DEFAULT_GEMINI_MODEL,
         openai_api_key=get("OPENAI_API_KEY", "") or "",
         openai_model=get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL) or DEFAULT_OPENAI_MODEL,
@@ -231,25 +231,21 @@ def _choose(intro: str, options: list[tuple[str, str]], default: int = 1) -> int
 
 def _setup_ai_provider(existing: Config) -> dict:
     """Choose + configure the AI provider. Returns the env values to persist."""
-    from . import cli_provider, gemini_client
+    from . import gemini_client
 
     out: dict[str, str] = {}
     choice = _choose(
-        "  Препоръчано: Antigravity (заместникът на Gemini CLI). Само вход, без ключ:",
+        "  И двата варианта са безплатни за начало:",
         [
-            ("Antigravity — вход с Google (без ключ)",
-             "Заместникът на Gemini CLI. Инсталира се автоматично."),
-            ("Gemini — вход с Google (без ключ)",
-             "Класиката, но Google я спира скоро. Нужен е Node.js."),
-            ("ChatGPT (Codex) — вход с ChatGPT (без ключ)",
-             "Работи и с безплатния ChatGPT план. Нужен е Node.js."),
+            ("Gemini — вход с Google (без API ключ)",
+             "Нужен е инсталиран Node.js. Най-добре, ако вече го имате."),
             ("OpenAI — поставяте API ключ",
-             "Платено. Ключ от platform.openai.com/api-keys."),
+             "Работи без Node.js. Ключ от platform.openai.com/api-keys."),
         ],
         default=1,
     )
 
-    if choice == 4:
+    if choice == 2:
         out["AI_PROVIDER"] = "openai"
         out["OPENAI_API_KEY"] = _prompt_secret("  OpenAI API ключ", existing.openai_api_key)
         default_openai = existing.openai_model or DEFAULT_OPENAI_MODEL
@@ -260,34 +256,24 @@ def _setup_ai_provider(existing: Config) -> dict:
         print("  Инсталиране на OpenAI библиотеката ...")
         _pip_install("openai")
         print("  ✓ OpenAI е избран за писане на публикациите.")
-    elif choice == 2:
+    else:
         out["AI_PROVIDER"] = "gemini"
         default_gemini = existing.gemini_model or DEFAULT_GEMINI_MODEL
         print("  (Стандартният модел е препоръчителен — просто натиснете Enter.)")
-        out["GEMINI_MODEL"] = (
+        gemini_model = (
             input(f"  Gemini модел — натиснете Enter за стандартния [{default_gemini}]: ").strip()
             or default_gemini
         )
+        out["GEMINI_MODEL"] = gemini_model
         try:
             print("  Проверка на Gemini CLI ...")
             gemini_client.ensure_installed()
             if _ask_yes_no("  Да влезете в Google за Gemini сега?", default=True):
-                if gemini_client.login(out["GEMINI_MODEL"]):
+                if gemini_client.login(gemini_model):
                     print("  ✓ Gemini е влязъл и готов.")
         except gemini_client.GeminiError as exc:
             print(f"  ! {exc}")
-            print("    Може и по-късно с командата 'login-gemini'.")
-    else:
-        provider = "antigravity" if choice == 1 else "codex"
-        out["AI_PROVIDER"] = provider
-        try:
-            print(f"  Инсталиране/проверка на {provider} ...")
-            cli_provider.ensure_installed(provider)
-            if _ask_yes_no("  Да влезете сега (отваря браузър, без ключ)?", default=True):
-                if cli_provider.login(provider):
-                    print("  ✓ Готово — доставчикът е влязъл.")
-        except gemini_client.GeminiError as exc:
-            print(f"  ! {exc}")
+            print("    Съвет: инсталирайте Node.js (nodejs.org), или стартирайте setup пак и изберете OpenAI.")
             print("    Може и по-късно с командата 'login-gemini'.")
     return out
 
@@ -362,15 +348,12 @@ def _setup_facebook(existing: Config, api_version: str) -> tuple[dict, bool]:
 
 def _has_saved_setup(existing: Config) -> bool:
     """True if a previous run already configured both the AI and a Facebook Page."""
-    from . import cli_provider
+    from . import gemini_client
 
     if existing.ai_provider == "openai":
         ai_ok = bool(existing.openai_api_key)
     else:
-        try:
-            ai_ok = cli_provider.is_logged_in(existing)
-        except Exception:  # noqa: BLE001
-            ai_ok = False
+        ai_ok = gemini_client.is_authenticated(existing.gemini_model or DEFAULT_GEMINI_MODEL)
     return ai_ok and bool(existing.fb_page_id and existing.fb_page_access_token)
 
 
@@ -388,9 +371,7 @@ def run_setup_wizard(existing: Config) -> None:
     # 0) Reuse saved Google/Facebook credentials? -------------------------
     use_saved = False
     if _has_saved_setup(existing):
-        _labels = {"openai": "OpenAI", "gemini": "Gemini (Google)",
-                   "antigravity": "Antigravity (Google)", "codex": "ChatGPT (Codex)"}
-        provider = _labels.get(existing.ai_provider, existing.ai_provider)
+        provider = "OpenAI" if existing.ai_provider == "openai" else "Gemini (Google)"
         print(
             "  Открити са запазени данни от предишна настройка:\n"
             f"    • AI: {provider}\n"

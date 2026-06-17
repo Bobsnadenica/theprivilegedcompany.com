@@ -53,7 +53,7 @@ def generate_text(config: Config, context: str) -> str:
 
         return generate_post(config, context)
 
-    # Login-only CLIs (Gemini / Antigravity / Codex) share one instruction.
+    # Default: Gemini CLI (login with Google).
     instruction = (
         "Write ONE engaging, ready-to-publish Facebook post based on the brief "
         f"below. Write in {config.post_language}. Keep it under "
@@ -61,11 +61,7 @@ def generate_text(config: Config, context: str) -> str:
         "relevant hashtags only when they fit. Do not use markdown or surrounding "
         "quotes — return ONLY the post text.\n\n=== BRIEF ===\n" + context
     )
-    from . import cli_provider
-
-    if cli_provider.is_cli_provider(config.ai_provider):  # antigravity / codex
-        return cli_provider.generate(config.ai_provider, instruction)
-    return gemini_client.generate(instruction, model=config.gemini_model)  # gemini
+    return gemini_client.generate(instruction, model=config.gemini_model)
 
 
 # --- core cycle ----------------------------------------------------------
@@ -275,25 +271,24 @@ def _prompt_post_feedback(config: Config, memory: MemoryStore) -> None:
 def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
     # Pre-flight checks so the loop never starts in a known-broken state.
     if config.ai_provider != "openai":
-        from . import cli_provider
-
         try:
-            cli_provider.ensure_provider(config)
+            gemini_client.ensure_installed()
         except GeminiError as exc:
-            log.error("AI CLI липсва: %s", exc)
-            log.error("Инсталирайте го, после `login-gemini`, или `setup` и изберете OpenAI. НЕ стартирам.")
+            log.error("Gemini CLI липсва: %s", exc)
+            log.error("Инсталирайте Node.js (nodejs.org), после изпълнете `login-gemini`, "
+                      "или `setup` и изберете OpenAI. НЕ стартирам.")
             return 1
-        if not cli_provider.is_logged_in(config):
-            log.warning("AI доставчикът (%s) не е влязъл — опитвам вход сега ...", config.ai_provider)
+        if not gemini_client.is_authenticated(config.gemini_model):
+            log.warning("Gemini не е влязъл в Google — опитвам вход сега ...")
             try:
-                cli_provider.login_provider(config)
+                gemini_client.login(config.gemini_model)
             except GeminiError as exc:
-                log.error("Входът се провали: %s", exc)
-            if not cli_provider.is_logged_in(config):
-                log.error("НЕ стартирам: %s не е влязъл. Изпълнете `login-gemini`, "
-                          "или `setup` и изберете OpenAI.", config.ai_provider)
+                log.error("Входът в Gemini се провали: %s", exc)
+            if not gemini_client.is_authenticated(config.gemini_model):
+                log.error("НЕ стартирам: Gemini не е влязъл в Google. Изпълнете "
+                          "`login-gemini`, или `setup` и изберете OpenAI.")
                 return 1
-        log.info("AI доставчикът (%s) е влязъл и готов.", config.ai_provider)
+        log.info("Gemini е влязъл и готов.")
 
     try:
         name = fb.validate()
@@ -357,10 +352,8 @@ def main(argv=None) -> int:
         return 0
 
     if command == "login-gemini":
-        from . import cli_provider
-
         try:
-            return 0 if cli_provider.login_provider(load_config()) else 1
+            return 0 if gemini_client.login(load_config().gemini_model) else 1
         except GeminiError as exc:
             log.error("%s", exc)
             return 1
