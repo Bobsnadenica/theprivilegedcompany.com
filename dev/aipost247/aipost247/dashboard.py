@@ -601,31 +601,37 @@ _PAGE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>AIPost247 · Табло</title>
 <style>
-  :root{--bg:#eef1f7;--card:#fff;--ink:#16202c;--muted:#5b6b7e;--line:#e2e8f2;
-    --accent:#1877f2;--accent-ink:#0b5fd0;--ok:#1f9d57;--bad:#d3392b;--warn:#c9921b;--radius:14px;}
+  :root{--bg:#eef1f7;--card:#fff;--ink:#16202c;--muted:#5b6b7e;--line:#dfe7f2;
+    --accent:#1877f2;--accent-ink:#0b5fd0;--accent-soft:#eaf2ff;
+    --ok:#1f9d57;--bad:#d3392b;--warn:#c9921b;--radius:14px;
+    --shadow:0 18px 45px -34px rgba(16,32,44,.72);}
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--ink);
+  html{background:var(--bg);}
+  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f8fbff 0,#eef3fb 360px,#f4f6fb 100%);color:var(--ink);
     font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-  header{background:linear-gradient(135deg,#1877f2,#0b5fd0);color:#fff;padding:18px 24px;
-    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-  header h1{margin:0;font-size:1.25rem;}
-  header .sub{opacity:.9;font-size:.85rem;}
-  .pillbar{display:flex;gap:8px;flex-wrap:wrap;}
-  .pill{font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
+  header{position:sticky;top:0;z-index:40;background:linear-gradient(135deg,#1877f2,#0b5fd0);color:#fff;padding:17px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;box-shadow:0 18px 38px -28px rgba(7,43,96,.72);}
+  header h1{margin:0;font-size:1.28rem;line-height:1.15;}
+  header .sub{opacity:.92;font-size:.86rem;margin-top:3px;}
+  .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+  .pillbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .pill{font-size:.78rem;font-weight:750;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
   .pill.ok{background:rgba(31,157,87,.22);border-color:rgba(255,255,255,.4);}
   .pill.bad{background:rgba(211,57,43,.28);border-color:rgba(255,255,255,.4);}
-  .wrap{max-width:1040px;margin:0 auto;padding:18px;}
-  nav{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap;}
-  nav button{cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink);
-    font:inherit;font-weight:600;padding:9px 16px;border-radius:999px;}
-  nav button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .wrap{max-width:1120px;margin:0 auto;padding:22px 18px 34px;}
+  nav{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;background:rgba(255,255,255,.76);
+    border:1px solid rgba(223,231,242,.9);border-radius:16px;padding:8px;box-shadow:0 14px 34px -30px rgba(16,32,44,.65);}
+  nav button{cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);
+    font:inherit;font-weight:700;padding:9px 15px;border-radius:999px;transition:background .15s,color .15s,box-shadow .15s;}
+  nav button:hover{background:#eef4fd;color:var(--ink);}
+  nav button.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 10px 20px -14px var(--accent);}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:18px 20px;margin-bottom:16px;box-shadow:0 10px 26px -22px rgba(16,32,44,.5);}
-  .card h2{margin:0 0 4px;font-size:1.05rem;}
+    padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .card h2{margin:0 0 5px;font-size:1.08rem;line-height:1.25;}
   .card .hint{color:var(--muted);font-size:.85rem;margin:0 0 14px;}
   label{display:block;font-weight:600;margin:12px 0 4px;font-size:.9rem;}
   input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
-    font:inherit;color:var(--ink);background:#fff;}
+    font:inherit;color:var(--ink);background:#fbfdff;transition:border-color .15s,box-shadow .15s,background .15s;}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(24,119,242,.15);}
   textarea{resize:vertical;min-height:70px;}
   .row{display:flex;gap:14px;flex-wrap:wrap;}
@@ -633,18 +639,24 @@ _PAGE = r"""<!DOCTYPE html>
   .check{display:flex;align-items:center;gap:8px;margin-top:12px;}
   .check input{width:auto;}
   button.btn{cursor:pointer;border:none;border-radius:10px;font:inherit;font-weight:700;
-    padding:10px 18px;background:var(--accent);color:#fff;margin-top:14px;}
-  button.btn:hover{background:var(--accent-ink);}
+    padding:10px 18px;background:var(--accent);color:#fff;margin-top:14px;transition:background .15s,transform .12s,box-shadow .15s;}
+  button.btn:hover{background:var(--accent-ink);transform:translateY(-1px);box-shadow:0 12px 22px -16px rgba(24,119,242,.8);}
   button.btn.ghost{background:#eef2f8;color:var(--ink);}
+  button.btn.ghost:hover{background:#e4ebf5;box-shadow:0 10px 18px -16px rgba(16,32,44,.45);}
   button.btn.ok{background:var(--ok);}
   button.btn.bad{background:var(--bad);}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
-  .stat{background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
-  .stat .n{font-size:1.5rem;font-weight:800;}
-  .stat .l{color:var(--muted);font-size:.8rem;}
+  .button-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .button-row .btn{margin-top:8px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;}
+  .stat{position:relative;overflow:hidden;background:linear-gradient(180deg,#fff,#f7faff);border:1px solid var(--line);border-radius:12px;padding:14px 15px;min-height:82px;}
+  .stat:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
+  .stat .n{font-size:1.55rem;font-weight:850;line-height:1.15;}
+  .stat .l{color:var(--muted);font-size:.79rem;font-weight:650;margin-top:5px;}
+  #autopilot-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:2px;}
   table{width:100%;border-collapse:collapse;font-size:.88rem;}
   th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
   th{color:var(--muted);font-weight:600;background:#f7f9fd;}
+  tbody tr:hover td{background:#fbfdff;}
   .tag{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;}
   .tag.published{background:#e4f6ec;color:#1f7a48;}
   .tag.dry_run{background:#fff4e0;color:#9a6b12;}
@@ -655,11 +667,12 @@ _PAGE = r"""<!DOCTYPE html>
     padding:11px 18px;border-radius:10px;box-shadow:0 14px 34px -12px rgba(0,0,0,.5);opacity:0;
     transition:opacity .25s,transform .25s;pointer-events:none;z-index:50;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
-  .out{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;white-space:pre-wrap;}
-  .choice-box{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;}
+  .out{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;white-space:pre-wrap;max-height:42vh;overflow:auto;}
+  .choice-box{background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.65);}
   .muted{color:var(--muted);}
   .hide{display:none;}
   .busy{opacity:.6;pointer-events:none;}
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(24,119,242,.28);outline-offset:2px;}
   .help-btn{cursor:pointer;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.16);color:#fff;
     font:inherit;font-weight:700;font-size:.82rem;padding:6px 13px;border-radius:999px;white-space:nowrap;}
   .help-btn:hover{background:rgba(255,255,255,.3);}
@@ -678,11 +691,26 @@ _PAGE = r"""<!DOCTYPE html>
   .tour-card .skip{background:transparent;color:var(--muted);padding:7px 6px;}
   .tour-card .prev{background:#eef2f8;color:var(--ink);}
   .tour-card .next{background:var(--accent);color:#fff;}
+  @media (max-width:720px){
+    header{position:static;padding:16px 18px;}
+    .header-actions{justify-content:flex-start;width:100%;}
+    .wrap{padding:16px 12px 28px;}
+    nav{overflow-x:auto;flex-wrap:nowrap;padding:7px;}
+    nav button{white-space:nowrap;}
+    .card{padding:17px 15px;border-radius:12px;}
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    table{min-width:640px;}
+  }
+  @media (max-width:480px){
+    .grid{grid-template-columns:1fr;}
+    button.btn{width:100%;}
+    .button-row{display:block;}
+  }
 </style></head>
 <body>
 <header>
   <div><h1>AIPost247 · Табло</h1><div class="sub">Конфигурирайте и наблюдавайте — без терминал.</div></div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+  <div class="header-actions">
     <div class="pillbar" id="pills"></div>
     <button class="help-btn" id="help-btn" title="Покажи обиколката">? Обиколка</button>
   </div>
@@ -706,10 +734,12 @@ _PAGE = r"""<!DOCTYPE html>
     <div class="card">
       <h2>Бързи действия</h2>
       <p class="hint">Генерирайте за преглед, публикувайте веднага или опреснете ангажираността.</p>
-      <button class="btn ghost" onclick="act('/api/generate','Генерирам…')">Генерирай (преглед)</button>
-      <button class="btn" onclick="act('/api/post-now','Публикувам…')">Публикувай сега</button>
-      <button class="btn ghost" onclick="act('/api/learn','Уча от ангажираността…')">Опресни наученото</button>
-      <div id="action-out" class="out hide"></div>
+      <div class="button-row">
+        <button class="btn ghost" onclick="act('/api/generate','Генерирам…')">Генерирай (преглед)</button>
+        <button class="btn" onclick="act('/api/post-now','Публикувам…')">Публикувай сега</button>
+        <button class="btn ghost" onclick="act('/api/learn','Уча от ангажираността…')">Опресни наученото</button>
+      </div>
+      <div id="action-out" class="out hide" aria-live="polite"></div>
     </div>
   </section>
 
@@ -733,7 +763,7 @@ _PAGE = r"""<!DOCTYPE html>
         <button class="btn ghost" onclick="loginAI()">Вход с акаунт (отваря браузър)</button>
         <button class="btn ghost" onclick="checkLogin()">Провери входа</button>
         <button class="btn ghost" onclick="testProvider()">Тест на доставчика</button>
-        <span id="ai-login-status" class="muted"></span>
+        <span id="ai-login-status" class="muted" aria-live="polite"></span>
         <pre class="log" id="provider-test" style="max-height:24vh;display:none;margin-top:10px"></pre>
       </div>
       <div id="openai-box" class="hide">
@@ -754,7 +784,7 @@ _PAGE = r"""<!DOCTYPE html>
           <input id="fb_app_secret" type="password" placeholder="(оставете празно за да запазите)"/></div>
       </div>
       <button class="btn" onclick="fbConnect()">Свържи Facebook</button>
-      <span id="fb-status" class="muted"></span>
+      <span id="fb-status" class="muted" aria-live="polite"></span>
       <div id="fb-page-picker" class="choice-box hide"></div>
     </div>
 
