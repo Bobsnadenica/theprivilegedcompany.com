@@ -163,6 +163,21 @@ def login_and_select_page(
     choose=None,
 ):
     """Run the full browser login + Page selection. Returns (id, token, name)."""
+    pages = login_and_list_pages(app_id, app_secret, api_version, port)
+    page = (choose or _choose_default)(pages)
+    token = page.get("access_token")
+    if not token:
+        raise FacebookError(f"Selected Page {page.get('id')} returned no access token.")
+    return str(page["id"]), token, page.get("name", "(page)")
+
+
+def login_and_list_pages(
+    app_id: str,
+    app_secret: str,
+    api_version: str = DEFAULT_GRAPH_VERSION,
+    port: int = DEFAULT_PORT,
+) -> list[dict]:
+    """Run Facebook Login and return managed Pages including Page tokens."""
     if not (app_id and app_secret):
         raise FacebookError("Meta App ID and App Secret are required for Facebook login.")
 
@@ -243,8 +258,4 @@ def login_and_select_page(
             "the pages_show_list permission."
         )
 
-    page = (choose or _choose_default)(pages)
-    token = page.get("access_token")
-    if not token:
-        raise FacebookError(f"Selected Page {page.get('id')} returned no access token.")
-    return str(page["id"]), token, page.get("name", "(page)")
+    return pages

@@ -45,6 +45,7 @@ rsync -a \
   --exclude='*.sqlite3' \
   --exclude='memory/business.md' \
   --exclude='memory/skill.md' \
+  --exclude='memory/steering.md' \
   --exclude='package.sh' \
   "$HERE/" "$DEST/"
 
@@ -55,7 +56,8 @@ cp -f "$HERE/.env.example" "$DEST/.env.example" 2>/dev/null || true
 # public download can never contain user data — enforced on every build.
 FORBIDDEN="$(cd "$STAGE" && find aipost247 \
   \( -name '.env' -o -name '*.db' -o -name '*.sqlite3' \
-     -o -name 'business.md' -o -name 'skill.md' -o -name 'oauth_creds.json' \) \
+     -o -name 'business.md' -o -name 'skill.md' -o -name 'steering.md' \
+     -o -name 'oauth_creds.json' \) \
   ! -name '.env.example' -print)"
 if [ -n "$FORBIDDEN" ]; then
   echo "ABORT: personal/secret files would be packaged:" >&2

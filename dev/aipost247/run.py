@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """AIPost247 launcher — the ONLY file you run directly.
 
-    python run.py            # start the scheduler (runs setup first if needed)
+    python run.py            # open the dashboard
     python run.py setup      # interactive configuration wizard
     python run.py post-now   # generate + publish one post immediately
     python run.py generate   # generate one post and print it (does NOT publish)
@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import os
+import re
 import subprocess
 import sys
 
@@ -34,6 +35,26 @@ REQUIRED_MODULES = {
 HERE = os.path.dirname(os.path.abspath(__file__))
 REQUIREMENTS = os.path.join(HERE, "requirements.txt")
 MIN_PYTHON = (3, 9)
+
+
+def _version() -> str:
+    """Read the package version without importing third-party dependencies."""
+    init_path = os.path.join(HERE, "aipost247", "__init__.py")
+    try:
+        with open(init_path, "r", encoding="utf-8") as fh:
+            match = re.search(r'__version__\s*=\s*"([^"]+)"', fh.read())
+            if match:
+                return match.group(1)
+    except OSError:
+        pass
+    return "unknown"
+
+
+def _in_virtualenv() -> bool:
+    return (
+        getattr(sys, "real_prefix", None) is not None
+        or sys.prefix != getattr(sys, "base_prefix", sys.prefix)
+    )
 
 
 def _missing_modules() -> list[str]:
@@ -55,6 +76,23 @@ def ensure_dependencies() -> None:
     print(f"[setup] Missing dependencies: {', '.join(missing)}")
     if not os.path.exists(REQUIREMENTS):
         sys.exit(f"[setup] Cannot auto-install: {REQUIREMENTS} not found.")
+
+    if not _in_virtualenv() and os.environ.get("AIPOST247_ALLOW_SYSTEM_PIP", "").lower() not in {
+        "1",
+        "true",
+        "yes",
+    }:
+        sys.exit(
+            "[setup] Dependencies are missing, but this Python is not inside a virtual environment.\n"
+            "        Run the one-command launcher instead:\n"
+            "          ./run.sh            # macOS / Linux\n"
+            "          run.bat             # Windows\n"
+            "        Or create a venv manually:\n"
+            "          python3 -m venv .venv && source .venv/bin/activate\n"
+            "          python -m pip install -r requirements.txt\n"
+            "          python run.py\n"
+            "        To force the old system-pip behavior, set AIPOST247_ALLOW_SYSTEM_PIP=1."
+        )
 
     print("[setup] Installing from requirements.txt (this runs only once) ...")
     try:
@@ -81,6 +119,9 @@ def ensure_dependencies() -> None:
 
 
 def main() -> None:
+    if sys.argv[1:] == ["--version"]:
+        print(f"AIPost247 {_version()}")
+        return
     ensure_dependencies()
     # Imported only AFTER dependencies are guaranteed to be present.
     from aipost247.app import main as app_main

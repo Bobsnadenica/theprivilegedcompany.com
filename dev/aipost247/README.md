@@ -39,9 +39,9 @@ cd dev/aipost247
 ```
 
 `run.sh` / `run.bat` create an isolated virtual environment (`.venv`), install
-the dependencies into it, and launch the app. The first run drops you into the
-setup wizard. Any argument is forwarded to the app, e.g. `./run.sh generate`,
-`./run.sh post-now`, `./run.sh run`.
+the dependencies into it, and launch the app. The default opens the web
+dashboard for setup and monitoring. Any argument is forwarded to the app, e.g.
+`./run.sh generate`, `./run.sh post-now`, `./run.sh run`.
 
 ### Alternative — plain Python
 
@@ -51,8 +51,9 @@ python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\ac
 python run.py
 ```
 
-`run.py` also checks for the required packages and installs them from
-`requirements.txt` if they are missing — then walks you through setup.
+Inside the virtual environment, `run.py` checks for the required packages and
+installs them from `requirements.txt` if they are missing — then opens the
+dashboard.
 
 > Tip: a virtual environment (created for you by `run.sh`) keeps the install
 > from touching your system Python.
@@ -61,11 +62,11 @@ python run.py
 
 ## 2. Setup — you mostly just *log in*
 
-**Prerequisites:** Python 3.9+, and (for the default Gemini provider)
-**Node.js 18+** from <https://nodejs.org> (`brew install node`). The setup
-installs the Gemini CLI for you.
+**Prerequisites:** Python 3.9+, and for login-only AI providers such as
+Antigravity, Gemini, or Codex, **Node.js 18+** from <https://nodejs.org>
+(`brew install node`) when the selected CLI needs npm.
 
-The wizard (`./run.sh` or `python run.py setup`) has 4 short steps:
+The wizard (`./run.sh setup` or `run.bat setup`) has 4 short steps:
 
 ### Step 1 — Content generator (pick one)
 - **Gemini — recommended, no API key.** AIPost247 installs Google's **Gemini
@@ -110,23 +111,23 @@ Nothing is hardcoded; data only goes to Google/OpenAI and Facebook themselves.
 ## 3. Commands
 
 ```bash
-python run.py dashboard        # open the web dashboard (DEFAULT — configure + monitor in the browser)
-python run.py setup            # terminal configuration wizard (alternative to the dashboard)
-python run.py generate         # generate ONE post and print it — does NOT publish
-python run.py post-now         # generate AND publish one post immediately
-python run.py run              # start the autonomous loop headless (no UI)
-python run.py status           # show config (secrets masked) + recent posts
-python run.py login-gemini     # (re)log in to Google for the Gemini CLI
-python run.py train            # open the "train your business" form (a skill)
-python run.py learn            # read engagement → refresh skill.md (what works)
-python run.py clear-memory     # wipe accumulated memory (history/learnings/profile)
+./run.sh dashboard        # open the web dashboard (DEFAULT — configure + monitor in the browser)
+./run.sh setup            # terminal configuration wizard (alternative to the dashboard)
+./run.sh generate         # generate ONE post and print it — does NOT publish
+./run.sh post-now         # generate AND publish one post immediately
+./run.sh run              # start the autonomous loop headless (no UI)
+./run.sh status           # show config (secrets masked) + recent posts
+./run.sh login-gemini     # log in to the selected login-only AI provider
+./run.sh train            # open the "train your business" form (a skill)
+./run.sh learn            # read engagement → refresh skill.md (what works)
+./run.sh clear-memory     # wipe accumulated memory (history/learnings/profile)
 
-python run.py add-instruction "Always mention free shipping over $50."
-python run.py add-knowledge "Fall blend ships Oct 1." --topic products
+./run.sh add-instruction "Always mention free shipping over $50."
+./run.sh add-knowledge "Fall blend ships Oct 1." --topic products
 ```
 
-**Recommended first run:** `python run.py generate` to preview the AI's output
-safely, then `python run.py post-now`, then `python run.py run`.
+**Recommended first run:** `./run.sh generate` to preview the AI's output
+safely, then `./run.sh post-now`, then `./run.sh run`.
 
 ---
 
@@ -157,7 +158,7 @@ During setup choose either:
 the background after closing the terminal:
 
 ```bash
-nohup python run.py run > /dev/null 2>&1 &     # macOS/Linux
+nohup ./run.sh run > /dev/null 2>&1 &     # macOS/Linux
 # or use tmux / screen, or a systemd service / Windows Task Scheduler
 ```
 
@@ -169,7 +170,7 @@ nohup python run.py run > /dev/null 2>&1 &     # macOS/Linux
   network drops, OpenAI/Facebook hiccups are logged and **retried next cycle** —
   the loop never crashes.
 - **Invalid token / key:** detected and reported with the exact fix
-  (`python run.py setup`).
+  (`./run.sh setup` / `run.bat setup`).
 - **Logs:** console + rotating file at `logs/aipost247.log`.
 - **Dry run:** set `DRY_RUN=true` (or choose it in setup) to generate posts
   without publishing while you tune the brand voice.
@@ -183,7 +184,7 @@ nohup python run.py run > /dev/null 2>&1 &     # macOS/Linux
 dev/aipost247/
 ├── run.sh                 # one-command launcher (venv + install + run) — macOS/Linux
 ├── run.bat                # one-command launcher for Windows
-├── run.py                 # launcher: auto-installs deps, then runs the app
+├── run.py                 # launcher: checks deps, then runs the app
 ├── requirements.txt
 ├── .env.example           # template (copy to .env, or just run setup)
 ├── .gitignore             # keeps .env / data / logs out of git
@@ -211,10 +212,10 @@ dev/aipost247/
 
 | Symptom | Fix |
 | --- | --- |
-| `Facebook token invalid` (code 190) | Token expired/revoked — re-run `python run.py setup`. |
+| `Facebook token invalid` (code 190) | Token expired/revoked — re-run `./run.sh setup` / `run.bat setup`. |
 | `Rate limited by Facebook` | Normal under heavy use; it retries next cycle. Lower your frequency. |
 | `OpenAI rejected the API key` | Check the key and that billing is enabled, then `setup`. |
-| Auto-install fails | Use a venv, or `python -m pip install -r requirements.txt`. |
+| Auto-install fails | Use `./run.sh` / `run.bat`, or create a venv before running `python -m pip install -r requirements.txt`. |
 | Posts feel generic | Add detail to `memory/instructions.md` and `memory/knowledge/`. |
 
 > Per Meta and OpenAI terms, you are responsible for the content you publish.

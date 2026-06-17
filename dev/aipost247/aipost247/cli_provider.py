@@ -87,6 +87,22 @@ def is_cli_provider(provider: str) -> bool:
     return provider in PROVIDERS
 
 
+def label(provider: str) -> str:
+    """Human-readable provider label for logs/status UI."""
+    if provider == "gemini":
+        return "Gemini (Google)"
+    if provider == "openai":
+        return "OpenAI"
+    return _spec(provider)["label"]
+
+
+def bin_name(provider: str) -> str:
+    """Executable name for a login-only provider."""
+    if provider == "gemini":
+        return "gemini"
+    return _spec(provider)["bin"]
+
+
 def _spec(provider: str) -> dict:
     spec = PROVIDERS.get(provider)
     if not spec:
@@ -286,12 +302,12 @@ def generate(provider: str, prompt: str, timeout: int = 120) -> str:
 
 
 # --- unified dispatch (also covers Gemini, so callers have one entry) -------
-def ensure_provider(config) -> str:
+def ensure_provider(config, auto_install: bool = True) -> str:
     if config.ai_provider == "gemini":
         from . import gemini_client
 
-        return gemini_client.ensure_installed()
-    return ensure_installed(config.ai_provider)
+        return gemini_client.ensure_installed(auto_install=auto_install)
+    return ensure_installed(config.ai_provider, auto_install=auto_install)
 
 
 def is_logged_in(config) -> bool:

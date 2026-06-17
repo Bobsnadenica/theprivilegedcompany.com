@@ -78,7 +78,9 @@ def run_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_ru
     log.info("Building context from local memory ...")
     context = memory.build_context()
 
-    provider = "Gemini CLI" if config.ai_provider != "openai" else "OpenAI"
+    from . import cli_provider
+
+    provider = cli_provider.label(config.ai_provider)
     log.info("Generating a post with %s ...", provider)
     text = generate_text(config, context)
     log.info("Draft post (%d chars):\n----------\n%s\n----------", len(text), text)
@@ -100,15 +102,15 @@ def safe_cycle(config: Config, memory: MemoryStore, fb: FacebookClient, *, dry_r
     try:
         return run_cycle(config, memory, fb, dry_run=dry_run)
     except GeminiAuthError as exc:
-        log.error("Gemini not logged in: %s — run `python run.py login-gemini`.", exc)
+        log.error("AI provider not logged in: %s — run `./run.sh login-gemini`.", exc)
     except GeminiNotInstalled as exc:
-        log.error("Gemini CLI unavailable: %s", exc)
+        log.error("AI CLI unavailable: %s", exc)
     except GeminiRateLimitError as exc:
-        log.warning("Gemini е временно претоварен: %s — ще опитаме пак следващия път.", exc)
+        log.warning("AI доставчикът е временно претоварен: %s — ще опитаме пак следващия път.", exc)
     except GeminiError as exc:
-        log.error("Gemini generation failed: %s — will try again next cycle.", exc)
+        log.error("AI generation failed: %s — will try again next cycle.", exc)
     except FacebookAuthError as exc:
-        log.error("Facebook token invalid: %s — re-run `python run.py setup`.", exc)
+        log.error("Facebook token invalid: %s — re-run `./run.sh setup`.", exc)
     except FacebookRateLimitError as exc:
         log.warning("Facebook rate limit: %s — will try again next cycle.", exc)
     except FacebookError as exc:
@@ -127,8 +129,14 @@ def cmd_status(config: Config, memory: MemoryStore) -> int:
         print(f"OpenAI model     : {config.openai_model}")
         print(f"OpenAI key       : {_mask(config.openai_api_key)}")
     else:
-        print(f"Gemini model     : {config.gemini_model}")
-        print(f"Gemini CLI       : {'installed' if gemini_client.cli_path() else 'NOT installed'}")
+        from . import cli_provider
+
+        if config.ai_provider == "gemini":
+            print(f"Gemini model     : {config.gemini_model}")
+            print(f"Gemini CLI       : {'installed' if gemini_client.cli_path() else 'NOT installed'}")
+        elif cli_provider.is_cli_provider(config.ai_provider):
+            print(f"AI CLI           : {cli_provider.bin_name(config.ai_provider)}")
+            print(f"AI CLI status    : {'installed' if cli_provider.cli_path(config.ai_provider) else 'NOT installed'}")
     print(f"Facebook Page ID : {config.fb_page_id or '(not set)'}")
     print(f"Facebook token   : {_mask(config.fb_page_access_token)}")
     print(f"Schedule         : {describe_schedule(config)}")
@@ -203,6 +211,10 @@ def _ai_text(config: Config, prompt: str) -> str:
         from .openai_client import complete
 
         return complete(config, prompt)
+    from . import cli_provider
+
+    if cli_provider.is_cli_provider(config.ai_provider):
+        return cli_provider.generate(config.ai_provider, prompt)
     return gemini_client.generate(prompt, model=config.gemini_model)
 
 
@@ -281,7 +293,7 @@ def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
             cli_provider.ensure_provider(config)
         except GeminiError as exc:
             log.error("AI CLI липсва: %s", exc)
-            log.error("Инсталирайте го, после `login-gemini`, или `setup` и изберете OpenAI. НЕ стартирам.")
+            log.error("Инсталирайте го, после `./run.sh login-gemini`, или `./run.sh setup` и изберете OpenAI. НЕ стартирам.")
             return 1
         if not cli_provider.is_logged_in(config):
             log.warning("AI доставчикът (%s) не е влязъл — опитвам вход сега ...", config.ai_provider)
@@ -290,8 +302,8 @@ def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
             except GeminiError as exc:
                 log.error("Входът се провали: %s", exc)
             if not cli_provider.is_logged_in(config):
-                log.error("НЕ стартирам: %s не е влязъл. Изпълнете `login-gemini`, "
-                          "или `setup` и изберете OpenAI.", config.ai_provider)
+                log.error("НЕ стартирам: %s не е влязъл. Изпълнете `./run.sh login-gemini`, "
+                          "или `./run.sh setup` и изберете OpenAI.", config.ai_provider)
                 return 1
         log.info("AI доставчикът (%s) е влязъл и готов.", config.ai_provider)
 
@@ -299,7 +311,7 @@ def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
         name = fb.validate()
         log.info("Connected to Facebook Page: %s (id %s)", name, config.fb_page_id)
     except FacebookAuthError as exc:
-        log.error("Facebook token invalid: %s. Run `python run.py setup`.", exc)
+        log.error("Facebook token invalid: %s. Run `./run.sh setup`.", exc)
         return 1
     except FacebookError as exc:
         log.warning("Could not validate token now (%s); will retry while running.", exc)
@@ -314,7 +326,7 @@ def run_loop(config: Config, memory: MemoryStore, fb: FacebookClient) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="aipost247",
-        description="Autonomous Facebook auto-poster (Gemini/OpenAI + Graph API).",
+        description="Autonomous Facebook auto-poster (AI provider + Graph API).",
     )
     parser.add_argument("--version", action="version", version=f"AIPost247 {__version__}")
     sub = parser.add_subparsers(dest="command")
@@ -325,7 +337,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("post-now", help="Generate and publish one post immediately.")
     sub.add_parser("generate", help="Generate one post and print it (does NOT publish).")
     sub.add_parser("status", help="Show configuration and recent posts.")
-    sub.add_parser("login-gemini", help="Log in to Google for the Gemini CLI.")
+    sub.add_parser("login-gemini", help="Log in to the selected login-only AI provider.")
     sub.add_parser("train", help="Open the 'train your business' form (saved as a skill).")
     sub.add_parser("learn", help="Read post engagement and refresh skill.md (what works).")
     sub.add_parser("clear-memory", help="Wipe accumulated memory (history, learnings, profile).")

@@ -99,6 +99,8 @@ class Autopilot:
 
 _AUTOPILOT = Autopilot()
 _LOGIN_RUNNING = threading.Event()
+_FB_PENDING: dict[str, dict] = {}
+_FB_PENDING_LOCK = threading.Lock()
 
 # Long operations (generate / post / learn) run as background JOBS and the
 # browser polls for the result. This keeps HTTP requests short — a slow CLI no
@@ -147,6 +149,7 @@ def _status(memory: MemoryStore) -> dict:
     return {
         "ai_provider": config.ai_provider,
         "ai_ready": config.ai_ready() and (config.ai_provider == "openai" or ai_logged_in),
+        "ai_logged_in": ai_logged_in,
         "gemini_logged_in": ai_logged_in,
         "facebook_connected": bool(config.fb_page_id and config.fb_page_access_token),
         "facebook_page_id": config.fb_page_id,
@@ -197,7 +200,7 @@ def _config_public(config) -> dict:
 def _save_config(data: dict) -> None:
     existing = cfg.load_config()
     values: dict[str, str] = {
-        "AI_PROVIDER": data.get("ai_provider", existing.ai_provider) or "gemini",
+        "AI_PROVIDER": data.get("ai_provider", existing.ai_provider) or "antigravity",
         "GEMINI_MODEL": data.get("gemini_model") or existing.gemini_model or cfg.DEFAULT_GEMINI_MODEL,
         "OPENAI_MODEL": data.get("openai_model") or existing.openai_model or cfg.DEFAULT_OPENAI_MODEL,
         "GRAPH_API_VERSION": data.get("graph_api_version") or existing.graph_api_version,
@@ -350,6 +353,8 @@ class _Handler(BaseHTTPRequestHandler):
                     lambda: cli_provider.raw_probe(cfg.load_config()))})
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
+            elif path == "/api/facebook/select-page":
+                self._json(self._fb_select_page(data))
             elif path == "/api/business":
                 self._json(self._save_business(data))
             elif path == "/api/feedback":
@@ -416,7 +421,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def _fb_connect(self, data: dict) -> dict:
         from .facebook_client import FacebookError
-        from .fb_oauth import login_and_select_page
+        from .fb_oauth import login_and_list_pages
 
         app_id = (data.get("fb_app_id") or "").strip()
         app_secret = (data.get("fb_app_secret") or "").strip()
@@ -428,16 +433,68 @@ class _Handler(BaseHTTPRequestHandler):
             return {"ok": False, "error": "Нужни са App ID и App Secret."}
         try:
             api = cfg.load_config().graph_api_version or cfg.DEFAULT_GRAPH_VERSION
-            page_id, token, name = login_and_select_page(
-                app_id, app_secret, api, choose=lambda pages: pages[0]
-            )
-            cfg._write_env({
-                "FB_APP_ID": app_id, "FB_APP_SECRET": app_secret,
-                "FB_PAGE_ID": page_id, "FB_PAGE_ACCESS_TOKEN": token,
-            })
-            return {"ok": True, "page_name": name, "page_id": page_id}
+            pages = login_and_list_pages(app_id, app_secret, api)
+            if len(pages) == 1:
+                page = pages[0]
+                token = page.get("access_token")
+                if not token:
+                    return {"ok": False, "error": "Facebook не върна Page token."}
+                cfg._write_env({
+                    "FB_APP_ID": app_id, "FB_APP_SECRET": app_secret,
+                    "FB_PAGE_ID": str(page.get("id")), "FB_PAGE_ACCESS_TOKEN": token,
+                })
+                return {"ok": True, "page_name": page.get("name", "(page)"),
+                        "page_id": str(page.get("id"))}
+
+            pending = secrets.token_hex(8)
+            with _FB_PENDING_LOCK:
+                _FB_PENDING[pending] = {
+                    "created_at": time.time(),
+                    "app_id": app_id,
+                    "app_secret": app_secret,
+                    "pages": pages,
+                }
+                for key, item in list(_FB_PENDING.items()):
+                    if time.time() - item.get("created_at", 0) > 900:
+                        _FB_PENDING.pop(key, None)
+            return {
+                "ok": True,
+                "choose_page": True,
+                "pending": pending,
+                "pages": [
+                    {"id": str(page.get("id")), "name": page.get("name", "(без име)")}
+                    for page in pages
+                ],
+            }
         except FacebookError as exc:
             return {"ok": False, "error": str(exc)}
+
+    def _fb_select_page(self, data: dict) -> dict:
+        pending = (data.get("pending") or "").strip()
+        page_id = (data.get("page_id") or "").strip()
+        with _FB_PENDING_LOCK:
+            item = _FB_PENDING.get(pending)
+        if not item:
+            return {"ok": False, "error": "Изборът е изтекъл. Натиснете „Свържи Facebook“ отново."}
+        if time.time() - item.get("created_at", 0) > 900:
+            with _FB_PENDING_LOCK:
+                _FB_PENDING.pop(pending, None)
+            return {"ok": False, "error": "Изборът е изтекъл. Натиснете „Свържи Facebook“ отново."}
+        page = next((p for p in item["pages"] if str(p.get("id")) == page_id), None)
+        if not page:
+            return {"ok": False, "error": "Невалидна страница."}
+        token = page.get("access_token")
+        if not token:
+            return {"ok": False, "error": "Facebook не върна Page token за тази страница."}
+        cfg._write_env({
+            "FB_APP_ID": item["app_id"],
+            "FB_APP_SECRET": item["app_secret"],
+            "FB_PAGE_ID": str(page.get("id")),
+            "FB_PAGE_ACCESS_TOKEN": token,
+        })
+        with _FB_PENDING_LOCK:
+            _FB_PENDING.pop(pending, None)
+        return {"ok": True, "page_name": page.get("name", "(page)"), "page_id": str(page.get("id"))}
 
     def _save_business(self, data: dict) -> dict:
         from . import business
@@ -498,19 +555,17 @@ def run_dashboard(port: int | None = None, open_browser: bool = True) -> int:
             port = DEFAULT_PORT
     _Handler.memory = MemoryStore(str(cfg.DB_PATH), str(cfg.MEMORY_DIR))
 
-    # Best-effort: install the configured AI CLI (default: Antigravity) NOW, before
-    # the dashboard opens, so the first action isn't blocked. No-op once installed;
-    # never fatal — on failure the dashboard still opens and you can pick another.
+    # Best-effort readiness check. Do not install anything on dashboard startup;
+    # installation happens only after the user explicitly clicks the login button.
     try:
         config = cfg.load_config()
         if config.ai_provider != "openai":
             from . import cli_provider
 
-            print(f"  Проверка/инсталиране на AI CLI ({config.ai_provider}) ...")
-            cli_provider.ensure_provider(config)
-            print(f"  ✓ {config.ai_provider} е готов.")
+            path = cli_provider.ensure_provider(config, auto_install=False)
+            print(f"  ✓ AI CLI ({config.ai_provider}) е намерен: {path}")
     except Exception as exc:  # noqa: BLE001 - never block the dashboard
-        log.warning("AI CLI авто-инсталация прескочена (%s) — ще се инсталира при вход.", exc)
+        log.info("AI CLI не е намерен още (%s) — ще се инсталира при вход.", exc)
     requested = port
     try:
         server = _bind_server(requested)
@@ -601,6 +656,7 @@ _PAGE = r"""<!DOCTYPE html>
     transition:opacity .25s,transform .25s;pointer-events:none;z-index:50;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
   .out{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;white-space:pre-wrap;}
+  .choice-box{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;}
   .muted{color:var(--muted);}
   .hide{display:none;}
   .busy{opacity:.6;pointer-events:none;}
@@ -699,6 +755,7 @@ _PAGE = r"""<!DOCTYPE html>
       </div>
       <button class="btn" onclick="fbConnect()">Свържи Facebook</button>
       <span id="fb-status" class="muted"></span>
+      <div id="fb-page-picker" class="choice-box hide"></div>
     </div>
 
     <div class="card">
@@ -789,6 +846,8 @@ var BIZ = [["name","Име на бизнеса / страницата"],["descri
   ["notes","Друго, което AI трябва да знае"]];
 
 function $(id){return document.getElementById(id);}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function safeClass(v){return String(v||"").replace(/[^a-zA-Z0-9_-]/g,"_");}
 function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2200);}
 function getJSON(u){return fetch(u).then(function(r){return r.json();});}
 function postJSON(u,b){return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b||{})}).then(function(r){return r.json();});}
@@ -810,12 +869,12 @@ document.querySelectorAll("nav button").forEach(function(b){
 (function(){var c=$("business-fields");BIZ.forEach(function(f){
   c.insertAdjacentHTML("beforeend","<label>"+f[1]+"</label><textarea id=\"biz_"+f[0]+"\" rows=\"2\"></textarea>");});})();
 
-function pill(label,ok){return '<span class="pill '+(ok?"ok":"bad")+'">'+(ok?"✓ ":"✕ ")+label+'</span>';}
+function pill(label,ok){return '<span class="pill '+(ok?"ok":"bad")+'">'+(ok?"✓ ":"✕ ")+esc(label)+'</span>';}
 
 function loadStatus(){
   getJSON("/api/status").then(function(s){
     $("pills").innerHTML = pill("AI",s.ai_ready)+pill("Facebook",s.facebook_connected)+
-      '<span class="pill">'+s.schedule+'</span>'+
+      '<span class="pill">'+esc(s.schedule)+'</span>'+
       '<span class="pill '+(s.autopilot.running?"ok":"")+'">'+(s.autopilot.running?"▶ автопилот":"❚❚ спрян")+'</span>';
     var st=s.stats;
     $("stats").innerHTML =
@@ -830,7 +889,7 @@ function loadStatus(){
         (ap.last_run_at? (" · последно: "+ap.last_run_at+" ("+(ap.last_result||"")+")"):"") +'</span>';
   });
 }
-function stat(n,l){return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
+function stat(n,l){return '<div class="stat"><div class="n">'+esc(n)+'</div><div class="l">'+esc(l)+'</div></div>';}
 
 function loadConfig(){
   getJSON("/api/config").then(function(c){
@@ -892,12 +951,29 @@ function checkLogin(){$("ai-login-status").textContent="проверявам…"
 function loginAI(){var p=$("ai_provider").value;$("ai-login-status").textContent="влизане…";
   postJSON("/api/login-gemini",{provider:p}).then(function(r){
     if(r.already){$("ai-login-status").textContent="✓ вече сте влезли";}
-    else if(r.message){$("ai-login-status").innerHTML="↪ "+r.message;toast("Вижте прозореца на терминала");}
+    else if(r.message){$("ai-login-status").textContent="↪ "+r.message;toast("Вижте прозореца на терминала");}
     else if(r.error){$("ai-login-status").textContent="✕ "+r.error;}
     else{$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"…";}
     loadStatus();});}
+function clearFbPicker(){var box=$("fb-page-picker");box.innerHTML="";box.classList.add("hide");}
+function showFbPagePicker(r){
+  var box=$("fb-page-picker");box.innerHTML="";box.classList.remove("hide");
+  var label=document.createElement("label");label.textContent="Изберете Facebook страница";
+  var select=document.createElement("select");select.id="fb-page-select";
+  (r.pages||[]).forEach(function(p){var opt=document.createElement("option");opt.value=p.id;opt.textContent=(p.name||"(без име)")+" (id "+p.id+")";select.appendChild(opt);});
+  var btn=document.createElement("button");btn.className="btn ok";btn.type="button";btn.textContent="Запази тази страница";
+  btn.onclick=function(){selectFbPage(r.pending,select.value);};
+  var hint=document.createElement("p");hint.className="hint";hint.textContent="Намерихме повече от една страница. Изберете точно коя да управлява AIPost247.";
+  box.appendChild(label);box.appendChild(hint);box.appendChild(select);box.appendChild(btn);
+}
+function selectFbPage(pending,pageId){$("fb-status").textContent="запазвам избраната страница…";
+  postJSON("/api/facebook/select-page",{pending:pending,page_id:pageId}).then(function(r){
+    $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
+    if(r.ok)clearFbPicker();loadConfig();loadStatus();});}
 function fbConnect(){toast("Отваря се браузър за Facebook…");$("fb-status").textContent="свързване…";
+  clearFbPicker();
   postJSON("/api/facebook/connect",{fb_app_id:$("fb_app_id").value,fb_app_secret:$("fb_app_secret").value}).then(function(r){
+    if(r.choose_page){$("fb-status").textContent="изберете страница от списъка";$("fb_app_secret").value="";showFbPagePicker(r);return;}
     $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
     $("fb_app_secret").value="";loadStatus();});}
 
@@ -921,9 +997,10 @@ function autopilot(a){postJSON("/api/autopilot",{action:a}).then(function(r){if(
 
 function loadPosts(){getJSON("/api/posts").then(function(d){
   $("posts-body").innerHTML=d.posts.map(function(p){
-    var txt=(p.content||"").replace(/</g,"&lt;");if(txt.length>120)txt=txt.slice(0,120)+"…";
-    return "<tr><td>"+(p.created_at||"")+"</td><td><span class=\"tag "+p.status+"\">"+p.status+"</span></td>"+
-      "<td>"+txt+"</td><td>"+(p.likes||0)+"</td><td>"+(p.comments||0)+"</td><td>"+(p.shares||0)+"</td></tr>";
+    var txt=esc(p.content||"");if(txt.length>120)txt=txt.slice(0,120)+"…";
+    var status=esc(p.status||"");
+    return "<tr><td>"+esc(p.created_at||"")+"</td><td><span class=\"tag "+safeClass(p.status)+"\">"+status+"</span></td>"+
+      "<td>"+txt+"</td><td>"+esc(p.likes||0)+"</td><td>"+esc(p.comments||0)+"</td><td>"+esc(p.shares||0)+"</td></tr>";
   }).join("")||"<tr><td colspan=6 class=muted>Все още няма публикации.</td></tr>";});}
 function loadLogs(){getJSON("/api/logs").then(function(d){var v=$("log-view");v.textContent=d.log;v.scrollTop=v.scrollHeight;});}
 function loadMemory(){getJSON("/api/memory").then(function(m){

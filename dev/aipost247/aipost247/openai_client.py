@@ -1,7 +1,7 @@
 """OpenAI (ChatGPT) content generation — OPTIONAL provider.
 
 Only used when AI_PROVIDER=openai. The ``openai`` package is imported lazily so
-the default (Gemini) install doesn't need it.
+the default login-only providers don't need it.
 """
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def generate_post(config: Config, context: str, retries: int = 3) -> str:
     except ImportError as exc:
         raise OpenAIError(
             "The 'openai' package is not installed. Run `pip install openai` "
-            "or re-run `python run.py setup` and choose the OpenAI provider."
+            "or re-run `./run.sh setup` and choose the OpenAI provider."
         ) from exc
 
     client = OpenAI(api_key=config.openai_api_key)
