@@ -109,20 +109,52 @@ _JOBS: dict[str, dict] = {}
 _JOBS_LOCK = threading.Lock()
 
 
+def _job_log(job_id: str, message: str) -> None:
+    now = time.time()
+    with _JOBS_LOCK:
+        state = _JOBS.get(job_id)
+        if not state:
+            return
+        started = state.get("started_at") or now
+        line = {
+            "elapsed": int(now - started),
+            "message": str(message),
+            "at": datetime.now().isoformat(timespec="seconds"),
+        }
+        logs = list(state.get("log") or [])
+        logs.append(line)
+        state["log"] = logs[-200:]
+        state["updated_at"] = now
+    log.info("[job %s] %s", job_id, message)
+
+
 def _start_job(fn) -> str:
     job_id = secrets.token_hex(8)
+    now = time.time()
     with _JOBS_LOCK:
-        _JOBS[job_id] = {"status": "running", "result": None}
+        _JOBS[job_id] = {
+            "status": "running",
+            "result": None,
+            "log": [],
+            "started_at": now,
+            "updated_at": now,
+        }
         for stale in list(_JOBS)[:-40]:  # bound memory
             _JOBS.pop(stale, None)
 
     def _run():
+        progress = lambda message: _job_log(job_id, message)
         try:
-            result = fn()
+            progress("Job started.")
+            result = fn(progress)
+            progress("Job finished.")
         except Exception as exc:  # noqa: BLE001
+            progress(f"Job failed: {exc}")
             result = {"ok": False, "error": str(exc)}
         with _JOBS_LOCK:
-            _JOBS[job_id] = {"status": "done", "result": result}
+            state = _JOBS.get(job_id, {})
+            state.update({"status": "done", "result": result, "updated_at": time.time()})
+            _JOBS[job_id] = state
 
     threading.Thread(target=_run, daemon=True).start()
     return job_id
@@ -130,7 +162,36 @@ def _start_job(fn) -> str:
 
 def _job_state(job_id: str) -> dict | None:
     with _JOBS_LOCK:
-        return _JOBS.get(job_id)
+        state = _JOBS.get(job_id)
+        if not state:
+            return None
+        data = dict(state)
+    data["elapsed"] = int(time.time() - (data.get("started_at") or time.time()))
+    return data
+
+
+def _with_heartbeat(progress, label: str, fn, interval: float = 10.0):
+    """Run a blocking provider call while emitting elapsed-time progress lines."""
+    box: dict[str, object] = {}
+
+    def _run():
+        try:
+            box["result"] = fn()
+        except BaseException as exc:  # noqa: BLE001 - re-raised in caller thread
+            box["error"] = exc
+
+    thread = threading.Thread(target=_run, daemon=True)
+    start = time.time()
+    progress(f"{label} started.")
+    thread.start()
+    while thread.is_alive():
+        thread.join(interval)
+        if thread.is_alive():
+            progress(f"{label} still running ({int(time.time() - start)}s elapsed).")
+    if "error" in box:
+        raise box["error"]  # type: ignore[misc]
+    progress(f"{label} completed in {int(time.time() - start)}s.")
+    return box.get("result")
 
 
 # --------------------------------------------------------------------------
@@ -226,32 +287,54 @@ def _save_config(data: dict) -> None:
     cfg._write_env(values)
 
 
-def _do_cycle(memory: MemoryStore, dry_run: bool) -> dict:
+def _do_cycle(memory: MemoryStore, dry_run: bool, progress=lambda _message: None) -> dict:
     from . import app as _app, engagement
     from .facebook_client import FacebookClient, FacebookError
 
     config = cfg.load_config()
     try:
+        progress("Loaded configuration.")
         fb = FacebookClient(
             config.fb_page_id, config.fb_page_access_token,
             app_id=config.fb_app_id, app_secret=config.fb_app_secret,
             api_version=config.graph_api_version,
         )
+        progress("Prepared Facebook client.")
         try:
+            progress("Refreshing learned engagement file from cached data.")
             engagement.write_skill_md(memory, cfg.MEMORY_DIR)
         except Exception:  # noqa: BLE001 - learning must never block generation
-            pass
-        text = _app.generate_text(config, memory.build_context(max_recent=6, max_knowledge_chars=3000))
+            progress("Skipped cached engagement refresh.")
+        progress("Building memory context.")
+        context = memory.build_context(max_recent=6, max_knowledge_chars=3000)
+        provider = config.ai_provider
+        timeout = 180 if provider == "gemini" else 120
+        if provider == "openai":
+            progress("Calling OpenAI. Waiting for model response.")
+        else:
+            progress(f"Calling {provider} CLI. Timeout is {timeout}s.")
+        text = _with_heartbeat(
+            progress,
+            "AI generation",
+            lambda: _app.generate_text(config, context),
+        )
+        progress(f"AI returned {len(text)} characters.")
         if dry_run:
             memory.add_post(text, fb_post_id=None, status="dry_run", model=config.ai_provider)
+            progress("Saved draft as dry-run memory record.")
             return {"ok": True, "published": False, "text": text}
+        progress("Publishing post to Facebook.")
         post_id = fb.post(text)
         memory.add_post(text, fb_post_id=post_id, status="published", model=config.ai_provider)
+        progress(f"Published to Facebook with id {post_id}.")
         engagement.learn_background(memory, fb, cfg.MEMORY_DIR)
+        progress("Queued background engagement learning.")
         return {"ok": True, "published": True, "post_id": post_id, "text": text}
     except FacebookError as exc:
+        progress(f"Facebook error: {exc}")
         return {"ok": False, "error": f"Facebook: {exc}"}
     except Exception as exc:  # noqa: BLE001
+        progress(f"Error: {exc}")
         return {"ok": False, "error": str(exc)}
 
 
@@ -335,10 +418,10 @@ class _Handler(BaseHTTPRequestHandler):
                 self._json({"ok": True})
             elif path == "/api/generate":
                 mem = self.memory
-                self._json({"ok": True, "job": _start_job(lambda: _do_cycle(mem, dry_run=True))})
+                self._json({"ok": True, "job": _start_job(lambda progress: _do_cycle(mem, dry_run=True, progress=progress))})
             elif path == "/api/post-now":
                 mem = self.memory
-                self._json({"ok": True, "job": _start_job(lambda: _do_cycle(mem, dry_run=False))})
+                self._json({"ok": True, "job": _start_job(lambda progress: _do_cycle(mem, dry_run=False, progress=progress))})
             elif path == "/api/learn":
                 self._json({"ok": True, "job": _start_job(self._learn)})
             elif path == "/api/login-gemini":
@@ -351,7 +434,11 @@ class _Handler(BaseHTTPRequestHandler):
                 from . import cli_provider
 
                 self._json({"ok": True, "job": _start_job(
-                    lambda: cli_provider.raw_probe(cfg.load_config()))})
+                    lambda progress: _with_heartbeat(
+                        progress,
+                        "Provider test",
+                        lambda: cli_provider.raw_probe(cfg.load_config()),
+                    ))})
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
             elif path == "/api/facebook/select-page":
@@ -369,21 +456,26 @@ class _Handler(BaseHTTPRequestHandler):
             self._json({"ok": False, "error": str(exc)}, 200)
 
     # -- action implementations ------------------------------------------
-    def _learn(self) -> dict:
+    def _learn(self, progress=lambda _message: None) -> dict:
         from . import engagement
         from .facebook_client import FacebookClient, FacebookError
 
         config = cfg.load_config()
+        progress("Loaded configuration.")
         fb = FacebookClient(
             config.fb_page_id, config.fb_page_access_token,
             app_id=config.fb_app_id, app_secret=config.fb_app_secret,
             api_version=config.graph_api_version,
         )
         try:
+            progress("Reading engagement from Facebook for recent posts.")
             updated = engagement.sync(self.memory, fb, limit=25)
+            progress(f"Engagement refreshed for {updated} post(s).")
             engagement.write_skill_md(self.memory, cfg.MEMORY_DIR)
+            progress("Updated memory/skill.md.")
             return {"ok": True, "updated": updated}
         except FacebookError as exc:
+            progress(f"Facebook error: {exc}")
             return {"ok": False, "error": str(exc)}
 
     def _login_gemini(self, data: dict) -> dict:
@@ -513,9 +605,13 @@ class _Handler(BaseHTTPRequestHandler):
         if not text:
             return {"ok": False, "error": "Празна обратна връзка."}
         _app.apply_feedback_fast(self.memory, text)
-        job = _start_job(lambda: {
+        job = _start_job(lambda progress: {
             "ok": True,
-            "ai_consolidated": _app._consolidate_steering(cfg.load_config(), self.memory, text),
+            "ai_consolidated": _with_heartbeat(
+                progress,
+                "AI style consolidation",
+                lambda: _app._consolidate_steering(cfg.load_config(), self.memory, text),
+            ),
             "steering": self.memory.read_steering_file(),
         })
         return {
@@ -853,6 +949,7 @@ _PAGE = r"""<!DOCTYPE html>
       <p class="hint">Напишете какво да се промени — AI съгласува указанията в единен стил без противоречия.</p>
       <textarea id="feedback" placeholder="напр. по-кратко, повече емоджи, по-малко продажбено"></textarea>
       <button class="btn" onclick="sendFeedback()">Приложи</button>
+      <div id="feedback-status" class="muted" style="margin-top:8px" aria-live="polite"></div>
       <label style="margin-top:16px">Текущ стил (steering.md)</label>
       <pre class="log" id="steering-view" style="max-height:30vh"></pre>
     </div>
@@ -981,8 +1078,10 @@ function testProvider(){var o=$("provider-test");o.style.display="block";o.textC
   postJSON("/api/test-provider",{}).then(function(r){
     if(!r.job){o.textContent="✕ "+(r.error||"Грешка");return;}
     var t=setInterval(function(){getJSON("/api/job?id="+r.job).then(function(j){
+      if(j&&j.status!=="done"){o.textContent=jobLogText(j)||"Тествам доставчика…";return;}
       if(j&&j.status==="done"){clearInterval(t);var x=j.result||{};
-        o.textContent="команда: "+(x.cmd||"-")+"\nexit: "+(x.returncode!==undefined?x.returncode:"-")+
+        o.textContent=(jobLogText(j)||"")+"\n\n--- Резултат ---\n"+
+          "команда: "+(x.cmd||"-")+"\nexit: "+(x.returncode!==undefined?x.returncode:"-")+
           "\n\n=== STDOUT ===\n"+(x.stdout||"(празно)")+"\n\n=== STDERR ===\n"+(x.stderr||"(празно)")+
           (x.error?("\n\nгрешка: "+x.error):"");}
     }).catch(function(){});},1500);
@@ -1018,19 +1117,27 @@ function fbConnect(){toast("Отваря се браузър за Facebook…");
     $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
     $("fb_app_secret").value="";loadStatus();});}
 
-function showActionResult(r,o){
-  if(r&&r.ok){o.textContent=(r.text!==undefined?r.text:("Готово · обновени: "+(r.updated!==undefined?r.updated:"")))+(r.published?"\n\n✓ Публикувано (id "+r.post_id+")":(r.published===false?"\n\n(тестов преглед — не е публикувано)":""));}
-  else{o.textContent="✕ "+((r&&r.error)||"Грешка");}
+function jobLogText(j){
+  var lines=(j&&j.log)||[];
+  if(!lines.length)return "";
+  return lines.map(function(x){return "["+(x.elapsed||0)+"s] "+(x.message||"");}).join("\n");
+}
+function showActionResult(r,o,j){
+  var logs=jobLogText(j), body="";
+  if(r&&r.ok){body=(r.text!==undefined?r.text:("Готово · обновени: "+(r.updated!==undefined?r.updated:"")))+(r.published?"\n\n✓ Публикувано (id "+r.post_id+")":(r.published===false?"\n\n(тестов преглед — не е публикувано)":""));}
+  else{body="✕ "+((r&&r.error)||"Грешка");}
+  o.textContent=(logs?logs+"\n\n--- Резултат ---\n":"")+body;
 }
 function act(url,msg){toast(msg);var o=$("action-out");o.classList.remove("hide");o.textContent=msg+" (може да отнеме до минута) …";
   postJSON(url,{}).then(function(r){
     if(r&&r.job){
       var t=setInterval(function(){
         getJSON("/api/job?id="+r.job).then(function(j){
-          if(j&&j.status==="done"){clearInterval(t);showActionResult(j.result,o);loadStatus();}
+          if(j&&j.status!=="done"){o.textContent=jobLogText(j)||msg+" …";return;}
+          if(j&&j.status==="done"){clearInterval(t);showActionResult(j.result,o,j);loadStatus();}
         }).catch(function(){});
       },1500);
-    } else { showActionResult(r,o); loadStatus(); }
+    } else { showActionResult(r,o,null); loadStatus(); }
   }).catch(function(){o.textContent="✕ Грешка при заявката";});
 }
 
@@ -1053,14 +1160,17 @@ function saveBusiness(){var b={};BIZ.forEach(function(f){b[f[0]]=$("biz_"+f[0]).
 function pollFeedbackJob(job){var tries=0,t=setInterval(function(){
   getJSON("/api/job?id="+job).then(function(j){
     tries++;
+    if(j&&j.status!=="done"){$("feedback-status").textContent=jobLogText(j);return;}
     if(j&&j.status==="done"){clearInterval(t);var r=j.result||{};
       if(r.steering)$("steering-view").textContent=r.steering;
+      $("feedback-status").textContent=jobLogText(j);
       toast(r.ai_consolidated?"Стилът е подреден от AI":"Стилът е записан");
     } else if(tries>30){clearInterval(t);}
   }).catch(function(){tries++;if(tries>30)clearInterval(t);});
 },1200);}
 function sendFeedback(){var t=$("feedback").value.trim();if(!t){toast("Напишете нещо");return;}toast("Записвам стила…");
-  postJSON("/api/feedback",{feedback:t}).then(function(r){if(r.ok){$("feedback").value="";$("steering-view").textContent=r.steering;toast(r.queued?"Стилът е записан веднага; AI го подрежда във фон":"Стилът е обновен");if(r.job)pollFeedbackJob(r.job);}else toast(r.error||"Грешка");});}
+  $("feedback-status").textContent="Записвам веднага…";
+  postJSON("/api/feedback",{feedback:t}).then(function(r){if(r.ok){$("feedback").value="";$("steering-view").textContent=r.steering;$("feedback-status").textContent=r.queued?"Записано веднага. AI подрежда правилата във фон…":"Стилът е обновен.";toast(r.queued?"Стилът е записан веднага; AI го подрежда във фон":"Стилът е обновен");if(r.job)pollFeedbackJob(r.job);}else toast(r.error||"Грешка");});}
 
 loadStatus();loadConfig();
 setInterval(function(){loadStatus();var l=$("tab-logs");if(l&&!l.classList.contains("hide"))loadLogs();var p=$("tab-posts");if(p&&!p.classList.contains("hide"))loadPosts();},5000);
