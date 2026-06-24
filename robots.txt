@@ -1,3 +1,9 @@
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
 User-agent: *
 Allow: /
 Sitemap: https://www.theprivilegedcompany.com/sitemap.xml
