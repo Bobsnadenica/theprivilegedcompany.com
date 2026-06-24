@@ -1,0 +1,17 @@
+image: node:22
+
+stages:
+  - deploy
+
+pages:
+  stage: deploy
+  script:
+    - npm ci
+    - VITE_BASE_PATH="/" VITE_STATIC_SOLO_ONLY=true npm run build:pages
+    - rm -rf public
+    - cp -r packages/client/dist public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Russian Roulette Liar's Deck project avatar</title>
+  <desc id="desc">A compact noir emblem with playing cards and a six-chamber roulette mark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="34" y1="16" x2="222" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#29140c"/>
+      <stop offset=".54" stop-color="#100b0a"/>
+      <stop offset="1" stop-color="#35170d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="62" y1="56" x2="202" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe49c"/>
+      <stop offset=".5" stop-color="#d99a38"/>
+      <stop offset="1" stop-color="#803b1b"/>
+    </linearGradient>
+    <filter id="softGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="100" fill="none" stroke="#6d3820" stroke-width="9"/>
+  <circle cx="128" cy="128" r="87" fill="none" stroke="url(#gold)" stroke-width="4"/>
+  <g transform="rotate(-15 128 128)">
+    <rect x="69" y="44" width="72" height="104" rx="12" fill="#f6e6c2" stroke="#4c2417" stroke-width="5"/>
+    <rect x="111" y="57" width="72" height="104" rx="12" fill="#17100f" stroke="#dca147" stroke-width="5"/>
+    <path d="M95 86c8-13 22-13 30 0-7 14-23 14-30 0Z" fill="#a82025"/>
+    <path d="M120 97l-17 28h34l-17-28Z" fill="#a82025"/>
+    <text x="147" y="119" fill="#f9d98b" font-family="Georgia,serif" font-size="44" font-weight="700" text-anchor="middle">A</text>
+  </g>
+  <g filter="url(#softGlow)">
+    <circle cx="128" cy="162" r="39" fill="#15100f" stroke="url(#gold)" stroke-width="7"/>
+    <circle cx="128" cy="162" r="13" fill="#422016" stroke="#f7cf75" stroke-width="4"/>
+    <g fill="#ffd46e">
+      <circle cx="128" cy="130" r="7"/>
+      <circle cx="155" cy="146" r="7"/>
+      <circle cx="155" cy="178" r="7"/>
+      <circle cx="128" cy="194" r="7"/>
+      <circle cx="101" cy="178" r="7"/>
+      <circle cx="101" cy="146" r="7"/>
+    </g>
+    <circle cx="101" cy="146" r="5.5" fill="#c22b2b"/>
+  </g>
+  <path d="M70 218c33 15 84 16 118 0" fill="none" stroke="#d99a38" stroke-width="5" stroke-linecap="round" opacity=".68"/>
+</svg>

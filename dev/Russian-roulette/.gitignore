@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+.DS_Store
+.env
+.env.local
+playwright-report
+test-results
+docs/3d-*-check.png

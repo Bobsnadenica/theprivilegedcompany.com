@@ -1,0 +1,41 @@
+{
+  "name": "dimitar-todorov-russian-roulette-liars-deck",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c yellow,cyan \"npm run dev --workspace @rrld/server\" \"npm run dev --workspace @rrld/client\"",
+    "dev:server": "npm run dev --workspace @rrld/server",
+    "dev:client": "npm run dev --workspace @rrld/client",
+    "build": "npm run build --workspace @rrld/server && npm run build --workspace @rrld/client",
+    "build:pages": "npm run build --workspace @rrld/client",
+    "start": "npm run start --workspace @rrld/server",
+    "generate:assets": "node scripts/generate-cinematic-assets.mjs",
+    "install:sketchfab-9mm": "node scripts/install-sketchfab-9mm.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:dry": "E2E_FORCE_ROULETTE_RESULT=BLANK E2E_SERVER_PORT=3102 E2E_CLIENT_PORT=5176 playwright test",
+    "test:e2e:hit": "E2E_FORCE_ROULETTE_RESULT=LETHAL E2E_SERVER_PORT=3103 E2E_CLIENT_PORT=5177 playwright test",
+    "test:e2e:solo": "E2E_STATIC_SOLO_ONLY=true E2E_CLIENT_PORT=5178 playwright test --grep \"solo bot demo\"",
+    "test:e2e:release": "npm run test:e2e:dry && npm run test:e2e:hit && npm run test:e2e:solo",
+    "typecheck": "npm run typecheck --workspace @rrld/client && npm run typecheck --workspace @rrld/server",
+    "release:check": "npm run typecheck && npm test && npm run build && VITE_BASE_PATH=/ VITE_STATIC_SOLO_ONLY=true npm run build:pages && npm run test:e2e:release"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2",
+    "@types/node": "^24.0.3",
+    "concurrently": "^9.2.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "@types/three": "^0.184.1",
+    "three": "^0.184.0"
+  }
+}
