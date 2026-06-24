@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /dev/
 Sitemap: https://www.theprivilegedcompany.com/sitemap.xml
