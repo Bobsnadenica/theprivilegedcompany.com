@@ -18,6 +18,8 @@ log = get_logger("engagement")
 
 DEFAULT_AUTO_LIMIT = 8
 DEFAULT_AUTO_MIN_INTERVAL_MINUTES = 30
+_BACKGROUND_THREADS: set[threading.Thread] = set()
+_BACKGROUND_LOCK = threading.Lock()
 
 
 def _parse_ts(value: str | None) -> datetime | None:
@@ -116,8 +118,29 @@ def learn(
 
 def learn_background(memory, fb, memory_dir, **kwargs) -> None:
     """Run engagement learning without holding up post generation or the dashboard."""
-    thread = threading.Thread(
-        target=lambda: learn(memory, fb, memory_dir, **kwargs),
-        daemon=True,
-    )
+    def worker() -> None:
+        try:
+            learn(memory, fb, memory_dir, **kwargs)
+        finally:
+            with _BACKGROUND_LOCK:
+                _BACKGROUND_THREADS.discard(thread)
+
+    thread = threading.Thread(target=worker, daemon=True)
+    with _BACKGROUND_LOCK:
+        _BACKGROUND_THREADS.add(thread)
     thread.start()
+
+
+def wait_for_background(timeout: float = 10.0) -> None:
+    """Wait briefly for engagement learning before its database is closed."""
+    deadline = datetime.now(timezone.utc).timestamp() + max(0.0, timeout)
+    while True:
+        with _BACKGROUND_LOCK:
+            threads = [thread for thread in _BACKGROUND_THREADS if thread.is_alive()]
+        if not threads:
+            return
+        remaining = deadline - datetime.now(timezone.utc).timestamp()
+        if remaining <= 0:
+            log.warning("%d engagement worker(s) still active during shutdown.", len(threads))
+            return
+        threads[0].join(min(remaining, 0.5))

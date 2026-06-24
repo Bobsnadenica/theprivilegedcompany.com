@@ -77,7 +77,8 @@ cd dev/aipost247
 
 In the wizard:
 
-1. **Content generator** → choose **Gemini** and log in with Google (no API key).
+1. **Content generator** → choose **Antigravity** (recommended) and log in with
+   Google, or use Gemini/Codex for supported accounts (no API key).
 2. **Facebook** → choose **[1] Connect with Facebook**, paste your **App ID** and
    **App Secret**. A browser opens → approve the permissions → **pick your Page**
    from the list. The script stores a long-lived Page token automatically.
@@ -125,5 +126,6 @@ write better future posts. Refresh it manually anytime with `./run.sh learn`.
 ## Security notes
 - Your **App Secret** and **Page token** live only in `dev/aipost247/.env`
   (permissions `600`, gitignored). They are never committed, uploaded, or shared.
-- Post text is sent only to Google (Gemini); tokens are sent only to Facebook.
+- Post text is sent only to your selected AI provider; Facebook tokens are sent
+  only to Facebook.
 - Nothing about this app is hosted by anyone else — it runs entirely on your machine.

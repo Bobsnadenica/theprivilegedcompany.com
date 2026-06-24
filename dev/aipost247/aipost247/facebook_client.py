@@ -35,6 +35,10 @@ class FacebookRateLimitError(FacebookError):
     """The Page/app is being rate limited; try again later."""
 
 
+class FacebookAmbiguousWriteError(FacebookError):
+    """A write may have reached Facebook, so retrying could create a duplicate."""
+
+
 class FacebookClient:
     """Minimal Graph API wrapper for publishing text posts to a Page."""
 
@@ -54,8 +58,11 @@ class FacebookClient:
         self.base = f"{GRAPH_ROOT}/{self.api_version}"
 
     # --- low level -------------------------------------------------------
-    def _request(self, method: str, url: str, *, params=None, data=None, retries: int = 3):
-        """Perform a Graph request with retries on transient/network/5xx errors."""
+    def _request(self, method: str, url: str, *, params=None, data=None, retries: int | None = None):
+        """Retry safe reads; never retry a write whose outcome may be ambiguous."""
+        method = method.upper()
+        if retries is None:
+            retries = 1 if method == "POST" else 3
         last_error: Exception | None = None
         for attempt in range(1, retries + 1):
             try:
@@ -63,6 +70,12 @@ class FacebookClient:
                     method, url, params=params, data=data, timeout=REQUEST_TIMEOUT
                 )
             except (requests.ConnectionError, requests.Timeout) as exc:
+                if method == "POST":
+                    raise FacebookAmbiguousWriteError(
+                        "Връзката прекъсна по време на публикуване. Facebook може да е "
+                        "приел публикацията; няма да опитаме автоматично втори път. "
+                        "Проверете страницата преди ново публикуване."
+                    ) from exc
                 last_error = exc
                 wait = min(2 ** attempt, 30)
                 log.warning(
@@ -90,6 +103,11 @@ class FacebookClient:
             if code in _RATE_LIMIT_CODES or subcode in _RATE_LIMIT_SUBCODES:
                 raise FacebookRateLimitError(f"Rate limited by Facebook: {message}")
             if 500 <= response.status_code < 600:
+                if method == "POST":
+                    raise FacebookAmbiguousWriteError(
+                        f"Facebook върна server error {response.status_code} след изпращане. "
+                        "Публикацията може да е създадена; проверете страницата преди нов опит."
+                    )
                 last_error = FacebookError(f"Server error {response.status_code}: {message}")
                 wait = min(2 ** attempt, 30)
                 log.warning("Facebook 5xx (%s). Retry %d/%d in %ds.", message, attempt, retries, wait)

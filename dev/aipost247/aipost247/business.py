@@ -58,6 +58,7 @@ _PRETTY = {
     "cta": "Подкана за действие",
     "links": "Връзки / профили",
 }
+_PRETTY_TO_KEY = {value: key for key, value in _PRETTY.items()}
 
 
 class GuiUnavailable(Exception):
@@ -332,6 +333,33 @@ def render_markdown(data: dict) -> str:
     if notes:
         lines += ["", notes]
     return "\n".join(lines).strip() + "\n"
+
+
+def parse_markdown(text: str) -> dict[str, str]:
+    """Read the generated business.md back into editable dashboard fields."""
+    result = {key: "" for key, _label, _multiline in FIELDS}
+    notes: list[str] = []
+    for raw in (text or "").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("**") and ":**" in line:
+            label, value = line[2:].split(":**", 1)
+            key = _PRETTY_TO_KEY.get(label.strip())
+            if key:
+                result[key] = value.strip()
+                continue
+        notes.append(line)
+    result["notes"] = "\n".join(notes).strip()
+    return result
+
+
+def load_profile(memory_dir) -> dict[str, str]:
+    path = Path(memory_dir) / "business.md"
+    try:
+        return parse_markdown(path.read_text(encoding="utf-8"))
+    except OSError:
+        return {key: "" for key, _label, _multiline in FIELDS}
 
 
 def save_profile(memory_dir, data: dict) -> Path:

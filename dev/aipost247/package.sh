@@ -11,13 +11,19 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="$HERE/download/aipost247.zip"
 mkdir -p "$HERE/download"
+PYTHON="${PYTHON_BIN:-python3}"
+if [ -z "${PYTHON_BIN:-}" ] && [ -x "$HERE/.venv/bin/python" ]; then
+  PYTHON="$HERE/.venv/bin/python"
+fi
 
 # Stamp the version (from __init__.py) + build date into the download card so
 # the website and the zip always advertise the same, current version.
 VER="$(grep -oE '__version__ *= *"[^"]+"' "$HERE/aipost247/__init__.py" | sed -E 's/.*"([^"]+)".*/\1/')"
 DATE="$(date +%Y-%m-%d)"
-python3 "$HERE/assets/build-images-manifest.py"
-python3 "$HERE/assets/video/validate-videos.py"
+"$PYTHON" "$HERE/assets/build-images-manifest.py"
+"$PYTHON" "$HERE/assets/video/validate-videos.py"
+"$PYTHON" -m compileall -q "$HERE/run.py" "$HERE/aipost247" "$HERE/assets"
+"$PYTHON" -m unittest discover -s "$HERE/tests" -v
 ASSET_HASH="$(
   find "$HERE/assets" -type f \
     ! -path '*/__pycache__/*' \
@@ -51,6 +57,7 @@ rsync -a \
   --exclude='logs/' \
   --exclude='download/' \
   --exclude='planning/' \
+  --exclude='tests/' \
   --exclude='__pycache__/' \
   --exclude='*.pyc' \
   --exclude='*.log' \
@@ -61,6 +68,7 @@ rsync -a \
   --exclude='memory/business.md' \
   --exclude='memory/skill.md' \
   --exclude='memory/steering.md' \
+  --exclude='assets/soon copy*.jpg' \
   --exclude='package.sh' \
   "$HERE/" "$DEST/"
 
@@ -82,6 +90,16 @@ fi
 
 rm -f "$OUT"
 ( cd "$STAGE" && zip -r -q "$OUT" "aipost247" )
+
+# Size guard: the download is a small tool. Refuse to ship a bloated zip (e.g.
+# un-optimized screenshots) so the 2.5 MB regression can never recur.
+MAX_BYTES=1572864  # 1.5 MB
+ZIP_BYTES="$(wc -c < "$OUT" | tr -d ' ')"
+if [ "$ZIP_BYTES" -gt "$MAX_BYTES" ]; then
+  echo "ABORT: download is ${ZIP_BYTES} bytes (> ${MAX_BYTES}). Optimize images in assets/." >&2
+  rm -f "$OUT"
+  exit 1
+fi
 
 echo "Built: $OUT"
 ls -lh "$OUT" | awk '{print "  size:", $5}'

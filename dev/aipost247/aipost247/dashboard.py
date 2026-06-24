@@ -15,6 +15,7 @@ import urllib.parse
 import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from . import config as cfg
 from .logging_setup import get_logger
@@ -23,6 +24,8 @@ from .memory import MemoryStore
 log = get_logger("dashboard")
 
 DEFAULT_PORT = 8730
+MAX_REQUEST_BYTES = 64 * 1024
+_SESSION_TOKEN = secrets.token_urlsafe(32)
 
 
 # --------------------------------------------------------------------------
@@ -50,6 +53,11 @@ class Autopilot:
         self._stop.set()
         self.next_run_at = None
 
+    def wait(self, timeout: float = 10.0) -> None:
+        thread = self._thread
+        if thread and thread is not threading.current_thread():
+            thread.join(timeout)
+
     def _seconds_until_next(self, config) -> float:
         if config.schedule_mode == "daily" and config.schedule_times:
             now = datetime.now()
@@ -68,16 +76,22 @@ class Autopilot:
         return max(60.0, config.schedule_interval_minutes * 60.0)
 
     def _run_once(self, memory: MemoryStore) -> None:
-        from . import app as _app
-        from .facebook_client import FacebookClient
-
-        config = cfg.load_config()
-        fb = FacebookClient(
-            config.fb_page_id, config.fb_page_access_token,
-            app_id=config.fb_app_id, app_secret=config.fb_app_secret,
-            api_version=config.graph_api_version,
+        job_id = _COORDINATOR.start(
+            "autopilot",
+            lambda progress, cancel: _do_cycle(
+                memory,
+                dry_run=cfg.load_config().dry_run,
+                progress=progress,
+                cancel_event=cancel,
+            ),
         )
-        ok = _app.safe_cycle(config, memory, fb, dry_run=config.dry_run)
+        if not job_id:
+            self.last_run_at = datetime.now().isoformat(timespec="seconds")
+            self.last_result = "skipped_busy"
+            return
+        state = _COORDINATOR.wait(job_id)
+        result = (state or {}).get("result") or {}
+        ok = bool(result.get("ok"))
         self.last_run_at = datetime.now().isoformat(timespec="seconds")
         self.last_result = "ok" if ok else "failed"
 
@@ -102,72 +116,132 @@ _LOGIN_RUNNING = threading.Event()
 _FB_PENDING: dict[str, dict] = {}
 _FB_PENDING_LOCK = threading.Lock()
 
-# Long operations (generate / post / learn) run as background JOBS and the
-# browser polls for the result. This keeps HTTP requests short — a slow CLI no
-# longer holds the connection open until it breaks (BrokenPipe) or times out.
-_JOBS: dict[str, dict] = {}
-_JOBS_LOCK = threading.Lock()
+class JobCoordinator:
+    """One exclusive long-running operation with observable progress."""
+
+    def __init__(self) -> None:
+        self._jobs: dict[str, dict] = {}
+        self._lock = threading.Condition()
+        self._active_job: str | None = None
+        self._shutting_down = False
+
+    def _log(self, job_id: str, message: str) -> None:
+        now = time.time()
+        with self._lock:
+            state = self._jobs.get(job_id)
+            if not state:
+                return
+            started = state.get("started_at") or now
+            logs = list(state.get("log") or [])
+            logs.append({
+                "elapsed": int(now - started),
+                "message": str(message),
+                "at": datetime.now().isoformat(timespec="seconds"),
+            })
+            state["log"] = logs[-300:]
+            state["updated_at"] = now
+            self._lock.notify_all()
+        log.info("[job %s] %s", job_id, message)
+
+    def start(self, kind: str, fn) -> str | None:
+        with self._lock:
+            if self._shutting_down or self._active_job is not None:
+                return None
+            job_id = secrets.token_hex(8)
+            now = time.time()
+            self._jobs[job_id] = {
+                "id": job_id,
+                "kind": kind,
+                "status": "running",
+                "result": None,
+                "log": [],
+                "started_at": now,
+                "updated_at": now,
+                "cancel_event": threading.Event(),
+            }
+            self._active_job = job_id
+            completed = [
+                key for key, value in self._jobs.items()
+                if key != job_id and value.get("status") == "done"
+            ]
+            for stale in completed[:-40]:
+                self._jobs.pop(stale, None)
+
+        def _run():
+            progress = lambda message: self._log(job_id, message)
+            try:
+                progress("Job started.")
+                result = fn(progress, self._jobs[job_id]["cancel_event"])
+                progress("Job finished.")
+            except Exception as exc:  # noqa: BLE001
+                progress(f"Job failed: {exc}")
+                result = {"ok": False, "error": str(exc)}
+            with self._lock:
+                state = self._jobs.get(job_id, {})
+                state.update({"status": "done", "result": result, "updated_at": time.time()})
+                state.pop("cancel_event", None)
+                self._jobs[job_id] = state
+                if self._active_job == job_id:
+                    self._active_job = None
+                self._lock.notify_all()
+
+        threading.Thread(target=_run, daemon=True, name=f"aipost247-{kind}").start()
+        return job_id
+
+    def state(self, job_id: str) -> dict | None:
+        with self._lock:
+            state = self._jobs.get(job_id)
+            if not state:
+                return None
+            data = {key: value for key, value in state.items() if key != "cancel_event"}
+        data["elapsed"] = int(time.time() - (data.get("started_at") or time.time()))
+        return data
+
+    def active(self) -> dict | None:
+        with self._lock:
+            job_id = self._active_job
+        return self.state(job_id) if job_id else None
+
+    def cancel(self, job_id: str) -> bool:
+        with self._lock:
+            state = self._jobs.get(job_id)
+            event = state.get("cancel_event") if state else None
+            if not event or state.get("status") != "running":
+                return False
+            event.set()
+            self._lock.notify_all()
+        self._log(job_id, "Cancellation requested.")
+        return True
+
+    def wait(self, job_id: str, timeout: float | None = None) -> dict | None:
+        deadline = time.time() + timeout if timeout else None
+        with self._lock:
+            while True:
+                state = self._jobs.get(job_id)
+                if not state or state.get("status") == "done":
+                    break
+                remaining = None if deadline is None else max(0.0, deadline - time.time())
+                if remaining == 0:
+                    break
+                self._lock.wait(timeout=min(0.5, remaining) if remaining else 0.5)
+        return self.state(job_id)
+
+    def shutdown(self, timeout: float = 15.0) -> bool:
+        with self._lock:
+            self._shutting_down = True
+            active = self._active_job
+        if active:
+            self.cancel(active)
+            state = self.wait(active, timeout=timeout)
+            return bool(state and state.get("status") == "done")
+        return True
 
 
-def _job_log(job_id: str, message: str) -> None:
-    now = time.time()
-    with _JOBS_LOCK:
-        state = _JOBS.get(job_id)
-        if not state:
-            return
-        started = state.get("started_at") or now
-        line = {
-            "elapsed": int(now - started),
-            "message": str(message),
-            "at": datetime.now().isoformat(timespec="seconds"),
-        }
-        logs = list(state.get("log") or [])
-        logs.append(line)
-        state["log"] = logs[-200:]
-        state["updated_at"] = now
-    log.info("[job %s] %s", job_id, message)
-
-
-def _start_job(fn) -> str:
-    job_id = secrets.token_hex(8)
-    now = time.time()
-    with _JOBS_LOCK:
-        _JOBS[job_id] = {
-            "status": "running",
-            "result": None,
-            "log": [],
-            "started_at": now,
-            "updated_at": now,
-        }
-        for stale in list(_JOBS)[:-40]:  # bound memory
-            _JOBS.pop(stale, None)
-
-    def _run():
-        progress = lambda message: _job_log(job_id, message)
-        try:
-            progress("Job started.")
-            result = fn(progress)
-            progress("Job finished.")
-        except Exception as exc:  # noqa: BLE001
-            progress(f"Job failed: {exc}")
-            result = {"ok": False, "error": str(exc)}
-        with _JOBS_LOCK:
-            state = _JOBS.get(job_id, {})
-            state.update({"status": "done", "result": result, "updated_at": time.time()})
-            _JOBS[job_id] = state
-
-    threading.Thread(target=_run, daemon=True).start()
-    return job_id
+_COORDINATOR = JobCoordinator()
 
 
 def _job_state(job_id: str) -> dict | None:
-    with _JOBS_LOCK:
-        state = _JOBS.get(job_id)
-        if not state:
-            return None
-        data = dict(state)
-    data["elapsed"] = int(time.time() - (data.get("started_at") or time.time()))
-    return data
+    return _COORDINATOR.state(job_id)
 
 
 def _with_heartbeat(progress, label: str, fn, interval: float = 10.0):
@@ -207,6 +281,34 @@ def _status(memory: MemoryStore) -> dict:
             ai_logged_in = cli_provider.is_logged_in(config)
         except Exception:  # noqa: BLE001
             ai_logged_in = False
+    business_ready = bool(memory.read_business_file().strip())
+    readiness = [
+        {
+            "id": "ai",
+            "label": "AI доставчик",
+            "ready": config.ai_ready() and (config.ai_provider == "openai" or ai_logged_in),
+            "tab": "setup",
+        },
+        {
+            "id": "facebook",
+            "label": "Facebook страница",
+            "ready": bool(config.fb_page_id and config.fb_page_access_token),
+            "tab": "setup",
+        },
+        {
+            "id": "business",
+            "label": "Бизнес профил",
+            "ready": business_ready,
+            "tab": "business",
+        },
+        {
+            "id": "safety",
+            "label": "Безопасен преглед",
+            "ready": config.dry_run or memory.count_posts() > 0,
+            "tab": "overview",
+        },
+    ]
+    stats = memory.stats()
     return {
         "ai_provider": config.ai_provider,
         "ai_ready": config.ai_ready() and (config.ai_provider == "openai" or ai_logged_in),
@@ -219,7 +321,11 @@ def _status(memory: MemoryStore) -> dict:
         "schedule": _schedule_text(config),
         "dry_run": config.dry_run,
         "post_language": config.post_language,
-        "stats": memory.stats(),
+        "stats": stats,
+        "readiness": readiness,
+        "active_job": _COORDINATOR.active(),
+        "last_failure": stats.get("last_failure"),
+        "pending_publication": memory.latest_unknown_execution(),
         "autopilot": {
             "running": _AUTOPILOT.running(),
             "last_run_at": _AUTOPILOT.last_run_at,
@@ -260,76 +366,34 @@ def _config_public(config) -> dict:
 
 def _save_config(data: dict) -> None:
     existing = cfg.load_config()
-    values: dict[str, str] = {
-        "AI_PROVIDER": data.get("ai_provider", existing.ai_provider) or "antigravity",
-        "GEMINI_MODEL": data.get("gemini_model") or existing.gemini_model or cfg.DEFAULT_GEMINI_MODEL,
-        "OPENAI_MODEL": data.get("openai_model") or existing.openai_model or cfg.DEFAULT_OPENAI_MODEL,
-        "GRAPH_API_VERSION": data.get("graph_api_version") or existing.graph_api_version,
-        "SCHEDULE_MODE": data.get("schedule_mode", existing.schedule_mode) or "interval",
-        "SCHEDULE_INTERVAL_MINUTES": str(data.get("schedule_interval_minutes") or existing.schedule_interval_minutes),
-        "SCHEDULE_TIMES": data.get("schedule_times") or ",".join(existing.schedule_times),
-        "RUN_ON_START": "true" if data.get("run_on_start", existing.run_on_start) else "false",
-        "DRY_RUN": "true" if data.get("dry_run", existing.dry_run) else "false",
-        "POST_MAX_CHARS": str(data.get("post_max_chars") or existing.post_max_chars),
-        "POST_LANGUAGE": data.get("post_language") or existing.post_language or "Bulgarian",
-    }
-    # Secrets: only overwrite when a non-empty value is supplied.
-    if data.get("openai_api_key"):
-        values["OPENAI_API_KEY"] = data["openai_api_key"]
-    if data.get("fb_page_id"):
-        values["FB_PAGE_ID"] = data["fb_page_id"]
-    if data.get("fb_page_access_token"):
-        values["FB_PAGE_ACCESS_TOKEN"] = data["fb_page_access_token"]
-    if data.get("fb_app_id"):
-        values["FB_APP_ID"] = data["fb_app_id"]
-    if data.get("fb_app_secret"):
-        values["FB_APP_SECRET"] = data["fb_app_secret"]
-    cfg._write_env(values)
+    cfg._write_env(cfg.validate_dashboard_config(data, existing))
 
 
-def _do_cycle(memory: MemoryStore, dry_run: bool, progress=lambda _message: None) -> dict:
-    from . import app as _app, engagement
+def _do_cycle(
+    memory: MemoryStore,
+    dry_run: bool,
+    progress=lambda _message: None,
+    cancel_event=None,
+) -> dict:
+    from . import app as _app
     from .facebook_client import FacebookClient, FacebookError
 
     config = cfg.load_config()
     try:
-        progress("Loaded configuration.")
         fb = FacebookClient(
             config.fb_page_id, config.fb_page_access_token,
             app_id=config.fb_app_id, app_secret=config.fb_app_secret,
             api_version=config.graph_api_version,
         )
         progress("Prepared Facebook client.")
-        try:
-            progress("Refreshing learned engagement file from cached data.")
-            engagement.write_skill_md(memory, cfg.MEMORY_DIR)
-        except Exception:  # noqa: BLE001 - learning must never block generation
-            progress("Skipped cached engagement refresh.")
-        progress("Building memory context.")
-        context = memory.build_context(max_recent=6, max_knowledge_chars=3000)
-        provider = config.ai_provider
-        timeout = 180 if provider == "gemini" else 120
-        if provider == "openai":
-            progress("Calling OpenAI. Waiting for model response.")
-        else:
-            progress(f"Calling {provider} CLI. Timeout is {timeout}s.")
-        text = _with_heartbeat(
-            progress,
-            "AI generation",
-            lambda: _app.generate_text(config, context),
+        return _app.execute_cycle(
+            config,
+            memory,
+            fb,
+            dry_run=dry_run,
+            progress=progress,
+            cancel_event=cancel_event,
         )
-        progress(f"AI returned {len(text)} characters.")
-        if dry_run:
-            memory.add_post(text, fb_post_id=None, status="dry_run", model=config.ai_provider)
-            progress("Saved draft as dry-run memory record.")
-            return {"ok": True, "published": False, "text": text}
-        progress("Publishing post to Facebook.")
-        post_id = fb.post(text)
-        memory.add_post(text, fb_post_id=post_id, status="published", model=config.ai_provider)
-        progress(f"Published to Facebook with id {post_id}.")
-        engagement.learn_background(memory, fb, cfg.MEMORY_DIR)
-        progress("Queued background engagement learning.")
-        return {"ok": True, "published": True, "post_id": post_id, "text": text}
     except FacebookError as exc:
         progress(f"Facebook error: {exc}")
         return {"ok": False, "error": f"Facebook: {exc}"}
@@ -358,6 +422,16 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header(
+                "Content-Security-Policy",
+                "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+                "connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; "
+                "base-uri 'none'; form-action 'self'",
+            )
             self.end_headers()
             self.wfile.write(body)
         except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
@@ -373,28 +447,153 @@ class _Handler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", 0) or 0)
         if not length:
             return {}
+        if length > MAX_REQUEST_BYTES:
+            raise ValueError("Заявката е прекалено голяма.")
+        if "application/json" not in (self.headers.get("Content-Type") or "").lower():
+            raise TypeError("Очаква се application/json.")
         try:
-            return json.loads(self.rfile.read(length).decode("utf-8"))
+            data = json.loads(self.rfile.read(length).decode("utf-8"))
         except (ValueError, UnicodeDecodeError):
-            return {}
+            raise ValueError("Невалиден JSON.")
+        if not isinstance(data, dict):
+            raise TypeError("JSON заявката трябва да е обект.")
+        return data
+
+    def _request_host_ok(self) -> bool:
+        host = self.headers.get("Host", "")
+        try:
+            hostname = urllib.parse.urlsplit("//" + host).hostname
+        except ValueError:
+            return False
+        return hostname in {"localhost", "127.0.0.1", "::1"}
+
+    def _origin_ok(self) -> bool:
+        origin = self.headers.get("Origin")
+        if not origin:
+            return True
+        try:
+            parsed = urllib.parse.urlsplit(origin)
+            expected_port = int(self.server.server_address[1])
+            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        except (TypeError, ValueError):
+            return False
+        return (
+            parsed.scheme == "http"
+            and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+            and port == expected_port
+        )
+
+    def _token_ok(self) -> bool:
+        supplied = self.headers.get("X-AIPost-Token", "")
+        if not supplied and "?" in self.path:
+            query = urllib.parse.parse_qs(self.path.split("?", 1)[1])
+            supplied = (query.get("token") or [""])[0]
+        return secrets.compare_digest(supplied, _SESSION_TOKEN)
+
+    def _authorize_api(self) -> bool:
+        if self._request_host_ok() and self._origin_ok() and self._token_ok():
+            return True
+        self._json({"ok": False, "error": "Forbidden"}, 403)
+        return False
 
     def log_message(self, *_args):  # silence default access logging
         return
+
+    def _start_exclusive(self, kind: str, fn) -> None:
+        job_id = _COORDINATOR.start(kind, fn)
+        if not job_id:
+            active = _COORDINATOR.active()
+            self._json(
+                {
+                    "ok": False,
+                    "error": "Друга операция вече работи. Изчакайте я или я отменете.",
+                    "active_job": active,
+                },
+                409,
+            )
+            return
+        self._json({"ok": True, "job": job_id, "kind": kind}, 202)
+
+    def _event_stream(self, mode: str) -> None:
+        query = urllib.parse.parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
+        job_id = (query.get("id") or [""])[0]
+        try:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Connection", "keep-alive")
+            self.send_header("X-Accel-Buffering", "no")
+            self.end_headers()
+            last_payload = None
+            while True:
+                if mode == "job":
+                    payload = _job_state(job_id) or {"status": "unknown"}
+                    event_name = "job"
+                elif mode == "logs":
+                    payload = {"log": _tail_log()}
+                    event_name = "logs"
+                else:
+                    payload = {
+                        "status": _status(self.memory),
+                        "active_job": _COORDINATOR.active(),
+                    }
+                    event_name = "state"
+                encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+                if encoded != last_payload:
+                    message = f"event: {event_name}\ndata: {encoded}\n\n".encode("utf-8")
+                    self.wfile.write(message)
+                    self.wfile.flush()
+                    last_payload = encoded
+                if mode == "job" and payload.get("status") in {"done", "unknown"}:
+                    break
+                time.sleep(0.75)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            return
 
     # -- GET --------------------------------------------------------------
     def do_GET(self):  # noqa: N802
         path = self.path.split("?", 1)[0]
         if path in ("/", "/index.html"):
-            self._send(200, _PAGE.encode("utf-8"), "text/html; charset=utf-8")
+            if not self._request_host_ok():
+                self._json({"error": "forbidden"}, 403)
+                return
+            page = _PAGE.replace("__AIPOST_SESSION_TOKEN__", _SESSION_TOKEN)
+            self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+        elif path == "/dashboard.css":
+            if not self._request_host_ok():
+                self._json({"error": "forbidden"}, 403)
+                return
+            self._send(
+                200,
+                (_ASSET_DIR / "dashboard.css").read_bytes(),
+                "text/css; charset=utf-8",
+            )
+        elif path == "/dashboard.js":
+            if not self._request_host_ok():
+                self._json({"error": "forbidden"}, 403)
+                return
+            self._send(
+                200,
+                (_ASSET_DIR / "dashboard.js").read_bytes(),
+                "text/javascript; charset=utf-8",
+            )
+        elif path.startswith("/api/") and not self._authorize_api():
+            return
         elif path == "/api/status":
             self._json(_status(self.memory))
         elif path == "/api/config":
             self._json(_config_public(cfg.load_config()))
         elif path == "/api/posts":
-            self._json({"posts": self.memory.recent_posts_detailed(60)})
+            self._json({
+                "posts": self.memory.recent_posts_detailed(60),
+                "executions": self.memory.recent_executions(60),
+            })
         elif path == "/api/memory":
+            from . import business
+
             self._json({
                 "business": self.memory.read_business_file(),
+                "business_fields": business.load_profile(cfg.MEMORY_DIR),
                 "skill": self.memory.read_skill_file(),
                 "steering": self.memory.read_steering_file(),
                 "instructions": self.memory.get_instructions(),
@@ -405,25 +604,43 @@ class _Handler(BaseHTTPRequestHandler):
             qs = urllib.parse.parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
             state = _job_state((qs.get("id") or [""])[0])
             self._json(state or {"status": "unknown"})
+        elif path == "/api/events":
+            self._event_stream("state")
+        elif path == "/api/job-events":
+            self._event_stream("job")
+        elif path == "/api/log-events":
+            self._event_stream("logs")
         else:
             self._json({"error": "not found"}, 404)
 
     # -- POST -------------------------------------------------------------
     def do_POST(self):  # noqa: N802
         path = self.path.split("?", 1)[0]
-        data = self._body()
+        if not self._authorize_api():
+            return
         try:
+            data = self._body()
             if path == "/api/config":
                 _save_config(data)
                 self._json({"ok": True})
             elif path == "/api/generate":
                 mem = self.memory
-                self._json({"ok": True, "job": _start_job(lambda progress: _do_cycle(mem, dry_run=True, progress=progress))})
+                self._start_exclusive(
+                    "generate",
+                    lambda progress, cancel: _do_cycle(
+                        mem, dry_run=True, progress=progress, cancel_event=cancel
+                    ),
+                )
             elif path == "/api/post-now":
                 mem = self.memory
-                self._json({"ok": True, "job": _start_job(lambda progress: _do_cycle(mem, dry_run=False, progress=progress))})
+                self._start_exclusive(
+                    "publish",
+                    lambda progress, cancel: _do_cycle(
+                        mem, dry_run=False, progress=progress, cancel_event=cancel
+                    ),
+                )
             elif path == "/api/learn":
-                self._json({"ok": True, "job": _start_job(self._learn)})
+                self._start_exclusive("learn", self._learn)
             elif path == "/api/login-gemini":
                 self._json(self._login_gemini(data))
             elif path == "/api/check-login":
@@ -433,12 +650,12 @@ class _Handler(BaseHTTPRequestHandler):
             elif path == "/api/test-provider":
                 from . import cli_provider
 
-                self._json({"ok": True, "job": _start_job(
-                    lambda progress: _with_heartbeat(
-                        progress,
-                        "Provider test",
-                        lambda: cli_provider.raw_probe(cfg.load_config()),
-                    ))})
+                self._start_exclusive(
+                    "provider-test",
+                    lambda progress, _cancel: _with_heartbeat(
+                        progress, "Provider test", lambda: cli_provider.raw_probe(cfg.load_config())
+                    ),
+                )
             elif path == "/api/facebook/connect":
                 self._json(self._fb_connect(data))
             elif path == "/api/facebook/select-page":
@@ -446,17 +663,40 @@ class _Handler(BaseHTTPRequestHandler):
             elif path == "/api/business":
                 self._json(self._save_business(data))
             elif path == "/api/feedback":
-                self._json(self._feedback(data))
+                result = self._feedback(data)
+                self._json(result, 202 if result.get("ok") else 409)
             elif path == "/api/autopilot":
                 self._json(self._autopilot(data))
+            elif path == "/api/job/cancel":
+                job_id = str(data.get("job") or "")
+                ok = _COORDINATOR.cancel(job_id)
+                self._json({"ok": ok}, 200 if ok else 404)
+            elif path == "/api/publication/resolve":
+                execution_id = int(data.get("execution_id") or 0)
+                outcome = str(data.get("outcome") or "")
+                if outcome not in {"published", "not_published"}:
+                    raise ValueError("Невалиден резултат от проверката.")
+                if _COORDINATOR.active():
+                    self._json(
+                        {"ok": False, "error": "Изчакайте текущата операция да приключи."},
+                        409,
+                    )
+                    return
+                ok = self.memory.resolve_unknown_execution(
+                    execution_id,
+                    published=outcome == "published",
+                )
+                self._json({"ok": ok}, 200 if ok else 409)
             else:
                 self._json({"error": "not found"}, 404)
+        except (ValueError, TypeError) as exc:
+            self._json({"ok": False, "error": str(exc)}, 413 if "голяма" in str(exc) else 400)
         except Exception as exc:  # noqa: BLE001 - never 500 silently
             log.exception("Dashboard API error on %s", path)
             self._json({"ok": False, "error": str(exc)}, 200)
 
     # -- action implementations ------------------------------------------
-    def _learn(self, progress=lambda _message: None) -> dict:
+    def _learn(self, progress=lambda _message: None, cancel_event=None) -> dict:
         from . import engagement
         from .facebook_client import FacebookClient, FacebookError
 
@@ -469,6 +709,8 @@ class _Handler(BaseHTTPRequestHandler):
         )
         try:
             progress("Reading engagement from Facebook for recent posts.")
+            if cancel_event is not None and cancel_event.is_set():
+                return {"ok": False, "error": "Операцията беше отменена."}
             updated = engagement.sync(self.memory, fb, limit=25)
             progress(f"Engagement refreshed for {updated} post(s).")
             engagement.write_skill_md(self.memory, cfg.MEMORY_DIR)
@@ -509,8 +751,8 @@ class _Handler(BaseHTTPRequestHandler):
         threading.Thread(target=_bg, daemon=True).start()
         if config.ai_provider == "codex":
             msg = ("Завършете входа в прозореца на ТЕРМИНАЛА, ако Codex го поиска. "
-                   "AIPost247 ще довери текущата папка автоматично. Състоянието "
-                   "тук ще се обнови само.")
+                   "Генерирането после ще работи в отделна временна папка. "
+                   "Състоянието тук ще се обнови само.")
         else:
             msg = ("Завършете входа в прозореца на ТЕРМИНАЛА, където стартирахте "
                    "програмата (отворете показаната връзка; ако се поиска код — "
@@ -601,6 +843,8 @@ class _Handler(BaseHTTPRequestHandler):
         profile = {k: (data.get(k) or "").strip() for k, _l, _m in business.FIELDS}
         if not any(profile.values()):
             return {"ok": False, "error": "Празна форма."}
+        if any(len(value) > 5_000 for value in profile.values()) or sum(map(len, profile.values())) > 20_000:
+            return {"ok": False, "error": "Бизнес профилът е прекалено дълъг."}
         path = business.save_profile(cfg.MEMORY_DIR, profile)
         return {"ok": True, "path": str(path)}
 
@@ -610,16 +854,38 @@ class _Handler(BaseHTTPRequestHandler):
         text = (data.get("feedback") or "").strip()
         if not text:
             return {"ok": False, "error": "Празна обратна връзка."}
-        _app.apply_feedback_fast(self.memory, text)
-        job = _start_job(lambda progress: {
-            "ok": True,
-            "ai_consolidated": _with_heartbeat(
-                progress,
-                "AI style consolidation",
-                lambda: _app._consolidate_steering(cfg.load_config(), self.memory, text),
-            ),
-            "steering": self.memory.read_steering_file(),
-        })
+        def work(progress, cancel_event):
+            _app.apply_feedback_fast(self.memory, text)
+            progress("Style feedback saved locally.")
+            if cancel_event.is_set():
+                return {
+                    "ok": True,
+                    "ai_consolidated": False,
+                    "steering": self.memory.read_steering_file(),
+                }
+            return {
+                "ok": True,
+                "ai_consolidated": _with_heartbeat(
+                    progress,
+                    "AI style consolidation",
+                    lambda: _app._consolidate_steering(
+                        cfg.load_config(),
+                        self.memory,
+                        text,
+                        progress=progress,
+                        cancel_event=cancel_event,
+                    ),
+                ),
+                "steering": self.memory.read_steering_file(),
+            }
+
+        job = _COORDINATOR.start("feedback", work)
+        if not job:
+            return {
+                "ok": False,
+                "error": "Друга операция вече работи. Опитайте обратната връзка след нея.",
+                "active_job": _COORDINATOR.active(),
+            }
         return {
             "ok": True,
             "queued": True,
@@ -631,8 +897,15 @@ class _Handler(BaseHTTPRequestHandler):
     def _autopilot(self, data: dict) -> dict:
         action = data.get("action")
         if action == "start":
+            if data.get("confirmed") is not True:
+                return {"ok": False, "error": "Нужно е потвърждение за стартиране."}
             if not cfg.load_config().is_ready():
                 return {"ok": False, "error": "Първо завършете настройката."}
+            if self.memory.latest_unknown_execution():
+                return {
+                    "ok": False,
+                    "error": "Първо проверете последното публикуване с неизвестен резултат.",
+                }
             _AUTOPILOT.start(self.memory)
         elif action == "stop":
             _AUTOPILOT.stop()
@@ -704,548 +977,20 @@ def run_dashboard(port: int | None = None, open_browser: bool = True) -> int:
         print("\n  Таблото е спряно.")
     finally:
         _AUTOPILOT.stop()
+        workers_stopped = _COORDINATOR.shutdown()
+        _AUTOPILOT.wait()
+        from . import engagement
+
+        engagement.wait_for_background()
         server.server_close()
-        _Handler.memory.close()
+        if workers_stopped:
+            _Handler.memory.close()
+        else:
+            log.warning(
+                "Active worker did not stop in time; leaving SQLite open for process cleanup."
+            )
     return 0
 
 
-_PAGE = r"""<!DOCTYPE html>
-<html lang="bg"><head><meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AIPost247 · Табло</title>
-<style>
-  :root{--bg:#eef1f7;--card:#fff;--ink:#16202c;--muted:#5b6b7e;--line:#dfe7f2;
-    --accent:#1877f2;--accent-ink:#0b5fd0;--accent-soft:#eaf2ff;
-    --ok:#1f9d57;--bad:#d3392b;--warn:#c9921b;--radius:14px;
-    --shadow:0 18px 45px -34px rgba(16,32,44,.72);}
-  *{box-sizing:border-box;}
-  html{background:var(--bg);}
-  body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f8fbff 0,#eef3fb 360px,#f4f6fb 100%);color:var(--ink);
-    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-  header{position:sticky;top:0;z-index:40;background:linear-gradient(135deg,#1877f2,#0b5fd0);color:#fff;padding:17px 24px;
-    display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;box-shadow:0 18px 38px -28px rgba(7,43,96,.72);}
-  header h1{margin:0;font-size:1.28rem;line-height:1.15;}
-  header .sub{opacity:.92;font-size:.86rem;margin-top:3px;}
-  .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
-  .pillbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .pill{font-size:.78rem;font-weight:750;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);}
-  .pill.ok{background:rgba(31,157,87,.22);border-color:rgba(255,255,255,.4);}
-  .pill.bad{background:rgba(211,57,43,.28);border-color:rgba(255,255,255,.4);}
-  .wrap{max-width:1120px;margin:0 auto;padding:22px 18px 34px;}
-  nav{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;background:rgba(255,255,255,.76);
-    border:1px solid rgba(223,231,242,.9);border-radius:16px;padding:8px;box-shadow:0 14px 34px -30px rgba(16,32,44,.65);}
-  nav button{cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);
-    font:inherit;font-weight:700;padding:9px 15px;border-radius:999px;transition:background .15s,color .15s,box-shadow .15s;}
-  nav button:hover{background:#eef4fd;color:var(--ink);}
-  nav button.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 10px 20px -14px var(--accent);}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow);}
-  .card h2{margin:0 0 5px;font-size:1.08rem;line-height:1.25;}
-  .card .hint{color:var(--muted);font-size:.85rem;margin:0 0 14px;}
-  label{display:block;font-weight:600;margin:12px 0 4px;font-size:.9rem;}
-  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
-    font:inherit;color:var(--ink);background:#fbfdff;transition:border-color .15s,box-shadow .15s,background .15s;}
-  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(24,119,242,.15);}
-  textarea{resize:vertical;min-height:70px;}
-  .row{display:flex;gap:14px;flex-wrap:wrap;}
-  .row>div{flex:1;min-width:180px;}
-  .check{display:flex;align-items:center;gap:8px;margin-top:12px;}
-  .check input{width:auto;}
-  button.btn{cursor:pointer;border:none;border-radius:10px;font:inherit;font-weight:700;
-    padding:10px 18px;background:var(--accent);color:#fff;margin-top:14px;transition:background .15s,transform .12s,box-shadow .15s;}
-  button.btn:hover{background:var(--accent-ink);transform:translateY(-1px);box-shadow:0 12px 22px -16px rgba(24,119,242,.8);}
-  button.btn.ghost{background:#eef2f8;color:var(--ink);}
-  button.btn.ghost:hover{background:#e4ebf5;box-shadow:0 10px 18px -16px rgba(16,32,44,.45);}
-  button.btn.ok{background:var(--ok);}
-  button.btn.bad{background:var(--bad);}
-  .button-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .button-row .btn{margin-top:8px;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;}
-  .stat{position:relative;overflow:hidden;background:linear-gradient(180deg,#fff,#f7faff);border:1px solid var(--line);border-radius:12px;padding:14px 15px;min-height:82px;}
-  .stat:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);}
-  .stat .n{font-size:1.55rem;font-weight:850;line-height:1.15;}
-  .stat .l{color:var(--muted);font-size:.79rem;font-weight:650;margin-top:5px;}
-  #autopilot-box{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:2px;}
-  table{width:100%;border-collapse:collapse;font-size:.88rem;}
-  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  th{color:var(--muted);font-weight:600;background:#f7f9fd;}
-  tbody tr:hover td{background:#fbfdff;}
-  .tag{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;}
-  .tag.published{background:#e4f6ec;color:#1f7a48;}
-  .tag.dry_run{background:#fff4e0;color:#9a6b12;}
-  .tag.failed{background:#fde4e1;color:#a82d22;}
-  pre.log{background:#0f1722;color:#dbe6f5;border-radius:10px;padding:14px;overflow:auto;max-height:60vh;
-    font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#16202c;color:#fff;
-    padding:11px 18px;border-radius:10px;box-shadow:0 14px 34px -12px rgba(0,0,0,.5);opacity:0;
-    transition:opacity .25s,transform .25s;pointer-events:none;z-index:50;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
-  .out{background:#f7f9fd;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;white-space:pre-wrap;max-height:42vh;overflow:auto;}
-  .choice-box{background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.65);}
-  .muted{color:var(--muted);}
-  .hide{display:none;}
-  .busy{opacity:.6;pointer-events:none;}
-  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(24,119,242,.28);outline-offset:2px;}
-  .help-btn{cursor:pointer;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.16);color:#fff;
-    font:inherit;font-weight:700;font-size:.82rem;padding:6px 13px;border-radius:999px;white-space:nowrap;}
-  .help-btn:hover{background:rgba(255,255,255,.3);}
-  /* guided tour */
-  .tour-dim{position:fixed;inset:0;z-index:90;background:transparent;}
-  .tour-spot{position:fixed;z-index:91;border-radius:12px;pointer-events:none;
-    box-shadow:0 0 0 3px var(--accent),0 0 0 9999px rgba(8,14,22,.6);
-    transition:all .3s cubic-bezier(.4,.1,.3,1);}
-  .tour-card{position:fixed;z-index:92;background:#fff;border-radius:14px;max-width:330px;width:calc(100vw - 32px);
-    box-shadow:0 24px 50px -16px rgba(0,0,0,.5);padding:16px 18px;transition:left .25s ease,top .25s ease;}
-  .tour-card h4{margin:0 0 6px;font-size:1.02rem;}
-  .tour-card p{margin:0 0 13px;color:var(--muted);font-size:.9rem;line-height:1.5;}
-  .tour-card .tnav{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .tour-card .step-n{color:var(--muted);font-size:.78rem;}
-  .tour-card button{cursor:pointer;border:none;border-radius:8px;font:inherit;font-weight:700;font-size:.85rem;padding:7px 13px;margin-left:6px;}
-  .tour-card .skip{background:transparent;color:var(--muted);padding:7px 6px;}
-  .tour-card .prev{background:#eef2f8;color:var(--ink);}
-  .tour-card .next{background:var(--accent);color:#fff;}
-  @media (max-width:720px){
-    header{position:static;padding:16px 18px;}
-    .header-actions{justify-content:flex-start;width:100%;}
-    .wrap{padding:16px 12px 28px;}
-    nav{overflow-x:auto;flex-wrap:nowrap;padding:7px;}
-    nav button{white-space:nowrap;}
-    .card{padding:17px 15px;border-radius:12px;}
-    .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    table{min-width:640px;}
-  }
-  @media (max-width:480px){
-    .grid{grid-template-columns:1fr;}
-    button.btn{width:100%;}
-    .button-row{display:block;}
-  }
-</style></head>
-<body>
-<header>
-  <div><h1>AIPost247 · Табло</h1><div class="sub">Конфигурирайте и наблюдавайте — без терминал.</div></div>
-  <div class="header-actions">
-    <div class="pillbar" id="pills"></div>
-    <button class="help-btn" id="help-btn" title="Покажи обиколката">? Обиколка</button>
-  </div>
-</header>
-<div class="wrap">
-  <nav>
-    <button data-tab="overview" class="active">Преглед</button>
-    <button data-tab="setup">Настройка</button>
-    <button data-tab="business">Бизнес &amp; стил</button>
-    <button data-tab="posts">Публикации</button>
-    <button data-tab="logs">Дневник</button>
-  </nav>
-
-  <!-- OVERVIEW -->
-  <section id="tab-overview">
-    <div class="card">
-      <h2>Състояние</h2>
-      <div class="grid" id="stats"></div>
-      <div style="margin-top:14px" id="autopilot-box"></div>
-    </div>
-    <div class="card">
-      <h2>Бързи действия</h2>
-      <p class="hint">Генерирайте за преглед, публикувайте веднага или опреснете ангажираността.</p>
-      <div class="button-row">
-        <button class="btn ghost" onclick="act('/api/generate','Генерирам…')">Генерирай (преглед)</button>
-        <button class="btn" onclick="act('/api/post-now','Публикувам…')">Публикувай сега</button>
-        <button class="btn ghost" onclick="act('/api/learn','Уча от ангажираността…')">Опресни наученото</button>
-      </div>
-      <div id="action-out" class="out hide" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <!-- SETUP -->
-  <section id="tab-setup" class="hide">
-    <div class="card">
-      <h2>1 · AI, който пише</h2>
-      <label>Доставчик (безплатно — само вход, без API ключ)</label>
-      <select id="ai_provider">
-        <option value="antigravity">Antigravity (Google) — препоръчано, без ключ</option>
-        <option value="gemini">Gemini — вход с Google (Google я спира скоро)</option>
-        <option value="codex">ChatGPT (Codex) — вход с ChatGPT, вкл. безплатен план</option>
-        <option value="openai">OpenAI — с API ключ (платено)</option>
-      </select>
-      <div id="cli-box">
-        <div id="gemini-model-row">
-          <label>Gemini модел</label>
-          <input id="gemini_model"/>
-        </div>
-        <p class="hint" id="cli-hint" style="margin-top:10px"></p>
-        <button class="btn ghost" onclick="loginAI()">Вход с акаунт (отваря браузър)</button>
-        <button class="btn ghost" onclick="checkLogin()">Провери входа</button>
-        <button class="btn ghost" onclick="testProvider()">Тест на доставчика</button>
-        <span id="ai-login-status" class="muted" aria-live="polite"></span>
-        <pre class="log" id="provider-test" style="max-height:24vh;display:none;margin-top:10px"></pre>
-      </div>
-      <div id="openai-box" class="hide">
-        <div class="row">
-          <div><label>OpenAI модел</label><input id="openai_model"/></div>
-          <div><label>OpenAI API ключ <span id="openai-have" class="muted"></span></label>
-            <input id="openai_api_key" type="password" placeholder="(оставете празно за да запазите)"/></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>2 · Facebook страница</h2>
-      <p class="hint">Поставете App ID и App Secret от вашето Meta приложение, после „Свържи“. Отваря се браузър за вход и избор на страница.</p>
-      <div class="row">
-        <div><label>App ID</label><input id="fb_app_id"/></div>
-        <div><label>App Secret <span id="fb-have-secret" class="muted"></span></label>
-          <input id="fb_app_secret" type="password" placeholder="(оставете празно за да запазите)"/></div>
-      </div>
-      <button class="btn" onclick="fbConnect()">Свържи Facebook</button>
-      <span id="fb-status" class="muted" aria-live="polite"></span>
-      <div id="fb-page-picker" class="choice-box hide"></div>
-    </div>
-
-    <div class="card">
-      <h2>3 · График и поведение</h2>
-      <div class="row">
-        <div><label>Режим</label>
-          <select id="schedule_mode">
-            <option value="interval">През интервал</option>
-            <option value="daily">Всеки ден в часове</option>
-          </select></div>
-        <div id="interval-box"><label>Интервал (минути)</label><input id="schedule_interval_minutes" type="number" min="1"/></div>
-        <div id="times-box" class="hide"><label>Часове (HH:MM, със запетая)</label><input id="schedule_times" placeholder="09:00,18:00"/></div>
-      </div>
-      <div class="row">
-        <div><label>Език на публикациите</label>
-          <select id="post_language">
-            <option value="Bulgarian">Български</option>
-            <option value="English">English</option>
-            <option value="German">Deutsch</option>
-            <option value="Spanish">Español</option>
-            <option value="French">Français</option>
-            <option value="Italian">Italiano</option>
-            <option value="Portuguese">Português</option>
-            <option value="Dutch">Nederlands</option>
-            <option value="Russian">Русский</option>
-            <option value="Ukrainian">Українська</option>
-            <option value="Turkish">Türkçe</option>
-            <option value="Greek">Ελληνικά</option>
-            <option value="Romanian">Română</option>
-            <option value="Serbian">Српски</option>
-            <option value="Polish">Polski</option>
-            <option value="Arabic">العربية</option>
-            <option value="__custom__">Друг (въведете) …</option>
-          </select>
-          <input id="post_language_custom" class="hide" style="margin-top:8px" placeholder="Език на английски, напр. Japanese"/></div>
-        <div><label>Макс. дължина (символи)</label><input id="post_max_chars" type="number" min="50"/></div>
-      </div>
-      <div class="check"><input type="checkbox" id="run_on_start"/><label style="margin:0">Публикувай веднага при стартиране</label></div>
-      <div class="check"><input type="checkbox" id="dry_run"/><label style="margin:0">Тестов режим (пише, но НЕ публикува)</label></div>
-      <button class="btn ok" onclick="saveConfig()">Запази настройките</button>
-    </div>
-  </section>
-
-  <!-- BUSINESS -->
-  <section id="tab-business" class="hide">
-    <div class="card">
-      <h2>Профил на бизнеса</h2>
-      <p class="hint">Кратък профил, за да звучат публикациите като вас.</p>
-      <div id="business-fields"></div>
-      <button class="btn ok" onclick="saveBusiness()">Запази профила</button>
-    </div>
-    <div class="card">
-      <h2>Насочване на стила (само-коригиращо се)</h2>
-      <p class="hint">Напишете какво да се промени — AI съгласува указанията в единен стил без противоречия.</p>
-      <textarea id="feedback" placeholder="напр. по-кратко, повече емоджи, по-малко продажбено"></textarea>
-      <button class="btn" onclick="sendFeedback()">Приложи</button>
-      <div id="feedback-status" class="muted" style="margin-top:8px" aria-live="polite"></div>
-      <label style="margin-top:16px">Текущ стил (steering.md)</label>
-      <pre class="log" id="steering-view" style="max-height:30vh"></pre>
-    </div>
-  </section>
-
-  <!-- POSTS -->
-  <section id="tab-posts" class="hide">
-    <div class="card">
-      <h2>Публикации и изпълнения</h2>
-      <p class="hint">Последните генерирания/публикувания с ангажираност.</p>
-      <div style="overflow:auto"><table id="posts-table"><thead><tr>
-        <th>Време</th><th>Статус</th><th>Текст</th><th>👍</th><th>💬</th><th>↗</th></tr></thead>
-        <tbody id="posts-body"></tbody></table></div>
-    </div>
-  </section>
-
-  <!-- LOGS -->
-  <section id="tab-logs" class="hide">
-    <div class="card">
-      <h2>Дневник</h2>
-      <p class="hint">Последните редове от logs/aipost247.log (опреснява се автоматично).</p>
-      <pre class="log" id="log-view">…</pre>
-    </div>
-  </section>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-var BIZ = [["name","Име на бизнеса / страницата"],["description","С какво се занимавате"],
-  ["audience","Аудитория"],["tone","Тон и стил"],["topics","Теми за публикуване"],
-  ["avoid","Какво да се избягва"],["cta","Подкана за действие"],["links","Връзки / профили"],
-  ["notes","Друго, което AI трябва да знае"]];
-
-function $(id){return document.getElementById(id);}
-function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
-function safeClass(v){return String(v||"").replace(/[^a-zA-Z0-9_-]/g,"_");}
-function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2200);}
-function getJSON(u){return fetch(u).then(function(r){return r.json();});}
-function postJSON(u,b){return fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b||{})}).then(function(r){return r.json();});}
-
-// tabs
-document.querySelectorAll("nav button").forEach(function(b){
-  b.addEventListener("click",function(){
-    document.querySelectorAll("nav button").forEach(function(x){x.classList.remove("active");});
-    b.classList.add("active");
-    document.querySelectorAll("section").forEach(function(s){s.classList.add("hide");});
-    $("tab-"+b.dataset.tab).classList.remove("hide");
-    if(b.dataset.tab==="posts")loadPosts();
-    if(b.dataset.tab==="logs")loadLogs();
-    if(b.dataset.tab==="business")loadMemory();
-  });
-});
-
-// build business fields
-(function(){var c=$("business-fields");BIZ.forEach(function(f){
-  c.insertAdjacentHTML("beforeend","<label>"+f[1]+"</label><textarea id=\"biz_"+f[0]+"\" rows=\"2\"></textarea>");});})();
-
-function pill(label,ok){return '<span class="pill '+(ok?"ok":"bad")+'">'+(ok?"✓ ":"✕ ")+esc(label)+'</span>';}
-
-function loadStatus(){
-  getJSON("/api/status").then(function(s){
-    $("pills").innerHTML = pill("AI",s.ai_ready)+pill("Facebook",s.facebook_connected)+
-      '<span class="pill">'+esc(s.schedule)+'</span>'+
-      '<span class="pill '+(s.autopilot.running?"ok":"")+'">'+(s.autopilot.running?"▶ автопилот":"❚❚ спрян")+'</span>';
-    var st=s.stats;
-    $("stats").innerHTML =
-      stat(st.total,"Общо")+stat(st.published,"Публикувани")+stat(st.dry_run,"Тестови")+
-      stat(st.failed,"Неуспешни")+stat(s.post_language,"Език");
-    var ap=s.autopilot, box=$("autopilot-box");
-    box.innerHTML = (ap.running
-        ? '<button class="btn bad" onclick="autopilot(\'stop\')">Спри автопилота</button>'
-        : '<button class="btn ok" onclick="autopilot(\'start\')">Старт на автопилота</button>')
-      + ' <span class="muted">'+ (ap.running ? ("следващо: "+(ap.next_run_at||"скоро")) :
-          (s.configured?"готов за стартиране":"завършете настройката")) +
-        (ap.last_run_at? (" · последно: "+ap.last_run_at+" ("+(ap.last_result||"")+")"):"") +'</span>';
-  });
-}
-function stat(n,l){return '<div class="stat"><div class="n">'+esc(n)+'</div><div class="l">'+esc(l)+'</div></div>';}
-
-function loadConfig(){
-  getJSON("/api/config").then(function(c){
-    $("ai_provider").value=c.ai_provider;
-    $("gemini_model").value=c.gemini_model; $("openai_model").value=c.openai_model;
-    $("openai-have").textContent=c.has_openai_key?"(зададен)":"";
-    $("fb_app_id").value=c.fb_app_id||""; $("fb-have-secret").textContent=c.has_fb_app_secret?"(зададен)":"";
-    $("schedule_mode").value=c.schedule_mode;
-    $("schedule_interval_minutes").value=c.schedule_interval_minutes;
-    $("schedule_times").value=c.schedule_times;
-    setLang(c.post_language);
-    $("post_max_chars").value=c.post_max_chars;
-    $("run_on_start").checked=c.run_on_start; $("dry_run").checked=c.dry_run;
-    $("fb-status").textContent=c.has_fb_token?("свързана страница: "+(c.fb_page_id||"")):"не е свързана";
-    toggleProvider(); toggleSchedule();
-  });
-}
-var CLI_HINTS={gemini:"Влезте с Google — безплатно, без API ключ.",
-  antigravity:"Заместникът на Gemini CLI. Влезте с Google — без ключ. (Изисква инсталиран Antigravity CLI „agy“.)",
-  codex:"Влезте с акаунт в ChatGPT (работи и с безплатния план) — без ключ. AIPost247 автоматично доверява текущата папка за Codex."};
-function toggleProvider(){var p=$("ai_provider").value,o=(p==="openai");
-  $("openai-box").classList.toggle("hide",!o);$("cli-box").classList.toggle("hide",o);
-  $("gemini-model-row").classList.toggle("hide",p!=="gemini");
-  $("cli-hint").textContent=CLI_HINTS[p]||"";}
-function toggleSchedule(){var d=$("schedule_mode").value==="daily";$("times-box").classList.toggle("hide",!d);$("interval-box").classList.toggle("hide",d);}
-function toggleLang(){$("post_language_custom").classList.toggle("hide",$("post_language").value!=="__custom__");}
-function getLang(){return $("post_language").value==="__custom__"?($("post_language_custom").value.trim()||"English"):$("post_language").value;}
-function setLang(v){var sel=$("post_language");var opts=[].map.call(sel.options,function(o){return o.value;});
-  if(v&&v!=="__custom__"&&opts.indexOf(v)>=0){sel.value=v;}
-  else if(v){sel.value="__custom__";$("post_language_custom").value=v;}
-  else{sel.value="Bulgarian";}
-  toggleLang();}
-$("ai_provider").addEventListener("change",toggleProvider);
-$("schedule_mode").addEventListener("change",toggleSchedule);
-$("post_language").addEventListener("change",toggleLang);
-
-function saveConfig(){
-  var b={ai_provider:$("ai_provider").value,gemini_model:$("gemini_model").value,
-    openai_model:$("openai_model").value,openai_api_key:$("openai_api_key").value,
-    schedule_mode:$("schedule_mode").value,
-    schedule_interval_minutes:parseInt($("schedule_interval_minutes").value||"120",10),
-    schedule_times:$("schedule_times").value,post_language:getLang(),
-    post_max_chars:parseInt($("post_max_chars").value||"600",10),
-    run_on_start:$("run_on_start").checked,dry_run:$("dry_run").checked};
-  postJSON("/api/config",b).then(function(r){toast(r.ok?"Запазено":"Грешка");$("openai_api_key").value="";loadConfig();loadStatus();});
-}
-function testProvider(){var o=$("provider-test");o.style.display="block";o.textContent="Тествам доставчика… (до 2 мин)";
-  postJSON("/api/test-provider",{}).then(function(r){
-    if(!r.job){o.textContent="✕ "+(r.error||"Грешка");return;}
-    var t=setInterval(function(){getJSON("/api/job?id="+r.job).then(function(j){
-      if(j&&j.status!=="done"){o.textContent=jobLogText(j)||"Тествам доставчика…";return;}
-      if(j&&j.status==="done"){clearInterval(t);var x=j.result||{};
-        o.textContent=(jobLogText(j)||"")+"\n\n--- Резултат ---\n"+
-          "команда: "+(x.cmd||"-")+"\nexit: "+(x.returncode!==undefined?x.returncode:"-")+
-          "\n\n=== STDOUT ===\n"+(x.stdout||"(празно)")+"\n\n=== STDERR ===\n"+(x.stderr||"(празно)")+
-          (x.error?("\n\nгрешка: "+x.error):"");}
-    }).catch(function(){});},1500);
-  });}
-function checkLogin(){$("ai-login-status").textContent="проверявам…";
-  postJSON("/api/check-login",{}).then(function(r){$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"✕ още не сте влезли";loadStatus();});}
-function loginAI(){var p=$("ai_provider").value;$("ai-login-status").textContent="влизане…";
-  postJSON("/api/login-gemini",{provider:p}).then(function(r){
-    if(r.already){$("ai-login-status").textContent="✓ вече сте влезли";}
-    else if(r.message){$("ai-login-status").textContent="↪ "+r.message;toast("Вижте прозореца на терминала");}
-    else if(r.error){$("ai-login-status").textContent="✕ "+r.error;}
-    else{$("ai-login-status").textContent=r.logged_in?"✓ влязъл":"…";}
-    loadStatus();});}
-function clearFbPicker(){var box=$("fb-page-picker");box.innerHTML="";box.classList.add("hide");}
-function showFbPagePicker(r){
-  var box=$("fb-page-picker");box.innerHTML="";box.classList.remove("hide");
-  var label=document.createElement("label");label.textContent="Изберете Facebook страница";
-  var select=document.createElement("select");select.id="fb-page-select";
-  (r.pages||[]).forEach(function(p){var opt=document.createElement("option");opt.value=p.id;opt.textContent=(p.name||"(без име)")+" (id "+p.id+")";select.appendChild(opt);});
-  var btn=document.createElement("button");btn.className="btn ok";btn.type="button";btn.textContent="Запази тази страница";
-  btn.onclick=function(){selectFbPage(r.pending,select.value);};
-  var hint=document.createElement("p");hint.className="hint";hint.textContent="Намерихме повече от една страница. Изберете точно коя да управлява AIPost247.";
-  box.appendChild(label);box.appendChild(hint);box.appendChild(select);box.appendChild(btn);
-}
-function selectFbPage(pending,pageId){$("fb-status").textContent="запазвам избраната страница…";
-  postJSON("/api/facebook/select-page",{pending:pending,page_id:pageId}).then(function(r){
-    $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
-    if(r.ok)clearFbPicker();loadConfig();loadStatus();});}
-function fbConnect(){toast("Отваря се браузър за Facebook…");$("fb-status").textContent="свързване…";
-  clearFbPicker();
-  postJSON("/api/facebook/connect",{fb_app_id:$("fb_app_id").value,fb_app_secret:$("fb_app_secret").value}).then(function(r){
-    if(r.choose_page){$("fb-status").textContent="изберете страница от списъка";$("fb_app_secret").value="";showFbPagePicker(r);return;}
-    $("fb-status").textContent=r.ok?("✓ "+r.page_name+" ("+r.page_id+")"):("✕ "+(r.error||"неуспех"));
-    $("fb_app_secret").value="";loadStatus();});}
-
-function jobLogText(j){
-  var lines=(j&&j.log)||[];
-  if(!lines.length)return "";
-  return lines.map(function(x){return "["+(x.elapsed||0)+"s] "+(x.message||"");}).join("\n");
-}
-function showActionResult(r,o,j){
-  var logs=jobLogText(j), body="";
-  if(r&&r.ok){body=(r.text!==undefined?r.text:("Готово · обновени: "+(r.updated!==undefined?r.updated:"")))+(r.published?"\n\n✓ Публикувано (id "+r.post_id+")":(r.published===false?"\n\n(тестов преглед — не е публикувано)":""));}
-  else{body="✕ "+((r&&r.error)||"Грешка");}
-  o.textContent=(logs?logs+"\n\n--- Резултат ---\n":"")+body;
-}
-function act(url,msg){toast(msg);var o=$("action-out");o.classList.remove("hide");o.textContent=msg+" (може да отнеме до минута) …";
-  postJSON(url,{}).then(function(r){
-    if(r&&r.job){
-      var t=setInterval(function(){
-        getJSON("/api/job?id="+r.job).then(function(j){
-          if(j&&j.status!=="done"){o.textContent=jobLogText(j)||msg+" …";return;}
-          if(j&&j.status==="done"){clearInterval(t);showActionResult(j.result,o,j);loadStatus();}
-        }).catch(function(){});
-      },1500);
-    } else { showActionResult(r,o,null); loadStatus(); }
-  }).catch(function(){o.textContent="✕ Грешка при заявката";});
-}
-
-function autopilot(a){postJSON("/api/autopilot",{action:a}).then(function(r){if(!r.ok)toast(r.error||"Грешка");loadStatus();});}
-
-function loadPosts(){getJSON("/api/posts").then(function(d){
-  $("posts-body").innerHTML=d.posts.map(function(p){
-    var txt=esc(p.content||"");if(txt.length>120)txt=txt.slice(0,120)+"…";
-    var status=esc(p.status||"");
-    return "<tr><td>"+esc(p.created_at||"")+"</td><td><span class=\"tag "+safeClass(p.status)+"\">"+status+"</span></td>"+
-      "<td>"+txt+"</td><td>"+esc(p.likes||0)+"</td><td>"+esc(p.comments||0)+"</td><td>"+esc(p.shares||0)+"</td></tr>";
-  }).join("")||"<tr><td colspan=6 class=muted>Все още няма публикации.</td></tr>";});}
-function loadLogs(){getJSON("/api/logs").then(function(d){var v=$("log-view");v.textContent=d.log;v.scrollTop=v.scrollHeight;});}
-function loadMemory(){getJSON("/api/memory").then(function(m){
-  $("steering-view").textContent=m.steering||"(още няма)";
-  BIZ.forEach(function(f){ /* keep what's typed; only prefill empties from saved md is complex — leave editable */ });});}
-
-function saveBusiness(){var b={};BIZ.forEach(function(f){b[f[0]]=$("biz_"+f[0]).value;});
-  postJSON("/api/business",b).then(function(r){toast(r.ok?"Профилът е запазен":(r.error||"Грешка"));});}
-function pollFeedbackJob(job){var tries=0,t=setInterval(function(){
-  getJSON("/api/job?id="+job).then(function(j){
-    tries++;
-    if(j&&j.status!=="done"){$("feedback-status").textContent=jobLogText(j);return;}
-    if(j&&j.status==="done"){clearInterval(t);var r=j.result||{};
-      if(r.steering)$("steering-view").textContent=r.steering;
-      $("feedback-status").textContent=jobLogText(j);
-      toast(r.ai_consolidated?"Стилът е подреден от AI":"Стилът е записан");
-    } else if(tries>30){clearInterval(t);}
-  }).catch(function(){tries++;if(tries>30)clearInterval(t);});
-},1200);}
-function sendFeedback(){var t=$("feedback").value.trim();if(!t){toast("Напишете нещо");return;}toast("Записвам стила…");
-  $("feedback-status").textContent="Записвам веднага…";
-  postJSON("/api/feedback",{feedback:t}).then(function(r){if(r.ok){$("feedback").value="";$("steering-view").textContent=r.steering;$("feedback-status").textContent=r.queued?"Записано веднага. AI подрежда правилата във фон…":"Стилът е обновен.";toast(r.queued?"Стилът е записан веднага; AI го подрежда във фон":"Стилът е обновен");if(r.job)pollFeedbackJob(r.job);}else toast(r.error||"Грешка");});}
-
-loadStatus();loadConfig();
-setInterval(function(){loadStatus();var l=$("tab-logs");if(l&&!l.classList.contains("hide"))loadLogs();var p=$("tab-posts");if(p&&!p.classList.contains("hide"))loadPosts();},5000);
-
-// ---- Guided tour (first visit + „? Обиколка") ----
-(function(){
-  var KEY="aipost247_tour_v1";
-  var steps=[
-    {title:"Добре дошли! 👋",text:"Това е таблото на AIPost247 — настройка и наблюдение без терминал. Ще ви преведа за по-малко от минута."},
-    {tab:"setup",sel:"#cli-box",title:"1 · AI, който пише",text:"Започнете оттук: изберете безплатен доставчик (Gemini, Antigravity или ChatGPT) и натиснете „Вход с акаунт“ — без API ключ."},
-    {tab:"setup",sel:"#fb_app_id",title:"2 · Facebook",text:"Поставете App ID и App Secret от вашето Meta приложение, после „Свържи Facebook“ и одобрете в браузъра."},
-    {tab:"setup",sel:"#schedule_mode",title:"3 · График и език",text:"Изберете на колко време да публикува и на какъв език, после „Запази настройките“."},
-    {tab:"business",sel:"#business-fields",title:"4 · Бизнес и стил",text:"Опишете бизнеса си — така публикациите звучат като вас. По-късно може да насочвате стила с обратна връзка."},
-    {tab:"overview",sel:"#autopilot-box",title:"5 · Старт на автопилота",text:"Накрая натиснете „Старт на автопилота“ — таблото започва да генерира и публикува по графика."},
-    {tab:"overview",sel:"#action-out",title:"Бързи действия",text:"„Генерирай (преглед)“ показва публикация без да я публикува. „Публикувай сега“ пуска една веднага."},
-    {tab:"posts",sel:"#posts-table",title:"Наблюдение",text:"В „Публикации“ виждате историята и ангажираността; в „Дневник“ — какво прави програмата на живо."},
-    {tab:"overview",sel:null,title:"Готови сте! 🎉",text:"Започнете от раздел „Настройка“. Може да върнете тази обиколка по всяко време с бутона „? Обиколка“ горе."}
-  ];
-  var i=0,dim=null,spot=null,card=null;
-  function build(){
-    dim=document.createElement("div");dim.className="tour-dim";
-    spot=document.createElement("div");spot.className="tour-spot";
-    card=document.createElement("div");card.className="tour-card";
-    document.body.appendChild(dim);document.body.appendChild(spot);document.body.appendChild(card);
-  }
-  function go(tab){var b=[].slice.call(document.querySelectorAll("nav button")).filter(function(x){return x.dataset.tab===tab;})[0];if(b)b.click();}
-  function placeCard(r){
-    var cw=Math.min(330,window.innerWidth-32),ch=card.offsetHeight||160;
-    if(!r){card.style.left=Math.round((window.innerWidth-cw)/2)+"px";card.style.top=Math.round((window.innerHeight-ch)/2)+"px";return;}
-    var below=r.bottom+12,above=r.top-ch-12;
-    var top=(below+ch<window.innerHeight)?below:(above>10?above:Math.max(10,window.innerHeight-ch-10));
-    var left=Math.min(Math.max(10,r.left),window.innerWidth-cw-10);
-    card.style.left=left+"px";card.style.top=top+"px";
-  }
-  function renderCard(){
-    var s=steps[i];
-    card.innerHTML="<h4>"+s.title+"</h4><p>"+s.text+"</p><div class=\"tnav\"><span class=\"step-n\">"+(i+1)+" / "+steps.length+
-      "</span><span>"+(i>0?"<button class=\"prev\">Назад</button>":"")+
-      "<button class=\"skip\">Прескочи</button><button class=\"next\">"+(i===steps.length-1?"Готово":"Напред")+"</button></span></div>";
-    card.querySelector(".next").onclick=function(){if(i===steps.length-1)finish();else{i++;show();}};
-    card.querySelector(".skip").onclick=finish;
-    var pv=card.querySelector(".prev");if(pv)pv.onclick=function(){i--;show();};
-  }
-  function show(){
-    var s=steps[i];
-    if(s.tab)go(s.tab);
-    setTimeout(function(){
-      renderCard();
-      var el=s.sel?document.querySelector(s.sel):null;
-      if(el){
-        el.scrollIntoView({block:"center",behavior:"smooth"});
-        setTimeout(function(){
-          var r=el.getBoundingClientRect(),pad=8;
-          spot.style.display="block";
-          spot.style.left=(r.left-pad)+"px";spot.style.top=(r.top-pad)+"px";
-          spot.style.width=(r.width+pad*2)+"px";spot.style.height=(r.height+pad*2)+"px";
-          placeCard(r);
-        },360);
-      }else{
-        spot.style.display="none";placeCard(null);
-      }
-    },s.tab?260:20);
-  }
-  function finish(){try{localStorage.setItem(KEY,"1");}catch(e){}
-    [dim,spot,card].forEach(function(n){if(n&&n.parentNode)n.parentNode.removeChild(n);});dim=spot=card=null;}
-  window.startTour=function(){if(dim)finish();build();i=0;show();};
-  document.getElementById("help-btn").onclick=window.startTour;
-  var seen=false;try{seen=!!localStorage.getItem(KEY);}catch(e){}
-  if(!seen)setTimeout(window.startTour,800);
-})();
-</script>
-</body></html>"""
+_ASSET_DIR = Path(__file__).resolve().parent
+_PAGE = (_ASSET_DIR / "dashboard.html").read_text(encoding="utf-8")

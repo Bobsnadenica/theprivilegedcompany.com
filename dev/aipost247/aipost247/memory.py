@@ -46,6 +46,17 @@ CREATE TABLE IF NOT EXISTS knowledge (
     topic       TEXT,
     text        TEXT    NOT NULL
 );
+CREATE TABLE IF NOT EXISTS executions (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    started_at   TEXT    NOT NULL,
+    finished_at  TEXT,
+    kind         TEXT    NOT NULL,
+    provider     TEXT,
+    status       TEXT    NOT NULL DEFAULT 'started',
+    content      TEXT,
+    fb_post_id   TEXT,
+    error        TEXT
+);
 """
 
 
@@ -88,6 +99,43 @@ class MemoryStore:
                 "INSERT INTO posts (created_at, content, fb_post_id, status, model) "
                 "VALUES (?, ?, ?, ?, ?)",
                 (self._now(), content, fb_post_id, status, model),
+            )
+            self._conn.commit()
+
+    def start_execution(self, kind: str, provider: str | None = None) -> int:
+        with self._lock:
+            cursor = self._conn.execute(
+                "INSERT INTO executions (started_at, kind, provider, status) "
+                "VALUES (?, ?, ?, 'started')",
+                (self._now(), kind, provider),
+            )
+            self._conn.commit()
+            return int(cursor.lastrowid)
+
+    def update_execution(
+        self,
+        execution_id: int,
+        status: str,
+        *,
+        content: str | None = None,
+        fb_post_id: str | None = None,
+        error: str | None = None,
+    ) -> None:
+        terminal = status in {"generated", "published", "failed", "unknown", "cancelled"}
+        with self._lock:
+            self._conn.execute(
+                "UPDATE executions SET status = ?, content = COALESCE(?, content), "
+                "fb_post_id = COALESCE(?, fb_post_id), error = ?, "
+                "finished_at = CASE WHEN ? THEN ? ELSE NULL END WHERE id = ?",
+                (
+                    status,
+                    content,
+                    fb_post_id,
+                    error,
+                    terminal,
+                    self._now(),
+                    execution_id,
+                ),
             )
             self._conn.commit()
 
@@ -144,13 +192,68 @@ class MemoryStore:
             last = self._conn.execute(
                 "SELECT created_at FROM posts ORDER BY id DESC LIMIT 1"
             ).fetchone()
+            failed = self._conn.execute(
+                "SELECT COUNT(*) AS c FROM executions WHERE status IN ('failed', 'unknown')"
+            ).fetchone()["c"]
+            last_failure = self._conn.execute(
+                "SELECT finished_at, error, status FROM executions "
+                "WHERE status IN ('failed', 'unknown') ORDER BY id DESC LIMIT 1"
+            ).fetchone()
         return {
             "total": total,
             "published": by_status.get("published", 0),
             "dry_run": by_status.get("dry_run", 0),
-            "failed": by_status.get("failed", 0),
+            "failed": failed,
             "last_created_at": last["created_at"] if last else None,
+            "last_failure": dict(last_failure) if last_failure else None,
         }
+
+    def recent_executions(self, limit: int = 30) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, started_at, finished_at, kind, provider, status, content, "
+                "fb_post_id, error FROM executions ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def latest_unknown_execution(self) -> dict | None:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT id, started_at, finished_at, kind, provider, status, content, "
+                "fb_post_id, error FROM executions WHERE status = 'unknown' "
+                "ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+        return dict(row) if row else None
+
+    def resolve_unknown_execution(self, execution_id: int, published: bool) -> bool:
+        """Resolve one ambiguous Facebook write after the operator checks the Page."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT provider, content FROM executions "
+                "WHERE id = ? AND status = 'unknown'",
+                (execution_id,),
+            ).fetchone()
+            if not row:
+                return False
+            status = "published" if published else "failed"
+            note = (
+                "Manually confirmed on the Facebook Page."
+                if published
+                else "Manually confirmed absent from the Facebook Page."
+            )
+            self._conn.execute(
+                "UPDATE executions SET status = ?, error = ?, finished_at = ? WHERE id = ?",
+                (status, note, self._now(), execution_id),
+            )
+            if published and row["content"]:
+                self._conn.execute(
+                    "INSERT INTO posts (created_at, content, fb_post_id, status, model) "
+                    "VALUES (?, ?, NULL, 'published', ?)",
+                    (self._now(), row["content"], row["provider"]),
+                )
+            self._conn.commit()
+            return True
 
     # --- clearing --------------------------------------------------------
     def clear(self, *, posts: bool = True, instructions: bool = True,

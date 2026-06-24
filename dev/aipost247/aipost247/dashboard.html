@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="bg"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="aipost-session-token" content="__AIPOST_SESSION_TOKEN__"/>
+<title>AIPost247 · Табло</title>
+<link rel="stylesheet" href="/dashboard.css"/></head>
+<body>
+<header>
+  <div><h1>AIPost247 · Табло</h1><div class="sub">Конфигурирайте и наблюдавайте — без терминал.</div></div>
+  <div class="header-actions">
+    <div class="pillbar" id="pills"></div>
+    <button class="help-btn" id="help-btn" title="Покажи обиколката">? Обиколка</button>
+  </div>
+</header>
+<div class="wrap">
+  <nav aria-label="Основни раздели">
+    <button type="button" data-tab="overview" class="active">Преглед</button>
+    <button type="button" data-tab="setup">Настройка</button>
+    <button type="button" data-tab="business">Бизнес &amp; стил</button>
+    <button type="button" data-tab="posts">Публикации</button>
+    <button type="button" data-tab="logs">Дневник</button>
+  </nav>
+
+  <!-- OVERVIEW -->
+  <section id="tab-overview">
+    <div class="card">
+      <h2>Състояние</h2>
+      <div class="grid" id="stats"></div>
+      <div class="readiness" id="readiness" aria-live="polite"></div>
+      <div class="warning-box hide" id="pending-publication" role="alert">
+        <strong>Публикуването е временно спряно.</strong>
+        <p>Връзката прекъсна след изпращането. Проверете Facebook страницата и отбележете какво виждате.</p>
+        <div class="button-row">
+          <button type="button" class="btn ok compact" id="resolve-published-btn">Публикацията е там</button>
+          <button type="button" class="btn ghost compact" id="resolve-missing-btn">Няма публикация</button>
+        </div>
+      </div>
+      <div style="margin-top:14px" id="autopilot-box"></div>
+    </div>
+    <div class="card">
+      <h2>Бързи действия</h2>
+      <p class="hint">Генерирайте за преглед, публикувайте веднага или опреснете ангажираността.</p>
+      <div class="button-row">
+        <button type="button" class="btn ghost exclusive-action" id="generate-btn">Генерирай (преглед)</button>
+        <button type="button" class="btn exclusive-action" id="publish-btn">Публикувай сега</button>
+        <button type="button" class="btn ghost exclusive-action" id="learn-btn">Опресни наученото</button>
+      </div>
+      <div id="active-job" class="active-job hide" aria-live="polite"></div>
+      <div id="action-out" class="out hide" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="tab-setup" class="hide">
+    <div class="card">
+      <h2>1 · AI, който пише</h2>
+      <label for="ai_provider">Доставчик (безплатно — само вход, без API ключ)</label>
+      <select id="ai_provider">
+        <option value="antigravity">Antigravity (Google) — препоръчано, без ключ</option>
+        <option value="gemini">Gemini CLI — за поддържани акаунти</option>
+        <option value="codex">ChatGPT (Codex) — вход с ChatGPT, вкл. безплатен план</option>
+        <option value="openai">OpenAI — с API ключ (платено)</option>
+      </select>
+      <div id="cli-box">
+        <div id="gemini-model-row">
+          <label for="gemini_model">Gemini модел</label>
+          <input id="gemini_model"/>
+        </div>
+        <p class="hint" id="cli-hint" style="margin-top:10px"></p>
+        <button type="button" class="btn ghost" id="login-ai-btn">Вход с акаунт (отваря браузър)</button>
+        <button type="button" class="btn ghost" id="check-login-btn">Провери входа</button>
+        <button type="button" class="btn ghost exclusive-action" id="test-provider-btn">Тест на доставчика</button>
+        <span id="ai-login-status" class="muted" aria-live="polite"></span>
+        <pre class="log" id="provider-test" style="max-height:24vh;display:none;margin-top:10px"></pre>
+      </div>
+      <div id="openai-box" class="hide">
+        <div class="row">
+          <div><label for="openai_model">OpenAI модел</label><input id="openai_model"/></div>
+          <div><label for="openai_api_key">OpenAI API ключ <span id="openai-have" class="muted"></span></label>
+            <input id="openai_api_key" type="password" placeholder="(оставете празно за да запазите)"/></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Facebook страница</h2>
+      <p class="hint">Поставете App ID и App Secret от вашето Meta приложение, после „Свържи“. Отваря се браузър за вход и избор на страница.</p>
+      <div class="row">
+        <div><label for="fb_app_id">App ID</label><input id="fb_app_id"/></div>
+        <div><label for="fb_app_secret">App Secret <span id="fb-have-secret" class="muted"></span></label>
+          <input id="fb_app_secret" type="password" placeholder="(оставете празно за да запазите)"/></div>
+      </div>
+      <button type="button" class="btn" id="facebook-connect-btn">Свържи Facebook</button>
+      <span id="fb-status" class="muted" aria-live="polite"></span>
+      <div id="fb-page-picker" class="choice-box hide"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · График и поведение</h2>
+      <div class="row">
+        <div><label for="schedule_mode">Режим</label>
+          <select id="schedule_mode">
+            <option value="interval">През интервал</option>
+            <option value="daily">Всеки ден в часове</option>
+          </select></div>
+        <div id="interval-box"><label for="schedule_interval_minutes">Интервал (минути)</label><input id="schedule_interval_minutes" type="number" min="1" max="43200"/></div>
+        <div id="times-box" class="hide"><label for="schedule_times">Часове (HH:MM, със запетая)</label><input id="schedule_times" placeholder="09:00,18:00"/></div>
+      </div>
+      <div class="row">
+        <div><label for="post_language">Език на публикациите</label>
+          <select id="post_language">
+            <option value="Bulgarian">Български</option>
+            <option value="English">English</option>
+            <option value="German">Deutsch</option>
+            <option value="Spanish">Español</option>
+            <option value="French">Français</option>
+            <option value="Italian">Italiano</option>
+            <option value="Portuguese">Português</option>
+            <option value="Dutch">Nederlands</option>
+            <option value="Russian">Русский</option>
+            <option value="Ukrainian">Українська</option>
+            <option value="Turkish">Türkçe</option>
+            <option value="Greek">Ελληνικά</option>
+            <option value="Romanian">Română</option>
+            <option value="Serbian">Српски</option>
+            <option value="Polish">Polski</option>
+            <option value="Arabic">العربية</option>
+            <option value="__custom__">Друг (въведете) …</option>
+          </select>
+          <input id="post_language_custom" class="hide" style="margin-top:8px" placeholder="Език на английски, напр. Japanese"/></div>
+        <div><label for="post_max_chars">Макс. дължина (символи)</label><input id="post_max_chars" type="number" min="50" max="5000"/></div>
+      </div>
+      <div class="check"><input type="checkbox" id="run_on_start"/><label for="run_on_start" style="margin:0">Публикувай веднага при стартиране</label></div>
+      <div class="check"><input type="checkbox" id="dry_run"/><label for="dry_run" style="margin:0">Тестов режим (пише, но НЕ публикува)</label></div>
+      <button type="button" class="btn ok" id="save-config-btn">Запази настройките</button>
+      <div id="config-status" class="muted" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- BUSINESS -->
+  <section id="tab-business" class="hide">
+    <div class="card">
+      <h2>Профил на бизнеса</h2>
+      <p class="hint">Кратък профил, за да звучат публикациите като вас.</p>
+      <div id="business-fields"></div>
+      <button type="button" class="btn ok" id="save-business-btn">Запази профила</button>
+    </div>
+    <div class="card">
+      <h2>Насочване на стила (само-коригиращо се)</h2>
+      <p class="hint">Напишете какво да се промени — AI съгласува указанията в единен стил без противоречия.</p>
+      <label class="sr-only" for="feedback">Обратна връзка за стила</label>
+      <textarea id="feedback" placeholder="напр. по-кратко, повече емоджи, по-малко продажбено"></textarea>
+      <button type="button" class="btn exclusive-action" id="feedback-btn">Приложи</button>
+      <div id="feedback-status" class="muted" style="margin-top:8px" aria-live="polite"></div>
+      <div class="field-label" style="margin-top:16px">Текущ стил (steering.md)</div>
+      <pre class="log" id="steering-view" style="max-height:30vh"></pre>
+    </div>
+  </section>
+
+  <!-- POSTS -->
+  <section id="tab-posts" class="hide">
+    <div class="card">
+      <h2>Публикации и изпълнения</h2>
+      <p class="hint">Последните генерирания/публикувания с ангажираност.</p>
+      <div style="overflow:auto"><table id="posts-table"><thead><tr>
+        <th>Време</th><th>Статус</th><th>Текст</th><th>👍</th><th>💬</th><th>↗</th></tr></thead>
+        <tbody id="posts-body"></tbody></table></div>
+      <div id="posts-empty-action" class="empty-action hide">
+        <p>Започнете с безопасен преглед, преди да публикувате.</p>
+        <button type="button" class="btn ghost" id="empty-generate-btn">Генерирай първи преглед</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGS -->
+  <section id="tab-logs" class="hide">
+    <div class="card">
+      <h2>Дневник</h2>
+      <p class="hint">Последните редове от logs/aipost247.log се показват на живо.</p>
+      <pre class="log" id="log-view">…</pre>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="/dashboard.js" defer></script>
+</body></html>

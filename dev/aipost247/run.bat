@@ -21,11 +21,24 @@ if not exist "%VENV_DIR%\Scripts\activate.bat" (
 
 call "%VENV_DIR%\Scripts\activate.bat"
 
-if not exist "%VENV_DIR%\.requirements.stamp" (
+set "REQ_HASH="
+for /f "skip=1 tokens=* delims=" %%H in ('certutil -hashfile requirements.txt SHA256 2^>nul') do (
+    if not defined REQ_HASH set "REQ_HASH=%%H"
+)
+set "REQ_HASH=%REQ_HASH: =%"
+set "STAMP_HASH="
+if exist "%VENV_DIR%\.requirements.stamp" set /p STAMP_HASH=<"%VENV_DIR%\.requirements.stamp"
+
+if not defined REQ_HASH (
+    echo [run.bat] Could not calculate the requirements hash.
+    goto install_failed
+)
+
+if /I not "%REQ_HASH%"=="%STAMP_HASH%" (
     echo [run.bat] Installing dependencies ...
-    python -m pip install --upgrade pip >nul
-    python -m pip install -r requirements.txt
-    echo done> "%VENV_DIR%\.requirements.stamp"
+    python -m pip install --upgrade pip >nul || goto install_failed
+    python -m pip install -r requirements.txt || goto install_failed
+    >"%VENV_DIR%\.requirements.stamp" echo %REQ_HASH%
 ) else (
     echo [run.bat] Dependencies already installed.
 )
@@ -41,5 +54,12 @@ if not "%RC%"=="0" (
     echo [run.bat] AIPost247 finished.
 )
 echo [run.bat] Press any key to close this window ...
-pause >nul
-endlocal
+if not defined AIPOST247_NO_PAUSE pause >nul
+endlocal & exit /b %RC%
+
+:install_failed
+echo.
+echo [run.bat] Dependency installation failed. The success stamp was not written.
+echo [run.bat] Fix the error above, then run this file again.
+if not defined AIPOST247_NO_PAUSE pause >nul
+endlocal & exit /b 1

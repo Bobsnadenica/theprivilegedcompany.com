@@ -15,6 +15,13 @@ import sys
 from pathlib import Path
 
 from .logging_setup import get_logger
+from .provider_runtime import (
+    ProviderProcessCancelled,
+    ProviderProcessError,
+    ProviderProcessTimeout,
+    provider_workspace,
+    run_streaming,
+)
 
 log = get_logger("gemini")
 
@@ -49,6 +56,10 @@ class GeminiRateLimitError(GeminiError):
     """The model is temporarily at capacity / rate limited (transient)."""
 
 
+class GeminiCancelledError(GeminiError):
+    """The user cancelled an active provider process."""
+
+
 def _has_cached_credentials() -> bool:
     """True if the Gemini CLI has cached Google OAuth credentials on disk."""
     base = Path.home() / ".gemini"
@@ -78,7 +89,7 @@ def ensure_installed(auto_install: bool = True) -> str:
     if not npm:
         raise GeminiNotInstalled(
             "Node.js / npm is required for the Gemini CLI but was not found.\n"
-            "        Install Node.js 18+ from https://nodejs.org/ "
+            "        Install Node.js 20+ from https://nodejs.org/ "
             "(macOS: `brew install node`), then run setup again."
         )
 
@@ -119,26 +130,72 @@ def _clean(text: str) -> str:
     return text
 
 
-def _run_once(prompt: str, model: str, timeout: int) -> str:
+def _run_once(
+    prompt: str,
+    model: str,
+    timeout: int,
+    *,
+    progress=None,
+    cancel_event=None,
+) -> str:
     """Run gemini once with a single model. Raises typed errors on failure."""
     path = cli_path()
     if not path:
         raise GeminiNotInstalled("The Gemini CLI is not installed. Run setup.")
 
-    cmd = [path, "-m", model, "-p", prompt]
+    emit = progress or (lambda _message: None)
+    assistant_parts: list[str] = []
+
+    def on_stdout(line: str) -> None:
+        try:
+            event = json.loads(line)
+        except ValueError:
+            return
+        event_type = event.get("type")
+        if event_type == "init":
+            emit(f"Gemini session started with {event.get('model') or model}.")
+        elif event_type == "result":
+            emit(f"Gemini finished with status {event.get('status') or 'complete'}.")
+        if event_type == "message" and event.get("role") == "assistant":
+            content = event.get("content")
+            if isinstance(content, str) and content:
+                if event.get("delta", True):
+                    assistant_parts.append(content)
+                else:
+                    assistant_parts[:] = [content]
+
+    cmd = [
+        path,
+        "-m",
+        model,
+        "-p",
+        prompt,
+        "--output-format",
+        "stream-json",
+        "--approval-mode",
+        "plan",
+        "--skip-trust",
+    ]
+    emit("Started isolated Gemini process.")
     try:
-        # stdin=DEVNULL -> truly non-interactive (fails fast if not logged in,
-        # instead of hanging on the OAuth code prompt).
-        proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL
-        )
-    except subprocess.TimeoutExpired as exc:
+        with provider_workspace() as workspace:
+            proc = run_streaming(
+                cmd,
+                timeout=timeout,
+                cwd=workspace,
+                progress=emit,
+                cancel_event=cancel_event,
+                on_stdout=on_stdout,
+            )
+    except ProviderProcessTimeout as exc:
         raise GeminiError(f"Gemini CLI timed out after {timeout}s.") from exc
-    except OSError as exc:
+    except ProviderProcessCancelled as exc:
+        raise GeminiCancelledError(str(exc)) from exc
+    except ProviderProcessError as exc:
         raise GeminiError(f"Could not run the Gemini CLI: {exc}") from exc
 
-    stdout = (proc.stdout or "").strip()
-    stderr = (proc.stderr or "").strip()
+    stdout = proc.stdout.strip()
+    stderr = proc.stderr.strip()
 
     if proc.returncode != 0:
         haystack = f"{stderr}\n{stdout}".lower()
@@ -156,19 +213,32 @@ def _run_once(prompt: str, model: str, timeout: int) -> str:
             )
         raise GeminiError(f"Gemini CLI error (exit {proc.returncode}): {stderr or stdout or 'no output'}")
 
-    text = _clean(stdout)
+    text = _clean("".join(assistant_parts) if assistant_parts else stdout)
     if not text:
         raise GeminiError("Gemini CLI returned an empty response.")
     return text
 
 
-def generate(prompt: str, model: str = DEFAULT_MODEL, timeout: int = 180) -> str:
+def generate(
+    prompt: str,
+    model: str = DEFAULT_MODEL,
+    timeout: int = 180,
+    *,
+    progress=None,
+    cancel_event=None,
+) -> str:
     """Generate text; if the chosen model is at capacity, fall back to another."""
     models = [model] + [m for m in FALLBACK_MODELS if m != model]
     last: Exception | None = None
     for index, current in enumerate(models):
         try:
-            return _run_once(prompt, current, timeout)
+            return _run_once(
+                prompt,
+                current,
+                timeout,
+                progress=progress,
+                cancel_event=cancel_event,
+            )
         except GeminiRateLimitError as exc:
             last = exc
             if index + 1 < len(models):

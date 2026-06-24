@@ -4,8 +4,8 @@ python-dotenv>=1.0
 schedule>=1.2
 
 # NOTE:
-#  * The default content generator is the Gemini CLI (npm: @google/gemini-cli),
-#    which AIPost247 installs for you and which you log into with Google — no
-#    Python package and no API key required.
+#  * The default content generator is Google Antigravity CLI (`agy`), installed
+#    on demand and authenticated with Google — no Python package or API key.
+#  * Gemini CLI remains available for supported accounts.
 #  * 'openai' is installed on demand ONLY if you pick the OpenAI provider in
 #    `python run.py setup`.

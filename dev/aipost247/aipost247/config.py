@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import getpass
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -27,7 +28,7 @@ MEMORY_DIR = BASE_DIR / "memory"
 KNOWLEDGE_DIR = MEMORY_DIR / "knowledge"
 DB_PATH = DATA_DIR / "aipost247.db"
 
-DEFAULT_GRAPH_VERSION = "v21.0"
+DEFAULT_GRAPH_VERSION = "v25.0"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
@@ -56,7 +57,7 @@ class Config:
     schedule_times: list[str] = field(default_factory=list)
     # behaviour
     run_on_start: bool = True
-    dry_run: bool = False
+    dry_run: bool = True
     post_max_chars: int = 600
     post_language: str = "English"
 
@@ -119,7 +120,7 @@ def load_config() -> Config:
         schedule_interval_minutes=_as_int(get("SCHEDULE_INTERVAL_MINUTES", "240"), 240),
         schedule_times=times,
         run_on_start=_as_bool(get("RUN_ON_START", "true"), True),
-        dry_run=_as_bool(get("DRY_RUN", "false"), False),
+        dry_run=_as_bool(get("DRY_RUN", "true"), True),
         post_max_chars=_as_int(get("POST_MAX_CHARS", "600"), 600),
         post_language=get("POST_LANGUAGE", "English") or "English",
     )
@@ -139,6 +140,72 @@ def _write_env(values: dict[str, str]) -> None:
         os.chmod(ENV_PATH, 0o600)
     except OSError:
         pass
+
+
+_PROVIDERS = {"antigravity", "gemini", "codex", "openai"}
+_SCHEDULE_MODES = {"interval", "daily"}
+_GRAPH_VERSION_RE = re.compile(r"^v\d{1,3}\.0$")
+
+
+def validate_dashboard_config(data: dict, existing: Config) -> dict[str, str]:
+    """Validate and normalize dashboard configuration before writing .env."""
+    provider = str(data.get("ai_provider", existing.ai_provider) or "").strip().lower()
+    if provider not in _PROVIDERS:
+        raise ValueError("Невалиден AI доставчик.")
+
+    schedule_mode = str(data.get("schedule_mode", existing.schedule_mode) or "").strip().lower()
+    if schedule_mode not in _SCHEDULE_MODES:
+        raise ValueError("Невалиден режим на графика.")
+
+    interval = _as_int(str(data.get("schedule_interval_minutes", "")), -1)
+    if not 1 <= interval <= 43_200:
+        raise ValueError("Интервалът трябва да е между 1 и 43200 минути.")
+
+    raw_times = str(data.get("schedule_times", "") or "")
+    times = [item.strip() for item in raw_times.split(",") if item.strip()]
+    if schedule_mode == "daily" and (not times or not all(_valid_time(item) for item in times)):
+        raise ValueError("Въведете поне един валиден час във формат HH:MM.")
+
+    max_chars = _as_int(str(data.get("post_max_chars", "")), -1)
+    if not 50 <= max_chars <= 5_000:
+        raise ValueError("Дължината трябва да е между 50 и 5000 символа.")
+
+    language = str(data.get("post_language", existing.post_language) or "").strip()
+    if not language or len(language) > 64 or any(ord(ch) < 32 for ch in language):
+        raise ValueError("Невалиден език.")
+
+    graph_version = str(
+        data.get("graph_api_version", existing.graph_api_version) or DEFAULT_GRAPH_VERSION
+    ).strip()
+    if not _GRAPH_VERSION_RE.match(graph_version):
+        raise ValueError("Graph API версията трябва да е във формат v25.0.")
+
+    values = {
+        "AI_PROVIDER": provider,
+        "GEMINI_MODEL": str(data.get("gemini_model") or existing.gemini_model)[:100],
+        "OPENAI_MODEL": str(data.get("openai_model") or existing.openai_model)[:100],
+        "GRAPH_API_VERSION": graph_version,
+        "SCHEDULE_MODE": schedule_mode,
+        "SCHEDULE_INTERVAL_MINUTES": str(interval),
+        "SCHEDULE_TIMES": ",".join(times),
+        "RUN_ON_START": "true" if bool(data.get("run_on_start", existing.run_on_start)) else "false",
+        "DRY_RUN": "true" if bool(data.get("dry_run", existing.dry_run)) else "false",
+        "POST_MAX_CHARS": str(max_chars),
+        "POST_LANGUAGE": language,
+    }
+    for source, target, limit in (
+        ("openai_api_key", "OPENAI_API_KEY", 500),
+        ("fb_page_id", "FB_PAGE_ID", 100),
+        ("fb_page_access_token", "FB_PAGE_ACCESS_TOKEN", 2_000),
+        ("fb_app_id", "FB_APP_ID", 100),
+        ("fb_app_secret", "FB_APP_SECRET", 500),
+    ):
+        value = str(data.get(source) or "").strip()
+        if value:
+            if len(value) > limit:
+                raise ValueError(f"Стойността за {source} е прекалено дълга.")
+            values[target] = value
+    return values
 
 
 def _pip_install(package: str) -> bool:
@@ -240,7 +307,7 @@ def _setup_ai_provider(existing: Config) -> dict:
             ("Antigravity — вход с Google (без ключ)",
              "Заместникът на Gemini CLI. Инсталира се автоматично."),
             ("Gemini — вход с Google (без ключ)",
-             "Класиката, но Google я спира скоро. Нужен е Node.js."),
+             "За поддържани акаунти. Нужен е Node.js 20+."),
             ("ChatGPT (Codex) — вход с ChatGPT (без ключ)",
              "Работи и с безплатния ChatGPT план. Нужен е Node.js."),
             ("OpenAI — поставяте API ключ",
@@ -285,7 +352,7 @@ def _setup_ai_provider(existing: Config) -> dict:
             cli_provider.ensure_installed(provider)
             prompt = "  Да влезете сега (отваря браузър, без ключ)?"
             if provider == "codex":
-                prompt = "  Да влезете сега? AIPost247 автоматично ще довери тази папка."
+                prompt = "  Да влезете сега? Генерирането ще работи в изолирана временна папка."
             if _ask_yes_no(prompt, default=True):
                 if cli_provider.login(provider):
                     print("  ✓ Готово — доставчикът е влязъл.")

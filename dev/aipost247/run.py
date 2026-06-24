@@ -125,8 +125,19 @@ def main() -> None:
     ensure_dependencies()
     # Imported only AFTER dependencies are guaranteed to be present.
     from aipost247.app import main as app_main
+    from aipost247.config import DATA_DIR
+    from aipost247.instance_lock import AlreadyRunning, InstanceLock
 
-    raise SystemExit(app_main(sys.argv[1:]))
+    command = sys.argv[1] if len(sys.argv) > 1 else "dashboard"
+    if command in {"status", "--help", "-h"}:
+        raise SystemExit(app_main(sys.argv[1:]))
+
+    try:
+        with InstanceLock(DATA_DIR / "aipost247.lock"):
+            raise SystemExit(app_main(sys.argv[1:]))
+    except AlreadyRunning as exc:
+        print(f"\n[busy] {exc}\n", file=sys.stderr)
+        raise SystemExit(2) from exc
 
 
 if __name__ == "__main__":

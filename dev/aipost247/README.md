@@ -1,15 +1,15 @@
 # AIPost247 — Autonomous Facebook Auto-Poster
 
-AIPost247 generates **contextual Facebook posts** with the OpenAI (ChatGPT) API —
-using a local **memory/skill store** as context — and publishes them to a
-**Facebook Page** via the official **Graph API**, on a schedule you choose. It
-runs locally on any computer with Python 3.9+.
+AIPost247 generates **contextual Facebook posts** with Antigravity, Gemini,
+Codex, or the OpenAI API, using a local **memory/skill store** as context. It
+publishes them to a **Facebook Page** through the official **Graph API**, on a
+schedule you choose, and runs locally on Python 3.9+.
 
 ```
 local memory (SQLite + memory/*.md)
         │  build context
         ▼
-   OpenAI Chat API  ──►  generated post  ──►  Facebook Graph API  ──►  your Page
+   selected AI provider ─► generated post ─► Facebook Graph API ─► your Page
         ▲                                                                  │
         └──────────────── record post back into memory ◄──────────────────┘
                           (repeats on a schedule)
@@ -62,16 +62,20 @@ dashboard.
 
 ## 2. Setup — you mostly just *log in*
 
-**Prerequisites:** Python 3.9+, and for login-only AI providers such as
-Antigravity, Gemini, or Codex, **Node.js 18+** from <https://nodejs.org>
-(`brew install node`) when the selected CLI needs npm.
+**Prerequisites:** Python 3.9+. Antigravity installs as a standalone CLI.
+Gemini requires Node.js 20+; Codex requires a current Node.js release from
+<https://nodejs.org>.
 
 The wizard (`./run.sh setup` or `run.bat setup`) has 4 short steps:
 
 ### Step 1 — Content generator (pick one)
-- **Gemini — recommended, no API key.** AIPost247 installs Google's **Gemini
-  CLI** and opens a **"Login with Google"** browser flow. Log in once and it
-  writes your posts. Nothing to paste.
+- **Antigravity — recommended, no API key.** AIPost247 installs Google's
+  current CLI and opens a **"Login with Google"** flow. It writes posts from an
+  isolated temporary workspace and never needs access to your project files.
+- **Gemini CLI — optional.** Kept for accounts where the legacy CLI remains
+  supported.
+- **Codex — optional, no API key.** Uses `codex exec` in a read-only,
+  ephemeral workspace. The project folder is never auto-trusted.
 - **OpenAI — optional.** Paste a key from
   <https://platform.openai.com/api-keys> (the `openai` package is then installed
   on demand).
@@ -166,12 +170,18 @@ nohup ./run.sh run > /dev/null 2>&1 &     # macOS/Linux
 
 ## 6. Reliability & safety
 
-- **Robust loop:** every cycle is wrapped in error handling. Rate limits,
-  network drops, OpenAI/Facebook hiccups are logged and **retried next cycle** —
-  the loop never crashes.
+- **Robust loop:** every cycle is wrapped in error handling, so provider and
+  read-only API failures are logged without crashing the scheduler.
+- **Duplicate protection:** ambiguous Facebook writes are never retried.
+  Publishing pauses until you check the Page and resolve the warning in the
+  dashboard.
+- **Single active job:** generation, publishing, learning, and feedback
+  consolidation cannot overlap within one folder.
 - **Invalid token / key:** detected and reported with the exact fix
   (`./run.sh setup` / `run.bat setup`).
 - **Logs:** console + rotating file at `logs/aipost247.log`.
+- **Live progress:** the dashboard streams provider progress, timeout
+  countdowns, cancellation, and application logs while a job runs.
 - **Dry run:** set `DRY_RUN=true` (or choose it in setup) to generate posts
   without publishing while you tune the brand voice.
 - **No secrets in code or git:** `.env`, `data/`, and `logs/` are gitignored.
@@ -220,4 +230,4 @@ dev/aipost247/
 
 > Per Meta and OpenAI terms, you are responsible for the content you publish.
 > Only post to Pages you own/manage, and review AI output (use `generate`/dry-run)
-> until you trust it.
+> until its tone and factual accuracy match your standards.

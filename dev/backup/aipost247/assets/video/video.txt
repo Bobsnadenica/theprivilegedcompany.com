@@ -1,0 +1,9 @@
+# Add one real YouTube link per line.
+# Lines starting with # are comments and will not show in the page.
+# Optional formats:
+#   https://www.youtube.com/watch?v=VIDEO_ID
+#   www.youtube.com/watch?v=VIDEO_ID
+#   Setup overview - https://youtu.be/VIDEO_ID
+#   https://www.youtube.com/shorts/VIDEO_ID - Short title
+
+https://youtu.be/xxb2gBg-2lU - Как да тестваме модела

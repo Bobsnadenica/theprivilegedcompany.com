@@ -1,8 +1,7 @@
 """AIPost247 — an autonomous Facebook auto-poster.
 
-Generates contextual posts with the OpenAI API (using a local memory/skill
-store as context) and publishes them to a Facebook Page via the Graph API on a
-schedule.
+Generates contextual posts through a selected AI provider, learns from local
+memory and engagement, and publishes them to a Facebook Page on a schedule.
 """
 
-__version__ = "1.3.12"
+__version__ = "1.4.0"
