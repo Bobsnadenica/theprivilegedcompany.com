@@ -6,7 +6,7 @@
 
 An online multiplayer browser bluffing game. Players join a room, play hidden cards, call `LIAR`, and resolve a roulette-gun consequence when someone is caught bluffing or challenges incorrectly.
 
-This project was built for the AI-Native Engineering Challenge as a complete end-to-end lifecycle exercise: requirements, planning, architecture, implementation, testing, documentation, and retrospective.
+This project was built just for fun
 
 ## Play In Browser
 
@@ -306,11 +306,10 @@ docs/       Screenshots, deployment notes, third-party asset notes
 scripts/    Cinematic GLB and texture asset generators
 ```
 
-## Required Challenge Docs
+## Docs
 
 - [SPEC.md](SPEC.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
-- [RETROSPECTIVE.md](RETROSPECTIVE.md)
 
 ## Repository Target
 
