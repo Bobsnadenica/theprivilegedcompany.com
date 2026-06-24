@@ -1,10 +1,13 @@
 export type ShapeId =
   | 'vertical-cylinder'
+  | 'vertical-cylinder-conical-bottom'
   | 'horizontal-cylinder'
+  | 'horizontal-elliptical-cylinder'
   | 'tilted-horizontal-cylinder'
   | 'horizontal-cylinder-hemispherical'
   | 'horizontal-cylinder-ellipsoidal'
   | 'rectangular'
+  | 'sloped-rectangular'
   | 'sphere'
   | 'ellipsoid'
   | 'cone'
@@ -99,6 +102,7 @@ export interface TankProfile {
 
 export interface CalculationWarning {
   level: 'info' | 'warning' | 'blocker';
+  code?: string;
   message: string;
 }
 

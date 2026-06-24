@@ -2,6 +2,12 @@
 
 React/Vite tank volume and fill calculator with formula-backed shapes, certified table import, and English/Bulgarian UI.
 
+## Supported Calculation Modes
+
+- Open analytical geometry: vertical cylinders, vertical cylinders with conical bottoms, horizontal circular and elliptical cylinders, tilted horizontal cylinders, hemispherical/ellipsoidal heads, rectangular and sloped rectangular tanks, spheres, ellipsoids, cones, and frustums.
+- Certified table mode: height-volume rows are parsed, previewed, checksummed, and used through linear interpolation.
+- Standards references are context only. The app does not reproduce licensed ISO/BDS procedures without supplied certified tables or source material.
+
 ## Local Development
 
 ```bash
@@ -15,6 +21,8 @@ npm run dev
 npm test
 npm run build
 ```
+
+The test suite covers formula benchmarks, height-volume round trips, validation warnings, calibration-table parsing/interpolation, report aggregation, and UI accessibility basics.
 
 ## GitHub Pages
 

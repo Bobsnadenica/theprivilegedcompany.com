@@ -55,11 +55,12 @@ export function makeAuditText(report: CalculationReport, chambers: Chamber[]): s
       `Total volume: ${formatNumber(result.totalVolumeM3, 6)} m3`,
       `Mass: ${formatNumber(result.massKg, 3)} kg`,
       `Formula: ${result.formula.formulaId}`,
+      `Formula label: ${result.formula.formulaLabel}`,
       `Formula text: ${result.formula.formulaText}`,
       `Substitution: ${result.formula.substitutedText}`,
       `Source: ${result.formula.source.title} - ${result.formula.source.reference}`,
       `Validity: ${result.formula.validity}`,
-      ...result.warnings.map((warning) => `Warning [${warning.level}]: ${warning.message}`),
+      ...result.warnings.map((warning) => `Warning [${warning.level}${warning.code ? `:${warning.code}` : ''}]: ${warning.message}`),
     );
   });
 

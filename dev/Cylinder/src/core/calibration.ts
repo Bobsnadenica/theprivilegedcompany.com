@@ -1,4 +1,4 @@
-import type { CalibrationPoint, CalibrationTable, Chamber, ChamberCalculation } from './types';
+import type { CalculationWarning, CalibrationPoint, CalibrationTable, Chamber, ChamberCalculation } from './types';
 import { clamp, formatNumber } from './units';
 
 export interface CalibrationMetadata {
@@ -17,21 +17,30 @@ export function checksumText(text: string): string {
   return `fnv1a-${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
+function safePositive(value: number): number {
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function safeNonNegative(value: number): number {
+  return Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
 export function parseCalibrationCsv(csvText: string): CalibrationPoint[] {
   const rows = csvText
     .split(/\r?\n/)
-    .map((row) => row.trim())
-    .filter(Boolean)
-    .map((row) => row.split(/[,\t;]/).map((cell) => cell.trim()));
+    .map((row, index) => ({ rowNumber: index + 1, cells: row.trim().split(/[,\t;]/).map((cell) => cell.trim()) }))
+    .filter((row) => row.cells.some(Boolean));
 
   const points = rows
-    .filter((cells) => cells.length >= 2)
-    .map((cells, index) => {
+    .map(({ rowNumber, cells }, index) => {
+      if (cells.length < 2 || !cells[1]) {
+        throw new Error(`Row ${rowNumber} must contain both height_m and volume_m3 values.`);
+      }
       const heightM = Number(cells[0]);
       const volumeM3 = Number(cells[1]);
       if (!Number.isFinite(heightM) || !Number.isFinite(volumeM3)) {
-        if (index === 0 && /height/i.test(cells[0])) return null;
-        throw new Error(`Row ${index + 1} must contain numeric height_m and volume_m3 values.`);
+        if (index === 0 && /height/i.test(cells[0]) && /volume/i.test(cells[1])) return null;
+        throw new Error(`Row ${rowNumber} must contain numeric height_m and volume_m3 values.`);
       }
       return { heightM, volumeM3 };
     })
@@ -120,10 +129,43 @@ export function calculateFromCalibrationTable(chamber: Chamber): ChamberCalculat
   const points = chamber.calibrationTable.points;
   const maxHeight = points[points.length - 1].heightM;
   const totalVolumeM3 = points[points.length - 1].volumeM3;
-  const fillHeightM = chamber.useTargetVolume && chamber.targetVolumeM3 !== undefined
-    ? interpolateHeight(points, chamber.targetVolumeM3)
-    : clamp(chamber.fillHeightM, points[0].heightM, maxHeight);
-  const volumeM3 = interpolateVolume(points, fillHeightM);
+  const targetVolumeRaw = chamber.targetVolumeM3 ?? points[0].volumeM3;
+  const fillHeightM = chamber.useTargetVolume
+    ? interpolateHeight(points, safeNonNegative(targetVolumeRaw))
+    : clamp(Number.isFinite(chamber.fillHeightM) ? chamber.fillHeightM : points[0].heightM, points[0].heightM, maxHeight);
+  const volumeM3 = Math.min(safeNonNegative(interpolateVolume(points, fillHeightM)), totalVolumeM3);
+  const densityKgM3 = safePositive(chamber.liquid.densityKgM3);
+  const warnings: CalculationWarning[] = [
+    {
+      level: 'info',
+      code: 'imported-table-interpolation',
+      message: 'Result uses interpolation from imported table; verify table revision and certification before operational use.',
+    },
+  ];
+
+  if (chamber.useTargetVolume) {
+    if (!Number.isFinite(targetVolumeRaw) || targetVolumeRaw < points[0].volumeM3 || targetVolumeRaw > totalVolumeM3) {
+      warnings.push({
+        level: 'warning',
+        code: 'target-volume-clamped',
+        message: `Target volume is outside table coverage ${formatNumber(points[0].volumeM3)}-${formatNumber(totalVolumeM3)} m3 and was clamped for height solving.`,
+      });
+    }
+  } else if (!Number.isFinite(chamber.fillHeightM) || chamber.fillHeightM !== fillHeightM) {
+    warnings.push({
+      level: 'warning',
+      code: 'fill-height-clamped',
+      message: `Fill height is outside table coverage ${formatNumber(points[0].heightM)}-${formatNumber(maxHeight)} m and was clamped for interpolation.`,
+    });
+  }
+
+  if (densityKgM3 <= 0) {
+    warnings.push({
+      level: 'blocker',
+      code: 'invalid-density',
+      message: 'Liquid density must be greater than 0 kg/m3; mass is reported as 0 until density is corrected.',
+    });
+  }
 
   return {
     chamberId: chamber.id,
@@ -134,12 +176,12 @@ export function calculateFromCalibrationTable(chamber: Chamber): ChamberCalculat
     volumeM3,
     headspaceM3: Math.max(0, totalVolumeM3 - volumeM3),
     fillPercent: totalVolumeM3 > 0 ? (volumeM3 / totalVolumeM3) * 100 : 0,
-    massKg: volumeM3 * chamber.liquid.densityKgM3,
+    massKg: volumeM3 * densityKgM3,
     formula: {
       formulaId: `calibration-table:${chamber.calibrationTable.id}`,
       formulaLabel: 'Certified calibration table interpolation',
       formulaText: 'Linear interpolation between certified height-volume table rows',
-      substitutedText: `height = ${formatNumber(fillHeightM)} m, checksum = ${chamber.calibrationTable.checksum}`,
+      substitutedText: `height = ${formatNumber(fillHeightM)} m, coverage = ${formatNumber(points[0].heightM)}-${formatNumber(maxHeight)} m / ${formatNumber(points[0].volumeM3)}-${formatNumber(totalVolumeM3)} m3, checksum = ${chamber.calibrationTable.checksum}`,
       source: {
         id: chamber.calibrationTable.id,
         kind: 'imported-table',
@@ -149,11 +191,6 @@ export function calculateFromCalibrationTable(chamber: Chamber): ChamberCalculat
       },
       validity: 'Valid only to the extent of the imported certified table metadata and row coverage.',
     },
-    warnings: [
-      {
-        level: 'info',
-        message: 'Result uses interpolation from imported table; verify table revision and certification before operational use.',
-      },
-    ],
+    warnings,
   };
 }

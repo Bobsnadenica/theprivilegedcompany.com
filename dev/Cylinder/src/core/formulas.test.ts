@@ -15,11 +15,28 @@ describe('formula registry', () => {
     expectClose(formula.volumeAtHeight(dimensions, 5), 5 * Math.PI);
   });
 
+  it('calculates vertical cylinder with conical bottom piecewise', () => {
+    const formula = byShape['vertical-cylinder-conical-bottom'];
+    const dimensions = { diameter: 2, coneHeight: 2, cylinderHeight: 4 };
+    const coneVolume = Math.PI * 1 ** 2 * 2 / 3;
+    expectClose(formula.totalVolume(dimensions), coneVolume + 4 * Math.PI);
+    expectClose(formula.volumeAtHeight(dimensions, 1), Math.PI / 12);
+    expectClose(formula.volumeAtHeight(dimensions, 2), coneVolume);
+    expectClose(formula.volumeAtHeight(dimensions, 4), coneVolume + 2 * Math.PI);
+  });
+
   it('calculates horizontal cylinder half-fill', () => {
     const formula = byShape['horizontal-cylinder'];
     const dimensions = { diameter: 2, length: 10 };
     expectClose(formula.totalVolume(dimensions), 10 * Math.PI);
     expectClose(formula.volumeAtHeight(dimensions, 1), 5 * Math.PI);
+  });
+
+  it('calculates horizontal elliptical cylinder half-fill', () => {
+    const formula = byShape['horizontal-elliptical-cylinder'];
+    const dimensions = { width: 4, height: 2, length: 10 };
+    expectClose(formula.totalVolume(dimensions), 20 * Math.PI);
+    expectClose(formula.volumeAtHeight(dimensions, 1), 10 * Math.PI);
   });
 
   it('calculates tilted horizontal cylinder from configured gauge position', () => {
@@ -54,6 +71,14 @@ describe('formula registry', () => {
     expectClose(formula.volumeAtHeight(dimensions, 1), 12);
   });
 
+  it('calculates sloped rectangular volume at full and zero slope', () => {
+    const formula = byShape['sloped-rectangular'];
+    const dimensions = { length: 4, width: 3, height: 2, slopeHeight: 0.5, gaugeOffset: 4 };
+    expectClose(formula.totalVolume(dimensions), 21);
+    expectClose(formula.volumeAtHeight({ ...dimensions, slopeHeight: 0 }, 1), 12);
+    expectClose(formula.volumeAtHeight(dimensions, 1), 15);
+  });
+
   it('calculates sphere cap volumes', () => {
     const formula = byShape.sphere;
     const dimensions = { diameter: 2 };
@@ -84,11 +109,14 @@ describe('formula registry', () => {
   it('round trips volume to height for all registered formulas', () => {
     const cases: Array<{ formula: (typeof formulaRegistry)[number]; dimensions: Record<string, number>; ratio: number }> = [
       { formula: byShape['vertical-cylinder'], dimensions: { diameter: 2, height: 10 }, ratio: 0.37 },
+      { formula: byShape['vertical-cylinder-conical-bottom'], dimensions: { diameter: 2, coneHeight: 2, cylinderHeight: 8 }, ratio: 0.37 },
       { formula: byShape['horizontal-cylinder'], dimensions: { diameter: 2, length: 10 }, ratio: 0.37 },
+      { formula: byShape['horizontal-elliptical-cylinder'], dimensions: { width: 4, height: 2, length: 10 }, ratio: 0.37 },
       { formula: byShape['tilted-horizontal-cylinder'], dimensions: { diameter: 2, length: 10, slopeHeight: 0.25, gaugeOffset: 10 }, ratio: 0.37 },
       { formula: byShape['horizontal-cylinder-hemispherical'], dimensions: { diameter: 2, length: 10 }, ratio: 0.37 },
       { formula: byShape['horizontal-cylinder-ellipsoidal'], dimensions: { diameter: 2, length: 10, headDepth: 0.5 }, ratio: 0.37 },
       { formula: byShape.rectangular, dimensions: { length: 4, width: 3, height: 2 }, ratio: 0.37 },
+      { formula: byShape['sloped-rectangular'], dimensions: { length: 4, width: 3, height: 2, slopeHeight: 0.5, gaugeOffset: 4 }, ratio: 0.37 },
       { formula: byShape.sphere, dimensions: { diameter: 2 }, ratio: 0.37 },
       { formula: byShape.ellipsoid, dimensions: { length: 4, width: 2, height: 2 }, ratio: 0.37 },
       { formula: byShape.cone, dimensions: { topDiameter: 2, height: 8 }, ratio: 0.37 },
@@ -99,6 +127,33 @@ describe('formula registry', () => {
       const targetVolume = formula.totalVolume(dimensions) * ratio;
       const height = heightForVolume(formula, dimensions, targetVolume);
       expectClose(formula.volumeAtHeight(dimensions, height), targetVolume, 6);
+    });
+  });
+
+  it('round trips boundary ratios for every registered formula', () => {
+    const dimensionsByShape: Record<string, Record<string, number>> = {
+      'vertical-cylinder': { diameter: 2, height: 10 },
+      'vertical-cylinder-conical-bottom': { diameter: 2, coneHeight: 2, cylinderHeight: 8 },
+      'horizontal-cylinder': { diameter: 2, length: 10 },
+      'horizontal-elliptical-cylinder': { width: 4, height: 2, length: 10 },
+      'tilted-horizontal-cylinder': { diameter: 2, length: 10, slopeHeight: 0.25, gaugeOffset: 0 },
+      'horizontal-cylinder-hemispherical': { diameter: 2, length: 10 },
+      'horizontal-cylinder-ellipsoidal': { diameter: 2, length: 10, headDepth: 0.5 },
+      rectangular: { length: 4, width: 3, height: 2 },
+      'sloped-rectangular': { length: 4, width: 3, height: 2, slopeHeight: 0.5, gaugeOffset: 0 },
+      sphere: { diameter: 2 },
+      ellipsoid: { length: 4, width: 2, height: 2 },
+      cone: { topDiameter: 2, height: 8 },
+      frustum: { bottomDiameter: 2, topDiameter: 4, height: 3 },
+    };
+
+    formulaRegistry.forEach((formula) => {
+      const dimensions = dimensionsByShape[formula.shapeId];
+      [0, 0.01, 0.25, 0.5, 0.9, 1].forEach((ratio) => {
+        const targetVolume = formula.totalVolume(dimensions) * ratio;
+        const height = heightForVolume(formula, dimensions, targetVolume);
+        expectClose(formula.volumeAtHeight(dimensions, height), targetVolume, 5);
+      });
     });
   });
 });

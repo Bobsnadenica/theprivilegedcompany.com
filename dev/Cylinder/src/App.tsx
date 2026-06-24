@@ -13,7 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { makeCalibrationTable } from './core/calibration';
+import { checksumText, makeCalibrationTable, parseCalibrationCsv } from './core/calibration';
 import { formulaByShape, formulaRegistry } from './core/formulas';
 import { customLiquid, liquidPresets } from './core/liquids';
 import { calculateReport, makeAuditText } from './core/report';
@@ -34,6 +34,7 @@ import {
 } from './core/units';
 
 type Language = 'en' | 'bg';
+type MobileSection = 'build' | 'results' | 'evidence' | 'tables';
 
 const ui = {
   en: {
@@ -49,6 +50,10 @@ const ui = {
     volume: 'Volume',
     mass: 'Mass',
     language: 'Language',
+    buildTab: 'Build',
+    resultsTab: 'Results',
+    evidenceTab: 'Evidence',
+    tablesTab: 'Tables',
     presets: 'Tank Presets',
     preset: 'Preset',
     applyPreset: 'Apply preset',
@@ -80,6 +85,11 @@ const ui = {
     validity: 'Validity',
     selectFormula: 'Select a formula-backed shape or import a certified table.',
     tableImport: 'Certified Table Import',
+    tablePreview: 'Table preview',
+    tableCoverage: 'Coverage',
+    tableChecksum: 'Checksum',
+    tablePoints: 'Points',
+    noTableRows: 'Paste rows to preview coverage before import.',
     tableTitle: 'Table title',
     sourceReference: 'Source reference',
     revision: 'Revision',
@@ -90,6 +100,7 @@ const ui = {
     standardsContext: 'Standards Context',
     complexHeadsRequireTable: 'Complex heads require certified table',
     irregularRequireTable: 'Irregular/deformed tanks require certified table',
+    illustrativeSchematic: 'Illustrative schematic only; calculation follows the formula or certified table evidence.',
   },
   bg: {
     mode: 'Проследим режим за сертифицирани изчисления',
@@ -104,6 +115,10 @@ const ui = {
     volume: 'Обем',
     mass: 'Маса',
     language: 'Език',
+    buildTab: 'Създаване',
+    resultsTab: 'Резултати',
+    evidenceTab: 'Доказателства',
+    tablesTab: 'Таблици',
     presets: 'Шаблони за резервоар',
     preset: 'Шаблон',
     applyPreset: 'Приложи шаблон',
@@ -135,6 +150,11 @@ const ui = {
     validity: 'Валидност',
     selectFormula: 'Изберете форма с формула или импортирайте сертифицирана таблица.',
     tableImport: 'Импорт на сертифицирана таблица',
+    tablePreview: 'Преглед на таблица',
+    tableCoverage: 'Покритие',
+    tableChecksum: 'Контролна сума',
+    tablePoints: 'Точки',
+    noTableRows: 'Поставете редове за преглед на покритието преди импорт.',
     tableTitle: 'Име на таблица',
     sourceReference: 'Референция / сертификат',
     revision: 'Ревизия',
@@ -145,16 +165,20 @@ const ui = {
     standardsContext: 'Стандарти',
     complexHeadsRequireTable: 'Сложните дъна изискват сертифицирана таблица',
     irregularRequireTable: 'Неправилни/деформирани резервоари изискват сертифицирана таблица',
+    illustrativeSchematic: 'Схемата е само илюстративна; изчислението следва формулата или сертифицираната таблица.',
   },
 } satisfies Record<Language, Record<string, string>>;
 
 const shapeLabels: Record<ShapeId, Record<Language, string>> = {
   'vertical-cylinder': { en: 'Vertical cylinder', bg: 'Вертикален цилиндър' },
+  'vertical-cylinder-conical-bottom': { en: 'Vertical cylinder, conical bottom', bg: 'Вертикален цилиндър, конусно дъно' },
   'horizontal-cylinder': { en: 'Horizontal cylinder, flat ends', bg: 'Хоризонтален цилиндър, плоски дъна' },
+  'horizontal-elliptical-cylinder': { en: 'Horizontal elliptical cylinder', bg: 'Хоризонтален елиптичен цилиндър' },
   'tilted-horizontal-cylinder': { en: 'Tilted horizontal cylinder', bg: 'Хоризонтален наклонен цилиндър' },
   'horizontal-cylinder-hemispherical': { en: 'Horizontal cylinder, hemispherical heads', bg: 'Хоризонтален цилиндър, полусферични дъна' },
   'horizontal-cylinder-ellipsoidal': { en: 'Horizontal cylinder, ellipsoidal heads', bg: 'Хоризонтален цилиндър, елипсоидни дъна' },
   rectangular: { en: 'Rectangular / IBC', bg: 'Правоъгълен / IBC' },
+  'sloped-rectangular': { en: 'Sloped-bottom rectangular', bg: 'Правоъгълен със скосено дъно' },
   sphere: { en: 'Sphere', bg: 'Сфера' },
   ellipsoid: { en: 'Ellipsoid', bg: 'Елипсоид' },
   cone: { en: 'Cone, apex down', bg: 'Конус, връх надолу' },
@@ -167,6 +191,8 @@ const dimensionLabels: Record<string, Record<Language, string>> = {
   length: { en: 'Length', bg: 'Дължина' },
   width: { en: 'Width', bg: 'Ширина' },
   height: { en: 'Height', bg: 'Височина' },
+  cylinderHeight: { en: 'Cylinder shell height', bg: 'Височина на цилиндричната част' },
+  coneHeight: { en: 'Cone bottom height', bg: 'Височина на конусното дъно' },
   topDiameter: { en: 'Top internal diameter', bg: 'Горен вътрешен диаметър' },
   bottomDiameter: { en: 'Bottom internal diameter', bg: 'Долен вътрешен диаметър' },
   headDepth: { en: 'One head depth', bg: 'Височина на едно дъно' },
@@ -179,6 +205,8 @@ const dimensionHelpers: Record<string, Record<Language, string>> = {
   length: { en: 'Internal straight length.', bg: 'Вътрешна права дължина.' },
   width: { en: 'Internal width.', bg: 'Вътрешна ширина.' },
   height: { en: 'Maximum measurable liquid height.', bg: 'Максимална измерима височина на течността.' },
+  cylinderHeight: { en: 'Straight shell above cone bottom.', bg: 'Права цилиндрична част над конусното дъно.' },
+  coneHeight: { en: 'Vertical cone depth from apex to shell.', bg: 'Вертикална дълбочина от върха до цилиндъра.' },
   topDiameter: { en: 'Inside diameter at top plane.', bg: 'Вътрешен диаметър в горната равнина.' },
   bottomDiameter: { en: 'Inside diameter at bottom plane.', bg: 'Вътрешен диаметър в долната равнина.' },
   headDepth: { en: 'For 2:1 ellipsoidal heads use D / 4.', bg: 'За 2:1 елипсоидни дъна използвайте D / 4.' },
@@ -201,11 +229,14 @@ const visualDirections: Record<Language, string[]> = {
 
 const defaultDimensions: Record<ShapeId, Record<string, number>> = {
   'vertical-cylinder': { diameter: 2.4, height: 5.8 },
+  'vertical-cylinder-conical-bottom': { diameter: 2.4, cylinderHeight: 4.8, coneHeight: 1 },
   'horizontal-cylinder': { diameter: 2.2, length: 8.5 },
+  'horizontal-elliptical-cylinder': { width: 2.6, height: 1.8, length: 7 },
   'tilted-horizontal-cylinder': { diameter: 2, length: 4, slopeHeight: 0.16, gaugeOffset: 4 },
   'horizontal-cylinder-hemispherical': { diameter: 2.2, length: 8.5 },
   'horizontal-cylinder-ellipsoidal': { diameter: 2.2, length: 8.5, headDepth: 0.55 },
   rectangular: { length: 4, width: 2.2, height: 2 },
+  'sloped-rectangular': { length: 4, width: 2.2, height: 2, slopeHeight: 0.25, gaugeOffset: 4 },
   sphere: { diameter: 3 },
   ellipsoid: { length: 4.5, width: 2.5, height: 2.2 },
   cone: { topDiameter: 3, height: 4 },
@@ -263,12 +294,28 @@ const tankPresets: TankPreset[] = [
     fillHeightM: 1.6,
   },
   {
+    id: 'conical-bottom-process',
+    name: { en: 'Conical-bottom process tank', bg: 'Процесен резервоар с конусно дъно' },
+    description: { en: 'Vertical shell plus centered conical bottom.', bg: 'Вертикална част с центрирано конусно дъно.' },
+    shapeId: 'vertical-cylinder-conical-bottom',
+    dimensions: { diameter: 2.4, cylinderHeight: 4.8, coneHeight: 1 },
+    fillHeightM: 2.4,
+  },
+  {
     id: 'horizontal-elliptical-20m3',
-    name: { en: 'Horizontal fuel tank', bg: 'Хоризонтален горивен резервоар' },
-    description: { en: 'Straight shell with ellipsoidal heads.', bg: 'Права цилиндрична част с елипсоидни дъна.' },
-    shapeId: 'horizontal-cylinder-ellipsoidal',
-    dimensions: { diameter: 2.2, length: 5, headDepth: 0.55 },
-    fillHeightM: 1.1,
+    name: { en: 'Horizontal elliptical tank', bg: 'Хоризонтален елиптичен резервоар' },
+    description: { en: 'Flat-ended elliptical cross-section vessel.', bg: 'Резервоар с елиптично сечение и плоски краища.' },
+    shapeId: 'horizontal-elliptical-cylinder',
+    dimensions: { width: 2.6, height: 1.8, length: 7 },
+    fillHeightM: 0.9,
+  },
+  {
+    id: 'sloped-rectangular-sump',
+    name: { en: 'Sloped rectangular sump', bg: 'Правоъгълен съд със скосено дъно' },
+    description: { en: 'Planar sloped bottom, gauge at high end.', bg: 'Плоско скосено дъно, мерене в горния край.' },
+    shapeId: 'sloped-rectangular',
+    dimensions: { length: 4, width: 2.2, height: 2, slopeHeight: 0.25, gaugeOffset: 4 },
+    fillHeightM: 0.9,
   },
   {
     id: 'spherical-storage',
@@ -291,7 +338,8 @@ const tankPresets: TankPreset[] = [
 function makeChamber(index: number, shapeId: ShapeId = 'vertical-cylinder'): Chamber {
   const dimensions = { ...defaultDimensions[shapeId] };
   const formula = shapeId === 'calibration-table' ? undefined : formulaByShape.get(shapeId);
-  const fillHeightM = formula ? formula.maxFillHeight(dimensions) * 0.5 : 0;
+  const maxHeight = formula?.maxFillHeight(dimensions) ?? 0;
+  const fillHeightM = Number.isFinite(maxHeight) && maxHeight > 0 ? maxHeight * 0.5 : 0;
   return {
     id: `chamber-${Date.now()}-${index}`,
     name: `Chamber ${index}`,
@@ -308,14 +356,16 @@ function maxFillHeight(chamber: Chamber): number {
   if (chamber.shapeId === 'calibration-table') {
     return chamber.calibrationTable?.points.at(-1)?.heightM ?? 0;
   }
-  return formulaByShape.get(chamber.shapeId)?.maxFillHeight(chamber.dimensions) ?? 0;
+  const value = formulaByShape.get(chamber.shapeId)?.maxFillHeight(chamber.dimensions) ?? 0;
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
 function shapeTotalVolume(chamber: Chamber): number {
   if (chamber.shapeId === 'calibration-table') {
     return chamber.calibrationTable?.points.at(-1)?.volumeM3 ?? 0;
   }
-  return formulaByShape.get(chamber.shapeId)?.totalVolume(chamber.dimensions) ?? 0;
+  const value = formulaByShape.get(chamber.shapeId)?.totalVolume(chamber.dimensions) ?? 0;
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }
 
 function updateChamber(chambers: Chamber[], chamberId: string, updater: (chamber: Chamber) => Chamber): Chamber[] {
@@ -332,11 +382,35 @@ function downloadText(filename: string, text: string): void {
   URL.revokeObjectURL(url);
 }
 
-function FillSchematic({ chamber, fillPercent }: { chamber: Chamber; fillPercent: number }) {
+function schematicFamily(shapeId: ShapeId): string {
+  if (shapeId === 'calibration-table') return 'table';
+  if (shapeId.includes('horizontal')) return shapeId === 'horizontal-elliptical-cylinder' ? 'horizontal elliptical' : 'horizontal';
+  if (shapeId === 'vertical-cylinder-conical-bottom') return 'conical-bottom';
+  if (shapeId === 'sloped-rectangular') return 'sloped-box';
+  if (shapeId === 'rectangular') return 'box';
+  if (shapeId === 'sphere' || shapeId === 'ellipsoid') return 'rounded';
+  if (shapeId === 'cone') return 'cone';
+  if (shapeId === 'frustum') return 'frustum';
+  return 'vertical';
+}
+
+function FillSchematic({
+  chamber,
+  fillPercent,
+  language,
+  note,
+}: {
+  chamber: Chamber;
+  fillPercent: number;
+  language: Language;
+  note: string;
+}) {
   const pct = Math.max(0, Math.min(100, fillPercent));
-  const shapeClass = chamber.shapeId.includes('horizontal') ? 'tank-visual horizontal' : 'tank-visual';
+  const family = schematicFamily(chamber.shapeId);
+  const shapeClass = `tank-visual ${family}`;
+  const label = `${shapeLabels[chamber.shapeId][language]} ${formatNumber(pct, 2)}% fill. ${note}`;
   return (
-    <div className="visual-wrap" aria-label="Tank fill visual">
+    <div className="visual-wrap" aria-label={label}>
       <div className={shapeClass}>
         <div className="liquid-fill" style={{ height: `${pct}%` }} />
         <div className="centerline" />
@@ -346,6 +420,7 @@ function FillSchematic({ chamber, fillPercent }: { chamber: Chamber; fillPercent
         <span>{formatNumber(pct, 2)}%</span>
         <span>0%</span>
       </div>
+      <p className="schematic-note">{note}</p>
     </div>
   );
 }
@@ -367,8 +442,15 @@ export function App() {
   const [tableCertifier, setTableCertifier] = useState('Authorized calibration body');
   const [tableError, setTableError] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState(tankPresets[0].id);
+  const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('build');
 
   const selectedChamber = chambers.find((chamber) => chamber.id === selectedChamberId) ?? chambers[0];
+  const mobileSections: Array<{ id: MobileSection; label: string }> = [
+    { id: 'build', label: copy.buildTab },
+    { id: 'results', label: copy.resultsTab },
+    { id: 'evidence', label: copy.evidenceTab },
+    { id: 'tables', label: copy.tablesTab },
+  ];
   const profile: TankProfile = useMemo(
     () => ({ id: 'local-profile', name: profileName, chambers }),
     [profileName, chambers],
@@ -384,6 +466,33 @@ export function App() {
 
   const selectedResult = calculation.report?.chamberResults.find((result) => result.chamberId === selectedChamber.id);
   const currentFormula = selectedChamber.shapeId === 'calibration-table' ? undefined : formulaByShape.get(selectedChamber.shapeId);
+  const tablePreview = useMemo(() => {
+    if (!tableCsv.trim()) {
+      return { points: [], error: null as string | null, checksum: '', minHeight: 0, maxHeight: 0, minVolume: 0, maxVolume: 0 };
+    }
+    try {
+      const points = parseCalibrationCsv(tableCsv);
+      return {
+        points,
+        error: null as string | null,
+        checksum: checksumText(tableCsv),
+        minHeight: points[0].heightM,
+        maxHeight: points[points.length - 1].heightM,
+        minVolume: points[0].volumeM3,
+        maxVolume: points[points.length - 1].volumeM3,
+      };
+    } catch (error) {
+      return {
+        points: [],
+        error: error instanceof Error ? error.message : String(error),
+        checksum: '',
+        minHeight: 0,
+        maxHeight: 0,
+        minVolume: 0,
+        maxVolume: 0,
+      };
+    }
+  }, [tableCsv]);
 
   const applyChamber = (updater: (chamber: Chamber) => Chamber) => {
     setChambers((items) => updateChamber(items, selectedChamber.id, updater));
@@ -393,13 +502,15 @@ export function App() {
     applyChamber((chamber) => {
       const dimensions = { ...defaultDimensions[shapeId] };
       const formula = shapeId === 'calibration-table' ? undefined : formulaByShape.get(shapeId);
+      const maxHeight = formula?.maxFillHeight(dimensions) ?? 0;
       return {
         ...chamber,
         shapeId,
         dimensions,
-        fillHeightM: formula ? formula.maxFillHeight(dimensions) * 0.5 : 0,
+        fillHeightM: Number.isFinite(maxHeight) && maxHeight > 0 ? maxHeight * 0.5 : 0,
         targetVolumeM3: undefined,
         useTargetVolume: false,
+        calibrationTable: undefined,
       };
     });
   };
@@ -494,8 +605,21 @@ export function App() {
         </div>
       </header>
 
-      <main className="workspace">
-        <aside className="rail">
+      <nav className="mobile-tabs" aria-label="Mobile workspace sections">
+        {mobileSections.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            aria-pressed={activeMobileSection === section.id}
+            onClick={() => setActiveMobileSection(section.id)}
+          >
+            {section.label}
+          </button>
+        ))}
+      </nav>
+
+      <main className="workspace" data-active-mobile-section={activeMobileSection}>
+        <aside className="rail mobile-section" data-mobile-section="build">
           <section className="panel chambers-panel">
             <div className="panel-title">
               <Layers3 size={17} />
@@ -594,7 +718,7 @@ export function App() {
         </aside>
 
         <section className="main-column">
-          <section className="metrics-strip">
+          <section className="metrics-strip mobile-section" data-mobile-section="results">
             <div className="metric">
               <span>{copy.observedVolume}</span>
               <strong>{calculation.report ? formatNumber(fromCubicMeters(calculation.report.totals.volumeM3, volumeUnit), 4) : 'n/a'}</strong>
@@ -618,13 +742,13 @@ export function App() {
           </section>
 
           {calculation.error && (
-            <div className="notice blocker">
+            <div className="notice blocker mobile-section" data-mobile-section="evidence" role="alert" aria-live="assertive">
               <AlertTriangle size={17} />
               {calculation.error}
             </div>
           )}
 
-          <section className="work-grid">
+          <section className="work-grid mobile-section" data-mobile-section="build">
             <section className="panel editor-panel">
               <div className="panel-title">
                 <Calculator size={17} />
@@ -680,7 +804,7 @@ export function App() {
               )}
 
               {selectedChamber.shapeId === 'calibration-table' && (
-                <div className="notice">
+                <div className="notice" role="status" aria-live="polite">
                   <TableProperties size={17} />
                   {copy.tableModeActive}
                 </div>
@@ -730,6 +854,7 @@ export function App() {
               <div className="range-block">
                 <input
                   type="range"
+                  aria-label={`${copy.fillHeight} slider`}
                   min={0}
                   max={Math.max(maxHeight, 0.0001)}
                   step={Math.max(maxHeight / 500, 0.0001)}
@@ -785,7 +910,7 @@ export function App() {
                 <Beaker size={16} />
                 {selectedChamber.liquid.note}
               </div>
-              <div className="notice warning">
+              <div className="notice warning" role="status" aria-live="polite">
                 <AlertTriangle size={17} />
                 {copy.tempDisabled}
               </div>
@@ -793,12 +918,17 @@ export function App() {
           </section>
 
           <section className="work-grid lower">
-            <section className="panel visual-panel">
+            <section className="panel visual-panel mobile-section" data-mobile-section="results">
               <div className="panel-title">
                 <Ruler size={17} />
                 {copy.fillVisualization}
               </div>
-              <FillSchematic chamber={selectedChamber} fillPercent={selectedResult?.fillPercent ?? 0} />
+              <FillSchematic
+                chamber={selectedChamber}
+                fillPercent={selectedResult?.fillPercent ?? 0}
+                language={language}
+                note={copy.illustrativeSchematic}
+              />
               <div className="result-table">
                 <div><span>{copy.fillHeight}</span><strong>{selectedResult ? formatNumber(fromMeters(selectedResult.fillHeightM, lengthUnit), 5) : 'n/a'} {lengthUnitLabels[lengthUnit]}</strong></div>
                 <div><span>{copy.observedVolume}</span><strong>{selectedResult ? formatNumber(fromCubicMeters(selectedResult.volumeM3, volumeUnit), 5) : 'n/a'} {volumeUnitLabels[volumeUnit]}</strong></div>
@@ -807,7 +937,7 @@ export function App() {
               </div>
             </section>
 
-            <section className="panel audit-panel">
+            <section className="panel audit-panel mobile-section" data-mobile-section="evidence">
               <div className="panel-title">
                 <ShieldCheck size={17} />
                 {copy.formulaAudit}
@@ -828,7 +958,12 @@ export function App() {
                   </div>
                   <div className="warnings-list">
                     {selectedResult.warnings.map((warning) => (
-                      <div key={warning.message} className={`notice ${warning.level}`}>
+                      <div
+                        key={`${warning.code ?? warning.level}-${warning.message}`}
+                        className={`notice ${warning.level}`}
+                        role={warning.level === 'blocker' ? 'alert' : 'status'}
+                        aria-live={warning.level === 'blocker' ? 'assertive' : 'polite'}
+                      >
                         <AlertTriangle size={16} />
                         {warning.message}
                       </div>
@@ -836,7 +971,7 @@ export function App() {
                   </div>
                 </>
               ) : (
-                <div className="notice blocker">
+                <div className="notice blocker" role="alert" aria-live="assertive">
                   <AlertTriangle size={17} />
                   {copy.selectFormula}
                 </div>
@@ -846,7 +981,7 @@ export function App() {
         </section>
 
         <aside className="rightbar">
-          <section className="panel table-panel">
+          <section className="panel table-panel mobile-section" data-mobile-section="tables">
             <div className="panel-title">
               <TableProperties size={17} />
               {copy.tableImport}
@@ -874,17 +1009,71 @@ export function App() {
                 <span>{copy.csvRows}</span>
                 <textarea
                   value={tableCsv}
-                  onChange={(event) => setTableCsv(event.target.value)}
+                  onChange={(event) => {
+                    setTableCsv(event.target.value);
+                    setTableError(null);
+                  }}
                   placeholder={'height_m,volume_m3\n0,0\n0.5,1.74\n1.0,4.92'}
                 />
               </label>
             </div>
-            <button type="button" className="primary-action wide" onClick={importTable}>
+            <div className="table-preview" aria-live="polite">
+              <div className="section-caption">{copy.tablePreview}</div>
+              {!tableCsv.trim() && <p>{copy.noTableRows}</p>}
+              {tablePreview.error && (
+                <div className="notice blocker" role="alert" aria-live="assertive">
+                  <AlertTriangle size={17} />
+                  {tablePreview.error}
+                </div>
+              )}
+              {!tablePreview.error && tablePreview.points.length > 0 && (
+                <>
+                  <div className="preview-metrics">
+                    <div>
+                      <span>{copy.tablePoints}</span>
+                      <strong>{tablePreview.points.length}</strong>
+                    </div>
+                    <div>
+                      <span>{copy.tableCoverage}</span>
+                      <strong>
+                        {formatNumber(tablePreview.minHeight)}-{formatNumber(tablePreview.maxHeight)} m / {formatNumber(tablePreview.minVolume)}-{formatNumber(tablePreview.maxVolume)} m3
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="checksum-line">
+                    <span>{copy.tableChecksum}</span>
+                    <strong>{tablePreview.checksum}</strong>
+                  </div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>height_m</th>
+                        <th>volume_m3</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tablePreview.points.slice(0, 5).map((point) => (
+                        <tr key={`${point.heightM}-${point.volumeM3}`}>
+                          <td>{formatNumber(point.heightM, 6)}</td>
+                          <td>{formatNumber(point.volumeM3, 6)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </div>
+            <button
+              type="button"
+              className="primary-action wide"
+              disabled={!tableCsv.trim() || !!tablePreview.error}
+              onClick={importTable}
+            >
               <TableProperties size={16} />
               {copy.importTable}
             </button>
             {tableError && (
-              <div className="notice blocker">
+              <div className="notice blocker" role="alert" aria-live="assertive">
                 <AlertTriangle size={17} />
                 {tableError}
               </div>
@@ -894,12 +1083,17 @@ export function App() {
                 <strong>{selectedChamber.calibrationTable.title}</strong>
                 <span>{selectedChamber.calibrationTable.sourceReference}</span>
                 <span>{selectedChamber.calibrationTable.checksum}</span>
-                <span>{selectedChamber.calibrationTable.points.length} points</span>
+                <span>
+                  {selectedChamber.calibrationTable.points.length} points,
+                  {' '}
+                  {formatNumber(selectedChamber.calibrationTable.points[0].heightM)}-
+                  {formatNumber(selectedChamber.calibrationTable.points.at(-1)?.heightM ?? 0)} m
+                </span>
               </div>
             )}
           </section>
 
-          <section className="panel blocked-panel">
+          <section className="panel blocked-panel mobile-section" data-mobile-section="evidence">
             <div className="panel-title">
               <AlertTriangle size={17} />
               {copy.blockedWithoutTable}
@@ -911,7 +1105,7 @@ export function App() {
             </ul>
           </section>
 
-          <section className="panel standards-panel">
+          <section className="panel standards-panel mobile-section" data-mobile-section="evidence">
             <div className="panel-title">
               <FileCheck2 size={17} />
               {copy.standardsContext}
