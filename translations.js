@@ -46,7 +46,7 @@ export const translations = {
             "Exposure": "Излагане",
             "Tool Suite": "Инструменти",
             "Open Tool Suite": "Отвори инструментите",
-            "Open Scam Guide": "Отвори наръчника за измами",
+            "Skip to content": "Към съдържанието",
             "Privacy Protocol": "Протокол за поверителност",
             "Knowledge Base": "База знания",
             "Fun dev stuff": "Забавни dev неща",

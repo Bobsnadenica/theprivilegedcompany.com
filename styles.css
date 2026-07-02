@@ -50,6 +50,46 @@
     box-sizing: border-box;
 }
 
+/* Keyboard focus: visible outline as a global fallback. The custom cursor hides
+   the pointer, so keyboard users especially need a clear focus indicator.
+   Component-specific :focus-visible rules (cards, toggles) still win via specificity. */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[role="link"]:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* Skip to main content — visible only when focused via keyboard. */
+.skip-link {
+    position: fixed;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 100000;
+    padding: 0.65rem 1rem;
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    font-family: var(--f-logic);
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 6px;
+    transform: translateY(-160%);
+    transition: transform 0.2s var(--ease-out);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 2px solid var(--c-fg);
+    outline-offset: 2px;
+}
+
 body.has-custom-cursor,
 body.has-custom-cursor * {
     cursor: none !important;

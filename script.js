@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260615d';
+import { languageMeta, translations } from './translations.js?v=20260702a';
 
 const routes = {
     '': {
@@ -101,11 +101,6 @@ const serviceDestinations = {
         type: 'internal',
         href: toolSuitePath,
         label: 'Open Tool Suite'
-    },
-    'Scam & Funnel Awareness': {
-        type: 'external',
-        href: 'https://istinskiguru.com',
-        label: 'Open Scam Guide'
     }
 };
 const knownServiceNames = Object.keys(serviceRequestTypes);
