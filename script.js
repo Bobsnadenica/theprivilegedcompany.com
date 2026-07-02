@@ -7,7 +7,7 @@ import { languageMeta, translations } from './translations.js?v=20260615d';
 const routes = {
     '': {
         title: 'IT Solutions, App & Website Development',
-        view: 'home.html',
+        // Root renders the hub view baked into index.html; no fragment is fetched.
         isStatic: true,
         description: 'IT solutions for businesses and individuals: app development, website building, technical SEO, automation, AI tools, cloud audits, and tech training.'
     },
@@ -332,9 +332,11 @@ const getRouteKey = () => {
 const router = async () => {
     const { key, route } = getCurrentRoute();
     
-    // Start Transition Mask
+    // Start Transition Mask. Skip the wait entirely for reduced-motion users, and
+    // otherwise wait only long enough for the mask to cover (CSS clip-path is 0.45s).
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     transitionMask.classList.add('is-active');
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, prefersReducedMotion ? 0 : 460));
 
     // Update active state in nav
     document.querySelectorAll('#main-nav a').forEach(link => {
