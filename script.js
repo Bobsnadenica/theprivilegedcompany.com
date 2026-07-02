@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260702a';
+import { languageMeta, translations } from './translations.js?v=20260702b';
 
 const routes = {
     '': {

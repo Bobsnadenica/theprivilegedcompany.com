@@ -5,6 +5,12 @@
         <p class="view-lead">Tell us what you are trying to build, fix, protect, or understand. The cleaner the brief, the faster we can tell you the right next move.</p>
     </header>
 
+    <ul class="contact-assurances reveal-mask" aria-label="What to expect">
+        <li>A senior engineer reads every brief — no call centers, no bots.</li>
+        <li>We reply by email to talk through scope and next steps.</li>
+        <li>No obligation, and your details are only used to respond to you.</li>
+    </ul>
+
     <div class="contact-shell reveal-mask">
         <form class="contact-form" id="contact-form" action="https://formsubmit.co/ajax/contactus@theprivilegedcompany.com" method="POST">
             <input type="hidden" name="_subject" id="contact-email-subject" value="Website inquiry from ThePrivilegedCompany.com">
@@ -85,6 +91,9 @@
 </section>
 
 <style>
+    .contact-assurances { width: min(920px, 100%); margin: clamp(1.5rem, 4vw, 2.5rem) auto 0; padding: 0; list-style: none; display: grid; gap: 0.75rem; text-align: left; }
+    .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; line-height: 1.55; }
+    .contact-assurances li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--c-accent); font-weight: 800; }
     .contact-shell { width: min(920px, 100%); margin: 0 auto; border-top: 1px solid var(--c-dim); padding-top: clamp(2rem, 5vw, 4rem); }
     .contact-form { display: grid; gap: 1.25rem; text-align: left; }
     .contact-honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
