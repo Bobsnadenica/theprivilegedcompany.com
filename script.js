@@ -102,16 +102,6 @@ const serviceDestinations = {
         href: toolSuitePath,
         label: 'Open Tool Suite'
     },
-    'Career Consulting': {
-        type: 'external',
-        href: 'https://www.growpoint.bg',
-        label: 'Open career consulting'
-    },
-    'Adult entertainment': {
-        type: 'external',
-        href: 'https://www.malkokote.com',
-        label: 'Open adult entertainment'
-    },
     'Scam & Funnel Awareness': {
         type: 'external',
         href: 'https://istinskiguru.com',

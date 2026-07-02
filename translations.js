@@ -46,8 +46,6 @@ export const translations = {
             "Exposure": "Излагане",
             "Tool Suite": "Инструменти",
             "Open Tool Suite": "Отвори инструментите",
-            "Open career consulting": "Отвори кариерното консултиране",
-            "Open adult entertainment": "Отвори развлечението за възрастни",
             "Open Scam Guide": "Отвори наръчника за измами",
             "Privacy Protocol": "Протокол за поверителност",
             "Knowledge Base": "База знания",
