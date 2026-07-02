@@ -34,6 +34,10 @@ const routes = {
     title: 'ThePrivilegedCompany | Privacy',
     description: 'Privacy and data handling details for ThePrivilegedCompany website visitors, clients, and technical advisory relationships.'
   },
+  terms: {
+    title: 'ThePrivilegedCompany | Terms',
+    description: 'Plain-language terms of engagement for working with ThePrivilegedCompany on IT and engineering projects.'
+  },
   faq: {
     title: 'ThePrivilegedCompany | FAQ',
     description: 'Answers to common questions about ThePrivilegedCompany services, engagement style, technical delivery, and advisory work.'

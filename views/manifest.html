@@ -177,17 +177,6 @@
                             </div>
                         </article>
                         <article class="service-card service-card-with-preview">
-                            <span>Entertainment</span>
-                            <h3>Adult entertainment</h3>
-                            <p>Adult-oriented brand presence, digital showcase work, and audience-facing web presentation with clean technical delivery.</p>
-                            <div class="service-card-actions">
-                                <a class="service-card-action" href="https://www.malkokote.com" target="_blank" rel="noopener noreferrer">View Showcase</a>
-                            </div>
-                            <div class="service-preview service-preview-single" aria-hidden="true">
-                                <img src="assets/logo/malkokote.png" alt="" loading="lazy" decoding="async">
-                            </div>
-                        </article>
-                        <article class="service-card service-card-with-preview">
                             <span>Protection</span>
                             <h3>Scam & Funnel Awareness</h3>
                             <p>Training that explains common online traps, multi-level marketing models, fake funnels, predatory offers, and suspicious digital promises.</p>
@@ -196,6 +185,17 @@
                             </div>
                             <div class="service-preview service-preview-single" aria-hidden="true">
                                 <img src="assets/logo/istinskiguru.jpg" alt="" loading="lazy" decoding="async">
+                            </div>
+                        </article>
+                        <article class="service-card service-card-with-preview service-card--sensitive">
+                            <span>Discreet / 18+</span>
+                            <h3>Adult entertainment</h3>
+                            <p>Adult-oriented brand presence, digital showcase work, and audience-facing web presentation with clean technical delivery.</p>
+                            <div class="service-card-actions">
+                                <a class="service-card-action" href="https://www.malkokote.com" target="_blank" rel="noopener noreferrer">View Showcase</a>
+                            </div>
+                            <div class="service-preview service-preview-single" aria-hidden="true">
+                                <img src="assets/logo/malkokote.png" alt="" loading="lazy" decoding="async">
                             </div>
                         </article>
                     </div>
@@ -245,6 +245,8 @@
     .service-card-with-preview:focus-within .service-preview { max-height: 128px; margin-top: 1rem; opacity: 1; padding: 0.5rem; border-color: rgba(255, 157, 0, 0.24); transform: translateY(0); }
     .service-preview img { width: 100%; height: 96px; object-fit: cover; border: 1px solid rgba(255, 157, 0, 0.28); border-radius: 6px; background: rgba(255, 157, 0, 0.06); }
     .service-preview-single img { object-fit: contain; background: rgba(255, 157, 0, 0.1); }
+    .service-card--sensitive { grid-column: 1 / -1; margin-top: 1.75rem; border-color: rgba(255, 157, 0, 0.12); background: rgba(255, 157, 0, 0.02); }
+    .service-card--sensitive span { color: var(--c-muted); }
     .manifest-footer { padding: 10rem 0; text-align: center; border-top: 1px solid var(--c-dim); }
 
     @media (max-width: 760px) {
