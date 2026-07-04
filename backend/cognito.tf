@@ -65,8 +65,10 @@ resource "aws_cognito_user_group" "admin" {
 
 # --- Identity Pool: trades a logged-in token for temporary AWS credentials ----
 resource "aws_cognito_identity_pool" "portal" {
-  identity_pool_name               = var.project
-  allow_unauthenticated_identities = false
+  identity_pool_name = var.project
+  # Guests (the public contact form) get write-only credentials scoped to
+  # inbox/new/* by aws_iam_role.unauthenticated — nothing else.
+  allow_unauthenticated_identities = true
 
   cognito_identity_providers {
     client_id               = aws_cognito_user_pool_client.portal.id
@@ -79,7 +81,8 @@ resource "aws_cognito_identity_pool_roles_attachment" "portal" {
   identity_pool_id = aws_cognito_identity_pool.portal.id
 
   roles = {
-    authenticated = aws_iam_role.authenticated.arn
+    authenticated   = aws_iam_role.authenticated.arn
+    unauthenticated = aws_iam_role.unauthenticated.arn
   }
 }
 

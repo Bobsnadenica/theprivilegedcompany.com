@@ -16,6 +16,11 @@ variable "bucket_name" {
   default     = "theprivilegedcompany-bucket"
 }
 
+variable "admin_email" {
+  description = "Email of the admin who may read the contact-form inbox. Set this in terraform.tfvars (gitignored) — do not commit it, the repo is public."
+  type        = string
+}
+
 variable "cors_allowed_origins" {
   description = "Browser origins allowed to call the uploads bucket directly."
   type        = list(string)

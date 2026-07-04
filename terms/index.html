@@ -26,7 +26,7 @@
             } catch (e) { /* storage blocked */ }
         })();
     </script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://formsubmit.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co mailto:; object-src 'none'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cognito-identity.eu-west-1.amazonaws.com https://*.s3.eu-west-1.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThePrivilegedCompany | Terms</title>
@@ -64,7 +64,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20260702c">
+    <link rel="stylesheet" href="styles.css?v=20260705a">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -76,6 +76,15 @@
         "image": "https://www.theprivilegedcompany.com/og-image.png",
         "description": "IT solutions, app development, website building, technical SEO, automation, AI tooling, cloud audits, and practical tech training for businesses and individuals.",
         "email": "contactus@theprivilegedcompany.com",
+        "contactPoint": [
+            {
+                "@type": "ContactPoint",
+                "email": "contactus@theprivilegedcompany.com",
+                "contactType": "customer support",
+                "areaServed": "Worldwide",
+                "availableLanguage": ["en", "bg"]
+            }
+        ],
         "areaServed": "Worldwide",
         "serviceType": [
             "IT solutions",
@@ -234,40 +243,13 @@
                     </div>
                 </section>
                 
-                <section class="monolith-work">
-                    <div class="work-head reveal-mask">
-                        <span class="label">Selected Work</span>
-                        <h2 data-scramble>Real builds, live in the wild.</h2>
-                        <p>A selection of sites and products we have shipped. Each one is live — click through and judge the work yourself.</p>
-                    </div>
-                    <div class="work-grid">
-                        <a class="work-card reveal-mask" href="https://dalisipedal.com" target="_blank" rel="noopener noreferrer" data-magnetic>
-                            <span class="work-thumb"><img src="assets/logo/pedal.png" alt="dalisipedal.com website" loading="lazy" decoding="async"></span>
-                            <span class="work-tag">Website build</span>
-                            <span class="work-name" data-i18n-ignore>dalisipedal.com</span>
-                            <span class="work-cta">View live &rarr;</span>
-                        </a>
-                        <a class="work-card reveal-mask" href="https://www.everydaylilly.com" target="_blank" rel="noopener noreferrer" data-magnetic>
-                            <span class="work-thumb"><img src="assets/logo/everydaylilly.png" alt="everydaylilly.com product" loading="lazy" decoding="async"></span>
-                            <span class="work-tag">Web app &amp; product</span>
-                            <span class="work-name" data-i18n-ignore>everydaylilly.com</span>
-                            <span class="work-cta">View live &rarr;</span>
-                        </a>
-                        <a class="work-card reveal-mask" href="https://www.growpoint.bg" target="_blank" rel="noopener noreferrer" data-magnetic>
-                            <span class="work-thumb"><img src="assets/logo/career.jpg" alt="growpoint.bg career platform" loading="lazy" decoding="async"></span>
-                            <span class="work-tag">Career platform</span>
-                            <span class="work-name" data-i18n-ignore>growpoint.bg</span>
-                            <span class="work-cta">View live &rarr;</span>
-                        </a>
-                    </div>
-                </section>
-
                 <section class="monolith-advert">
                     <div class="advert-text reveal-mask">
                         <span class="label">The Mission</span>
                         <h2 data-scramble>From idea to shipped.</h2>
                         <p>We turn rough technical goals into clear plans, working systems, and practical guidance. Whether you need to build an app, build a website, improve SEO, automate work, or learn a technical topic, we help decide what matters and ship what is needed.</p>
                         <div class="mission-cta">
+                            <a href="/contact" data-link class="btn-hud">Start a brief</a>
                             <a href="/who-are-we" data-link class="btn-hud">Who We Are</a>
                         </div>
                     </div>
@@ -1132,6 +1114,6 @@ else
 fi
 
 printf "\nScope: HTTP, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled links, metadata, headers, CORS, cookies, passive browser-style DOM checks, client secret/debug exposure, query reflection, SQL error smoke, sensitive-file/route smoke, open-redirect smoke, and optional nmap web-port check.\n"</script>
-    <script type="module" src="script.js?v=20260702c"></script>
+    <script type="module" src="script.js?v=20260705a"></script>
 </body>
 </html>

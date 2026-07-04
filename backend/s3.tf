@@ -73,4 +73,19 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
       days_after_initiation = 7
     }
   }
+
+  # Contact-form briefs are transient notifications; expire them after 90 days
+  # so an abusive flood of guest writes can't accumulate storage cost forever.
+  rule {
+    id     = "expire-old-inbox"
+    status = "Enabled"
+
+    filter {
+      prefix = "inbox/"
+    }
+
+    expiration {
+      days = 90
+    }
+  }
 }

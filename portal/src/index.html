@@ -109,6 +109,19 @@
         </form>
       </section>
 
+      <!-- Authenticated: contact-form notifications (admin only) -->
+      <section id="inbox-view" class="card wide" hidden>
+        <div class="files-head">
+          <div>
+            <h1>Notifications <span id="inbox-count" class="badge" hidden></span></h1>
+            <p class="muted">New contact briefs submitted through the website.</p>
+          </div>
+          <button id="inbox-refresh" type="button" class="btn-ghost">Refresh</button>
+        </div>
+        <ul id="inbox-list" class="inbox-list"></ul>
+        <p id="inbox-empty" class="muted" hidden>No new briefs.</p>
+      </section>
+
       <!-- Authenticated: files -->
       <section id="files-view" class="card wide" hidden>
         <div class="files-head">

@@ -2,14 +2,14 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260702c';
+import { languageMeta, translations } from './translations.js?v=20260705a';
 
 const routes = {
     '': {
         title: 'IT Solutions, App & Website Development',
         // Root renders the hub view baked into index.html; no fragment is fetched.
         isStatic: true,
-        description: 'IT solutions for businesses and individuals: app development, website building, technical SEO, automation, AI tools, cloud audits, and tech training.'
+        description: 'App & website development, technical SEO, automation, AI tools, cloud audits, and tech training for businesses and individuals. Contact us for a clear plan.'
     },
     'manifest': {
         title: 'Services',
@@ -76,7 +76,89 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260613d';
+const assetVersion = '20260705a';
+
+// --- Brief inbox delivery ----------------------------------------------------
+// The contact form does NOT email anyone. It drops the brief as a JSON object
+// into s3://<bucket>/inbox/new/ using write-only guest credentials from the
+// Cognito Identity Pool (see backend/iam.tf: guests can PutObject to inbox/new/*
+// and nothing else). The portal surfaces these to the admin as notifications.
+const inboxConfig = {
+    region: 'eu-west-1',
+    identityPoolId: 'eu-west-1:4d3e6ee9-98f5-49ba-85c4-8eb2d0b05c21',
+    bucket: 'theprivilegedcompany-bucket'
+};
+
+const inboxEncoder = new TextEncoder();
+const sha256Hex = async data => {
+    const buf = await crypto.subtle.digest('SHA-256', typeof data === 'string' ? inboxEncoder.encode(data) : data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+};
+const hmacSha256 = async (key, data) => {
+    const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, inboxEncoder.encode(data)));
+};
+
+const fetchGuestCredentials = async () => {
+    const call = async (target, payload) => {
+        const response = await fetch(`https://cognito-identity.${inboxConfig.region}.amazonaws.com/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': `AWSCognitoIdentityService.${target}` },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error(`${target} returned ${response.status}`);
+        return response.json();
+    };
+    const { IdentityId } = await call('GetId', { IdentityPoolId: inboxConfig.identityPoolId });
+    const { Credentials } = await call('GetCredentialsForIdentity', { IdentityId });
+    return Credentials;
+};
+
+// Minimal SigV4 signer for a single S3 PUT (WebCrypto; no SDK — CSP is 'self').
+const putBriefInInbox = async brief => {
+    const creds = await fetchGuestCredentials();
+    const { region, bucket } = inboxConfig;
+    const host = `${bucket}.s3.${region}.amazonaws.com`;
+    // Key charset is [A-Za-z0-9/T Z-]-only so the canonical URI needs no escaping.
+    const key = `inbox/new/${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 8)}.json`;
+    const body = JSON.stringify(brief, null, 2);
+    const amzDate = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const dateStamp = amzDate.slice(0, 8);
+    const payloadHash = await sha256Hex(body);
+    const headers = {
+        host,
+        'x-amz-content-sha256': payloadHash,
+        'x-amz-date': amzDate,
+        'x-amz-security-token': creds.SessionToken
+    };
+    const signedHeaderNames = Object.keys(headers).sort();
+    const canonicalRequest = [
+        'PUT',
+        `/${key}`,
+        '',
+        signedHeaderNames.map(name => `${name}:${headers[name]}\n`).join(''),
+        signedHeaderNames.join(';'),
+        payloadHash
+    ].join('\n');
+    const scope = `${dateStamp}/${region}/s3/aws4_request`;
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonicalRequest)].join('\n');
+    let signingKey = await hmacSha256(inboxEncoder.encode(`AWS4${creds.SecretKey}`), dateStamp);
+    for (const part of [region, 's3', 'aws4_request']) signingKey = await hmacSha256(signingKey, part);
+    const signature = [...await hmacSha256(signingKey, stringToSign)].map(b => b.toString(16).padStart(2, '0')).join('');
+
+    const response = await fetch(`https://${host}/${key}`, {
+        method: 'PUT',
+        headers: {
+            'X-Amz-Content-Sha256': payloadHash,
+            'X-Amz-Date': amzDate,
+            'X-Amz-Security-Token': creds.SessionToken,
+            Authorization: `AWS4-HMAC-SHA256 Credential=${creds.AccessKeyId}/${scope}, SignedHeaders=${signedHeaderNames.join(';')}, Signature=${signature}`
+        },
+        body
+    });
+    if (!response.ok) throw new Error(`Inbox delivery returned ${response.status}`);
+    return key;
+};
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -518,22 +600,24 @@ const initContactForm = () => {
 
         if (subjectInput) subjectInput.value = subjectText;
 
-        const payload = new FormData(form);
-        payload.set('_subject', subjectText);
-        payload.set('message', bodyText);
-
         status.textContent = t('Sending your brief securely...');
         status.classList.add('is-visible');
         if (submitButton) submitButton.disabled = true;
 
         try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: { Accept: 'application/json' },
-                body: payload
+            await putBriefInInbox({
+                name,
+                email,
+                phone,
+                requestType,
+                serviceName,
+                timeline,
+                budget,
+                details: details.slice(0, 20000),
+                language: currentLanguage,
+                page: window.location.pathname + window.location.search,
+                submittedAt: new Date().toISOString()
             });
-
-            if (!response.ok) throw new Error(`Contact endpoint returned ${response.status}`);
 
             status.textContent = t('Brief sent. We will get back to you soon.');
             form.reset();

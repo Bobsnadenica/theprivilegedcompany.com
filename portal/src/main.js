@@ -12,6 +12,9 @@ import {
   uploadFile,
   downloadUrl,
   deleteFile,
+  listInbox,
+  readInbox,
+  archiveInbox,
 } from './storage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -77,6 +80,7 @@ async function enterApp(session, email) {
   $('user-email').textContent = email || '';
   show('files');
   await refreshList();
+  await refreshInbox();
 }
 
 async function refreshList() {
@@ -134,6 +138,121 @@ async function refreshList() {
     setError($('files-error'), err.message || String(err));
   }
 }
+
+// --- contact-form notifications (admin only) --------------------------------
+function inboxField(label, value) {
+  if (!value) return null;
+  const row = document.createElement('div');
+  row.className = 'inbox-field';
+  const l = document.createElement('span');
+  l.className = 'inbox-field-label';
+  l.textContent = label;
+  const v = document.createElement('span');
+  v.className = 'inbox-field-value';
+  v.textContent = value; // textContent — briefs are untrusted user input
+  row.append(l, v);
+  return row;
+}
+
+async function refreshInbox() {
+  const section = $('inbox-view');
+  if (!section) return;
+  const list = $('inbox-list');
+  const badge = $('inbox-count');
+  const empty = $('inbox-empty');
+
+  let items;
+  try {
+    items = await listInbox();
+  } catch {
+    // Not the admin (AccessDenied) or inbox unreadable — hide the panel entirely.
+    section.hidden = true;
+    return;
+  }
+
+  section.hidden = false;
+  list.innerHTML = '';
+  badge.hidden = items.length === 0;
+  badge.textContent = items.length ? String(items.length) : '';
+  empty.hidden = items.length > 0;
+
+  for (const it of items.slice(0, 50)) {
+    let brief = {};
+    try {
+      brief = await readInbox(it.key);
+    } catch {
+      brief = {};
+    }
+
+    const li = document.createElement('li');
+    li.className = 'inbox-row';
+
+    const head = document.createElement('div');
+    head.className = 'inbox-head';
+    const who = document.createElement('span');
+    who.className = 'inbox-who';
+    who.textContent = brief.name || 'Anonymous';
+    const when = document.createElement('span');
+    when.className = 'inbox-when';
+    when.textContent = fmtDate(brief.submittedAt || it.lastModified);
+    head.append(who, when);
+
+    const sub = document.createElement('div');
+    sub.className = 'inbox-sub';
+    sub.textContent =
+      [brief.requestType, brief.serviceName].filter(Boolean).join(' · ') ||
+      'Contact brief';
+
+    const details = document.createElement('div');
+    details.className = 'inbox-details';
+    [
+      ['Email', brief.email],
+      ['Phone', brief.phone],
+      ['Budget', brief.budget],
+      ['Timeline', brief.timeline],
+      ['Message', brief.details],
+      ['From page', brief.page],
+    ].forEach(([label, value]) => {
+      const row = inboxField(label, value);
+      if (row) details.append(row);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'inbox-actions';
+    if (brief.email) {
+      const reply = document.createElement('a');
+      reply.className = 'btn-ghost';
+      reply.textContent = 'Reply';
+      reply.href = `mailto:${brief.email}?subject=${encodeURIComponent(
+        'Re: your inquiry — ThePrivilegedCompany'
+      )}`;
+      actions.append(reply);
+    }
+    const done = document.createElement('button');
+    done.className = 'btn-ghost danger';
+    done.textContent = 'Mark done';
+    done.addEventListener('click', async () => {
+      done.disabled = true;
+      try {
+        await archiveInbox(it.key);
+        li.remove();
+        const remaining = list.querySelectorAll('.inbox-row').length;
+        badge.hidden = remaining === 0;
+        badge.textContent = remaining ? String(remaining) : '';
+        empty.hidden = remaining > 0;
+      } catch (err) {
+        setError($('files-error'), err.message || String(err));
+        done.disabled = false;
+      }
+    });
+    actions.append(done);
+
+    li.append(head, sub, details, actions);
+    list.append(li);
+  }
+}
+
+$('inbox-refresh')?.addEventListener('click', refreshInbox);
 
 // --- login ------------------------------------------------------------------
 $('login-form').addEventListener('submit', async (e) => {

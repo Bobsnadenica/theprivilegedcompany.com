@@ -11,6 +11,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -111,5 +112,43 @@ export async function downloadUrl(key) {
 }
 
 export async function deleteFile(key) {
+  await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: key }));
+}
+
+// --- Contact-form inbox (admin only) ---------------------------------------
+// The public contact form drops briefs into inbox/new/*. Only the admin's
+// credentials can list/read them (enforced by IAM, gated on the email principal
+// tag); for anyone else these calls throw AccessDenied and the UI stays hidden.
+const INBOX_NEW = 'inbox/new/';
+const INBOX_DONE = 'inbox/done/';
+
+export async function listInbox() {
+  const out = await s3.send(
+    new ListObjectsV2Command({ Bucket: cfg.bucket, Prefix: INBOX_NEW })
+  );
+  return (out.Contents || [])
+    .filter((o) => o.Key !== INBOX_NEW && o.Key.endsWith('.json'))
+    .map((o) => ({ key: o.Key, size: o.Size, lastModified: o.LastModified }))
+    .sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+}
+
+export async function readInbox(key) {
+  const out = await s3.send(
+    new GetObjectCommand({ Bucket: cfg.bucket, Key: key })
+  );
+  return JSON.parse(await out.Body.transformToString());
+}
+
+// "Mark done": copy the brief to inbox/done/ (kept for your records) and remove
+// it from inbox/new/ so it drops out of the notifications list.
+export async function archiveInbox(key) {
+  const dest = INBOX_DONE + key.slice(INBOX_NEW.length);
+  await s3.send(
+    new CopyObjectCommand({
+      Bucket: cfg.bucket,
+      CopySource: `${cfg.bucket}/${key}`,
+      Key: dest,
+    })
+  );
   await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: key }));
 }

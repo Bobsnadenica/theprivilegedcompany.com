@@ -4,6 +4,10 @@
 region  = "eu-west-1"
 project = "tpc-portal"
 
+# Admin who receives contact-form briefs as portal notifications.
+# Required. Keep it here (terraform.tfvars is gitignored) — never in a committed file.
+admin_email = "you@example.com"
+
 cors_allowed_origins = [
   "https://www.theprivilegedcompany.com",
   "https://theprivilegedcompany.com",
