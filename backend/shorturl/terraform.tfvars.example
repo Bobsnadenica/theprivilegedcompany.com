@@ -1,0 +1,3 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+# Generate a key with: openssl rand -base64 30 | tr '+/' '-_'
+create_key = "CHANGE-ME"
