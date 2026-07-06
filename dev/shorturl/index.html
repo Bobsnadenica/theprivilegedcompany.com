@@ -3,61 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Create a short URL with Bob's Shortener.">
-    <meta property="og:title" content="Bob&#x27;s Shortener">
-    <meta property="og:description" content="Create a short URL with Bob">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://go.theprivilegedcompany.com; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+    <meta name="description" content="Create branded short links on go.theprivilegedcompany.com — with custom slugs, expiry, QR codes and click stats.">
+    <meta name="robots" content="noindex">
+    <meta property="og:title" content="TPC Short Links">
+    <meta property="og:description" content="Branded short links on go.theprivilegedcompany.com">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/shorturl/index.html">
-    <meta name="twitter:title" content="Bob&#x27;s Shortener">
-    <meta name="twitter:description" content="Create a short URL with Bob">
+    <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/shorturl/">
+    <meta name="twitter:title" content="TPC Short Links">
+    <meta name="twitter:description" content="Branded short links on go.theprivilegedcompany.com">
     <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="4501">
-    <meta property="og:image:height" content="4500">
     <meta property="og:image:alt" content="ThePrivilegedCompany logo">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
-    <title>Bob's Shortener</title>
+    <title>TPC Short Links</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #07090d;
-            --bg-soft: #0f141c;
-            --panel: rgba(13, 18, 27, 0.86);
-            --panel-strong: rgba(9, 13, 20, 0.94);
-            --border: rgba(148, 163, 184, 0.16);
-            --border-strong: rgba(148, 163, 184, 0.28);
-            --text: #f8fafc;
-            --muted: #8fa0b8;
-            --accent: #7cc7ff;
-            --accent-strong: #4daaf7;
+            --bg: #030201;
+            --surface: rgba(17, 9, 2, 0.88);
+            --border: rgba(255, 157, 0, 0.14);
+            --border-strong: rgba(255, 157, 0, 0.32);
+            --text: #fff2df;
+            --muted: #b57532;
+            --dim: #3a2109;
+            --accent: #ff9d00;
+            --accent-strong: #ffb13b;
+            --on-accent: #050301;
             --danger: #ff6b6b;
-            --radius-lg: 28px;
-            --radius-md: 18px;
-            --shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+            --ok: #7dd97b;
+            --radius-lg: 26px;
+            --radius-md: 16px;
+            --f-display: 'Fraunces', serif;
+            --f-logic: 'Manrope', sans-serif;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        html {
-            color-scheme: dark;
-        }
+        html { color-scheme: dark; }
 
         body {
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: var(--f-logic);
             min-height: 100vh;
             padding: 24px;
             display: grid;
             place-items: center;
             background:
-                radial-gradient(circle at 18% 18%, rgba(89, 126, 255, 0.18), transparent 24%),
-                radial-gradient(circle at 82% 72%, rgba(0, 188, 212, 0.14), transparent 26%),
-                linear-gradient(180deg, #06080c 0%, #090d14 52%, #06080b 100%);
+                radial-gradient(circle at 16% 12%, rgba(255, 157, 0, 0.10), transparent 30%),
+                radial-gradient(circle at 84% 80%, rgba(255, 177, 59, 0.06), transparent 32%),
+                linear-gradient(180deg, #050301 0%, #0a0602 55%, #030201 100%);
             color: var(--text);
             overflow-x: hidden;
         }
@@ -68,41 +64,29 @@
             inset: 0;
             pointer-events: none;
             background:
-                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+                linear-gradient(rgba(255, 157, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 157, 0, 0.03) 1px, transparent 1px);
             background-size: 44px 44px;
             mask-image: radial-gradient(circle at center, black 35%, transparent 92%);
-            opacity: 0.34;
         }
 
-        .shell {
-            width: min(100%, 640px);
-        }
+        .shell { width: min(100%, 680px); display: grid; gap: 1.1rem; }
 
         .panel {
             position: relative;
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             background:
-                linear-gradient(180deg, rgba(14, 20, 30, 0.95), rgba(10, 14, 22, 0.92)),
-                radial-gradient(circle at top right, rgba(124, 199, 255, 0.08), transparent 30%);
-            backdrop-filter: blur(22px);
-            box-shadow: var(--shadow);
+                linear-gradient(180deg, rgba(17, 9, 2, 0.95), rgba(8, 5, 1, 0.92)),
+                radial-gradient(circle at top right, rgba(255, 157, 0, 0.07), transparent 34%);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
             padding: clamp(1.4rem, 4vw, 2.25rem);
         }
 
-        .header {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 1.75rem;
-        }
+        .header { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.6rem; }
 
-        .brand-row {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
-        }
+        .brand-row { display: flex; align-items: center; gap: 0.9rem; }
 
         .logo {
             width: 52px;
@@ -111,220 +95,190 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            background: linear-gradient(135deg, #1d4ed8, #38bdf8);
-            box-shadow: 0 14px 30px rgba(56, 189, 248, 0.18);
+            color: var(--on-accent);
+            background: linear-gradient(135deg, #ff9d00, #ffb13b);
+            box-shadow: 0 14px 30px rgba(255, 157, 0, 0.22);
             flex-shrink: 0;
         }
 
-        .title-wrap {
-            min-width: 0;
-        }
-
         h1 {
-            font-size: clamp(2rem, 5vw, 2.9rem);
+            font-family: var(--f-display);
+            font-size: clamp(2rem, 5vw, 2.8rem);
             line-height: 0.98;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.03em;
+            font-weight: 900;
+        }
+
+        .domain-chip {
+            display: inline-block;
+            margin-top: 0.35rem;
+            font-size: 0.78rem;
             font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--accent);
         }
 
-        .subtitle {
-            color: var(--muted);
-            font-size: 0.98rem;
-            line-height: 1.55;
-            max-width: 34rem;
-        }
+        .subtitle { color: var(--muted); font-size: 0.95rem; line-height: 1.55; max-width: 36rem; }
 
-        .form {
-            display: grid;
-            gap: 1rem;
-        }
+        .form { display: grid; gap: 1rem; }
 
-        .field {
-            display: grid;
-            gap: 0.65rem;
-        }
+        .field { display: grid; gap: 0.55rem; min-width: 0; }
 
         label {
             color: var(--muted);
-            font-size: 0.76rem;
-            font-weight: 700;
+            font-size: 0.74rem;
+            font-weight: 800;
             letter-spacing: 0.14em;
             text-transform: uppercase;
         }
 
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 0.8rem;
-            align-items: stretch;
-        }
+        label .hint { text-transform: none; letter-spacing: 0; font-weight: 500; opacity: 0.75; }
 
-        input[type="text"] {
+        .row-2 { display: grid; grid-template-columns: 1fr auto; gap: 0.8rem; align-items: stretch; }
+        .row-split { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0.8rem; }
+
+        input, select {
             width: 100%;
-            min-height: 58px;
+            min-height: 54px;
             padding: 0 1rem;
             border-radius: var(--radius-md);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 242, 223, 0.09);
+            background: rgba(255, 242, 223, 0.045);
             color: var(--text);
             font: inherit;
-            font-size: 1rem;
+            font-size: 0.98rem;
             outline: none;
             transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
         }
 
-        input[type="text"]::placeholder {
-            color: rgba(248, 250, 252, 0.34);
+        select { appearance: none; cursor: pointer; }
+
+        input::placeholder { color: rgba(255, 242, 223, 0.3); }
+
+        input:focus, select:focus {
+            background: rgba(255, 242, 223, 0.06);
+            border-color: var(--border-strong);
+            box-shadow: 0 0 0 4px rgba(255, 157, 0, 0.12);
         }
 
-        input[type="text"]:focus {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(124, 199, 255, 0.42);
-            box-shadow: 0 0 0 4px rgba(124, 199, 255, 0.12);
-        }
+        .slug-wrap { display: flex; align-items: center; border-radius: var(--radius-md); border: 1px solid rgba(255, 242, 223, 0.09); background: rgba(255, 242, 223, 0.045); transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+        .slug-wrap:focus-within { border-color: var(--border-strong); box-shadow: 0 0 0 4px rgba(255, 157, 0, 0.12); }
+        .slug-prefix { padding: 0 0 0 1rem; color: var(--muted); font-size: 0.88rem; white-space: nowrap; user-select: none; }
+        .slug-wrap input { border: 0; background: transparent; box-shadow: none !important; padding-left: 0.25rem; }
 
-        button {
-            font: inherit;
-        }
-
-        .primary-btn,
-        .copy-btn {
-            border: 0;
-            cursor: pointer;
-            transition: transform 0.18s ease, opacity 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-        }
+        button { font: inherit; cursor: pointer; transition: transform 0.18s ease, opacity 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
 
         .primary-btn {
-            min-height: 58px;
-            padding: 0 1.2rem;
+            min-height: 54px;
+            padding: 0 1.4rem;
+            border: 0;
             border-radius: var(--radius-md);
-            background: linear-gradient(180deg, #74c7ff, #4daaf7);
-            color: #06111b;
+            background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+            color: var(--on-accent);
             font-weight: 800;
             letter-spacing: -0.01em;
-            box-shadow: 0 14px 30px rgba(77, 170, 247, 0.22);
+            box-shadow: 0 14px 30px rgba(255, 157, 0, 0.22);
             white-space: nowrap;
         }
 
-        .primary-btn:hover {
-            transform: translateY(-1px);
-        }
+        .primary-btn:hover { transform: translateY(-1px); }
+        .primary-btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
 
-        .primary-btn:disabled {
-            opacity: 0.65;
-            cursor: default;
-            transform: none;
-            box-shadow: none;
+        .ghost-btn {
+            min-height: 44px;
+            padding: 0 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 242, 223, 0.1);
+            background: rgba(255, 242, 223, 0.05);
+            color: var(--text);
+            font-weight: 700;
         }
+        .ghost-btn:hover { background: rgba(255, 242, 223, 0.09); }
 
-        .message {
-            min-height: 1.35rem;
-            font-size: 0.92rem;
-            color: var(--muted);
-            padding-top: 0.15rem;
-        }
-
-        .message.error {
-            color: var(--danger);
-        }
+        .message { min-height: 1.3rem; font-size: 0.9rem; color: var(--muted); }
+        .message.error { color: var(--danger); }
+        .message.ok { color: var(--ok); }
 
         .result-card {
-            margin-top: 1rem;
+            margin-top: 0.4rem;
             padding: 0.95rem;
-            border-radius: 22px;
-            border: 1px solid rgba(124, 199, 255, 0.16);
-            background: rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 157, 0, 0.05);
             display: none;
-            grid-template-columns: minmax(0, 1fr) auto;
             gap: 0.85rem;
-            align-items: stretch;
-            opacity: 0;
-            transform: translateY(8px);
         }
+        .result-card.visible { display: grid; animation: fadeIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; transform: translateY(8px); }
 
-        .result-card.visible {
-            display: grid;
-            animation: fadeIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        .result-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.7rem; align-items: stretch; }
 
         .short-link-wrapper {
             min-width: 0;
-            padding: 0.55rem 0.65rem;
-            border-radius: 16px;
-            background: rgba(0, 0, 0, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 0.55rem 0.75rem;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 242, 223, 0.05);
             display: grid;
-            gap: 0.35rem;
+            gap: 0.3rem;
             align-content: center;
         }
 
-        .result-label {
+        .result-label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; }
+
+        .short-link { color: var(--accent); text-decoration: none; font-weight: 800; font-size: 1rem; line-height: 1.4; word-break: break-all; }
+        .short-link:hover { text-decoration: underline; }
+
+        .result-meta { color: var(--muted); font-size: 0.82rem; }
+
+        .qr-box { display: none; justify-content: center; padding: 0.8rem; background: #fff; border-radius: 14px; }
+        .qr-box.visible { display: flex; }
+        .qr-box svg { width: 168px; height: 168px; display: block; }
+
+        details.keybox { border: 1px solid rgba(255, 242, 223, 0.08); border-radius: var(--radius-md); background: rgba(255, 242, 223, 0.03); }
+        details.keybox summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 0.85rem 1rem;
             color: var(--muted);
-            font-size: 0.72rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+        details.keybox summary::-webkit-details-marker { display: none; }
+        details.keybox summary::before { content: "\25B8"; color: var(--accent); transition: transform 0.15s ease; }
+        details.keybox[open] summary::before { transform: rotate(90deg); }
+        .keybox-body { padding: 0 1rem 1rem; display: grid; gap: 0.55rem; }
+        .keybox-note { color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
+        #keyStatus { font-size: 0.8rem; }
 
-        .short-link {
-            color: var(--accent);
-            text-decoration: none;
+        h2 {
+            font-family: var(--f-display);
+            font-size: 1.3rem;
+            letter-spacing: -0.02em;
             font-weight: 700;
-            font-size: 1rem;
-            line-height: 1.45;
-            word-break: break-all;
+            margin-bottom: 0.9rem;
         }
 
-        .short-link:hover {
-            text-decoration: underline;
-        }
+        .stats-grid { display: none; margin-top: 1rem; gap: 0.55rem; }
+        .stats-grid.visible { display: grid; animation: fadeIn 0.3s ease forwards; }
+        .stat-row { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 0.8rem; padding: 0.6rem 0.75rem; border-radius: 12px; background: rgba(255, 242, 223, 0.035); font-size: 0.9rem; }
+        .stat-key { color: var(--muted); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; align-self: center; }
+        .stat-val { word-break: break-all; }
+        .stat-val.big { font-family: var(--f-display); font-size: 1.4rem; color: var(--accent); }
 
-        .copy-btn {
-            min-width: 110px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text);
-            font-weight: 700;
-            padding: 0 1rem;
-        }
-
-        .copy-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .footer {
-            margin-top: 1rem;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.42);
-            font-size: 0.78rem;
-        }
+        .footer { text-align: center; color: rgba(255, 242, 223, 0.4); font-size: 0.78rem; padding-bottom: 0.5rem; }
+        .footer a { color: var(--muted); }
 
         @media (max-width: 640px) {
-            body {
-                padding: 14px;
-            }
-
-            .input-row,
-            .result-card {
-                grid-template-columns: 1fr;
-            }
-
-            .copy-btn,
-            .primary-btn {
-                min-height: 54px;
-            }
-
-            .copy-btn {
-                padding: 0.95rem 1rem;
-            }
+            body { padding: 14px; }
+            .row-2, .row-split, .result-row { grid-template-columns: 1fr; }
+            .stat-row { grid-template-columns: 1fr; gap: 0.15rem; }
         }
     </style>
 </head>
@@ -340,113 +294,236 @@
                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                     </svg>
                 </div>
-                <div class="title-wrap">
-                    <h1>Bob's Shortener</h1>
+                <div>
+                    <h1>Short Links</h1>
+                    <span class="domain-chip">go.theprivilegedcompany.com</span>
                 </div>
             </div>
-            <p class="subtitle">Shorten a destination URL and get a shareable link instantly.</p>
+            <p class="subtitle">Branded short links with optional custom slugs, expiry, QR codes and click stats.</p>
         </header>
 
-        <section class="form" aria-label="URL shortener">
+        <section class="form" aria-label="Create a short link">
             <div class="field">
                 <label for="longUrl">Destination URL</label>
-                <div class="input-row">
-                    <input type="text" id="longUrl" placeholder="https://example.com" autofocus>
-                    <button class="primary-btn" id="shortenBtn" type="button" onclick="shorten()">Shorten URL</button>
+                <input type="text" id="longUrl" placeholder="https://example.com/some/long/path" autofocus>
+            </div>
+
+            <div class="row-split">
+                <div class="field">
+                    <label for="customSlug">Custom slug <span class="hint">(optional)</span></label>
+                    <div class="slug-wrap">
+                        <span class="slug-prefix">go…com/</span>
+                        <input type="text" id="customSlug" placeholder="random" maxlength="32" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="ttlDays">Expires</label>
+                    <select id="ttlDays">
+                        <option value="">Never</option>
+                        <option value="1">1 day</option>
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="365">1 year</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="message" id="message"></div>
+            <details class="keybox" id="keyBox">
+                <summary>Access key</summary>
+                <div class="keybox-body">
+                    <p class="keybox-note">Creating links and reading stats requires the access key. It is remembered on this device only.</p>
+                    <div class="row-2">
+                        <input type="password" id="createKey" placeholder="Paste the access key" autocomplete="off">
+                        <button class="ghost-btn" type="button" onclick="saveKey()">Save</button>
+                    </div>
+                    <div class="message" id="keyStatus"></div>
+                </div>
+            </details>
+
+            <div class="row-2">
+                <div class="message" id="message" role="status"></div>
+                <button class="primary-btn" id="shortenBtn" type="button" onclick="shorten()">Create short link</button>
+            </div>
 
             <div class="result-card" id="resultCard">
-                <div class="short-link-wrapper">
-                    <span class="result-label">Short link</span>
-                    <a href="#" target="_blank" rel="noopener noreferrer" class="short-link" id="shortLink"></a>
+                <div class="result-row">
+                    <div class="short-link-wrapper">
+                        <span class="result-label">Short link</span>
+                        <a href="#" target="_blank" rel="noopener noreferrer" class="short-link" id="shortLink"></a>
+                        <span class="result-meta" id="resultMeta"></span>
+                    </div>
+                    <button class="ghost-btn" id="copyBtn" type="button" onclick="copyToClipboard()">Copy</button>
+                    <button class="ghost-btn" id="qrBtn" type="button" onclick="toggleQr()">QR</button>
                 </div>
-                <button class="copy-btn" id="copyBtn" type="button" onclick="copyToClipboard()">Copy</button>
+                <div class="qr-box" id="qrBox" aria-label="QR code for the short link"></div>
             </div>
         </section>
     </main>
 
-    <p class="footer">&copy; 2026 Bob's Services. All rights reserved.</p>
+    <section class="panel" aria-label="Link stats">
+        <h2>Link stats</h2>
+        <div class="row-2">
+            <input type="text" id="statsSlug" placeholder="Slug or full short link, e.g. contact" autocomplete="off" spellcheck="false">
+            <button class="ghost-btn" type="button" onclick="lookupStats()">Look up</button>
+        </div>
+        <div class="message" id="statsMessage" role="status"></div>
+        <div class="stats-grid" id="statsGrid"></div>
+    </section>
+
+    <p class="footer">&copy; 2026 The Privileged Company &middot; <a href="../index.html">Dev tools</a></p>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
 <script>
-    const API_URL = "https://go.bobsnadenica.com";
+    const API_URL = "https://go.theprivilegedcompany.com";
+    const KEY_STORAGE = "tpc-shorturl-key";
 
-    const shortenBtn = document.getElementById("shortenBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const messageEl = document.getElementById("message");
-    const resultCard = document.getElementById("resultCard");
-    const shortLinkEl = document.getElementById("shortLink");
-    const longUrlInput = document.getElementById("longUrl");
+    const $ = (id) => document.getElementById(id);
+    let lastShortUrl = "";
+
+    function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
+
+    function saveKey() {
+        const val = $("createKey").value.trim();
+        if (!val) {
+            localStorage.removeItem(KEY_STORAGE);
+            setMsg($("keyStatus"), "Key cleared.", "ok");
+            return;
+        }
+        localStorage.setItem(KEY_STORAGE, val);
+        setMsg($("keyStatus"), "Key saved on this device.", "ok");
+    }
+
+    function setMsg(el, text, kind) {
+        el.textContent = text;
+        el.className = "message" + (kind ? " " + kind : "");
+    }
+
+    async function api(path, options = {}) {
+        const key = $("createKey").value.trim() || getKey();
+        const res = await fetch(API_URL + path, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "x-create-key": key,
+                ...(options.headers || {}),
+            },
+        });
+        let data = {};
+        try { data = await res.json(); } catch { /* non-JSON error body */ }
+        if (!res.ok) {
+            if (res.status === 401) $("keyBox").open = true;
+            throw new Error(data.error || `Request failed (${res.status})`);
+        }
+        return data;
+    }
 
     async function shorten() {
-        const url = longUrlInput.value.trim();
+        const url = $("longUrl").value.trim();
+        setMsg($("message"), "");
+        $("resultCard").classList.remove("visible");
+        $("qrBox").classList.remove("visible");
 
-        messageEl.textContent = "";
-        messageEl.className = "message";
-        resultCard.classList.remove("visible");
-
-        if (!url) {
-            showError("Please enter a valid URL.");
+        if (!url) { setMsg($("message"), "Please enter a destination URL.", "error"); return; }
+        if (!(getKey() || $("createKey").value.trim())) {
+            $("keyBox").open = true;
+            setMsg($("message"), "Set the access key first.", "error");
             return;
         }
 
-        setLoading(true);
+        const body = { url };
+        const slug = $("customSlug").value.trim();
+        const ttl = $("ttlDays").value;
+        if (slug) body.slug = slug;
+        if (ttl) body.ttlDays = Number(ttl);
 
+        const btn = $("shortenBtn");
+        btn.disabled = true;
+        btn.textContent = "Creating…";
         try {
-            const cleanApi = API_URL.replace(/\/$/, "");
-            const res = await fetch(`${cleanApi}/create`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url })
-            });
-
-            if (!res.ok) throw new Error("Server error");
-
-            const data = await res.json();
-            shortLinkEl.href = data.shortUrl;
-            shortLinkEl.textContent = data.shortUrl;
-            resultCard.classList.add("visible");
-            longUrlInput.value = "";
+            const data = await api("/api/links", { method: "POST", body: JSON.stringify(body) });
+            lastShortUrl = data.shortUrl;
+            $("shortLink").href = data.shortUrl;
+            $("shortLink").textContent = data.shortUrl.replace(/^https:\/\//, "");
+            $("resultMeta").textContent = data.expiresAt
+                ? "Expires " + new Date(data.expiresAt * 1000).toLocaleDateString()
+                : "Never expires";
+            $("resultCard").classList.add("visible");
+            $("longUrl").value = "";
+            $("customSlug").value = "";
         } catch (e) {
-            console.error(e);
-            showError("Failed to create link. Please try again.");
+            setMsg($("message"), e.message, "error");
         } finally {
-            setLoading(false);
+            btn.disabled = false;
+            btn.textContent = "Create short link";
         }
-    }
-
-    function setLoading(isLoading) {
-        if (isLoading) {
-            shortenBtn.disabled = true;
-            shortenBtn.textContent = "Processing...";
-        } else {
-            shortenBtn.disabled = false;
-            shortenBtn.textContent = "Shorten URL";
-        }
-    }
-
-    function showError(msg) {
-        messageEl.textContent = msg;
-        messageEl.classList.add("error");
     }
 
     function copyToClipboard() {
-        const url = shortLinkEl.textContent;
-        navigator.clipboard.writeText(url).then(() => {
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = "Copied";
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-            }, 1800);
+        if (!lastShortUrl) return;
+        navigator.clipboard.writeText(lastShortUrl).then(() => {
+            const btn = $("copyBtn");
+            btn.textContent = "Copied";
+            setTimeout(() => { btn.textContent = "Copy"; }, 1600);
         });
     }
 
-    longUrlInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") shorten();
+    function toggleQr() {
+        const box = $("qrBox");
+        if (box.classList.contains("visible")) { box.classList.remove("visible"); return; }
+        if (typeof qrcode === "undefined") {
+            setMsg($("message"), "QR library failed to load.", "error");
+            return;
+        }
+        const qr = qrcode(0, "M");
+        qr.addData(lastShortUrl);
+        qr.make();
+        box.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+        box.classList.add("visible");
+    }
+
+    async function lookupStats() {
+        const raw = $("statsSlug").value.trim();
+        const grid = $("statsGrid");
+        grid.classList.remove("visible");
+        setMsg($("statsMessage"), "");
+        if (!raw) { setMsg($("statsMessage"), "Enter a slug or short link.", "error"); return; }
+
+        const slug = raw.replace(/^https?:\/\/[^/]+\//, "").replace(/\/+$/, "");
+        try {
+            const d = await api(`/api/links/${encodeURIComponent(slug)}/stats`);
+            const rows = [
+                ["Clicks", String(d.clicks ?? 0), "big"],
+                ["Short link", d.shortUrl],
+                ["Destination", d.longUrl],
+                ["Created", new Date(d.createdAt).toLocaleString()],
+                ["Last click", d.lastClickAt ? new Date(d.lastClickAt).toLocaleString() : "Never"],
+                ["Expires", d.expiresAt ? new Date(d.expiresAt * 1000).toLocaleString() : "Never"],
+            ];
+            grid.innerHTML = rows.map(([k, v, cls]) =>
+                `<div class="stat-row"><span class="stat-key">${k}</span><span class="stat-val ${cls || ""}"></span></div>`
+            ).join("");
+            grid.querySelectorAll(".stat-val").forEach((el, i) => { el.textContent = rows[i][1]; });
+            grid.classList.add("visible");
+        } catch (e) {
+            setMsg($("statsMessage"), e.message, "error");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const key = getKey();
+        if (key) {
+            $("createKey").value = key;
+            setMsg($("keyStatus"), "Key loaded from this device.", "ok");
+        } else {
+            $("keyBox").open = true;
+        }
     });
+
+    $("longUrl").addEventListener("keypress", (e) => { if (e.key === "Enter") shorten(); });
+    $("customSlug").addEventListener("keypress", (e) => { if (e.key === "Enter") shorten(); });
+    $("statsSlug").addEventListener("keypress", (e) => { if (e.key === "Enter") lookupStats(); });
 </script>
 
 </body>
