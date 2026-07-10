@@ -99,6 +99,17 @@ export interface PileVisualTransform {
   scale: number;
 }
 
+export interface SeatHandVisualTransform extends PileVisualTransform {
+  seatIndex: number;
+}
+
+export interface SeatHandVisualCount {
+  playerId: string;
+  visibleBackCount: number;
+  visibleCardCount: number;
+  isLocal: boolean;
+}
+
 export type AnimationBeat =
   | {
       id: string;
@@ -190,6 +201,8 @@ export interface CinematicSceneSnapshot {
   characterMotionStates: CharacterMotionState[];
   seatChamberIndicators: SeatChamberIndicator[];
   seatNameplates: SeatNameplateSnapshot[];
+  seatHandVisualCounts: SeatHandVisualCount[];
+  opponentHandBackCount: number;
   motionCardCount: number;
   settledPileVisualCount: number;
   localHandVisualCount: number;
@@ -510,6 +523,38 @@ export function getPileVisualTransform(index: number, total: number): PileVisual
     rotationY: Math.cos(safeIndex * 0.7) * 0.018,
     rotationZ: Math.sin(safeIndex * 1.47) * 0.075,
     scale: 0.94
+  };
+}
+
+export function getSeatHandVisualTransform(seatIndex: number, cardIndex: number, total: number): SeatHandVisualTransform {
+  const safeSeatIndex = Math.max(0, Math.min(3, Math.floor(seatIndex || 0)));
+  const safeTotal = Math.max(1, Math.min(5, Math.floor(total || 1)));
+  const safeCardIndex = Math.max(0, Math.min(safeTotal - 1, Math.floor(cardIndex || 0)));
+  const fanIndex = safeCardIndex - (safeTotal - 1) / 2;
+  const seatAngle = [-Math.PI / 2, Math.PI, Math.PI / 2, 0][safeSeatIndex] ?? 0;
+  const anchors = [
+    { x: 0, z: -1.48, scale: 0.64 },
+    { x: -2.72, z: -0.78, scale: 0.61 },
+    { x: 0, z: 2.08, scale: 0.62 },
+    { x: 2.72, z: -0.78, scale: 0.61 }
+  ];
+  const anchor = anchors[safeSeatIndex] ?? anchors[0];
+  const spread = safeTotal <= 1 ? 0 : safeTotal <= 3 ? 0.27 : 0.24;
+  const radialJitter = Math.abs(fanIndex) * 0.012;
+  const tangentX = Math.cos(seatAngle + Math.PI / 2);
+  const tangentZ = Math.sin(seatAngle + Math.PI / 2);
+  const radialX = Math.cos(seatAngle);
+  const radialZ = Math.sin(seatAngle);
+
+  return {
+    seatIndex: safeSeatIndex,
+    x: anchor.x + tangentX * fanIndex * spread + radialX * radialJitter,
+    y: safeCardIndex * 0.012,
+    z: anchor.z + tangentZ * fanIndex * spread + radialZ * radialJitter,
+    rotationX: -0.46,
+    rotationY: seatAngle + Math.PI / 2 + fanIndex * 0.035,
+    rotationZ: -fanIndex * 0.075,
+    scale: anchor.scale
   };
 }
 

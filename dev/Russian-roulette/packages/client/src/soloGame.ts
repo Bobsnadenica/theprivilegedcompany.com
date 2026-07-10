@@ -19,14 +19,14 @@ import {
 
 export const SOLO_HUMAN_ID = "human";
 export const SOLO_BOT_IDS = ["bot-1", "bot-2", "bot-3"] as const;
-export const SOLO_BOT_NAMES = ["Mira", "Viktor", "Nadia"] as const;
+export const SOLO_BOT_NAMES = ["Master Chief", "Anduin Wrynn", "Gordon Freeman"] as const;
 
 const SOLO_EVENT_LIMIT = 80;
 const BOT_MIN_DELAY_MS = 1500;
 const BOT_DELAY_SPREAD_MS = 1100;
-const BOT_SPECTATOR_MIN_DELAY_MS = 2800;
-const BOT_SPECTATOR_DELAY_SPREAD_MS = 1800;
-const BOT_POST_CHALLENGE_DELAY_MS = 2600;
+const BOT_SPECTATOR_MIN_DELAY_MS = 3400;
+const BOT_SPECTATOR_DELAY_SPREAD_MS = 2300;
+const BOT_POST_CHALLENGE_DELAY_MS = 3200;
 const BOT_FORCED_CALL_DELAY_MS = 900;
 const SOLO_POST_CHALLENGE_ACTION_LOCK_MS = 6500;
 const FAST_FORWARD_BOT_MIN_DELAY_MS = 420;
@@ -65,27 +65,27 @@ export type SoloBotIntent = BotAction & {
 export const BOT_PERSONALITIES: Record<SoloBotId, BotPersonality> = {
   "bot-1": {
     id: "bot-1",
-    name: "Mira",
-    style: "cautious",
-    challengeBase: 0.22,
-    lowHandBonus: 0.16,
-    largeClaimBonus: 0.08,
-    twoCardChance: 0.24,
-    truthfulBias: 0.9
+    name: "Master Chief",
+    style: "aggressive",
+    challengeBase: 0.42,
+    lowHandBonus: 0.22,
+    largeClaimBonus: 0.16,
+    twoCardChance: 0.54,
+    truthfulBias: 0.64
   },
   "bot-2": {
     id: "bot-2",
-    name: "Viktor",
-    style: "aggressive",
-    challengeBase: 0.44,
-    lowHandBonus: 0.24,
-    largeClaimBonus: 0.16,
-    twoCardChance: 0.62,
-    truthfulBias: 0.52
+    name: "Anduin Wrynn",
+    style: "cautious",
+    challengeBase: 0.2,
+    lowHandBonus: 0.18,
+    largeClaimBonus: 0.1,
+    twoCardChance: 0.28,
+    truthfulBias: 0.88
   },
   "bot-3": {
     id: "bot-3",
-    name: "Nadia",
+    name: "Gordon Freeman",
     style: "balanced",
     challengeBase: 0.32,
     lowHandBonus: 0.28,

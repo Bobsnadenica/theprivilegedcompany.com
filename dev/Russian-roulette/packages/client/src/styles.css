@@ -2642,16 +2642,19 @@ body {
 .app-shell[data-game-ui="active"] .voice-dock {
   align-self: start;
   max-height: min(360px, calc(100dvh - 104px));
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   opacity: 0.82;
   transform: translateY(2px) scale(0.985);
   background:
     radial-gradient(circle at 0% 0%, rgba(80, 161, 210, 0.1), transparent 46%),
     rgba(0, 0, 0, 0.24);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 217, 142, 0.42) rgba(0, 0, 0, 0.18);
 }
 
 .app-shell[data-game-ui="active"] .game-cockpit[data-mode="solo"] .voice-dock {
-  max-height: min(270px, calc(100dvh - 112px));
+  max-height: min(430px, calc(100dvh - 136px));
   opacity: 0.72;
 }
 
@@ -3002,6 +3005,88 @@ body {
   font-size: clamp(1.65rem, 3.4vw, 2.8rem);
 }
 
+/* Active solo: keep controls and status dock from covering each other. */
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] {
+  max-width: min(460px, calc(100vw - 20px));
+  padding: 5px 6px;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .topbar-actions {
+  gap: 6px;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code {
+  gap: 6px;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .solo-mode-pill {
+  min-width: auto;
+  padding: 8px 11px;
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code button {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code button span {
+  display: none;
+}
+
+.app-shell[data-game-ui="active"] .topbar[data-compact="true"] .status-pill {
+  min-width: auto;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+}
+
+.app-shell[data-game-ui="active"] .game-cockpit[data-mode="solo"] .voice-dock {
+  margin-top: 58px;
+  max-height: min(430px, calc(100dvh - 136px));
+}
+
+.dock-toggle {
+  display: inline-flex;
+  width: 100%;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 217, 142, 0.24);
+  border-radius: var(--radius);
+  color: #ffe6a8;
+  background:
+    linear-gradient(180deg, rgba(49, 29, 14, 0.68), rgba(12, 7, 4, 0.58)),
+    rgba(0, 0, 0, 0.28);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.dock-toggle:hover {
+  border-color: rgba(255, 217, 142, 0.5);
+  filter: brightness(1.06);
+}
+
+.voice-dock[data-collapsed="true"] {
+  justify-self: end;
+  width: min(160px, 100%);
+  max-height: none;
+  overflow: visible;
+  padding: 6px;
+  opacity: 0.94;
+}
+
+.voice-dock[data-collapsed="true"] .dock-toggle {
+  min-height: 42px;
+}
+
 @media (max-width: 760px) {
   .topbar[data-compact="true"] {
     right: 6px;
@@ -3013,6 +3098,15 @@ body {
 
   .topbar[data-compact="true"] .topbar-actions {
     justify-content: flex-end;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] {
+    max-width: none;
+  }
+
+  .app-shell[data-game-ui="active"] .game-cockpit[data-mode="solo"] .voice-dock {
+    margin-top: 0;
+    max-height: min(360px, calc(100dvh - 136px));
   }
 
   .topbar[data-compact="false"] h1 {
@@ -3134,5 +3228,305 @@ body {
     bottom: 108px;
     width: calc(100% - 10px);
     padding: 8px;
+  }
+}
+
+/* Phone playability pass: keep the table and core controls inside one viewport. */
+@media (max-width: 760px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .app-shell[data-game-ui="active"] {
+    min-height: 100dvh;
+    padding: 60px 6px 104px;
+    overflow: hidden;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] {
+    top: max(6px, env(safe-area-inset-top));
+    right: 6px;
+    left: 6px;
+    width: auto;
+    max-width: none;
+    padding: 5px 6px;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .topbar-actions,
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code {
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .solo-mode-pill {
+    min-height: 34px;
+    max-width: 118px;
+    padding: 0 10px;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .status-pill {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .status-pill span {
+    width: 9px;
+    height: 9px;
+  }
+
+  .app-shell[data-game-ui="active"] .game-cockpit,
+  .app-shell[data-game-ui="active"] .game-cockpit[data-mode="solo"] {
+    width: 100%;
+    min-width: 0;
+    height: calc(100dvh - 164px);
+    max-height: calc(100dvh - 164px);
+    grid-template-areas: "table";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .app-shell[data-game-ui="active"] .game-cockpit .table-surface {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    padding: 4px;
+    padding-bottom: 78px;
+    overflow: hidden;
+  }
+
+  .app-shell[data-game-ui="active"] .round-strip {
+    max-width: calc(100vw - 20px);
+    gap: 7px;
+    padding: 6px 8px;
+  }
+
+  .app-shell[data-game-ui="active"] .round-strip span {
+    font-size: 0.64rem;
+  }
+
+  .app-shell[data-game-ui="active"] .round-strip strong {
+    font-size: 0.92rem;
+    line-height: 1;
+  }
+
+  .timer-wrap {
+    min-width: 96px;
+  }
+
+  .timer-track {
+    height: 6px;
+  }
+
+  .app-shell[data-game-ui="active"] .table-center {
+    width: 100%;
+    max-width: calc(100vw - 20px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    margin: clamp(18px, 5dvh, 34px) auto 8px;
+  }
+
+  .app-shell[data-game-ui="active"] .table-card,
+  .app-shell[data-game-ui="active"] .pile-stack,
+  .app-shell[data-game-ui="active"] .previous-play {
+    min-height: 74px;
+    padding: 6px;
+  }
+
+  .app-shell[data-game-ui="active"] .table-card span {
+    font-size: 1.7rem;
+  }
+
+  .app-shell[data-game-ui="active"] .table-card strong,
+  .app-shell[data-game-ui="active"] .pile-stack span,
+  .app-shell[data-game-ui="active"] .previous-play strong {
+    font-size: 0.68rem;
+  }
+
+  .bottom-action-tray,
+  .game-cockpit[data-mode="solo"] .bottom-action-tray {
+    right: 6px;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    left: 6px;
+    width: auto;
+    max-height: 94px;
+    transform: none;
+    grid-template-columns: minmax(0, 1fr) 96px;
+    grid-template-areas:
+      "hand actions"
+      "hint actions";
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .bottom-action-tray .hand-cards {
+    flex-wrap: nowrap;
+    gap: 5px;
+    padding: 3px 2px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: none;
+  }
+
+  .bottom-action-tray .hand-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bottom-action-tray .playing-card {
+    flex: 0 0 44px;
+    min-height: 62px;
+    padding: 4px;
+    border-radius: 6px;
+  }
+
+  .bottom-action-tray .playing-card span {
+    font-size: 1.08rem;
+  }
+
+  .bottom-action-tray .playing-card strong {
+    font-size: 0.48rem;
+  }
+
+  .playing-card[data-selected="true"] {
+    transform: rotateX(0deg) translateY(-10px) scale(1.04);
+  }
+
+  .action-cluster {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .action-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .action-row button {
+    min-height: 33px;
+    padding: 0 7px;
+    font-size: 0.8rem;
+  }
+
+  .action-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .solo-mode-pill {
+    max-width: 102px;
+  }
+
+  .app-shell[data-game-ui="active"] .topbar[data-compact="true"] .room-code {
+    justify-content: flex-end;
+  }
+
+  .bottom-action-tray,
+  .game-cockpit[data-mode="solo"] .bottom-action-tray {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+
+  .action-row button {
+    font-size: 0.74rem;
+  }
+}
+
+/* Compact the HUD table-rank readout without affecting physical 3D cards. */
+.app-shell[data-game-ui="active"] .table-card {
+  min-height: 112px;
+  padding: 10px;
+}
+
+.app-shell[data-game-ui="active"] .table-card span {
+  width: 52px;
+  height: 68px;
+  border-radius: 6px;
+  font-size: 1.72rem;
+}
+
+.app-shell[data-game-ui="active"] .table-card strong {
+  margin-top: 6px;
+  font-size: 1.02rem;
+  line-height: 1;
+}
+
+@media (max-width: 760px) {
+  .app-shell[data-game-ui="active"] .table-card {
+    min-height: 72px;
+    padding: 5px;
+  }
+
+  .app-shell[data-game-ui="active"] .table-card span {
+    width: 38px;
+    height: 50px;
+    font-size: 1.22rem;
+  }
+
+  .app-shell[data-game-ui="active"] .table-card strong {
+    margin-top: 4px;
+    font-size: 0.62rem;
+  }
+}
+
+/* Solo demo: the physical table hand is the primary selector; keep the tray hand secondary. */
+.game-cockpit[data-mode="solo"] .bottom-action-tray {
+  grid-template-columns: minmax(90px, 126px) minmax(150px, 0.72fr) minmax(168px, 216px);
+}
+
+.game-cockpit[data-mode="solo"] .bottom-action-tray .hand-cards {
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 2px;
+  opacity: 0.72;
+}
+
+.game-cockpit[data-mode="solo"] .bottom-action-tray .playing-card {
+  flex: 0 0 38px;
+  min-height: 54px;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.game-cockpit[data-mode="solo"] .bottom-action-tray .playing-card span {
+  font-size: 1.05rem;
+}
+
+.game-cockpit[data-mode="solo"] .bottom-action-tray .playing-card strong {
+  font-size: 0.46rem;
+}
+
+.game-cockpit[data-mode="solo"] .bottom-action-tray .playing-card[data-selected="true"] {
+  transform: translateY(-8px) scale(1.06);
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .game-cockpit[data-mode="solo"] .bottom-action-tray {
+    grid-template-columns: minmax(0, 1fr) 96px;
+  }
+
+  .game-cockpit[data-mode="solo"] .bottom-action-tray .hand-cards {
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 }

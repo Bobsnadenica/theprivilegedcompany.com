@@ -93,7 +93,7 @@ Russian Roulette Liar's Deck is a bluffing game for 2-4 seats. The primary mode 
 
 ### Out Of Scope
 
-- Networked AI opponents beyond the static solo demo.
+- Networked computer-controlled opponents beyond the static solo demo.
 - Pass-and-play mode.
 - Accounts, login, database persistence, matchmaking, ranking, text chat, moderation, public matchmaking, or multi-server production hosting.
 - Mobile-native app packaging.

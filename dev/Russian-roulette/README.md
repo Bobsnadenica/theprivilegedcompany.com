@@ -6,17 +6,15 @@
 
 An online multiplayer browser bluffing game. Players join a room, play hidden cards, call `LIAR`, and resolve a roulette-gun consequence when someone is caught bluffing or challenges incorrectly.
 
-This project was built just for fun
-
 ## Play In Browser
 
-- **Solo bot demo:** [Play Solo Demo](play/?autostart=1). The repository includes a static solo-only build that can auto-start for dashboard checks.
+- **Solo bot demo:** [Play Solo Demo](https://www.theprivilegedcompany.com/dev/Russian-roulette/play/?autostart=1). The static solo-only build can auto-start for dashboard checks.
 - **Multiplayer:** Real player rooms still require the Node/Socket.IO server because hidden cards, turns, timers, reconnect, and voice signaling are authoritative on the backend.
 
 ## What It Is
 
 - **Players:** 2-4 real players online, or 1 player vs 3 local bots in the static solo demo.
-- **Mode:** Online room-based multiplayer with a short room code, plus browser-only solo demo for GitLab Pages/GitDocs.
+- **Mode:** Online room-based multiplayer with a short room code, plus a browser-only static solo demo.
 - **Core loop:** Play cards face down, bluff, challenge with `LIAR`, survive roulette.
 - **Authority:** The Node/Socket.IO server owns cards, turns, timer, challenge outcomes, roulette results, eliminations, and winner detection.
 - **Privacy:** Each player receives only their own hand. Opponents see hand counts, roulette shot counts, public table state, revealed challenge cards, and event log entries.
@@ -47,7 +45,7 @@ This project was built just for fun
 
 ## What You Control
 
-- **Play Solo Demo:** Starts a local browser-only game against Mira, Viktor, and Nadia. No server or room code is needed. Bots have different bluffing styles, speak above their seats, and slow down after you are eliminated so the table remains watchable.
+- **Play Solo Demo:** Starts a local browser-only game against Master Chief, Anduin Wrynn, and Gordon Freeman. No server or room code is needed. Bots have different bluffing styles, speak above their seats, and slow down after you are eliminated so the table remains watchable.
 - **Create / Join mode:** Use the entry cockpit switch to host a new table or join with a room code.
 - **Rules:** Open the rules overlay from the top room bar.
 - **3D seat labels:** Read player name, voice state, and roulette chamber status above each character during play.
@@ -164,7 +162,7 @@ See [Deployment Checklist](docs/DEPLOYMENT.md).
 
 The static build is playable directly from the README and runs solo against bots. It does not need a Node server:
 
-[Play Solo Demo](play/?autostart=1)
+[Play Solo Demo](https://www.theprivilegedcompany.com/dev/Russian-roulette/play/?autostart=1)
 
 To build the static artifact locally:
 
@@ -172,7 +170,7 @@ To build the static artifact locally:
 npm run build:pages
 ```
 
-The static build uses the same client bundle with a relative, static-hosting-safe base path.
+The static deployment job runs the same client build with a subpath-safe base and publishes the generated client artifact.
 
 The static demo disables room codes, WebRTC voice, and Socket.IO. It uses a local solo scheduler for bot turns, bot quotes, challenge pacing, and lightweight table sounds. The `?autostart=1` URL starts the bot demo immediately for hosted dashboard monitors; the in-game **Play** button also auto-plays one card in solo mode when no card is selected. For human-vs-human multiplayer, run the local/LAN/private Node server instructions above.
 
@@ -304,15 +302,4 @@ packages/
 tests/e2e/  Playwright multiplayer smoke tests
 docs/       Screenshots, deployment notes, third-party asset notes
 scripts/    Cinematic GLB and texture asset generators
-```
-
-## Docs
-
-- [SPEC.md](SPEC.md)
-- [ARCHITECTURE.md](ARCHITECTURE.md)
-
-## Repository Location
-
-```text
-dev/Russian-roulette
 ```

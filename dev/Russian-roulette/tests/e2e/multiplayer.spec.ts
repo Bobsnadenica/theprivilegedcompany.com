@@ -37,7 +37,13 @@ test("solo bot demo starts without opening a Socket.IO backend connection", asyn
   await expect(page.getByTestId("solo-quick-row")).toBeVisible();
   await expect(page.getByTestId("solo-status-grid")).toBeHidden();
   await expect(page.getByTestId("solo-sound-toggle")).toBeVisible();
-  await expect.poll(() => soloDockIsCompact(page), { timeout: 5000 }).toBe(true);
+  await expect(page.getByTestId("solo-dock-toggle")).toContainText("Minimize");
+  await expect(page.getByTestId("history-panel")).toBeVisible();
+  await page.getByTestId("solo-dock-toggle").click();
+  await expect(page.getByTestId("solo-demo-panel")).toHaveCount(0);
+  await expect(page.getByTestId("solo-dock-toggle")).toContainText("Open status");
+  await page.getByTestId("solo-dock-toggle").click();
+  await expect(page.getByTestId("solo-demo-panel")).toBeVisible();
   await page.getByTestId("solo-details-toggle").click();
   await expect(page.getByTestId("solo-status-grid")).toBeVisible();
   await page.getByTestId("solo-details-toggle").click();
@@ -45,21 +51,35 @@ test("solo bot demo starts without opening a Socket.IO backend connection", asyn
   await expect(page.getByTestId("voice-panel")).toHaveCount(0);
   await expect(page.getByTestId("bottom-action-tray")).toBeVisible({ timeout: 10000 });
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => (snapshot.seatNameplates ?? []).map((plate: { name: string }) => plate.name).sort()), { timeout: 10000 }).toEqual([
-    "Mira",
-    "Nadia",
-    "Viktor",
+    "Anduin Wrynn",
+    "Gordon Freeman",
+    "Master Chief",
     "You"
   ]);
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.soloPhase), { timeout: 10000 }).toBe("humanTurn");
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.gunParked), { timeout: 10000 }).toBe(true);
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.localHandVisible), { timeout: 10000 }).toBe(true);
+  await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.localHandVisualCount), { timeout: 10000 }).toBe(5);
+  await expect
+    .poll(() => sceneSnapshot(page).then((snapshot) => (snapshot.seatHandVisualCounts ?? []).filter((hand: { visibleCardCount: number }) => hand.visibleCardCount === 5).length), {
+      timeout: 10000
+    })
+    .toBe(4);
+  await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.opponentHandBackCount), { timeout: 10000 }).toBe(15);
+  await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.cameraDistance), { timeout: 10000 }).toBeGreaterThan(7);
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.visibleNameplateCount >= 3), { timeout: 10000 }).toBe(true);
 
-  await playFirstEnabledCards(page, 1);
+  const firstCard = page.locator('[data-testid^="hand-card-"]:not(:disabled)').first();
+  await expect(firstCard).toBeVisible({ timeout: 10000 });
+  await firstCard.click();
+  await expect(firstCard).toHaveAttribute("data-selected", "true");
+  await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.selectedHandVisualCount), { timeout: 10000 }).toBeGreaterThanOrEqual(1);
+  await expect(page.getByTestId("play-selected")).toBeEnabled();
+  await page.getByTestId("play-selected").click();
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => ["botThinking", "resolvingChallenge", "humanTurn", "spectating"].includes(snapshot.soloPhase)), { timeout: 10000 }).toBe(true);
   await expect
     .poll(() => page.getByTestId("event-ticker").innerText(), { timeout: 8000 })
-    .toMatch(/Mira|Viktor|Nadia|LIAR|played/i);
+    .toMatch(/Master Chief|Anduin Wrynn|Gordon Freeman|LIAR|played/i);
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => Boolean(snapshot.speechBubbleVisible || snapshot.botThinkingPlayerId)), { timeout: 10000 }).toBe(true);
   await expect.poll(() => sceneSnapshot(page).then((snapshot) => snapshot.visibleQuoteCount <= 1), { timeout: 10000 }).toBe(true);
   expect(backendRequests).toEqual([]);
@@ -1018,14 +1038,6 @@ async function playFirstEnabledCards(page: import("@playwright/test").Page, coun
   }
   await expect(page.getByTestId("play-selected")).toBeEnabled();
   await page.getByTestId("play-selected").click();
-}
-
-async function soloDockIsCompact(page: import("@playwright/test").Page) {
-  return page.getByTestId("solo-dock").evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    const style = window.getComputedStyle(element);
-    return rect.width <= 310 && rect.height <= 330 && style.overflow === "hidden";
-  });
 }
 
 async function installVoiceMocks(page: import("@playwright/test").Page) {

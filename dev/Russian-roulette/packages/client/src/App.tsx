@@ -1,5 +1,7 @@
 import {
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   Clipboard,
   DoorOpen,
   Flame,
@@ -43,6 +45,7 @@ const SESSION_KEY = "rrld-session";
 const RULES_DISMISSED_KEY = "rrld-rules-dismissed";
 const SOUND_ENABLED_KEY = "rrld-table-sounds-enabled";
 const CHALLENGE_RESULT_DISPLAY_MS = 3800;
+const SOLO_CHALLENGE_RESULT_DISPLAY_MS = 6200;
 const AUTO_START_PARAM = "autostart";
 
 type CockpitPhase = "entry" | "lobby" | "playing" | "challenge" | "roulette" | "gameOver";
@@ -75,6 +78,7 @@ export function App() {
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [soloDockCollapsed, setSoloDockCollapsed] = useState(false);
   const [dismissedChallengeKey, setDismissedChallengeKey] = useState<string | undefined>(undefined);
   const [rouletteSpoiler, setRouletteSpoiler] = useState<RouletteSpoilerState>({ displayPhase: "hidden", resultUiUnlocked: false });
   const [lockNow, setLockNow] = useState(() => Date.now());
@@ -87,6 +91,7 @@ export function App() {
   const lastChallengeSoundKeyRef = useRef<string | undefined>(undefined);
   const lastResultSoundKeyRef = useRef<string | undefined>(undefined);
   const lastQuoteKeyRef = useRef<string | undefined>(undefined);
+  const lastQuoteSoundKeyRef = useRef<string | undefined>(undefined);
   const lastThinkingQuoteKeyRef = useRef<string | undefined>(undefined);
   const lastQuoteAtRef = useRef(0);
   const autoStartedRef = useRef(false);
@@ -328,6 +333,22 @@ export function App() {
   }, [currentChallengeKey, game?.lastChallenge, isSoloMode, latestRawEvent, myPlayerId, publicPlayers, resultConcealed]);
 
   useEffect(() => {
+    if (!tableQuote) {
+      lastQuoteSoundKeyRef.current = undefined;
+      return;
+    }
+    if (!soundEnabled || tableQuote.playerId === SOLO_HUMAN_ID) {
+      return;
+    }
+    const quoteSoundKey = `${tableQuote.playerId}:${tableQuote.tone}:${tableQuote.text}`;
+    if (lastQuoteSoundKeyRef.current === quoteSoundKey) {
+      return;
+    }
+    lastQuoteSoundKeyRef.current = quoteSoundKey;
+    void tableAudio.playCharacterVoice(tableQuote.playerId, tableQuote.speaker, tableQuote.tone);
+  }, [soundEnabled, tableAudio, tableQuote]);
+
+  useEffect(() => {
     if (!isSoloMode || resultConcealed || !soloScheduler.botId || !["botThinking", "spectating"].includes(soloScheduler.phase)) {
       return;
     }
@@ -407,7 +428,7 @@ export function App() {
 
     const timeout = window.setTimeout(() => {
       setDismissedChallengeKey(currentChallengeKey);
-    }, isSoloMode ? 5200 : CHALLENGE_RESULT_DISPLAY_MS);
+    }, isSoloMode ? SOLO_CHALLENGE_RESULT_DISPLAY_MS : CHALLENGE_RESULT_DISPLAY_MS);
 
     return () => window.clearTimeout(timeout);
   }, [currentChallengeKey, dismissedChallengeKey, game?.lastChallenge, isSoloMode, resultConcealed]);
@@ -615,6 +636,7 @@ export function App() {
         soloPhase={isSoloMode ? soloScheduler.phase : undefined}
         botThinkingPlayerId={isSoloMode ? soloScheduler.botId : undefined}
         tableQuote={tableQuote}
+        onLocalCardToggle={toggleCard}
         onRouletteStageChange={handleRouletteStageChange}
       />
       <div className="noise" aria-hidden="true" />
@@ -724,33 +746,49 @@ export function App() {
             )}
           </section>
 
-          <aside className="voice-dock cockpit-panel" data-testid={isSoloMode ? "solo-dock" : "voice-dock"}>
+          <aside className="voice-dock cockpit-panel" data-collapsed={isSoloMode && soloDockCollapsed} data-testid={isSoloMode ? "solo-dock" : "voice-dock"}>
             {isSoloMode ? (
-              <SoloDemoPanel
-                scheduler={soloScheduler}
-                players={publicPlayers}
-                humanEliminated={humanEliminated}
-                soundEnabled={soundEnabled}
-                onToggleSound={toggleTableSound}
-                onToggleFastForward={() => solo.setFastForward(!solo.fastForward)}
-              />
-            ) : (
-              <VoicePanel
-                voice={voice}
-                disabled={!room || !myPlayerId}
-                players={publicPlayers}
-                myPlayerId={myPlayerId}
-                onJoin={joinVoice}
-                onLeave={leaveVoice}
-                onToggleMute={toggleMute}
-                onResetVoice={resetVoice}
-                onRetryAudio={retryAudioPlayback}
-                onTestSpeaker={testSpeaker}
-                onTestMicLoopback={testMicLoopback}
-              />
-            )}
-            <EventTicker latestEvent={latestEvent} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((open) => !open)} />
-            <HistoryPanel events={displayEvents} open={historyOpen} onToggle={() => setHistoryOpen((open) => !open)} />
+              <button
+                className="dock-toggle"
+                type="button"
+                onClick={() => setSoloDockCollapsed((collapsed) => !collapsed)}
+                aria-expanded={!soloDockCollapsed}
+                data-testid="solo-dock-toggle"
+              >
+                {soloDockCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+                <span>{soloDockCollapsed ? "Open status" : "Minimize"}</span>
+              </button>
+            ) : null}
+            {!(isSoloMode && soloDockCollapsed) ? (
+              <>
+                {isSoloMode ? (
+                  <SoloDemoPanel
+                    scheduler={soloScheduler}
+                    players={publicPlayers}
+                    humanEliminated={humanEliminated}
+                    soundEnabled={soundEnabled}
+                    onToggleSound={toggleTableSound}
+                    onToggleFastForward={() => solo.setFastForward(!solo.fastForward)}
+                  />
+                ) : (
+                  <VoicePanel
+                    voice={voice}
+                    disabled={!room || !myPlayerId}
+                    players={publicPlayers}
+                    myPlayerId={myPlayerId}
+                    onJoin={joinVoice}
+                    onLeave={leaveVoice}
+                    onToggleMute={toggleMute}
+                    onResetVoice={resetVoice}
+                    onRetryAudio={retryAudioPlayback}
+                    onTestSpeaker={testSpeaker}
+                    onTestMicLoopback={testMicLoopback}
+                  />
+                )}
+                <EventTicker latestEvent={latestEvent} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((open) => !open)} />
+                <HistoryPanel events={displayEvents} open={historyOpen} onToggle={() => setHistoryOpen((open) => !open)} />
+              </>
+            ) : null}
           </aside>
 
           {game && game.phase !== "gameOver" ? (
@@ -1426,7 +1464,7 @@ function soloPhaseDescription(scheduler: SoloSchedulerState, botName = "Bot"): s
   if (scheduler.phase === "gameOver") {
     return "Use Play again or Exit when you are ready.";
   }
-  return "You are playing locally against Mira, Viktor, and Nadia. No server, clone, install, room code, or voice channel is needed.";
+  return "You are playing locally against Master Chief, Anduin Wrynn, and Gordon Freeman. No server, clone, install, room code, or voice channel is needed.";
 }
 
 function getCockpitPhase(
@@ -1555,36 +1593,42 @@ function rouletteResultSentence(playerName = "Player", result: RouletteKind): st
 }
 
 const SOLO_QUOTE_BANK: Record<TableQuoteTone | "rouletteDry" | "rouletteHit", string[]> = {
-  thinking: ["Reading the table.", "Counting the story.", "Too quiet.", "One more look."],
-  play: ["Cards down.", "Your read.", "Small story. Big nerves.", "Let's see who buys it."],
-  challenge: ["LIAR.", "Show the cards.", "That claim sounds thin.", "I want to see it."],
-  roulette: ["Easy now.", "Hold your breath.", "One pull decides it."],
-  rouletteDry: ["Dry. Lucky seat.", "Still in the chair.", "That one missed."],
-  rouletteHit: ["Hit. You're out.", "That's a wet exit.", "The table takes one."],
-  winner: ["Table's mine.", "Read the room. Won the room.", "Last seat standing."]
+  thinking: ["Reading it.", "Counting tells.", "Too quiet.", "One more look."],
+  play: ["Cards down.", "Your read.", "Small story.", "Buy it or don't."],
+  challenge: ["LIAR.", "Show them.", "Too neat.", "I want the reveal."],
+  roulette: ["Easy now.", "Hold steady.", "One pull."],
+  rouletteDry: ["Dry. Lucky.", "Still seated.", "That missed."],
+  rouletteHit: ["Hit. Out.", "Wet exit.", "The table takes one."],
+  winner: ["Table's mine.", "I read the room.", "Last seat standing."]
 };
 
 const SOLO_PERSONALITY_QUOTES: Record<string, Partial<Record<keyof typeof SOLO_QUOTE_BANK, string[]>>> = {
   "bot-1": {
-    thinking: ["Slow hands.", "No rush.", "The table talks."],
-    play: ["Quiet card.", "No drama from me.", "Careful hands win tables."],
-    challenge: ["I do not believe that.", "Show it slowly.", "Too neat. LIAR."],
-    rouletteDry: ["Still breathing.", "Dry. I will take it."],
-    rouletteHit: ["The table is cruel.", "That one found me."]
+    thinking: ["Assessing the table.", "Hold the line.", "Reading the target.", "No wasted moves."],
+    play: ["Card deployed.", "Move made.", "Keeping formation.", "Clean and quiet."],
+    challenge: ["That story breaks. LIAR.", "I am calling it.", "Reveal the claim.", "No cover there."],
+    roulette: ["Brace.", "Steady.", "One pull."],
+    rouletteDry: ["Dry chamber. Continue.", "Still mission-ready.", "Missed. Reset."],
+    rouletteHit: ["Hit confirmed. I'm out.", "Armor soaked.", "Leaving the table."],
+    winner: ["Table secured.", "Mission complete.", "Last seat standing."]
   },
   "bot-2": {
-    thinking: ["Push the pace.", "Someone is folding.", "Pressure first."],
-    play: ["Try me.", "Pressure makes truth.", "Two cards. No fear."],
-    challenge: ["LIAR.", "No chance.", "I am calling that."],
-    rouletteDry: ["Ha. Missed.", "Not today."],
-    rouletteHit: ["Fine. I am out.", "That splash had my name."]
+    thinking: ["Patience first.", "The room has a rhythm.", "Choose with care.", "A calm hand wins."],
+    play: ["A measured move.", "Let this stand.", "With steady hands.", "No need to rush."],
+    challenge: ["Truth has a shape. LIAR.", "I cannot accept that.", "Show us the cards.", "This claim bends."],
+    roulette: ["Hold steady.", "Let chance speak.", "No fear, only resolve."],
+    rouletteDry: ["A mercy of chance.", "Still at the table.", "That was close."],
+    rouletteHit: ["I yield this hand.", "The table has judged.", "I am out."],
+    winner: ["A steady hand prevails.", "The last seat is mine.", "Calm carried the table."]
   },
   "bot-3": {
-    thinking: ["Pattern feels odd.", "Cards remember.", "Maybe. Maybe not."],
-    play: ["Let's keep it honest-ish.", "Small bet on a big lie.", "Read the rhythm."],
-    challenge: ["That count feels wrong.", "I want the reveal.", "LIAR, maybe."],
-    rouletteDry: ["Lucky table.", "That was close."],
-    rouletteHit: ["And there it is.", "Wet ending."]
+    thinking: ["...", "Silent calculation.", "He adjusts his glasses.", "The math is loud enough."],
+    play: ["No comment.", "A quiet play.", "The card speaks.", "..."],
+    challenge: ["He taps the table: LIAR.", "The numbers disagree.", "Silent doubt.", "Reveal it."],
+    roulette: ["...", "Variable unknown.", "Testing chance."],
+    rouletteDry: ["The apparatus clicks dry.", "A close variable.", "Still silent."],
+    rouletteHit: ["Experiment concluded.", "A wet variable.", "He exits without a word."],
+    winner: ["No speech. Just results.", "Observation complete.", "The quiet one remains."]
   }
 };
 

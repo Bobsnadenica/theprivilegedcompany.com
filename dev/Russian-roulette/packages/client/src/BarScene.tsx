@@ -25,6 +25,7 @@ import {
   getCinematicDuration,
   getPileVisualTransform,
   getSeatChamberIndicator,
+  getSeatHandVisualTransform,
   rouletteDisplayPhaseFromSceneState,
   rouletteVisualResult as getRouletteVisualResult
 } from "./animationTypes";
@@ -46,6 +47,7 @@ interface BarSceneProps {
   soloPhase?: SoloScenePhase;
   botThinkingPlayerId?: string;
   tableQuote?: SceneTableQuote | null;
+  onLocalCardToggle?: (cardId: string) => void;
   onRouletteStageChange?: (stage: { rouletteState: RouletteSceneState; displayPhase: RouletteDisplayPhase; resultUiUnlocked: boolean }) => void;
 }
 
@@ -186,7 +188,7 @@ const ASSET_PATHS: Record<CinematicAssetId, string> = {
 };
 
 const ASSET_IDS = Object.keys(ASSET_PATHS) as CinematicAssetId[];
-const CHARACTER_ATLAS_PATH = publicAssetPath("assets/cinematic/characters/noir-gambler-atlas-alpha.png");
+const CHARACTER_ATLAS_PATH = publicAssetPath("assets/cinematic/characters/noir-persona-atlas-alpha.png");
 const WATER_STREAM_PATH = publicAssetPath("assets/cinematic/effects/water-stream.png");
 const WATER_SPLASH_PATH = publicAssetPath("assets/cinematic/effects/water-splash.png");
 const WATER_MIST_PATH = publicAssetPath("assets/cinematic/effects/water-mist.png");
@@ -254,6 +256,8 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
           characterMotionStates: [],
           seatChamberIndicators: [],
           seatNameplates: [],
+          seatHandVisualCounts: [],
+          opponentHandBackCount: 0,
           motionCardCount: 0,
           settledPileVisualCount: 0,
           localHandVisualCount: 0,
@@ -355,7 +359,8 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
     props.actionsLocked,
     props.soloPhase,
     props.botThinkingPlayerId,
-    props.tableQuote
+    props.tableQuote,
+    props.onLocalCardToggle
   ]);
 
   return (
@@ -437,6 +442,8 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   const cameraLookTarget = cameraTarget.clone();
   const cameraPositionTarget = new THREE.Vector3(0, 3.45, 6.7);
   camera.position.copy(cameraPositionTarget);
+  const raycaster = new THREE.Raycaster();
+  const pointerNdc = new THREE.Vector2();
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -467,9 +474,11 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   tableRoot.add(revealGroup);
 
   const handCards: THREE.Group[] = [];
+  const seatHandGroups: THREE.Group[] = [];
   let tableRankCard: THREE.Group | undefined;
   let toy: ToyRig | undefined;
   const seats: SeatRig[] = [];
+  const tableRankCardScale = 0.84;
 
   const amberLight = new THREE.PointLight(0xffb35d, 4.4, 13, 1.8);
   amberLight.position.set(-2.8, 5.2, 2.1);
@@ -610,9 +619,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
 
     tableRankCard = createCard("KING", true);
     tableRankCard.name = "TableRankCard";
-    tableRankCard.position.copy(tablePoint("rank"));
-    tableRankCard.rotation.set(-0.25, -0.38, 0.08);
-    tableRankCard.scale.setScalar(1.28);
+    syncTableRankCardTransform();
     tableRoot.add(tableRankCard);
 
     for (let index = 0; index < 5; index += 1) {
@@ -627,6 +634,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       handCards.push(card);
     }
     syncLocalHandVisuals();
+    installSeatHandCards();
 
     installSeats();
     installToyRoulette();
@@ -639,8 +647,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     tableMeshNames = collectObjectNames(fallbackTable);
     tableRoot.add(fallbackTable);
     tableRankCard = createCard("KING", true);
-    tableRankCard.position.copy(tablePoint("rank"));
-    tableRankCard.scale.setScalar(1.25);
+    syncTableRankCardTransform();
     tableRoot.add(tableRankCard);
 
     for (let index = 0; index < 5; index += 1) {
@@ -654,10 +661,30 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       handCards.push(card);
     }
     syncLocalHandVisuals();
+    installSeatHandCards();
 
     installFallbackSeats();
     installFallbackToyRoulette();
     refreshPile();
+  }
+
+  function installSeatHandCards() {
+    if (seatHandGroups.length > 0) {
+      return;
+    }
+    for (let seatIndex = 0; seatIndex < 4; seatIndex += 1) {
+      const group = new THREE.Group();
+      group.name = `SeatHandCards_${seatIndex}`;
+      tableRoot.add(group);
+      seatHandGroups[seatIndex] = group;
+      for (let cardIndex = 0; cardIndex < 5; cardIndex += 1) {
+        const card = createCard(undefined, false);
+        card.name = `SeatHandBack_${seatIndex}_${cardIndex}`;
+        card.visible = false;
+        group.add(card);
+      }
+    }
+    syncSeatHandVisuals();
   }
 
   function installSeats() {
@@ -702,7 +729,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     imageRoot.position.set(0, 1.05, 0);
     group.add(imageRoot);
 
-    const geometry = new THREE.PlaneGeometry(2.35, 2.35);
+    const geometry = new THREE.PlaneGeometry(2.08, 2.08);
     const bodyMaterial = createCharacterMaterial(atlas, index, {
       opacity: 1,
       brightness: 1.18,
@@ -819,12 +846,16 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       localHand: next.localHand ?? props.localHand ?? [],
       selectedCardIds: next.selectedCardIds ?? props.selectedCardIds ?? [],
       soloPhase: next.soloPhase ?? props.soloPhase,
-      botThinkingPlayerId: next.botThinkingPlayerId ?? props.botThinkingPlayerId
+      botThinkingPlayerId: next.botThinkingPlayerId ?? props.botThinkingPlayerId,
+      onLocalCardToggle: next.onLocalCardToggle ?? props.onLocalCardToggle
     };
     if (!ready) {
       return;
     }
-    syncLocalHandVisuals();
+    if (!pileAnimationInFlight) {
+      syncLocalHandVisuals();
+      syncSeatHandVisuals();
+    }
     if (!pileAnimationInFlight) {
       refreshPile();
     }
@@ -864,7 +895,16 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
           type: "parallel",
           label: "round-focus",
           steps: [
-            { type: "action", label: "focus-table", run: () => setCameraPreset("table") },
+            {
+              type: "action",
+              label: "focus-table",
+              run: () => {
+                setCameraPreset("table");
+                if (tableRankCard) {
+                  applyCardFace(tableRankCard, undefined, false, false);
+                }
+              }
+            },
             {
               type: "tween",
               label: "table-rank-flip",
@@ -872,19 +912,20 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
               update: (progress) => {
                 if (!tableRankCard) return;
                 const eased = easeInOutCubic(progress);
+                const restRotation = tableRankCardRestRotation();
                 tableRankCard.position.y = tablePoint("rank").y + Math.sin(progress * Math.PI) * 0.42;
-                tableRankCard.rotation.y = -0.38 + eased * Math.PI;
-                tableRankCard.rotation.z = 0.08 + Math.sin(progress * Math.PI) * 0.12;
-                tableRankCard.scale.setScalar(1.28 + Math.sin(progress * Math.PI) * 0.12);
+                tableRankCard.rotation.x = restRotation.x;
+                tableRankCard.rotation.y = restRotation.y - Math.PI + eased * Math.PI;
+                tableRankCard.rotation.z = restRotation.z + Math.sin(progress * Math.PI) * 0.08;
+                tableRankCard.scale.setScalar(tableRankCardScale + Math.sin(progress * Math.PI) * 0.08);
                 if (progress > 0.46) {
-                  setRankCard(beat.tableRank);
+                  setRankCard(beat.tableRank, false);
                 }
               },
               complete: () => {
                 if (!tableRankCard) return;
-                tableRankCard.position.copy(tablePoint("rank"));
-                tableRankCard.rotation.set(-0.25, -0.38, 0.08);
-                tableRankCard.scale.setScalar(1.28);
+                setRankCard(beat.tableRank);
+                syncTableRankCardTransform();
               }
             }
           ]
@@ -912,7 +953,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
             { type: "tween", label: "table-impact", durationMs: 1080, update: tableImpactTween(0.042) }
           ]
         },
-        { type: "wait", label: "cards-settle", durationMs: 760 },
+        { type: "wait", label: "cards-settle", durationMs: 920 },
         { type: "action", label: "card-play-idle", run: () => (cardMotionState = "settled") }
       ]
     };
@@ -935,13 +976,13 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
         { type: "wait", label: "accusation-hold", durationMs: 520 },
         { type: "action", label: "reveal-camera", run: () => setCameraPreset("reveal", beat.accusedId) },
         { type: "action", label: "reveal-cards", run: () => revealCards(beat.callerId, beat.accusedId, beat.revealedCards, beat.liarCardIds) },
-        { type: "wait", label: "reveal-settle", durationMs: 1800 }
+        { type: "wait", label: "reveal-settle", durationMs: 2100 }
       ]
     };
   }
 
   function rouletteTimeline(beat: Extract<CinematicBeat, { type: "roulette" }>): SceneTimelineStep {
-    const resultHoldMs = beat.result === "LETHAL" ? 2400 : 1650;
+    const resultHoldMs = beat.result === "LETHAL" ? 2700 : 1900;
     return {
       type: "sequence",
       label: "roulette",
@@ -963,7 +1004,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
             { type: "tween", label: "target-brace", durationMs: 1120, update: rouletteSeatTween(beat.playerId, 0.36) }
           ]
         },
-        { type: "wait", label: "roulette-suspense-hold", durationMs: 1180 },
+        { type: "wait", label: "roulette-suspense-hold", durationMs: 1450 },
         {
           type: "parallel",
           label: "roulette-fire",
@@ -988,7 +1029,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
           ]
         },
         { type: "action", label: "roulette-settle", run: () => settleRouletteCutscene(beat.playerId, beat.result) },
-        { type: "wait", label: "roulette-result-hold", durationMs: beat.result === "LETHAL" ? 1300 : 1000 }
+        { type: "wait", label: "roulette-result-hold", durationMs: beat.result === "LETHAL" ? 1650 : 1350 }
       ]
     };
   }
@@ -1073,6 +1114,12 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     refreshPile(0);
     setRankCard(tableRank);
     syncLocalHandVisuals();
+    handCards.forEach((card) => {
+      card.visible = false;
+    });
+    seatHandGroups.forEach((group) => {
+      group.visible = false;
+    });
     focusPlayer(props.currentTurnPlayerId);
 
     const dealMotionCards: THREE.Object3D[] = [];
@@ -1088,6 +1135,8 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
           motionCards.remove(card);
         }
       });
+      syncLocalHandVisuals();
+      syncSeatHandVisuals();
       if (cardMotionState === "dealing") {
         cardMotionState = "idle";
       }
@@ -1149,7 +1198,22 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     focusPlayer(playerId);
     clearGroup(motionCards);
     const startAnchor = seatAnchor(playerId, 0.64);
-    const localHandStarts = playerId === props.localPlayerId ? recentSelectedHandStarts.slice(0, cardCount) : [];
+    const localHandStarts =
+      playerId === props.localPlayerId
+        ? (recentSelectedHandStarts.length > 0
+            ? recentSelectedHandStarts.slice(0, cardCount)
+            : handCards
+                .filter((card) => card.visible)
+                .slice(0, cardCount)
+                .map((mesh) => ({ mesh, position: mesh.position.clone(), rotation: mesh.rotation.clone() })))
+        : [];
+    const opponentHandStarts =
+      playerId !== props.localPlayerId
+        ? (seatHandGroups[findPlayerIndex(playerId)]?.children
+            .filter((child): child is THREE.Group => child.visible)
+            .slice(-cardCount)
+            .map((mesh) => ({ mesh, position: mesh.position.clone(), rotation: mesh.rotation.clone() })) ?? [])
+        : [];
     recentSelectedHandStarts = [];
     const targetPileCount = Math.max(cardCount, props.pileCount || 0, visualPileCount);
     const previousPileCount = Math.max(0, targetPileCount - cardCount);
@@ -1163,12 +1227,19 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     for (let index = 0; index < cardCount; index += 1) {
       const card = createCard(undefined, false);
       const localStart = localHandStarts[index];
+      const opponentStart = opponentHandStarts[index];
       const landingTransform = pileCardTransform(firstLandingIndex + index, targetPileCount);
       const end = tablePoint("pile").clone().add(landingTransform.position).add(new THREE.Vector3(0, 0.12, 0));
-      const start = localStart?.position.clone().add(new THREE.Vector3(0, 0.16, 0)) ?? startAnchor.clone();
-      card.position.copy(start);
+      const start = (localStart ?? opponentStart)?.position.clone().add(new THREE.Vector3(0, 0.16, 0)) ?? startAnchor.clone();
       if (localStart) {
-        card.rotation.copy(localStart.rotation);
+        localStart.mesh.visible = false;
+      }
+      if (opponentStart) {
+        opponentStart.mesh.visible = false;
+      }
+      card.position.copy(start);
+      if (localStart ?? opponentStart) {
+        card.rotation.copy((localStart ?? opponentStart)!.rotation);
       } else {
         card.rotation.set(-0.28, 0.22, index * 0.1);
       }
@@ -1192,6 +1263,8 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
             pileAnimationInFlight = false;
             refreshPile(targetPileCount);
             clearGroup(motionCards);
+            syncLocalHandVisuals();
+            syncSeatHandVisuals();
             cardMotionState = "settled";
           }
         }
@@ -1215,7 +1288,8 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
 
     revealedCards.forEach((card, index) => {
       const isLiar = liarCardIds.includes(card.id);
-      const meshCard = createCard(card.rank, true, isLiar);
+      const meshCard = createCard(undefined, false);
+      let faceRevealed = false;
       const start = new THREE.Vector3(index * 0.18, 0.42, -0.56);
       const target = new THREE.Vector3(index * 0.52, 0.04, 0);
       meshCard.position.copy(start);
@@ -1225,6 +1299,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
         980 + index * 220,
         (progress) => {
           const eased = easeOutCubic(progress);
+          if (!faceRevealed && progress > 0.48) {
+            applyCardFace(meshCard, card.rank, isLiar, true);
+            faceRevealed = true;
+          }
           meshCard.position.lerpVectors(start, target, eased);
           meshCard.rotation.y = Math.PI / 2 - eased * Math.PI / 2;
           meshCard.position.y += Math.sin(progress * Math.PI) * 0.7;
@@ -1232,6 +1310,9 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
           meshCard.scale.setScalar(1 + Math.sin(progress * Math.PI) * (isLiar ? 0.24 : 0.14));
         },
         () => {
+          if (!faceRevealed) {
+            applyCardFace(meshCard, card.rank, isLiar, true);
+          }
           if (index === revealedCards.length - 1) {
             cardMotionState = "settled";
           }
@@ -1348,12 +1429,16 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     }
     direction.normalize();
     const tangent = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
+    const soloView = Boolean(props.soloPhase);
+    const distance = soloView ? (kind === "cardPlay" ? 7.65 : 8.45) : kind === "cardPlay" ? 5.15 : 7.25;
+    const height = soloView ? (kind === "cardPlay" ? 3.42 : 3.62) : kind === "cardPlay" ? 2.42 : 3.18;
+    const targetHeight = soloView ? (kind === "cardPlay" ? 1.12 : 1.22) : kind === "cardPlay" ? 1.04 : 1.24;
     const position = direction
       .clone()
-      .multiplyScalar(kind === "cardPlay" ? 5.15 : 7.25)
+      .multiplyScalar(distance)
       .add(tangent.clone().multiplyScalar(0.08))
-      .add(new THREE.Vector3(0, kind === "cardPlay" ? 2.42 : 3.18, 0));
-    const target = new THREE.Vector3(0, kind === "cardPlay" ? 1.04 : 1.24, 0.02);
+      .add(new THREE.Vector3(0, height, 0));
+    const target = new THREE.Vector3(0, targetHeight, soloView ? -0.04 : 0.02);
     return { position, target };
   }
 
@@ -1840,6 +1925,11 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       if ((event.button !== 0 && event.pointerType === "mouse") || shouldIgnoreOrbitDrag(event.target)) {
         return;
       }
+      const cardId = pickLocalHandCard(event);
+      if (cardId) {
+        props.onLocalCardToggle?.(cardId);
+        return;
+      }
       isCameraDragging = true;
       cameraUserControlled = true;
       lastPointerX = event.clientX;
@@ -1875,6 +1965,16 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     window.addEventListener("pointerup", stopDrag, { signal: pointerAbort.signal });
     window.addEventListener("pointercancel", stopDrag, { signal: pointerAbort.signal });
     canvas.addEventListener(
+      "pointermove",
+      (event) => {
+        if (isCameraDragging) {
+          return;
+        }
+        canvas.style.cursor = pickLocalHandCard(event) ? "pointer" : "grab";
+      },
+      { signal: pointerAbort.signal }
+    );
+    canvas.addEventListener(
       "dblclick",
       () => {
         targetUserCameraYaw = 0;
@@ -1885,8 +1985,44 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     );
   }
 
+  function pickLocalHandCard(event: PointerEvent) {
+    if (props.actionsLocked || shouldIgnoreOrbitDrag(event.target)) {
+      return undefined;
+    }
+    const localPlayer = props.players.find((player) => player.id === props.localPlayerId);
+    if (!localPlayer || localPlayer.id !== props.currentTurnPlayerId) {
+      return undefined;
+    }
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointerNdc.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -(((event.clientY - rect.top) / rect.height) * 2 - 1));
+    raycaster.setFromCamera(pointerNdc, camera);
+    const intersections = raycaster.intersectObjects(handCards.filter((card) => card.visible), true);
+    for (const hit of intersections) {
+      let current: THREE.Object3D | null = hit.object;
+      while (current) {
+        const index = handCards.indexOf(current as THREE.Group);
+        if (index >= 0) {
+          const cardId = handCards[index].userData.cardId;
+          return typeof cardId === "string" ? cardId : undefined;
+        }
+        current = current.parent;
+      }
+    }
+    return undefined;
+  }
+
   function getSceneSnapshot(): CinematicSceneSnapshot {
     const desiredCameraPosition = getDesiredCameraPosition();
+    const seatHandVisualCounts = props.players.map((player, seatIndex) => {
+      const isLocal = Boolean(player.id && player.id === props.localPlayerId);
+      const visibleBackCount = seatHandGroups[seatIndex]?.children.filter((child) => child.visible).length ?? 0;
+      return {
+        playerId: player.id,
+        visibleBackCount,
+        visibleCardCount: isLocal ? localHandVisualCount : visibleBackCount,
+        isLocal
+      };
+    });
     return {
       ready,
       failed,
@@ -1948,6 +2084,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
           status: getPlayerResultStatus(player)
         };
       }),
+      seatHandVisualCounts,
+      opponentHandBackCount: seatHandVisualCounts
+        .filter((hand) => !hand.isLocal)
+        .reduce((total, hand) => total + hand.visibleBackCount, 0),
       motionCardCount: motionCards.children.length,
       settledPileVisualCount: pileGroup.children.filter((child) => child.visible).length,
       localHandVisualCount,
@@ -2040,6 +2180,33 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     }
   }
 
+  function syncSeatHandVisuals() {
+    seatHandGroups.forEach((group, seatIndex) => {
+      const player = props.players[seatIndex];
+      const isLocal = Boolean(player?.id && player.id === props.localPlayerId);
+      const visibleCount = player && !isLocal && !visualPlayerState(player).eliminated ? Math.max(0, Math.min(5, player.handCount)) : 0;
+      group.visible = Boolean(player && visibleCount > 0);
+      group.children.forEach((child, cardIndex) => {
+        const card = child as THREE.Group;
+        const visible = cardIndex < visibleCount;
+        card.visible = visible;
+        if (!visible) {
+          return;
+        }
+        const transform = seatHandCardTransform(seatIndex, cardIndex, visibleCount);
+        card.position.copy(transform.position);
+        card.rotation.copy(transform.rotation);
+        card.scale.setScalar(transform.scale);
+        if (card.userData.visualFaceUp !== false) {
+          applyCardFace(card, undefined, false, false);
+          card.userData.visualFaceUp = false;
+          delete card.userData.visualRank;
+          delete card.userData.cardId;
+        }
+      });
+    });
+  }
+
   function refreshPile(explicitCount = props.pileCount) {
     if (!ready) {
       return;
@@ -2066,11 +2233,23 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     return { position, rotation, scale };
   }
 
-  function setRankCard(rank: Card["rank"]) {
+  function seatHandCardTransform(seatIndex: number, cardIndex: number, total: number) {
+    const visual = getSeatHandVisualTransform(seatIndex, cardIndex, total);
+    return {
+      position: new THREE.Vector3(visual.x, visual.y + 0.58, visual.z),
+      rotation: new THREE.Euler(visual.rotationX, visual.rotationY, visual.rotationZ),
+      scale: visual.scale
+    };
+  }
+
+  function setRankCard(rank: Card["rank"], syncTransform = true) {
     if (!tableRankCard) {
       return;
     }
     applyCardFace(tableRankCard, rank, false);
+    if (syncTransform) {
+      syncTableRankCardTransform();
+    }
   }
 
   function clearGroup(group: THREE.Group) {
@@ -2107,14 +2286,28 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     const fanIndex = index - 2;
     const position = direction
       .clone()
-      .multiplyScalar(0.86 + Math.abs(fanIndex) * 0.035)
-      .add(tangent.clone().multiplyScalar(fanIndex * 0.31));
+      .multiplyScalar(1.24 + Math.abs(fanIndex) * 0.014)
+      .add(tangent.clone().multiplyScalar(fanIndex * 0.44));
     position.y = 0.58;
 
     return {
       position,
       rotation: new THREE.Euler(-0.46, yaw + fanIndex * 0.06, -fanIndex * 0.095)
     };
+  }
+
+  function tableRankCardRestRotation() {
+    const { yaw } = localHandSeatFrame();
+    return new THREE.Euler(-0.42, yaw, 0.035);
+  }
+
+  function syncTableRankCardTransform() {
+    if (!tableRankCard) {
+      return;
+    }
+    tableRankCard.position.copy(tablePoint("rank"));
+    tableRankCard.rotation.copy(tableRankCardRestRotation());
+    tableRankCard.scale.setScalar(tableRankCardScale);
   }
 
   function localHandFacesPlayer() {
@@ -2152,9 +2345,9 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       body.castShadow = true;
       body.receiveShadow = true;
       body.material = new THREE.MeshStandardMaterial({
-        color: danger ? 0x5b2b24 : 0x2e4c38,
-        roughness: faceUp ? 0.62 : 0.52,
-        metalness: 0.02
+        color: faceUp ? (danger ? 0x704034 : 0x4b3721) : 0x2e4d38,
+        roughness: faceUp ? 0.7 : 0.58,
+        metalness: 0.015
       });
       body.scale.y = 1;
     }
@@ -2176,10 +2369,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       back.receiveShadow = !faceUp;
       back.position.y = -0.024;
       back.material = new THREE.MeshStandardMaterial({
-        color: 0x27563e,
-        roughness: 0.64,
-        emissive: 0x0b2416,
-        emissiveIntensity: 0.08,
+        color: 0x39694f,
+        roughness: 0.58,
+        emissive: 0x12321f,
+        emissiveIntensity: 0.16,
         side: THREE.DoubleSide
       });
     }
@@ -2188,8 +2381,11 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     });
     overlays.face.visible = faceUp;
     overlays.face.material = createCardFaceMaterial(rank, danger);
+    overlays.face.position.y = 0.041;
     overlays.back.visible = !faceUp;
     overlays.back.material = createCardBackMaterial();
+    overlays.back.rotation.x = -Math.PI / 2;
+    overlays.back.position.y = 0.044;
   }
 
   function ensureRuntimeCardOverlays(card: THREE.Group) {
@@ -2209,8 +2405,8 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     if (!back) {
       back = new THREE.Mesh(new THREE.PlaneGeometry(0.596, 0.876), createCardBackMaterial());
       back.name = "RuntimeCardBack";
-      back.rotation.x = Math.PI / 2;
-      back.position.y = -0.036;
+      back.rotation.x = -Math.PI / 2;
+      back.position.y = 0.044;
       back.renderOrder = 21;
       back.receiveShadow = false;
       card.add(back);
@@ -2223,7 +2419,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     const material = new THREE.MeshBasicMaterial({
       color: danger ? 0xffd2be : rankColor(rank),
       map: rank ? createRankTexture(rank, danger) : undefined,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
     material.toneMapped = false;
     return material;
@@ -2233,7 +2432,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     const material = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       map: createCardBackTexture(),
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
     material.toneMapped = false;
     return material;
@@ -2345,9 +2547,9 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       depthTest: false,
       side: THREE.DoubleSide
     });
-    const quotePanel = new THREE.Mesh(new THREE.PlaneGeometry(1.22, 0.28), quoteMaterial);
+    const quotePanel = new THREE.Mesh(new THREE.PlaneGeometry(1.34, 0.34), quoteMaterial);
     quotePanel.name = `SeatQuotePanel_${index}`;
-    quotePanel.position.set(0, 0.42, 0.012);
+    quotePanel.position.set(0, 0.56, 0.012);
     quotePanel.visible = false;
     quotePanel.renderOrder = 32;
     group.add(quotePanel);
@@ -2994,16 +3196,18 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     }
 
     const poseConfig = characterPoseConfig(pose);
+    const playerId = props.players[index]?.id;
     const idleLift = pose === "idle" ? Math.sin(elapsed * 1.4 + index) * 0.032 : 0;
     const fidget = Math.sin(elapsed * 2.15 + index * 1.7);
     const eyeLine = Math.sin(elapsed * 0.74 + index);
-    const targetY = character.baseImageY + poseConfig.y + idleLift;
-    const targetZ = character.baseImageZ + poseConfig.z;
-    const targetScale = poseConfig.scale + (pose === "idle" ? Math.sin(elapsed * 1.15 + index) * 0.01 : 0);
+    const personalityMotion = botPersonalityMotion(playerId, pose, elapsed);
+    const targetY = character.baseImageY + poseConfig.y + idleLift + personalityMotion.y;
+    const targetZ = character.baseImageZ + poseConfig.z + personalityMotion.z;
+    const targetScale = poseConfig.scale + personalityMotion.scale + (pose === "idle" ? Math.sin(elapsed * 1.15 + index) * 0.01 : 0);
 
     character.imageRoot.position.y += (targetY - character.imageRoot.position.y) * 0.08;
     character.imageRoot.position.z += (targetZ - character.imageRoot.position.z) * 0.08;
-    character.imageRoot.rotation.z += (poseConfig.tilt - character.imageRoot.rotation.z) * 0.08;
+    character.imageRoot.rotation.z += (poseConfig.tilt + personalityMotion.tilt - character.imageRoot.rotation.z) * 0.08;
     character.imageRoot.rotation.x += ((pose === "accused" ? -0.025 : 0.012 * eyeLine) - character.imageRoot.rotation.x) * 0.06;
     character.imageRoot.scale.x += (targetScale - character.imageRoot.scale.x) * 0.08;
     character.imageRoot.scale.y += (targetScale - character.imageRoot.scale.y) * 0.08;
@@ -3019,6 +3223,37 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       (poseConfig.rimOpacity - character.rimPlane.material.uniforms.opacity.value) * 0.08;
     character.glow.intensity += (poseConfig.glow - character.glow.intensity) * 0.08;
     character.shadowPlane.material.opacity += (poseConfig.shadowOpacity - character.shadowPlane.material.opacity) * 0.08;
+  }
+
+  function botPersonalityMotion(playerId: string | undefined, pose: CharacterPose, elapsed: number) {
+    if (playerId === "bot-1") {
+      const cautious = pose === "thinking" || pose === "accused" || pose === "roulette" ? 1 : 0;
+      return {
+        y: cautious ? -0.02 : 0,
+        z: cautious ? -0.08 : 0,
+        scale: cautious ? -0.018 : 0,
+        tilt: cautious ? 0.035 + Math.sin(elapsed * 1.1) * 0.012 : 0
+      };
+    }
+    if (playerId === "bot-2") {
+      const aggressive = pose === "play" || pose === "accuse" || pose === "active" ? 1 : 0;
+      return {
+        y: aggressive ? 0.035 : 0,
+        z: aggressive ? 0.1 : 0,
+        scale: aggressive ? 0.035 : 0,
+        tilt: aggressive ? -0.055 + Math.sin(elapsed * 2.6) * 0.012 : 0
+      };
+    }
+    if (playerId === "bot-3") {
+      const observant = pose === "thinking" || pose === "active" ? 1 : 0;
+      return {
+        y: observant ? Math.sin(elapsed * 1.35) * 0.012 : 0,
+        z: observant ? 0.035 : 0,
+        scale: observant ? 0.012 : 0,
+        tilt: observant ? Math.sin(elapsed * 0.9) * 0.04 : 0
+      };
+    }
+    return { y: 0, z: 0, scale: 0, tilt: 0 };
   }
 
   function updateLocalAvatarVisibility(seat: SeatRig, player: PublicPlayer | undefined) {
@@ -3039,7 +3274,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   function removeBackgroundShelfClutter(root: THREE.Object3D) {
     const removable: THREE.Object3D[] = [];
     root.traverse((child) => {
-      if (/^(Shelf|Bottle|BottleCap|Neon)/.test(child.name)) {
+      if (/^(Shelf|Bottle|BottleCap|Neon|BackShelf|WallShelf|Glass|Mirror|Poster|Picture|Frame|Cabinet|Crate|BarBack|CounterDecor)/.test(child.name)) {
         removable.push(child);
       }
     });
@@ -3148,13 +3383,13 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       const targetPosition = base
         .clone()
         .add(handFrame.tangent.clone().multiplyScalar(selectedFan))
-        .add(handFrame.direction.clone().multiplyScalar(selected ? 0.08 : 0));
+        .add(handFrame.direction.clone().multiplyScalar(selected ? 0.14 : 0));
       card.position.x += (targetPosition.x - card.position.x) * 0.12;
       card.position.z += (targetPosition.z - card.position.z) * 0.12;
-      card.position.y += (targetPosition.y + (selected ? 0.7 : 0) + Math.sin(elapsed * 1.7 + index) * 0.024 - card.position.y) * 0.2;
-      card.rotation.x += (baseRotation.x + (selected ? -0.46 : 0) - card.rotation.x) * 0.15;
+      card.position.y += (targetPosition.y + (selected ? 0.56 : 0) + Math.sin(elapsed * 1.7 + index) * (selected ? 0.01 : 0.018) - card.position.y) * 0.18;
+      card.rotation.x += (baseRotation.x + (selected ? -0.34 : 0) - card.rotation.x) * 0.14;
       card.rotation.y += (baseRotation.y - card.rotation.y) * 0.12;
-      card.rotation.z += (baseRotation.z + (selected ? 0.22 + selectedFan * 0.8 : 0) - card.rotation.z) * 0.13;
+      card.rotation.z += (baseRotation.z + (selected ? 0.15 + selectedFan * 0.52 : 0) - card.rotation.z) * 0.12;
     });
 
     seats.forEach((seat, index) => {
@@ -3390,8 +3625,8 @@ function createSeatNameplateTexture(
 
 function createSeatQuoteTexture(text: string, tone: SceneTableQuote["tone"], playerId?: string) {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 128;
+  canvas.width = 640;
+  canvas.height = 176;
   const context = canvas.getContext("2d");
   if (!context) {
     return undefined;
@@ -3413,7 +3648,7 @@ function createSeatQuoteTexture(text: string, tone: SceneTableQuote["tone"], pla
   const bg = context.createLinearGradient(0, 0, canvas.width, canvas.height);
   bg.addColorStop(0, accent.quoteBgStart);
   bg.addColorStop(1, "rgba(48, 22, 12, 0.86)");
-  roundRect(context, 18, 16, canvas.width - 36, 82, 22);
+  roundRect(context, 20, 18, canvas.width - 40, 116, 28);
   context.fillStyle = bg;
   context.fill();
   context.lineWidth = 4;
@@ -3421,9 +3656,9 @@ function createSeatQuoteTexture(text: string, tone: SceneTableQuote["tone"], pla
   context.stroke();
 
   context.beginPath();
-  context.moveTo(canvas.width / 2 - 22, 96);
-  context.lineTo(canvas.width / 2, 116);
-  context.lineTo(canvas.width / 2 + 22, 96);
+  context.moveTo(canvas.width / 2 - 28, 132);
+  context.lineTo(canvas.width / 2, 160);
+  context.lineTo(canvas.width / 2 + 28, 132);
   context.closePath();
   context.fillStyle = "rgba(18, 9, 6, 0.88)";
   context.fill();
@@ -3431,10 +3666,10 @@ function createSeatQuoteTexture(text: string, tone: SceneTableQuote["tone"], pla
   context.stroke();
 
   context.fillStyle = tone === "challenge" ? "#ffe5d9" : tone === "thinking" ? "#eaf4ff" : "#fff4d5";
-  context.font = "900 28px Inter, Arial, sans-serif";
+  context.font = "900 38px Inter, Arial, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  drawWrappedCenteredText(context, `“${text}”`, canvas.width / 2, 56, 430, 32, 2);
+  drawWrappedCenteredText(context, `“${text}”`, canvas.width / 2, 76, 552, 42, 2);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -3654,20 +3889,37 @@ function createRankTexture(rank: Card["rank"], danger: boolean) {
     return undefined;
   }
   const gradient = context.createLinearGradient(0, 0, CARD_FACE_SIZE.width, CARD_FACE_SIZE.height);
-  gradient.addColorStop(0, danger ? "#ffe0d2" : "#fff7de");
-  gradient.addColorStop(1, danger ? "#eaa083" : "#d7b769");
+  gradient.addColorStop(0, danger ? "#ffe5d7" : "#fff9e7");
+  gradient.addColorStop(0.58, danger ? "#f3b39a" : "#efd89a");
+  gradient.addColorStop(1, danger ? "#d78366" : "#c49a4d");
   context.fillStyle = gradient;
   context.fillRect(0, 0, CARD_FACE_SIZE.width, CARD_FACE_SIZE.height);
-  context.strokeStyle = danger ? "#a42a18" : "#583015";
-  context.lineWidth = 12;
-  context.strokeRect(12, 12, CARD_FACE_SIZE.width - 24, CARD_FACE_SIZE.height - 24);
+  for (let index = 0; index < 80; index += 1) {
+    const x = (index * 47) % CARD_FACE_SIZE.width;
+    const y = (index * 83) % CARD_FACE_SIZE.height;
+    context.fillStyle = index % 2 ? "rgba(93, 53, 24, 0.035)" : "rgba(255, 255, 255, 0.06)";
+    context.fillRect(x, y, 1.5, 1.5);
+  }
+  context.strokeStyle = danger ? "#a42a18" : "#5b3417";
+  context.lineWidth = 10;
+  roundRect(context, 12, 12, CARD_FACE_SIZE.width - 24, CARD_FACE_SIZE.height - 24, 16);
+  context.stroke();
+  context.strokeStyle = danger ? "rgba(132, 36, 20, 0.45)" : "rgba(93, 52, 20, 0.38)";
+  context.lineWidth = 3;
+  roundRect(context, 29, 29, CARD_FACE_SIZE.width - 58, CARD_FACE_SIZE.height - 58, 12);
+  context.stroke();
   context.fillStyle = danger ? "#842414" : "#2f1908";
-  context.font = "900 126px Inter, Arial, sans-serif";
+  context.font = "900 138px Inter, Arial, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(rankGlyph(rank), CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height * 0.42);
-  context.font = "800 32px Inter, Arial, sans-serif";
+  context.font = "900 28px Inter, Arial, sans-serif";
   context.fillText(displayRank(rank), CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height * 0.72);
+  context.font = "900 34px Inter, Arial, sans-serif";
+  context.textAlign = "left";
+  context.fillText(rankGlyph(rank), 30, 42);
+  context.textAlign = "right";
+  context.fillText(rankGlyph(rank), CARD_FACE_SIZE.width - 30, CARD_FACE_SIZE.height - 42);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
@@ -3689,29 +3941,76 @@ function createCardBackTexture() {
   }
 
   const gradient = context.createLinearGradient(0, 0, CARD_FACE_SIZE.width, CARD_FACE_SIZE.height);
-  gradient.addColorStop(0, "#163724");
-  gradient.addColorStop(0.5, "#28563f");
-  gradient.addColorStop(1, "#0d2014");
+  gradient.addColorStop(0, "#315f45");
+  gradient.addColorStop(0.42, "#214732");
+  gradient.addColorStop(1, "#12291c");
   context.fillStyle = gradient;
+  context.fillRect(0, 0, CARD_FACE_SIZE.width, CARD_FACE_SIZE.height);
+
+  const glow = context.createRadialGradient(
+    CARD_FACE_SIZE.width * 0.5,
+    CARD_FACE_SIZE.height * 0.42,
+    12,
+    CARD_FACE_SIZE.width * 0.5,
+    CARD_FACE_SIZE.height * 0.46,
+    CARD_FACE_SIZE.width * 0.58
+  );
+  glow.addColorStop(0, "rgba(245, 205, 112, 0.2)");
+  glow.addColorStop(0.48, "rgba(245, 205, 112, 0.05)");
+  glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  context.fillStyle = glow;
   context.fillRect(0, 0, CARD_FACE_SIZE.width, CARD_FACE_SIZE.height);
 
   context.save();
   context.translate(-CARD_FACE_SIZE.width * 0.5, 0);
   context.rotate(-Math.PI / 6);
-  for (let index = -4; index < 18; index += 1) {
-    context.fillStyle = index % 2 ? "rgba(238, 196, 102, 0.09)" : "rgba(2, 12, 7, 0.18)";
-    context.fillRect(index * 34, -CARD_FACE_SIZE.height, 12, CARD_FACE_SIZE.height * 2.4);
+  for (let index = -8; index < 22; index += 1) {
+    context.fillStyle = index % 2 ? "rgba(238, 196, 102, 0.14)" : "rgba(2, 12, 7, 0.12)";
+    context.fillRect(index * 31, -CARD_FACE_SIZE.height, 9, CARD_FACE_SIZE.height * 2.5);
   }
   context.restore();
 
-  context.strokeStyle = "rgba(242, 199, 97, 0.82)";
+  context.strokeStyle = "rgba(255, 220, 132, 0.92)";
   context.lineWidth = 10;
   roundRect(context, 13, 13, CARD_FACE_SIZE.width - 26, CARD_FACE_SIZE.height - 26, 18);
   context.stroke();
-  context.strokeStyle = "rgba(8, 28, 17, 0.84)";
+  context.strokeStyle = "rgba(96, 47, 18, 0.5)";
   context.lineWidth = 4;
-  roundRect(context, 29, 29, CARD_FACE_SIZE.width - 58, CARD_FACE_SIZE.height - 58, 12);
+  roundRect(context, 28, 28, CARD_FACE_SIZE.width - 56, CARD_FACE_SIZE.height - 56, 14);
   context.stroke();
+  context.strokeStyle = "rgba(255, 230, 156, 0.42)";
+  context.lineWidth = 2;
+  roundRect(context, 43, 43, CARD_FACE_SIZE.width - 86, CARD_FACE_SIZE.height - 86, 10);
+  context.stroke();
+
+  context.save();
+  context.translate(CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height / 2);
+  context.strokeStyle = "rgba(255, 222, 142, 0.54)";
+  context.lineWidth = 5;
+  roundRect(context, -52, -76, 104, 152, 15);
+  context.stroke();
+  context.strokeStyle = "rgba(8, 30, 17, 0.42)";
+  context.lineWidth = 3;
+  roundRect(context, -37, -58, 74, 116, 12);
+  context.stroke();
+  context.fillStyle = "rgba(255, 222, 142, 0.78)";
+  context.beginPath();
+  context.arc(0, -25, 11, 0, Math.PI * 2);
+  context.arc(0, 25, 11, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "rgba(20, 56, 35, 0.92)";
+  context.font = "900 28px Inter, Arial, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText("RR", 0, 0);
+  context.restore();
+
+  context.fillStyle = "rgba(255, 222, 142, 0.64)";
+  context.font = "900 26px Inter, Arial, sans-serif";
+  context.textAlign = "left";
+  context.fillText("RR", 30, 43);
+  context.textAlign = "right";
+  context.fillText("RR", CARD_FACE_SIZE.width - 30, CARD_FACE_SIZE.height - 43);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

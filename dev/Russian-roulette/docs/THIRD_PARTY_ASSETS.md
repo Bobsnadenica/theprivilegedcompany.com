@@ -7,7 +7,7 @@
 - **Source:** https://sketchfab.com/3d-models/9-mm-5124e7fe60fb4d3ab62460609d23f365
 - **License shown on Sketchfab:** Free Standard
 - **Attribution shown on Sketchfab:** not required by the page metadata inspected on June 20, 2026
-- **NoAI notice:** the model may not be used in datasets, development of, or as input to generative AI programs
+- **Machine-training restriction:** the model may not be used in training datasets, model development, or as input to generative programs
 
 This importer is kept for local visual experiments. The release runtime does not prefer this model; it uses the generated, committed original cinematic roulette prop `toy-roulette.glb` by default.
 

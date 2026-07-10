@@ -14,13 +14,13 @@ import {
 
 describe("solo bot demo helpers", () => {
   it("starts one human with three named bot opponents", () => {
-    const players = createSoloPlayers("Dimitar");
+    const players = createSoloPlayers("Player");
 
     expect(players).toEqual([
-      { id: SOLO_HUMAN_ID, name: "Dimitar" },
-      { id: "bot-1", name: "Mira" },
-      { id: "bot-2", name: "Viktor" },
-      { id: "bot-3", name: "Nadia" }
+      { id: SOLO_HUMAN_ID, name: "Player" },
+      { id: "bot-1", name: "Master Chief" },
+      { id: "bot-2", name: "Anduin Wrynn" },
+      { id: "bot-3", name: "Gordon Freeman" }
     ]);
   });
 
@@ -68,10 +68,10 @@ describe("solo bot demo helpers", () => {
     const firstHumanCard = state.players.find((player) => player.id === SOLO_HUMAN_ID)!.hand[0]!.id;
     const afterHumanPlay = playCards(state, SOLO_HUMAN_ID, [firstHumanCard]).state;
 
-    expect(BOT_PERSONALITIES["bot-1"].style).toBe("cautious");
-    expect(BOT_PERSONALITIES["bot-2"].style).toBe("aggressive");
-    expect(chooseBotAction(afterHumanPlay, "bot-1", () => 0.3).type).toBe("play");
-    expect(chooseBotAction(afterHumanPlay, "bot-2", () => 0.3)).toEqual({ type: "call" });
+    expect(BOT_PERSONALITIES["bot-1"].style).toBe("aggressive");
+    expect(BOT_PERSONALITIES["bot-2"].style).toBe("cautious");
+    expect(chooseBotAction(afterHumanPlay, "bot-1", () => 0.3)).toEqual({ type: "call" });
+    expect(chooseBotAction(afterHumanPlay, "bot-2", () => 0.3).type).toBe("play");
   });
 
   it("slows bot turns when the human is only spectating", () => {

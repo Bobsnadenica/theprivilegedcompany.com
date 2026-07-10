@@ -6,6 +6,7 @@ import {
   getChallengeKey,
   getCinematicDuration,
   getPileVisualTransform,
+  getSeatHandVisualTransform,
   getSeatChamberIndicator,
   getTimelineDuration,
   getTimelineLabels,
@@ -260,6 +261,19 @@ describe("deriveAnimationBeats", () => {
     expect(Math.max(...threeCards.map((slot) => slot.x)) - Math.min(...threeCards.map((slot) => slot.x))).toBeLessThan(0.12);
     expect(Math.max(...eightCards.map((slot) => slot.z)) - Math.min(...eightCards.map((slot) => slot.z))).toBeLessThan(0.08);
     expect(Math.max(...twelveCards.map((slot) => slot.y)) - Math.min(...twelveCards.map((slot) => slot.y))).toBeGreaterThan(0.2);
+  });
+
+  it("places visible seat hands as compact table fans without card identity", () => {
+    const fiveCardSeat = Array.from({ length: 5 }, (_, index) => getSeatHandVisualTransform(1, index, 5));
+    const oneCardSeat = getSeatHandVisualTransform(3, 0, 1);
+    const clampedSeat = getSeatHandVisualTransform(99, 99, 99);
+
+    expect(new Set(fiveCardSeat.map((slot) => `${slot.x.toFixed(3)}:${slot.y.toFixed(3)}:${slot.z.toFixed(3)}:${slot.rotationZ.toFixed(3)}`)).size).toBe(5);
+    expect(Math.max(...fiveCardSeat.map((slot) => slot.y)) - Math.min(...fiveCardSeat.map((slot) => slot.y))).toBeGreaterThan(0.04);
+    expect(Math.max(...fiveCardSeat.map((slot) => slot.x)) - Math.min(...fiveCardSeat.map((slot) => slot.x))).toBeLessThan(1);
+    expect(Math.max(...fiveCardSeat.map((slot) => slot.z)) - Math.min(...fiveCardSeat.map((slot) => slot.z))).toBeLessThan(1);
+    expect(oneCardSeat.scale).toBeGreaterThan(0.6);
+    expect(clampedSeat.seatIndex).toBe(3);
   });
 
   it("creates cancellable timeline handles", async () => {
