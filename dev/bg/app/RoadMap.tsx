@@ -61,8 +61,9 @@ function formatRoadDate(value: string) {
   return Number.isNaN(parsed.getTime()) ? "неуказана дата" : shortDate.format(parsed);
 }
 
-function filterEvent(event: RoadEvent, year: number | "all", severity: Severity) {
-  if (year !== "all" && event[2] !== year) return false;
+function filterEvent(event: RoadEvent, dateFrom: string, dateTo: string, severity: Severity) {
+  if (dateFrom && event[8] < dateFrom) return false;
+  if (dateTo && event[8] > dateTo) return false;
   if (severity === "severe" && event[5] !== 1) return false;
   if (severity === "fatal" && event[3] === 0) return false;
   return true;
@@ -103,7 +104,8 @@ function Ranking({ eyebrow, title, rows }: { eyebrow: string; title: string; row
 export default function RoadMap() {
   const [data, setData] = useState<RoadData | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [year, setYear] = useState<number | "all">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [severity, setSeverity] = useState<Severity>("all");
   const [size, setSize] = useState({ width: 1000, height: 490 });
   const [selected, setSelected] = useState<RoadEvent | null>(null);
@@ -119,6 +121,8 @@ export default function RoadMap() {
       })
       .then((value) => {
         setData(value);
+        setDateFrom(value.summary.date_from);
+        setDateTo(value.summary.date_to);
         setLoadState("ready");
       })
       .catch((error: unknown) => {
@@ -139,8 +143,8 @@ export default function RoadMap() {
   }, []);
 
   const filtered = useMemo(
-    () => data?.events.filter((event) => filterEvent(event, year, severity)) ?? [],
-    [data, severity, year],
+    () => data?.events.filter((event) => filterEvent(event, dateFrom, dateTo, severity)) ?? [],
+    [data, dateFrom, dateTo, severity],
   );
 
   const analysis = useMemo(() => {
@@ -231,7 +235,7 @@ export default function RoadMap() {
       context.fill();
     }
 
-    if (selected && filterEvent(selected, year, severity)) {
+    if (selected && filterEvent(selected, dateFrom, dateTo, severity)) {
       const [x, y] = project(selected[0], selected[1]);
       context.beginPath();
       context.arc(x, y, 7, 0, Math.PI * 2);
@@ -241,7 +245,7 @@ export default function RoadMap() {
       context.fill();
       context.stroke();
     }
-  }, [data, filtered, selected, severity, size, year]);
+  }, [data, dateFrom, dateTo, filtered, selected, severity, size]);
 
   function selectNearest(event: MouseEvent<HTMLCanvasElement>) {
     if (!data) return;
@@ -270,7 +274,13 @@ export default function RoadMap() {
   }
 
   const severityLabels: Record<Severity, string> = { all: "Всички ПТП", severe: "Тежки ПТП", fatal: "Със загинали" };
-  const filterDescription = `${year === "all" ? `${formatRoadDate(data.summary.date_from)}–${formatRoadDate(data.summary.date_to)}` : `${year} г.`}, ${severityLabels[severity].toLocaleLowerCase("bg-BG")}`;
+  const filterDescription = `${formatRoadDate(dateFrom)}–${formatRoadDate(dateTo)}, ${severityLabels[severity].toLocaleLowerCase("bg-BG")}`;
+
+  function setRange(from: string, to: string) {
+    setDateFrom(from);
+    setDateTo(to);
+    setSelected(null);
+  }
 
   return (
     <section className="road-visual" aria-labelledby="road-map-title">
@@ -286,10 +296,23 @@ export default function RoadMap() {
       <div className="road-controls" aria-label="Филтри за картата">
         <div>
           <span>Период</span>
+          <div className="date-range">
+            <label><span>От</span><input type="date" min={data.summary.date_from} max={dateTo || data.summary.date_to} value={dateFrom} onChange={(event) => setRange(event.target.value, dateTo)} /></label>
+            <span aria-hidden="true">—</span>
+            <label><span>До</span><input type="date" min={dateFrom || data.summary.date_from} max={data.summary.date_to} value={dateTo} onChange={(event) => setRange(dateFrom, event.target.value)} /></label>
+          </div>
           <div className="filter-buttons">
-            <button type="button" aria-pressed={year === "all"} onClick={() => { setYear("all"); setSelected(null); }}>Всички</button>
+            <button type="button" aria-pressed={dateFrom === data.summary.date_from && dateTo === data.summary.date_to} onClick={() => setRange(data.summary.date_from, data.summary.date_to)}>Всички</button>
             {data.summary.years.map((item) => (
-              <button key={item.year} type="button" aria-pressed={year === item.year} onClick={() => { setYear(item.year); setSelected(null); }}>{item.year}</button>
+              <button
+                key={item.year}
+                type="button"
+                aria-pressed={dateFrom === `${item.year}-01-01` && dateTo === `${item.year}-12-31`}
+                onClick={() => setRange(
+                  `${item.year}-01-01` < data.summary.date_from ? data.summary.date_from : `${item.year}-01-01`,
+                  `${item.year}-12-31` > data.summary.date_to ? data.summary.date_to : `${item.year}-12-31`,
+                )}
+              >{item.year}</button>
             ))}
           </div>
         </div>

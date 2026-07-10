@@ -3,7 +3,6 @@
 ## Environments
 
 - Production: `https://data.egov.bg`
-- Test portal: `https://testdata.egov.bg`
 - Catalog: `{base}/data`
 - Dataset: `{base}/data/view/{dataset_identifier}`
 - Resource page: `{base}/data/resourceView/{resource_uuid}`

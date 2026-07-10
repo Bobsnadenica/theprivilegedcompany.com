@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import dashboard from "../data/site/dashboard.json";
 import RoadMap from "./RoadMap";
 
@@ -83,7 +83,6 @@ const number = new Intl.NumberFormat("bg-BG");
 const compact = new Intl.NumberFormat("bg-BG", { notation: "compact", maximumFractionDigits: 1 });
 const date = new Intl.DateTimeFormat("bg-BG", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" });
 const baseUrl = import.meta.env.BASE_URL;
-const isTestPortal = dashboard.portal.source.includes("testdata.");
 
 function DataIcon({ name, size = "normal" }: { name: IconName; size?: "small" | "normal" | "large" }) {
   return <span className={`data-icon icon-${name} icon-${size}`} aria-hidden="true"><i /></span>;
@@ -124,6 +123,25 @@ function Metric({ value, label, note, icon }: { value: string; label: string; no
 
 function DatasetCard({ dataset }: { dataset: FeaturedDataset | CatalogDataset }) {
   const theme = themeForCategory(dataset.category_id);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const themeSummary = dashboard.themes[theme];
+  const themeAverage = themeSummary.dataset_count ? themeSummary.resource_count / themeSummary.dataset_count : 0;
+  const profileMax = Math.max(dataset.resource_count, themeAverage, 1);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [profileOpen]);
+
   return (
     <article className="dataset-card">
       <div className="dataset-meta">
@@ -137,19 +155,76 @@ function DatasetCard({ dataset }: { dataset: FeaturedDataset | CatalogDataset })
           <strong>{dataset.organisation}</strong>
           <span>{dataset.resource_count} ресурса · обновено {formatDate(dataset.updated_at)}</span>
         </div>
-        <a href={dataset.portal_url} target="_blank" rel="noreferrer" aria-label={`Отвори „${dataset.title}“ в портала`}>
-          Отвори <span aria-hidden="true">↗</span>
-        </a>
+        <button type="button" onClick={() => setProfileOpen(true)} aria-label={`Визуален профил за „${dataset.title}“`}>
+          Виж профил <span aria-hidden="true">→</span>
+        </button>
       </div>
+      {profileOpen && (
+        <div className="dataset-profile-backdrop" onMouseDown={() => setProfileOpen(false)}>
+          <section className="dataset-profile" role="dialog" aria-modal="true" aria-labelledby={`profile-${dataset.identifier}`} onMouseDown={(event) => event.stopPropagation()}>
+            <header>
+              <div><span className="eyebrow">Локален визуален профил</span><h3 id={`profile-${dataset.identifier}`}>{dataset.title}</h3></div>
+              <button type="button" onClick={() => setProfileOpen(false)} aria-label="Затвори визуалния профил">Затвори ×</button>
+            </header>
+            <div className="dataset-profile-meta">
+              <p><span>Издател</span><strong>{dataset.organisation}</strong></p>
+              <p><span>Категория</span><strong>{categoryName.get(dataset.category_id) ?? "Некатегоризирани"}</strong></p>
+              <p><span>Обновено</span><strong>{formatDate(dataset.updated_at)}</strong></p>
+            </div>
+            <figure className="dataset-profile-chart">
+              <figcaption><span className="eyebrow">Ресурсен профил</span><h4>Публикувани ресурси спрямо тематичната средна стойност</h4></figcaption>
+              <ol>
+                <li><div><span>Този набор</span><strong>{number.format(dataset.resource_count)}</strong></div><i><b style={{ width: `${(dataset.resource_count / profileMax) * 100}%` }} /></i></li>
+                <li><div><span>Средно за „{themeSummary.name}“</span><strong>{themeAverage.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}</strong></div><i><b style={{ width: `${(themeAverage / profileMax) * 100}%` }} /></i></li>
+              </ol>
+            </figure>
+            <div className="dataset-format-profile">
+              <span className="eyebrow">Публикувани формати</span>
+              <div>{dataset.formats.length ? dataset.formats.map((format) => <strong key={format}>{format}</strong>) : <strong>Не е указан формат</strong>}</div>
+            </div>
+            <p className="dataset-profile-note">Профилът визуализира проверените каталожни метаданни в локалната моментна снимка. Стойностите вътре в отделните файлове не се представят без самостоятелна проверка.</p>
+          </section>
+        </div>
+      )}
     </article>
   );
 }
 
+function YearRangeControl({ years, from, to, onChange, label }: {
+  years: number[];
+  from: number;
+  to: number;
+  onChange: (from: number, to: number) => void;
+  label: string;
+}) {
+  return (
+    <div className="year-range" aria-label={label}>
+      <label>
+        <span>От</span>
+        <select value={from} onChange={(event) => onChange(Number(event.target.value), to)}>
+          {years.filter((year) => year <= to).map((year) => <option key={year} value={year}>{year}</option>)}
+        </select>
+      </label>
+      <span aria-hidden="true">—</span>
+      <label>
+        <span>До</span>
+        <select value={to} onChange={(event) => onChange(from, Number(event.target.value))}>
+          {years.filter((year) => year >= from).map((year) => <option key={year} value={year}>{year}</option>)}
+        </select>
+      </label>
+    </div>
+  );
+}
+
 function TrendChart({ indicatorKey, series }: { indicatorKey: string; series: Indicator }) {
-  const values = series.data.map((point) => point.value);
+  const years = series.data.map((point) => Number(point.year));
+  const [fromYear, setFromYear] = useState(years[0]);
+  const [toYear, setToYear] = useState(years[years.length - 1]);
+  const visibleData = series.data.filter((point) => Number(point.year) >= fromYear && Number(point.year) <= toYear);
+  const values = visibleData.map((point) => point.value);
   const max = Math.max(...values, 1);
-  const current = latest(series);
-  const first = series.data[0];
+  const current = visibleData[visibleData.length - 1];
+  const first = visibleData[0];
   const change = ((current.value - first.value) / first.value) * 100;
   return (
     <figure className="trend-chart">
@@ -157,15 +232,22 @@ function TrendChart({ indicatorKey, series }: { indicatorKey: string; series: In
         <div>
           <span className="eyebrow">Национален индикатор</span>
           <h3>{series.title}</h3>
-          <p>{series.unit} · {series.data.length} годишни наблюдения · {first.year}–{current.year}</p>
+          <p>{series.unit} · {visibleData.length} годишни наблюдения · {first.year}–{current.year}</p>
         </div>
         <div className="trend-summary">
           <strong>{formatIndicator(indicatorKey, current.value)}</strong>
           <span className={change < 0 ? "change-negative" : "change-positive"}>{change > 0 ? "+" : ""}{change.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}% за периода</span>
+          <YearRangeControl
+            years={years}
+            from={fromYear}
+            to={toYear}
+            onChange={(from, to) => { setFromYear(from); setToYear(to); }}
+            label={`Период за ${series.title}`}
+          />
         </div>
       </figcaption>
       <ol aria-label={`${series.title} по години; колоните започват от нула`}>
-        {series.data.map((point) => {
+        {visibleData.map((point) => {
           const height = Math.max(3, (point.value / max) * 100);
           return (
             <li key={point.year} aria-label={`${point.year}: ${formatIndicator(indicatorKey, point.value)}`}>
@@ -227,16 +309,32 @@ function CoverageChart({ rows, title = "Покритие на метаданни
 }
 
 function FreshnessChart({ rows }: { rows: FreshnessRow[] }) {
-  const max = Math.max(...rows.map((row) => row.datasets), 1);
+  const datedRows = rows.filter((row) => /^\d{4}$/.test(row.year));
+  const undatedRows = rows.filter((row) => !/^\d{4}$/.test(row.year));
+  const years = datedRows.map((row) => Number(row.year));
+  const [fromYear, setFromYear] = useState(years[0]);
+  const [toYear, setToYear] = useState(years[years.length - 1]);
+  const visibleRows = [
+    ...datedRows.filter((row) => Number(row.year) >= fromYear && Number(row.year) <= toYear),
+    ...undatedRows,
+  ];
+  const max = Math.max(...visibleRows.map((row) => row.datasets), 1);
   return (
     <figure className="freshness-chart visual-card">
       <figcaption>
         <span className="eyebrow">Последна промяна</span>
         <h3>Кога е обновен каталогът</h3>
         <p>Година на последна промяна в метаданните</p>
+        <YearRangeControl
+          years={years}
+          from={fromYear}
+          to={toYear}
+          onChange={(from, to) => { setFromYear(from); setToYear(to); }}
+          label="Период за последна промяна на каталога"
+        />
       </figcaption>
       <ol aria-label="Набори по година на последна промяна">
-        {rows.map((row) => (
+        {visibleRows.map((row) => (
           <li key={row.year} aria-label={`${row.year}: ${number.format(row.datasets)} набора`}>
             <strong>{compact.format(row.datasets)}</strong>
             <i className={row.datasets === 0 ? "is-zero" : undefined} style={{ "--height": `${row.datasets === 0 ? 0 : Math.max(3, (row.datasets / max) * 100)}%` } as CSSProperties} />
@@ -506,7 +604,7 @@ export default function Home() {
     document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  function onTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
     if (!(["ArrowLeft", "ArrowRight", "Home", "End"] as string[]).includes(event.key)) return;
     event.preventDefault();
     const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
@@ -523,7 +621,7 @@ export default function Home() {
           <span><strong>България в Данни</strong><small>отворен публичен атлас</small></span>
         </a>
         <div className="header-status"><i /> Проверена моментна снимка</div>
-        <a className="portal-link" href={dashboard.portal.source} target="_blank" rel="noreferrer">{isTestPortal ? "Тестов портал" : "Официален портал"} ↗</a>
+        <a className="portal-link" href={dashboard.portal.source} target="_blank" rel="noreferrer">Официален портал ↗</a>
       </header>
 
       <section className="hero" id="top">

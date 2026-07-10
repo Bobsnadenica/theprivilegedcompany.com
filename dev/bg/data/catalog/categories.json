@@ -1,76 +1,76 @@
 {
-  "source": "https://testdata.egov.bg",
-  "retrieved_at": "2026-07-10T15:14:26.576741+00:00",
+  "source": "https://data.egov.bg",
+  "retrieved_at": "2026-07-10T20:04:00.169543+00:00",
   "categories": [
     {
       "id": 1,
       "name": "Селско стопанство, риболов и аквакултури, горско стопанство и храни",
-      "dataset_count": 586
+      "dataset_count": 1045
     },
     {
       "id": 2,
       "name": "Образование, култура и спорт",
-      "dataset_count": 629
+      "dataset_count": 692
     },
     {
       "id": 3,
       "name": "Околна среда",
-      "dataset_count": 493
+      "dataset_count": 589
     },
     {
       "id": 4,
       "name": "Енергетика",
-      "dataset_count": 20
+      "dataset_count": 41
     },
     {
       "id": 5,
       "name": "Транспорт",
-      "dataset_count": 202
+      "dataset_count": 330
     },
     {
       "id": 6,
       "name": "Наука и технологии",
-      "dataset_count": 9
+      "dataset_count": 10
     },
     {
       "id": 7,
       "name": "Икономика и финанси",
-      "dataset_count": 694
+      "dataset_count": 633
     },
     {
       "id": 8,
       "name": "Население и социални условия",
-      "dataset_count": 212
+      "dataset_count": 160
     },
     {
       "id": 9,
       "name": "Правителство и публичен сектор",
-      "dataset_count": 166
+      "dataset_count": 259
     },
     {
       "id": 10,
       "name": "Здравеопазване",
-      "dataset_count": 253
+      "dataset_count": 261
     },
     {
       "id": 11,
       "name": "Региони и градове",
-      "dataset_count": 1479
+      "dataset_count": 3993
     },
     {
       "id": 12,
       "name": "Правосъдие, правна система и обществена безопасност",
-      "dataset_count": 101
+      "dataset_count": 72
     },
     {
       "id": 13,
       "name": "Международни въпроси",
-      "dataset_count": 14
+      "dataset_count": 13
     },
     {
       "id": 14,
       "name": "Некатегоризирани",
-      "dataset_count": 5452
+      "dataset_count": 3810
     }
   ]
 }

@@ -1,6 +1,6 @@
 ---
 name: bulgaria-open-data
-description: Discover, inventory, and download public Bulgarian datasets from the national Open Data Portal, including testdata.egov.bg and data.egov.bg. Use when Codex needs Bulgarian government open-data catalog counts, dataset metadata, resource IDs, CSV/JSON/XML downloads, reproducible source manifests, or themed extracts for transport, finance, environment, population, government, health, regions, education, agriculture, energy, science, justice, or international affairs.
+description: Discover, inventory, and download public Bulgarian datasets from the production national Open Data Portal at data.egov.bg. Use when Codex needs Bulgarian government open-data catalog counts, dataset metadata, resource IDs, CSV/JSON/XML downloads, reproducible source manifests, or themed extracts for transport, finance, environment, population, government, health, regions, education, agriculture, energy, science, justice, or international affairs.
 ---
 
 # Bulgaria Open Data
@@ -14,7 +14,7 @@ Use the bundled API client for deterministic portal discovery and downloads. Kee
 
    ```bash
    python3 scripts/bulgaria_open_data.py snapshot \
-     --base https://testdata.egov.bg \
+     --base https://data.egov.bg \
      --output-dir data/catalog
    ```
 
@@ -24,7 +24,7 @@ Use the bundled API client for deterministic portal discovery and downloads. Kee
 
    ```bash
    python3 scripts/bulgaria_open_data.py resources DATASET_IDENTIFIER \
-     --base https://testdata.egov.bg
+     --base https://data.egov.bg
    ```
 
 4. Download a resource in a published format:
@@ -33,15 +33,15 @@ Use the bundled API client for deterministic portal discovery and downloads. Kee
    python3 scripts/bulgaria_open_data.py download RESOURCE_UUID \
      --format csv \
      --output resource.csv \
-     --base https://testdata.egov.bg
+     --base https://data.egov.bg
    ```
 
 5. Validate the file before analysis: check HTTP success, non-empty size, delimiter or JSON/XML parsing, headers, row count, encoding, date range, and obvious duplicate or null patterns.
-6. Cite the dataset page and resource download URL. Label test-portal data as test-portal data; do not present it as the production portal without verification.
+6. Cite the production dataset page and resource download URL.
 
 ## Guardrails
 
-- Prefer `https://data.egov.bg` for production work when it is reachable and current; use `https://testdata.egov.bg` when explicitly requested or when reproducing a test-portal extract.
+- Use `https://data.egov.bg` for production work and preserve its source URLs in every generated snapshot.
 - Prefer the documented `POST /api/listDatasets`, `listOrganisations`, and `listResources` endpoints over HTML scraping.
 - Treat catalog metadata as evidence about the catalog, not evidence for the values inside a resource.
 - A complete metadata snapshot is not equivalent to validating every resource's tabular contents. Download and validate each resource used for a new chart.

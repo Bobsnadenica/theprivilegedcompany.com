@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-portal_base="${PORTAL_BASE:-https://testdata.egov.bg}"
+portal_base="${PORTAL_BASE:-https://data.egov.bg}"
 road_portal_base="${ROAD_PORTAL_BASE:-https://data.egov.bg}"
 road_resource_uuid="${ROAD_RESOURCE_UUID:-}"
 

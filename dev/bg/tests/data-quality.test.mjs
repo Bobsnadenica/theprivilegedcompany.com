@@ -16,6 +16,7 @@ test("snapshot-ът е пълен и е преминал проверките", 
   ]);
 
   assert.equal(summary.complete, true);
+  assert.equal(summary.source, "https://data.egov.bg");
   assert.equal(summary.datasets, datasets.datasets.length);
   assert.equal(summary.organisations, organisations.organisations.length);
   assert.equal(summary.resources, resources.resources.length);
@@ -27,6 +28,8 @@ test("snapshot-ът е пълен и е преминал проверките", 
   assert.ok(road.summary.mapped_rows > 80_000);
   assert.equal(road.boundary.license, "Public domain");
   assert.ok(road.events.every((event) => event.length === 9));
+  assert.ok(datasets.datasets.every((dataset) => dataset.portal_url.startsWith("https://data.egov.bg/data/view/")));
+  assert.ok(resources.resources.every((resource) => resource.portal_url.startsWith("https://data.egov.bg/data/resourceView/")));
 });
 
 test("данните за интерфейса са на български и съгласувани", async () => {
@@ -36,6 +39,7 @@ test("данните за интерфейса са на български и �
     readJson("../data/site/chart-map.json"),
   ]);
   assert.equal(dashboard.language, "bg");
+  assert.equal(dashboard.portal.source, "https://data.egov.bg");
   assert.equal(dashboard.categories.length, 14);
   assert.equal(Object.keys(dashboard.indicators.series).length, 4);
   assert.equal(dashboard.indicators.series.population.unit, "души");

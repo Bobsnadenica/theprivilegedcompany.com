@@ -19,6 +19,10 @@ Thumbs.db
 **/.codex/
 .codex-worktrees/
 **/.codex-worktrees/
+.playwright-cli/
+**/.playwright-cli/
+output/playwright/
+**/output/playwright/
 
 # =========================================================================
 # Node / JavaScript

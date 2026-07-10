@@ -1,10 +1,10 @@
 {
   "version": 3,
-  "generated_at": "2026-07-10T16:31:16.097928+00:00",
+  "generated_at": "2026-07-10T20:06:30.341305+00:00",
   "sources": [
     {
       "name": "Портал за отворени данни",
-      "url": "https://testdata.egov.bg"
+      "url": "https://data.egov.bg"
     },
     {
       "name": "Световна банка — Отворени данни",
@@ -21,8 +21,8 @@
   ],
   "changes": {
     "previous_snapshot_found": true,
-    "added_datasets": 0,
-    "removed_datasets": 0
+    "added_datasets": 3504,
+    "removed_datasets": 1906
   },
   "files": [
     {
@@ -32,33 +32,33 @@
     },
     {
       "path": "catalog/categories.json",
-      "bytes": 1788,
-      "sha256": "2d180093e1b3f1c4c2326320d8c243266830404d0ecbdc11ba2fc0a30f695d8f"
+      "bytes": 1785,
+      "sha256": "1a346cfa09e4d9723ad3ce97aa75e9e8eef1adf55a5ae2e64a7bee6f9318680a"
     },
     {
       "path": "catalog/datasets.json",
-      "bytes": 9494366,
-      "sha256": "b64e95ab46e7104dac220ba2aee23b584c8c0abbffb24e2345f49a425d1986b9"
+      "bytes": 12408817,
+      "sha256": "9c74ab2d7fa54551835aaed0a47988223774a48f476bfda864c7a7aa5ac47f42"
     },
     {
       "path": "catalog/organisations.json",
-      "bytes": 682767,
-      "sha256": "fff2ced303757ca38ba16cdb716acd990df5561ef15506ce59e9a0ec1ff97b9b"
+      "bytes": 751320,
+      "sha256": "f2f2bea8c5fefcb4c31ea20330562168f1913c171c05cfda787cc1171ed1a287"
     },
     {
       "path": "catalog/portal-summary.json",
-      "bytes": 304,
-      "sha256": "237315e13dd5f70dad856253dfad5caa23d9551e4d66d9d49a115c64f09b4674"
+      "bytes": 296,
+      "sha256": "a7fbf6a6f234a994c30c85770035ce305b8caba9ad1b5a7c8c707cde25b5804e"
     },
     {
       "path": "catalog/resources.json",
-      "bytes": 17589456,
-      "sha256": "f861130ca96823d87a88cc96174bbeb6f2c7edb4702501d68698679dc9114bdb"
+      "bytes": 32719075,
+      "sha256": "422b2211f56df42882f6d0c916beb9929124f3aba07577035965a0404892e95c"
     },
     {
       "path": "indicators/world-bank.json",
       "bytes": 5210,
-      "sha256": "93fcbc34be0f8790da532fc562861a978c5f21e0373a907391451f8d2b79fc8f"
+      "sha256": "31ec91408dd4ceb792ce238cead28898d8c68c9fb0aef2f79319b5753430d836"
     },
     {
       "path": "schemas/dataset.schema.json",
@@ -82,8 +82,8 @@
     },
     {
       "path": "site/catalog-index.json",
-      "bytes": 7995955,
-      "sha256": "b5705f639e9ce0d035316c009722dacc01c3c09f0a77220cde97604f64826914"
+      "bytes": 10638168,
+      "sha256": "e354977a9c914630e282dccb612e55cdf227716c0ea8409a6b3f2d2540d6b0e1"
     },
     {
       "path": "site/chart-map.json",
@@ -92,18 +92,18 @@
     },
     {
       "path": "site/dashboard.json",
-      "bytes": 54739,
-      "sha256": "3dc830f1645b63388d5c61f44cf12275e9c0c346dd8c80e2b3277269faace7a2"
+      "bytes": 54533,
+      "sha256": "de034d445d75953449fdce0132743395d88a20feb4b06a9f803ea89150419459"
     },
     {
       "path": "validation/report.json",
-      "bytes": 3969,
-      "sha256": "1f142d7fa585c2f97fe59cc506168dd614dd5f5ca60c8ee38c30d008f31e5e6c"
+      "bytes": 3968,
+      "sha256": "bab29ae285199e45e459109d9a95573505216d396bcb76bebdb7a1b0258ed8e7"
     },
     {
       "path": "visuals/road.json",
-      "bytes": 4148841,
-      "sha256": "7796541cc9c76fde167f6e32c22baafef4ead5cb2ea4698708281d6eb80684d8"
+      "bytes": 4150267,
+      "sha256": "e47d8e9486f0bc37ed56c0f24ec11175f5a80630bf8ff06402e9e84809b15a70"
     }
   ]
 }

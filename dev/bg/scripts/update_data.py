@@ -622,7 +622,7 @@ def promote(stage: Path, target: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--target", default=str(ROOT / "data"))
-    parser.add_argument("--portal-base", default="https://testdata.egov.bg")
+    parser.add_argument("--portal-base", default="https://data.egov.bg")
     parser.add_argument("--road-portal-base", default="https://data.egov.bg")
     parser.add_argument("--road-resource-uuid", help="По избор; иначе се открива автоматично от страницата на ПТП набора")
     parser.add_argument("--years", type=int, default=12)
