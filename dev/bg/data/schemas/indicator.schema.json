@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Времева серия на индикатор",
+  "type": "object",
+  "required": [
+    "indicator",
+    "title",
+    "unit",
+    "source_url",
+    "data"
+  ],
+  "properties": {
+    "indicator": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "data": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "required": [
+          "year",
+          "value"
+        ],
+        "properties": {
+          "year": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

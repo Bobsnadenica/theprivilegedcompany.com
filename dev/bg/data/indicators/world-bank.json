@@ -1,0 +1,233 @@
+{
+  "source": "https://api.worldbank.org/v2/country/BGR/indicator",
+  "source_name": "Световна банка — Отворени данни",
+  "country": "България",
+  "country_code": "BGR",
+  "retrieved_at": "2026-07-10T15:14:25.669803+00:00",
+  "series": {
+    "population": {
+      "indicator": "SP.POP.TOTL",
+      "title": "Население, общо",
+      "unit": "души",
+      "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BG",
+      "data": [
+        {
+          "year": "2014",
+          "value": 7073572
+        },
+        {
+          "year": "2015",
+          "value": 6984225
+        },
+        {
+          "year": "2016",
+          "value": 6894139
+        },
+        {
+          "year": "2017",
+          "value": 6803468
+        },
+        {
+          "year": "2018",
+          "value": 6710798
+        },
+        {
+          "year": "2019",
+          "value": 6616726
+        },
+        {
+          "year": "2020",
+          "value": 6550696
+        },
+        {
+          "year": "2021",
+          "value": 6507301
+        },
+        {
+          "year": "2022",
+          "value": 6465097
+        },
+        {
+          "year": "2023",
+          "value": 6446596
+        },
+        {
+          "year": "2024",
+          "value": 6441421
+        },
+        {
+          "year": "2025",
+          "value": 6433302
+        }
+      ]
+    },
+    "gdp": {
+      "indicator": "NY.GDP.MKTP.CD",
+      "title": "Брутен вътрешен продукт",
+      "unit": "текущи щатски долари",
+      "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BG",
+      "data": [
+        {
+          "year": "2014",
+          "value": 57083817239.8145
+        },
+        {
+          "year": "2015",
+          "value": 50768512172.9373
+        },
+        {
+          "year": "2016",
+          "value": 53932152153.5457
+        },
+        {
+          "year": "2017",
+          "value": 59170671046.4798
+        },
+        {
+          "year": "2018",
+          "value": 66100606676.6544
+        },
+        {
+          "year": "2019",
+          "value": 68511235459.4907
+        },
+        {
+          "year": "2020",
+          "value": 70490478088.1395
+        },
+        {
+          "year": "2021",
+          "value": 84378926047.3002
+        },
+        {
+          "year": "2022",
+          "value": 90510784777.6397
+        },
+        {
+          "year": "2023",
+          "value": 102204457334.822
+        },
+        {
+          "year": "2024",
+          "value": 113349149166.793
+        },
+        {
+          "year": "2025",
+          "value": 130777235529.606
+        }
+      ]
+    },
+    "forest": {
+      "indicator": "AG.LND.FRST.ZS",
+      "title": "Горски територии",
+      "unit": "% от площта на страната",
+      "source_url": "https://data.worldbank.org/indicator/AG.LND.FRST.ZS?locations=BG",
+      "data": [
+        {
+          "year": "2012",
+          "value": 34.777081798084
+        },
+        {
+          "year": "2013",
+          "value": 34.9539425202653
+        },
+        {
+          "year": "2014",
+          "value": 35.1308032424466
+        },
+        {
+          "year": "2015",
+          "value": 35.3076639646279
+        },
+        {
+          "year": "2016",
+          "value": 35.3813559322034
+        },
+        {
+          "year": "2017",
+          "value": 35.5011053795136
+        },
+        {
+          "year": "2018",
+          "value": 35.6208548268239
+        },
+        {
+          "year": "2019",
+          "value": 35.7406042741341
+        },
+        {
+          "year": "2020",
+          "value": 35.8603537214444
+        },
+        {
+          "year": "2021",
+          "value": 35.9801031687546
+        },
+        {
+          "year": "2022",
+          "value": 36.0998526160649
+        },
+        {
+          "year": "2023",
+          "value": 36.2196020633751
+        }
+      ]
+    },
+    "internet": {
+      "indicator": "IT.NET.USER.ZS",
+      "title": "Лица, използващи интернет",
+      "unit": "% от населението",
+      "source_url": "https://data.worldbank.org/indicator/IT.NET.USER.ZS?locations=BG",
+      "data": [
+        {
+          "year": "2013",
+          "value": 53.0615
+        },
+        {
+          "year": "2014",
+          "value": 55.4903766299262
+        },
+        {
+          "year": "2015",
+          "value": 56.6562516053086
+        },
+        {
+          "year": "2016",
+          "value": 59.825547661014
+        },
+        {
+          "year": "2017",
+          "value": 63.4101013837926
+        },
+        {
+          "year": "2018",
+          "value": 64.78201069118
+        },
+        {
+          "year": "2019",
+          "value": 67.9469809417603
+        },
+        {
+          "year": "2020",
+          "value": 70.16248359
+        },
+        {
+          "year": "2021",
+          "value": 75.27144583
+        },
+        {
+          "year": "2022",
+          "value": 79.12686326
+        },
+        {
+          "year": "2023",
+          "value": 80.38956462
+        },
+        {
+          "year": "2024",
+          "value": 82.438955
+        }
+      ]
+    }
+  }
+}

@@ -21,6 +21,23 @@ Thumbs.db
 node_modules/
 **/node_modules/
 
+# Bulgaria Open Data Atlas (/dev/bg)
+# Source snapshots under dev/bg/data/ and the root-level deployed site files
+# stay tracked. These paths are dependencies, intermediate build output, and
+# local/runtime scratch that can be recreated or may contain machine data.
+/dev/bg/dist/
+/dev/bg/public/data/
+/dev/bg/.vite/
+/dev/bg/.env*
+/dev/bg/coverage/
+/dev/bg/build/
+/dev/bg/tmp/
+/dev/bg/db/
+/dev/bg/scripts/__pycache__/
+/dev/bg/**/*.pyc
+/dev/bg/*.sqlite
+/dev/bg/*.sqlite-*
+
 # Build output (Vite). Deployed artifacts live in dev/career/index.html
 # and dev/career/assets/ — those are kept tracked deliberately so GitHub
 # Pages can serve them.

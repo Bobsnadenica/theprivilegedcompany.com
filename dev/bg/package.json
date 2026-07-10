@@ -1,0 +1,28 @@
+{
+  "name": "bulgaria-open-data-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "prepare:data": "node scripts/prepare_public_data.mjs",
+    "dev": "npm run prepare:data && vite",
+    "build": "npm run prepare:data && tsc --noEmit && vite build",
+    "deploy": "npm run build && node scripts/sync_deploy.mjs",
+    "preview": "vite preview",
+    "test": "npm run deploy && node --test tests/static-site.test.mjs tests/data-quality.test.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "typescript": "5.9.3",
+    "vite": "8.0.13"
+  }
+}

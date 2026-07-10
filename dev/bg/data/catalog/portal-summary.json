@@ -1,0 +1,12 @@
+{
+  "source": "https://testdata.egov.bg",
+  "retrieved_at": "2026-07-10T15:14:26.576741+00:00",
+  "api": "https://testdata.egov.bg/api",
+  "complete": true,
+  "datasets": 10310,
+  "captured_datasets": 10310,
+  "organisations": 526,
+  "captured_organisations": 526,
+  "resources": 25578,
+  "themes": 14
+}

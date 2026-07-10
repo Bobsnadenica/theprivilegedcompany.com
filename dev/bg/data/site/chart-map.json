@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "surface": "Статичен React dashboard",
+  "palette_policy": "Един основен зелен тон, червен акцент и неутрални тонове; директни етикети без излишни легенди.",
+  "charts": [
+    {
+      "section": "Начало и каталог",
+      "question": "Как е разпределен целият каталог по 14 официални категории?",
+      "family": "Сравнение и класация",
+      "type": "Хоризонтални ленти",
+      "fields": [
+        "category.name",
+        "category.dataset_count"
+      ],
+      "source": "catalog/categories.json"
+    },
+    {
+      "section": "Тематични раздели",
+      "question": "Какви са съставът, актуалността и метаданните на всяка тематична група?",
+      "family": "Състав, класация и качество",
+      "type": "Хоризонтални/вертикални ленти и прогрес",
+      "fields": [
+        "category_breakdown",
+        "updated_distribution",
+        "top_organisations",
+        "format_breakdown",
+        "coverage"
+      ],
+      "source": "catalog/datasets.json + catalog/organisations.json"
+    },
+    {
+      "section": "Икономика, природа и хора",
+      "question": "Как се променят проверените национални индикатори във времето?",
+      "family": "Тенденция",
+      "type": "Годишни ленти с нулева основа и точни стойности",
+      "fields": [
+        "year",
+        "value",
+        "unit"
+      ],
+      "source": "indicators/world-bank.json"
+    },
+    {
+      "section": "Транспорт",
+      "question": "Къде и какви ПТП са регистрирани от 2024 г. насам?",
+      "family": "Географско разпределение и класация",
+      "type": "Canvas карта и хоризонтални ленти",
+      "fields": [
+        "lon",
+        "lat",
+        "year",
+        "fatalities",
+        "injured",
+        "severe",
+        "region",
+        "crash_type"
+      ],
+      "source": "visuals/road.json"
+    }
+  ]
+}

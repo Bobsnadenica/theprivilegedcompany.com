@@ -1,0 +1,109 @@
+{
+  "version": 3,
+  "generated_at": "2026-07-10T16:31:16.097928+00:00",
+  "sources": [
+    {
+      "name": "Портал за отворени данни",
+      "url": "https://testdata.egov.bg"
+    },
+    {
+      "name": "Световна банка — Отворени данни",
+      "url": "https://api.worldbank.org/v2/country/BGR/indicator"
+    },
+    {
+      "name": "МВР — актуални данни за ПТП",
+      "url": "https://data.egov.bg/data/view/4b948dd7-c9ef-4239-b2de-9b8e1c312467"
+    },
+    {
+      "name": "Natural Earth — държавни граници",
+      "url": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/"
+    }
+  ],
+  "changes": {
+    "previous_snapshot_found": true,
+    "added_datasets": 0,
+    "removed_datasets": 0
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2622,
+      "sha256": "8d3b224f02d7a700dc221a67c97be4e6ee4cbb4a8a916d301306fe11ad16ba66"
+    },
+    {
+      "path": "catalog/categories.json",
+      "bytes": 1788,
+      "sha256": "2d180093e1b3f1c4c2326320d8c243266830404d0ecbdc11ba2fc0a30f695d8f"
+    },
+    {
+      "path": "catalog/datasets.json",
+      "bytes": 9494366,
+      "sha256": "b64e95ab46e7104dac220ba2aee23b584c8c0abbffb24e2345f49a425d1986b9"
+    },
+    {
+      "path": "catalog/organisations.json",
+      "bytes": 682767,
+      "sha256": "fff2ced303757ca38ba16cdb716acd990df5561ef15506ce59e9a0ec1ff97b9b"
+    },
+    {
+      "path": "catalog/portal-summary.json",
+      "bytes": 304,
+      "sha256": "237315e13dd5f70dad856253dfad5caa23d9551e4d66d9d49a115c64f09b4674"
+    },
+    {
+      "path": "catalog/resources.json",
+      "bytes": 17589456,
+      "sha256": "f861130ca96823d87a88cc96174bbeb6f2c7edb4702501d68698679dc9114bdb"
+    },
+    {
+      "path": "indicators/world-bank.json",
+      "bytes": 5210,
+      "sha256": "93fcbc34be0f8790da532fc562861a978c5f21e0373a907391451f8d2b79fc8f"
+    },
+    {
+      "path": "schemas/dataset.schema.json",
+      "bytes": 1099,
+      "sha256": "3e82f294efaaedc6b647ca1d4197f039043d7116ee359bac11ad2165fdb61349"
+    },
+    {
+      "path": "schemas/indicator.schema.json",
+      "bytes": 817,
+      "sha256": "d30f41ee2e04818bc903d687e525ef6981b0fc844f5d990d9b26ccbab6f43968"
+    },
+    {
+      "path": "schemas/resource.schema.json",
+      "bytes": 650,
+      "sha256": "6f61bd7b761132bee075ac0206bfa8a0d8b5b11a73e8a9f6878783bbfa6e804c"
+    },
+    {
+      "path": "schemas/road-visual.schema.json",
+      "bytes": 538,
+      "sha256": "58f3136ba50a005dc20600e7b96123b42e4feaec451076d096c2bf0c09ca8777"
+    },
+    {
+      "path": "site/catalog-index.json",
+      "bytes": 7995955,
+      "sha256": "b5705f639e9ce0d035316c009722dacc01c3c09f0a77220cde97604f64826914"
+    },
+    {
+      "path": "site/chart-map.json",
+      "bytes": 2339,
+      "sha256": "b9586d6bab2d3ba2bf44f54a020256bc8a78c9e15418b85661d1d4d6444f9ed6"
+    },
+    {
+      "path": "site/dashboard.json",
+      "bytes": 54739,
+      "sha256": "3dc830f1645b63388d5c61f44cf12275e9c0c346dd8c80e2b3277269faace7a2"
+    },
+    {
+      "path": "validation/report.json",
+      "bytes": 3969,
+      "sha256": "1f142d7fa585c2f97fe59cc506168dd614dd5f5ca60c8ee38c30d008f31e5e6c"
+    },
+    {
+      "path": "visuals/road.json",
+      "bytes": 4148841,
+      "sha256": "7796541cc9c76fde167f6e32c22baafef4ead5cb2ea4698708281d6eb80684d8"
+    }
+  ]
+}

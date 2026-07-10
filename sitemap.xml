@@ -8,9 +8,15 @@
   </url>
   <url>
     <loc>https://www.theprivilegedcompany.com/manifest</loc>
-    <lastmod>2026-06-12</lastmod>
+    <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.theprivilegedcompany.com/dev/bg/</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.theprivilegedcompany.com/who-are-we</loc>

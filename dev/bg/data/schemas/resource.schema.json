@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ресурс — нормализирани метаданни",
+  "type": "object",
+  "required": [
+    "uuid",
+    "dataset_identifier",
+    "title",
+    "formats",
+    "portal_url"
+  ],
+  "properties": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "dataset_identifier": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "formats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "portal_url": {
+      "type": "string",
+      "format": "uri"
+    }
+  }
+}
