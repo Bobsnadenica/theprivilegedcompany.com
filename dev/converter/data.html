@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f1e8" id="theme-color-meta">
+  <title>Data Size Converter — Converter Lab</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta name="description" content="Convert bytes, kilobytes, megabytes, gigabytes, terabytes, and petabytes using decimal or binary units.">
+  <meta property="og:title" content="Data Size Converter">
+  <meta property="og:description" content="Bytes through petabytes, without the mental math.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/converter/data.html">
+  <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Data Size Converter">
+  <meta name="twitter:description" content="Bytes through petabytes, without the mental math.">
+  <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+
+  <script>
+    (() => {
+      const stored = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
+    })();
+  </script>
+  <link rel="stylesheet" href="tool.css">
+</head>
+<body class="accent-orange">
+  <header class="site-header shell">
+    <a class="brand" href="index.html" aria-label="Converter Lab home">
+      <span class="brand-mark" aria-hidden="true">C↔</span>
+      <span class="brand-label">Converter Lab</span>
+    </a>
+
+    <div class="header-actions">
+      <a class="header-action" href="index.html" aria-label="Back to all converters">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>All converters</span>
+      </a>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path>
+        </svg>
+        <svg class="moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="tool-layout shell">
+    <section aria-labelledby="page-title">
+      <p class="eyebrow">From tiny bytes to enormous backups.</p>
+      <h1 id="page-title">Make file sizes make sense.</h1>
+      <p class="intro-copy">Choose decimal for storage labels or binary for computing units. Type on either side and the result stays in sync.</p>
+      <ul class="feature-list" aria-label="Converter features">
+        <li>Bytes to petabytes</li>
+        <li>Decimal + binary</li>
+        <li>Converts both ways</li>
+      </ul>
+    </section>
+
+    <section class="tool-card" aria-label="Data size converter">
+      <div class="field-block">
+        <label class="field-label" for="unit-system">Calculation type</label>
+        <select id="unit-system">
+          <option value="decimal">Decimal — base 1,000</option>
+          <option value="binary">Binary — base 1,024</option>
+        </select>
+      </div>
+
+      <div class="conversion-grid">
+        <div>
+          <label class="field-label" for="left-data">From</label>
+          <div class="value-control">
+            <input id="left-data" type="number" step="any" inputmode="decimal" value="1" aria-describedby="data-status">
+            <select id="left-unit" aria-label="Source data unit"></select>
+          </div>
+        </div>
+
+        <button class="swap-button" id="swap" type="button" aria-label="Swap data units">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M7 7h11l-3-3M17 17H6l3 3" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+
+        <div>
+          <label class="field-label" for="right-data">To</label>
+          <div class="value-control">
+            <input id="right-data" type="number" step="any" inputmode="decimal" aria-describedby="data-status">
+            <select id="right-unit" aria-label="Target data unit"></select>
+          </div>
+        </div>
+      </div>
+
+      <p class="formula">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 11v5M12 8h.01"></path>
+        </svg>
+        <span id="system-note">Decimal units match how drive manufacturers label storage: 1 GB = 1,000 MB.</span>
+      </p>
+      <p class="status" id="data-status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <span>© <span id="year"></span> ThePrivilegedCompany</span>
+    <strong>That download is still bigger than expected.</strong>
+  </footer>
+
+  <script>
+    const unitSystems = {
+      decimal: {
+        base: 1000,
+        labels: ['B', 'KB', 'MB', 'GB', 'TB', 'PB'],
+        note: 'Decimal units match how drive manufacturers label storage: 1 GB = 1,000 MB.'
+      },
+      binary: {
+        base: 1024,
+        labels: ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'],
+        note: 'Binary units use powers of 1,024: 1 GiB = 1,024 MiB.'
+      }
+    };
+
+    const systemSelect = document.getElementById('unit-system');
+    const leftInput = document.getElementById('left-data');
+    const rightInput = document.getElementById('right-data');
+    const leftUnit = document.getElementById('left-unit');
+    const rightUnit = document.getElementById('right-unit');
+    const status = document.getElementById('data-status');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeMeta = document.getElementById('theme-color-meta');
+    let lastEdited = 'left';
+
+    function currentSystem() {
+      return unitSystems[systemSelect.value];
+    }
+
+    function fillUnitOptions() {
+      const leftValue = leftUnit.value || '3';
+      const rightValue = rightUnit.value || '2';
+      const options = currentSystem().labels
+        .map((label, exponent) => `<option value="${exponent}">${label}</option>`)
+        .join('');
+      leftUnit.innerHTML = options;
+      rightUnit.innerHTML = options;
+      leftUnit.value = leftValue;
+      rightUnit.value = rightValue;
+      document.getElementById('system-note').textContent = currentSystem().note;
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) return '';
+      const absolute = Math.abs(value);
+      if (absolute !== 0 && absolute < 0.000001) return value.toExponential(6).replace(/\.0+e/, 'e');
+      if (absolute >= 1e15) return value.toExponential(6).replace(/\.0+e/, 'e');
+      return String(Number(value.toFixed(6)));
+    }
+
+    function convertFrom(side) {
+      const sourceInput = side === 'left' ? leftInput : rightInput;
+      const targetInput = side === 'left' ? rightInput : leftInput;
+      const sourceUnit = side === 'left' ? leftUnit : rightUnit;
+      const targetUnit = side === 'left' ? rightUnit : leftUnit;
+      const system = currentSystem();
+
+      if (sourceInput.value === '') {
+        targetInput.value = '';
+        status.textContent = 'Type a number on either side to begin.';
+        return;
+      }
+
+      const value = Number(sourceInput.value);
+      const exponentDifference = Number(sourceUnit.value) - Number(targetUnit.value);
+      const converted = value * Math.pow(system.base, exponentDifference);
+      if (!Number.isFinite(converted)) {
+        targetInput.value = '';
+        status.textContent = 'That number is too large to convert reliably.';
+        return;
+      }
+      targetInput.value = formatNumber(converted);
+      const fromLabel = system.labels[Number(sourceUnit.value)];
+      const toLabel = system.labels[Number(targetUnit.value)];
+      status.textContent = `${formatNumber(value)} ${fromLabel} = ${targetInput.value} ${toLabel}`;
+    }
+
+    leftInput.addEventListener('input', () => {
+      lastEdited = 'left';
+      convertFrom('left');
+    });
+
+    rightInput.addEventListener('input', () => {
+      lastEdited = 'right';
+      convertFrom('right');
+    });
+
+    leftUnit.addEventListener('change', () => convertFrom(lastEdited));
+    rightUnit.addEventListener('change', () => convertFrom(lastEdited));
+
+    systemSelect.addEventListener('change', () => {
+      fillUnitOptions();
+      convertFrom(lastEdited);
+    });
+
+    document.getElementById('swap').addEventListener('click', () => {
+      const oldLeftUnit = leftUnit.value;
+      const oldLeftValue = leftInput.value;
+      leftUnit.value = rightUnit.value;
+      rightUnit.value = oldLeftUnit;
+      leftInput.value = rightInput.value;
+      rightInput.value = oldLeftValue;
+      lastEdited = 'left';
+      convertFrom('left');
+      leftInput.focus();
+    });
+
+    function updateThemeControl() {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      themeToggle.setAttribute('aria-pressed', String(isDark));
+      themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      themeMeta.setAttribute('content', isDark ? '#11130f' : '#f5f1e8');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem('theme', nextTheme);
+      updateThemeControl();
+    });
+
+    fillUnitOptions();
+    convertFrom('left');
+    updateThemeControl();
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

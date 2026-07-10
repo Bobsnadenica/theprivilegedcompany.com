@@ -12,7 +12,7 @@
 
     <application
         android:name="${applicationName}"
-        android:label="Mist of Atlas"
+        android:label="Mist of Atlas: World of Fog"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
         <activity

@@ -24,6 +24,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
@@ -45,6 +46,34 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+.chronicle-map:focus-visible {
+  outline: 2px solid rgba(214, 179, 92, 0.7);
+  outline-offset: 3px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 200;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  color: #191207;
+  background: var(--accent);
+  font-weight: 800;
+  transition: top 0.18s ease;
+}
+
+.skip-link:focus {
+  top: 10px;
 }
 
 img {
@@ -173,6 +202,10 @@ button {
   padding: 0 24px 18px;
   border-top: 1px solid var(--line-soft);
   background: rgba(9, 13, 10, 0.96);
+}
+
+.mobile-menu[hidden] {
+  display: none;
 }
 
 .mobile-menu.open {
@@ -370,6 +403,10 @@ h3 {
   height: 350px;
   cursor: crosshair;
   touch-action: none;
+}
+
+.chronicle-map:focus-visible {
+  border-color: var(--accent);
 }
 
 .map-live-base {
@@ -997,6 +1034,32 @@ h3 {
 .cta-panel p {
   max-width: 640px;
   margin: 0 auto;
+}
+
+.cta-panel .availability {
+  width: fit-content;
+  margin-bottom: 18px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent-soft);
+  background: rgba(214, 179, 92, 0.06);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.availability span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--aqua);
+  box-shadow: 0 0 0 4px rgba(143, 194, 173, 0.1);
 }
 
 .cta-actions {

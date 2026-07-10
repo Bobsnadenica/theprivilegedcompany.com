@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String appName = 'Mist of Atlas';
+  static const String appName = 'Mist of Atlas: World of Fog';
 
   static const String userAgentPackageName = 'com.example.world_of_fog';
 

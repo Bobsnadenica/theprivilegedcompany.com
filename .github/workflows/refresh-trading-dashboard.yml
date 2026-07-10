@@ -1,0 +1,79 @@
+name: Refresh trading dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "dev/Trading/**"
+      - ".github/workflows/refresh-trading-dashboard.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "20 22 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-trading-dashboard
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip trading refresh]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: dev/Trading/requirements.txt
+
+      - name: Install locked market-data runtime
+        run: |
+          python -m pip install --disable-pip-version-check --requirement dev/Trading/requirements.txt
+          python -m pip check
+
+      - name: Refresh analysis with retries
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if python dev/Trading/scripts/update_market_data.py; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "Market refresh failed after three attempts. Existing published data remains unchanged."
+              exit 1
+            fi
+            echo "Refresh attempt $attempt failed; retrying shortly."
+            sleep $((attempt * 20))
+          done
+
+      - name: Validate data contract and model regimes
+        run: |
+          python dev/Trading/scripts/test_analysis.py
+          python dev/Trading/scripts/test_signal_model.py
+
+      - name: Commit changed market snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dev/Trading/data/analysis.json
+          if git diff --cached --quiet; then
+            echo "Market snapshot is unchanged."
+            exit 0
+          fi
+          git commit -m "chore: refresh trading analysis [skip trading refresh]"
+          git pull --rebase origin main
+          git push origin HEAD:main

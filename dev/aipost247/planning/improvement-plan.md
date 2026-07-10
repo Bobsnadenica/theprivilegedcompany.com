@@ -1,6 +1,6 @@
 # AIPost247 — Robustness & Usability Improvement Plan
 
-**Drafted:** 2026-06-18 · **Status:** PLAN (execute incrementally, nothing here is started)
+**Drafted:** 2026-06-18 · **Updated:** 2026-07-10 · **Status:** IN PROGRESS
 **Guiding rule:** every change is **additive and behind the existing abstractions**, landed with
 a test that locks the behaviour in — so we improve *without breaking what already works*.
 
@@ -17,10 +17,11 @@ The fragile parts (what this plan targets):
    brief…"), and Gemini is being retired (2026-06-18). This is the #1 risk to the core value.
 2. **Login reliability** — driving an interactive terminal OAuth (paste-the-code) from a web button
    is fragile: `invalid_grant` (code expiry) and hangs.
-3. **No automated tests** — every recent break (run.bat LF endings, `images.json` drift, the asset
-   reorg bloating the zip) slipped through because there's no safety net.
-4. **Packaging drift** — after the asset move, the user download jumped **86 KB → 2.5 MB** (it now
-   ships website screenshots + `__pycache__`).
+3. **Test coverage is still selective** — the standard-library suite now covers core safety,
+   provider isolation, coordination, output validation, and distribution invariants, and is
+   exposed through `run.sh test` / `run.bat test`; endpoint and config round-trip coverage can grow.
+4. **Packaging drift** — the release has a size bound and now excludes bytecode plus test/coverage
+   caches, but the bundled offline guide media remains the largest part of the archive.
 
 ---
 
@@ -41,7 +42,7 @@ The fragile parts (what this plan targets):
 | # | Item | Why | Effort |
 |---|---|---|---|
 | P1-1 | **Login lives in the terminal; dashboard only detects it.** Finish the move: the dashboard button explains "finish in the terminal", a clean foreground `provider login` runs there, and the **"Провери входа"** probe (already added) confirms it — including keyring creds. Stop trying to drive the paste-the-code flow from the browser. | `invalid_grant`/hangs come from web-driven interactive OAuth. | 2h |
-| P1-2 | **Automated test suite (`pytest`) + a `run.sh test` / `run.bat test` command.** Cover: memory store (CRUD, engagement, steering, clear), config load/save round-trip, provider dispatch (mocked subprocess — asserts argv, stdin=DEVNULL, error classification), dashboard endpoints smoke (status/config/posts/job), and **guards**: zip has no secrets and is < e.g. 300 KB, `run.bat` is CRLF + ASCII, `images.json` matches `how_to.txt`. | A test would have caught the run.bat LF break, the manifest drift, and the 2.5 MB zip. | 4h |
+| P1-2 | **Automated test suite + a `run.sh test` / `run.bat test` command.** **Partially complete:** the standard-library tests cover the highest-risk paths and the launcher now exposes them. Add endpoint smoke, config persistence, and broader distribution assertions incrementally. | The suite catches provider, coordination, dashboard security, manifest, and Windows launcher regressions. | 4h |
 | P1-3 | **Packaging hygiene.** Exclude website-only assets (`assets/*.jpg`, `__pycache__`, `video/`) from the **user** zip — those are for the site gallery, not the downloadable tool. Keep the download lean (~90 KB). Add the size guard from P1-2. | The download ballooned 86 KB → 2.5 MB after the asset reorg. | 1h |
 
 ## P2 — Usability polish

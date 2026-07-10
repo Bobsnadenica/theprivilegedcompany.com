@@ -1,582 +1,2299 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="bg" class="no-js">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Рецептите на Мама</title>
-<meta property="og:title" content="Рецептите на Мама">
-<meta property="og:description" content="ThePrivilegedCompany project page.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.theprivilegedcompany.com/dev/iveto/index.html">
-<meta name="twitter:title" content="Рецептите на Мама">
-<meta name="twitter:description" content="ThePrivilegedCompany project page.">
-<meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="4501">
-<meta property="og:image:height" content="4500">
-<meta property="og:image:alt" content="ThePrivilegedCompany logo">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-<style>
-:root {
-    --bg-color: #fff8e1;
-    --text-color: #3e2723;
-    --secondary-text-color: #5d4037;
-    --accent-color: #ff7043;
-    --link-bg-color: rgba(255, 112, 67, 0.1);
-    --link-border-color: rgba(255, 112, 67, 0.3);
-    --primary-gradient: linear-gradient(45deg, #ef5350, #ff7043);
-    --underline-gradient: linear-gradient(90deg, #ef5350, #ff8a65);
-}
-*, *::before, *::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-html, body {
-    height: 100%;
-    font-family: 'Inter', sans-serif;
-    color: var(--text-color);
-    cursor: none;
-    user-select: none;
-    background-color: var(--bg-color);
-}
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    padding: 1rem;
-    text-align: center;
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-.garden {
-    position: fixed;
-    inset: 0;
-    background: var(--bg-color) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1920&q=80') no-repeat center/cover;
-    z-index: -1;
-    filter: brightness(1.1) saturate(1.3) blur(2px);
-    background-attachment: fixed;
-    transition: filter 0.5s ease;
-}
-.flower-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 0;
-    min-height: 100%;
-}
-h1, h2, .recipe-container, .cat-game-wrapper {
-    z-index: 1;
-}
-h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 6vw, 4rem);
-    font-weight: 700;
-    text-transform: uppercase;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    color: transparent;
-    position: relative;
-    padding-bottom: 1rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    margin-top: 1rem;
-}
-h1::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 80%;
-    max-width: 250px;
-    height: 3px;
-    background: var(--underline-gradient);
-    animation: underline 1s 0.5s ease forwards;
-}
-h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1rem, 2.5vw, 1.5rem);
-    color: var(--secondary-text-color);
-    margin: 0.5rem 0 1.5rem;
-    max-width: 600px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}
-@keyframes slideIn {
-    from {
-        transform: translateY(50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-@keyframes underline {
-    to {
-        transform: translateX(-50%) scaleX(1);
-    }
-}
-.recipe-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin: 1.5rem 0;
-    width: 100%;
-    max-width: 800px;
-    background: rgba(255,245,230,0.95);
-    backdrop-filter: blur(5px);
-    border-radius: 15px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-.recipe-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    border-bottom: 1px solid var(--link-border-color);
-    padding-bottom: 1rem;
-}
-.recipe-section:last-child {
-    border-bottom: none;
-}
-.recipe-section h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.5rem, 4vw, 1.8rem);
-    color: var(--text-color);
-    text-align: left;
-}
-.recipe-section h4 {
-    font-size: clamp(1rem, 3vw, 1.2rem);
-    color: var(--accent-color);
-    margin-top: 0.5rem;
-}
-.recipe-section ul, .recipe-section ol {
-    text-align: left;
-    margin-left: 1.5rem;
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    color: var(--secondary-text-color);
-}
-.recipe-img {
-    width: 100%;
-    max-width: 520px;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    border-radius: 12px;
-    border: 2px solid var(--link-border-color);
-    margin: 1rem auto;
-    object-fit: cover;
-    display: block;
-    background: rgba(255,255,255,0.6);
-    box-shadow: 0 10px 24px rgba(62, 39, 35, 0.14);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.recipe-img:hover {
-    transform: scale(1.02);
-    box-shadow: 0 14px 28px rgba(62, 39, 35, 0.2);
-}
-.cat-game-wrapper {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 1200px;
-}
-.cat-fact-container, .todo-container {
-    max-width: 400px;
-    background: rgba(255,245,230,0.95);
-    backdrop-filter: blur(5px);
-    border-radius: 10px;
-    padding: 1rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-.cat-fact-container:hover, .todo-container:hover {
-    transform: translateY(-5px);
-}
-.cat-img {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    border: 2px solid var(--link-border-color);
-    aspect-ratio: 4/3;
-    object-fit: cover;
-}
-.fact {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    color: var(--secondary-text-color);
-    margin-top: 0.5rem;
-}
-.todo-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.todo-input {
-    padding: 0.5rem;
-    border: 1px solid var(--link-border-color);
-    border-radius: 5px;
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    font-family: 'Inter', sans-serif;
-    transition: all 0.3s ease;
-}
-.todo-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 5px rgba(255, 112, 67, 0.5);
-}
-.todo-list {
-    list-style: none;
-    max-height: 200px;
-    overflow-y: auto;
-}
-.todo-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--link-border-color);
-}
-.todo-item button {
-    background: none;
-    border: none;
-    color: var(--accent-color);
-    cursor: pointer;
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    transition: color 0.3s ease;
-}
-.todo-item button:hover {
-    color: #d32f2f;
-}
-.duck {
-    position: absolute;
-    pointer-events: none;
-    z-index: 9999;
-}
-.cursor-duck {
-    font-size: 2rem;
-    animation: waddleCursor 0.5s ease-in-out infinite alternate;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3);
-    opacity: 1;
-}
-.follower-duck {
-    font-size: 1rem;
-    animation: waddleFollower 0.6s ease-in-out infinite alternate;
-    opacity: 0.8;
-}
-@keyframes waddleCursor {
-    from {
-        transform: translate(-50%, -50%) rotate(-3deg) scale(1.05);
-    }
-    to {
-        transform: translate(-50%, -50%) rotate(3deg) scale(1.05);
-    }
-}
-@keyframes waddleFollower {
-    from {
-        transform: translate(-50%, -50%) rotate(-5deg);
-    }
-    to {
-        transform: translate(-50%, -50%) rotate(5deg);
-    }
-}
-.flower {
-    position: absolute;
-    font-size: 1rem;
-    pointer-events: none;
-    transform: translate(-50%, -50%) scale(0.1);
-    opacity: 0;
-    transition: transform 1s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 1s;
-}
-.flower.grown {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-}
-.animated-plant {
-    position: absolute;
-    font-size: 1.5rem;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-    animation: gently 5s ease-in-out infinite alternate;
-    opacity: 0.9;
-}
-@keyframes gently {
-    from {
-        transform: translate(-50%, -50%) rotate(-2deg);
-    }
-    to {
-        transform: translate(-50%, -50%) rotate(2deg);
-    }
-}
-@media (max-width: 900px) {
-    body {
-        padding: 0.5rem;
-    }
-    h1 {
-        font-size: clamp(1.8rem, 5vw, 3rem);
-    }
-    h2 {
-        font-size: clamp(0.9rem, 2vw, 1.2rem);
-    }
-    .recipe-container {
-        padding: 1rem;
-        margin: 1rem 0;
-    }
-    .recipe-section h3 {
-        font-size: clamp(1.2rem, 3vw, 1.5rem);
-    }
-    .recipe-img {
-        max-width: 100%;
-    }
-    .cat-game-wrapper {
-        flex-direction: column;
-        align-items: center;
-    }
-    .todo-container, .cat-fact-container {
-        width: 100%;
-        max-width: 350px;
-    }
-}
-@media (max-width: 600px) {
-    h1 {
-        font-size: clamp(1.5rem, 4vw, 2.5rem);
-    }
-    h2 {
-        font-size: clamp(0.8rem, 1.8vw, 1rem);
-    }
-    .recipe-container {
-        padding: 0.8rem;
-    }
-    .recipe-img {
-        max-width: 100%;
-    }
-    .cursor-duck {
-        font-size: 1.5rem;
-    }
-    .follower-duck {
-        font-size: 0.8rem;
-    }
-}
-</style>
-</head>
-<body>
-<div class="garden"></div>
-<div class="flower-container"></div>
-<h1>Рецептите на Мама</h1>
-<h2>Вкусни домашни рецепти</h2>
-<div class="recipe-container">
-    <div class="recipe-section">
-        <h3>Рецепта 1: Вкусна яхния</h3>
-        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Home-made_Dumplings_%26_beef_stew_dish.jpg" alt="Рецепта за яхния" class="recipe-img" loading="lazy" decoding="async">
-        <h4>Съставки</h4>
-        <ul>
-            <li>500 гр. свинско месо</li>
-            <li>2 глави лук</li>
-            <li>3-4 моркова</li>
-            <li>200 гр. гъби</li>
-            <li>сол, черен пипер, червен пипер</li>
-        </ul>
-        <h4>Инструкции</h4>
-        <ol>
-            <li>Задушете месото и лука до златисто.</li>
-            <li>Добавете нарязаните моркови и гъби.</li>
-            <li>Поръсете с подправките и разбъркайте.</li>
-            <li>Добавете малко вода и оставете да къкри за 45 минути.</li>
-        </ol>
-    </div>
-    <div class="recipe-section">
-        <h3>Рецепта 2: Крем супа</h3>
-        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Cream_Soup_with_Garlic_Bread.jpg" alt="Рецепта за крем супа" class="recipe-img" loading="lazy" decoding="async">
-        <h4>Съставки</h4>
-        <ul>
-            <li>1 глава карфиол</li>
-            <li>2 картофа</li>
-            <li>1 лук</li>
-            <li>500 мл. зеленчуков бульон</li>
-            <li>100 мл. сметана за готвене</li>
-        </ul>
-        <h4>Инструкции</h4>
-        <ol>
-            <li>Сварете зеленчуците в бульона до омекване.</li>
-            <li>Пасирайте до гладка смес.</li>
-            <li>Добавете сметаната и разбъркайте.</li>
-            <li>Сервирайте топло с крутони.</li>
-        </ol>
-    </div>
-    <div class="recipe-section">
-        <h3>Рецепта 3: Ябълков пай</h3>
-        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/ApplePie.jpg" alt="Рецепта за ябълков пай" class="recipe-img" loading="lazy" decoding="async">
-        <h4>Съставки</h4>
-        <ul>
-            <li>1 кг. ябълки</li>
-            <li>1 ч.ч. захар</li>
-            <li>1 ч.л. канела</li>
-            <li>1 бутер тесто</li>
-            <li>1 жълтък за намазване</li>
-        </ul>
-        <h4>Инструкции</h4>
-        <ol>
-            <li>Нарежете ябълките и ги смесете със захарта и канелата.</li>
-            <li>Разточете тестото и го поставете в тавичка.</li>
-            <li>Изсипете сместа с ябълките.</li>
-            <li>Покрийте с втори пласт тесто, намажете с жълтък и изпечете.</li>
-        </ol>
-    </div>
-</div>
-<div class="cat-game-wrapper">
-    <div class="todo-container">
-        <h3>🐾 Котешки задачи</h3>
-        <input type="text" class="todo-input" placeholder="Добави задача..." />
-        <ul class="todo-list"></ul>
-    </div>
-    <div class="cat-fact-container">
-        <h3>🐱 Котешки факт</h3>
-        <img id="cat-img" class="cat-img" alt="Daily Cat" loading="lazy" />
-        <div id="fact" class="fact">Зареждам котешки факт...</div>
-    </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const ducks = [],
-        duckCount = 5,
-        duckEmojis = ["🦆"],
-        babyDuck = ["🐥", "🐤"];
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f0e6">
+    <meta name="description" content="Любими домашни рецепти от мамината тетрадка — лесни, уютни и приготвени с обич.">
+    <title>Рецептите на мама — вкусът на дома</title>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
 
-    for (let i = 0; i < duckCount; i++) {
-        const span = document.createElement("span");
-        span.classList.add("duck", i === 0 ? "cursor-duck" : "follower-duck");
-        span.textContent = i === 0 ? duckEmojis[0] : babyDuck[(i - 1) % babyDuck.length];
-        document.body.appendChild(span);
-        ducks.push({ el: span, x: innerWidth / 2, y: innerHeight / 2, targetX: innerWidth / 2, targetY: innerHeight / 2 });
-    }
+    <meta property="og:title" content="Рецептите на мама — вкусът на дома">
+    <meta property="og:description" content="Любими домашни рецепти от мамината тетрадка, събрани и споделени с обич.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/iveto/index.html">
+    <meta property="og:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/Home-made_Dumplings_%26_beef_stew_dish.jpg">
+    <meta property="og:image:alt" content="Домашна яхния от семейната тетрадка">
+    <meta name="twitter:card" content="summary_large_image">
 
-    let mouseX = innerWidth / 2,
-        mouseY = innerHeight / 2;
-    document.addEventListener("mousemove", e => {
-        mouseX = e.clientX;
-        mouseY = e.clientY + window.scrollY;
-    });
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet">
 
-    (function animate() {
-        ducks[0].x = mouseX;
-        ducks[0].y = mouseY;
-        ducks[0].el.style.left = ducks[0].x + "px";
-        ducks[0].el.style.top = ducks[0].y + "px";
+    <style>
+        :root {
+            --ink: #24322b;
+            --ink-soft: #5f695f;
+            --paper: #f6f1e7;
+            --paper-deep: #ede5d6;
+            --cream: #fffdf8;
+            --sage: #7c927c;
+            --sage-deep: #385545;
+            --terracotta: #b75d43;
+            --terracotta-dark: #93442f;
+            --gold: #d6a449;
+            --line: rgba(36, 50, 43, 0.14);
+            --shadow: 0 20px 60px rgba(54, 49, 38, 0.12);
+            --radius-lg: 2rem;
+            --radius-md: 1.25rem;
+            --serif: "Playfair Display", Georgia, serif;
+            --sans: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
 
-        for (let i = 1; i < ducks.length; i++) {
-            const p = ducks[i - 1],
-                d = ducks[i],
-                dist = Math.hypot(d.x - p.x, d.y - p.y),
-                maxDist = 30;
-            if (dist > maxDist) {
-                const a = Math.atan2(p.y - d.y, p.x - d.x);
-                d.targetX = p.x - Math.cos(a) * maxDist;
-                d.targetY = p.y - Math.sin(a) * maxDist;
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 12%, rgba(214, 164, 73, 0.12), transparent 24rem),
+                radial-gradient(circle at 94% 30%, rgba(124, 146, 124, 0.13), transparent 26rem),
+                var(--paper);
+            font-family: var(--sans);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.16;
+            background-image: radial-gradient(rgba(36, 50, 43, 0.28) 0.45px, transparent 0.45px);
+            background-size: 5px 5px;
+            mix-blend-mode: multiply;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        :focus-visible {
+            outline: 3px solid var(--gold);
+            outline-offset: 4px;
+        }
+
+        .skip-link {
+            position: fixed;
+            top: 0.75rem;
+            left: 0.75rem;
+            z-index: 100;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            color: white;
+            background: var(--ink);
+            transform: translateY(-150%);
+            transition: transform 180ms ease;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .site-shell {
+            width: min(1180px, calc(100% - 2rem));
+            margin-inline: auto;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid transparent;
+            transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .site-header.is-scrolled {
+            border-color: var(--line);
+            background: rgba(246, 241, 231, 0.9);
+            box-shadow: 0 10px 30px rgba(54, 49, 38, 0.06);
+            backdrop-filter: blur(16px);
+        }
+
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 80;
+            height: 3px;
+            pointer-events: none;
+        }
+
+        .scroll-progress span {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--terracotta), var(--gold));
+            transform: scaleX(0);
+            transform-origin: left center;
+            will-change: transform;
+        }
+
+        .nav {
+            display: flex;
+            min-height: 5rem;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 2.8rem;
+            height: 2.8rem;
+            place-items: center;
+            border-radius: 50% 45% 52% 44%;
+            color: var(--cream);
+            background: var(--terracotta);
+            box-shadow: 0 8px 20px rgba(183, 93, 67, 0.25);
+            font-family: var(--serif);
+            font-size: 1rem;
+            font-style: italic;
+            font-weight: 700;
+            transform: rotate(-4deg);
+        }
+
+        .brand-copy {
+            line-height: 1.1;
+        }
+
+        .brand-copy strong {
+            display: block;
+            font-family: var(--serif);
+            font-size: 1.08rem;
+        }
+
+        .brand-copy small {
+            color: var(--ink-soft);
+            font-size: 0.7rem;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.7rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-links a {
+            position: relative;
+            color: var(--ink-soft);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: -0.4rem;
+            left: 0;
+            height: 2px;
+            border-radius: 999px;
+            background: var(--terracotta);
+            transform: scaleX(0);
+            transition: transform 160ms ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a:focus-visible::after {
+            transform: scaleX(1);
+        }
+
+        .nav-saved {
+            display: inline-flex;
+            min-height: 2.75rem;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 253, 248, 0.72);
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 700;
+            transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease;
+        }
+
+        .nav-saved:hover {
+            border-color: var(--terracotta);
+            transform: translateY(-1px);
+        }
+
+        .nav-saved[aria-pressed="true"] {
+            border-color: var(--terracotta);
+            color: white;
+            background: var(--terracotta);
+        }
+
+        .nav-saved[aria-pressed="true"] .saved-count {
+            color: var(--terracotta);
+            background: white;
+        }
+
+        .saved-count {
+            display: grid;
+            min-width: 1.35rem;
+            height: 1.35rem;
+            place-items: center;
+            border-radius: 50%;
+            color: white;
+            background: var(--terracotta);
+            font-size: 0.7rem;
+        }
+
+        .hero {
+            display: grid;
+            min-height: calc(100vh - 5rem);
+            align-items: center;
+            grid-template-columns: minmax(0, 0.92fr) minmax(360px, 1.08fr);
+            gap: clamp(3rem, 7vw, 7rem);
+            padding-block: clamp(3rem, 7vw, 6.5rem);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin: 0 0 1.2rem;
+            color: var(--terracotta-dark);
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 2.6rem;
+            height: 1px;
+            background: currentColor;
+        }
+
+        .hero h1 {
+            max-width: 11ch;
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(3.2rem, 6.5vw, 6.2rem);
+            font-weight: 600;
+            letter-spacing: -0.055em;
+            line-height: 0.98;
+        }
+
+        .hero h1 em {
+            color: var(--terracotta);
+            font-weight: 600;
+        }
+
+        .hero-intro {
+            max-width: 34rem;
+            margin: 1.7rem 0 0;
+            color: var(--ink-soft);
+            font-size: clamp(1rem, 1.5vw, 1.16rem);
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 2rem;
+        }
+
+        .button {
+            display: inline-flex;
+            min-height: 3.2rem;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.35rem;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            color: white;
+            background: var(--ink);
+            box-shadow: 0 12px 28px rgba(36, 50, 43, 0.2);
+        }
+
+        .button-primary:hover {
+            background: var(--sage-deep);
+            box-shadow: 0 16px 34px rgba(36, 50, 43, 0.25);
+        }
+
+        .button-secondary {
+            border-color: var(--line);
+            background: rgba(255, 253, 248, 0.6);
+        }
+
+        .arrow {
+            font-size: 1.05rem;
+            transition: transform 160ms ease;
+        }
+
+        .button:hover .arrow {
+            transform: translateX(3px);
+        }
+
+        .hero-note {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 2.3rem;
+            color: var(--ink-soft);
+            font-size: 0.78rem;
+        }
+
+        .hero-note-avatars {
+            display: flex;
+        }
+
+        .hero-note-avatars span {
+            display: grid;
+            width: 2rem;
+            height: 2rem;
+            place-items: center;
+            margin-left: -0.35rem;
+            border: 2px solid var(--paper);
+            border-radius: 50%;
+            background: var(--paper-deep);
+            font-size: 0.9rem;
+        }
+
+        .hero-note-avatars span:first-child {
+            margin-left: 0;
+        }
+
+        .hero-visual {
+            position: relative;
+            min-height: 610px;
+        }
+
+        .hero-visual::before {
+            content: "";
+            position: absolute;
+            width: 76%;
+            aspect-ratio: 1;
+            top: 8%;
+            right: 4%;
+            border: 1px solid rgba(56, 85, 69, 0.25);
+            border-radius: 50%;
+        }
+
+        .hero-image-main {
+            position: absolute;
+            inset: 1rem 1.2rem 3.5rem 4rem;
+            width: calc(100% - 5.2rem);
+            height: calc(100% - 4.5rem);
+            border-radius: 48% 48% 1.8rem 1.8rem;
+            object-fit: cover;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-image-small {
+            position: absolute;
+            right: -0.8rem;
+            bottom: 0;
+            width: 42%;
+            aspect-ratio: 1 / 1.15;
+            border: 8px solid var(--paper);
+            border-radius: 8rem 8rem 1rem 1rem;
+            object-fit: cover;
+            box-shadow: 0 18px 44px rgba(54, 49, 38, 0.18);
+        }
+
+        .recipe-stamp {
+            position: absolute;
+            bottom: 2.7rem;
+            left: 0;
+            display: grid;
+            width: 7.2rem;
+            height: 7.2rem;
+            place-items: center;
+            padding: 0.8rem;
+            border: 1px solid rgba(183, 93, 67, 0.25);
+            border-radius: 50%;
+            color: var(--terracotta-dark);
+            background: rgba(255, 253, 248, 0.94);
+            box-shadow: 0 16px 40px rgba(54, 49, 38, 0.12);
+            text-align: center;
+            transform: rotate(-8deg);
+        }
+
+        .recipe-stamp span {
+            display: block;
+            font-family: var(--serif);
+            font-size: 1rem;
+            font-style: italic;
+            line-height: 1.2;
+        }
+
+        .recipe-stamp small {
+            display: block;
+            margin-top: 0.2rem;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .stats-strip {
+            display: grid;
+            margin-bottom: clamp(5rem, 9vw, 8.5rem);
+            border-block: 1px solid var(--line);
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .stat {
+            padding: 1.35rem 2rem;
+            text-align: center;
+        }
+
+        .stat + .stat {
+            border-left: 1px solid var(--line);
+        }
+
+        .stat strong {
+            display: block;
+            font-family: var(--serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .stat span {
+            color: var(--ink-soft);
+            font-size: 0.76rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .section {
+            padding-block: clamp(4.5rem, 8vw, 7.5rem);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2.4rem;
+        }
+
+        .section-header h2,
+        .story-copy h2,
+        .quote-block blockquote {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(2.35rem, 5vw, 4.4rem);
+            font-weight: 600;
+            letter-spacing: -0.045em;
+            line-height: 1.06;
+        }
+
+        .section-header > p {
+            max-width: 28rem;
+            margin: 0;
+            color: var(--ink-soft);
+        }
+
+        .recipe-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+        }
+
+        .filter-button {
+            min-height: 2.65rem;
+            padding: 0.55rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--ink-soft);
+            background: rgba(255, 253, 248, 0.62);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+        }
+
+        .filter-button:hover,
+        .filter-button[aria-pressed="true"] {
+            border-color: var(--ink);
+            color: white;
+            background: var(--ink);
+        }
+
+        .search-wrap {
+            position: relative;
+            width: min(100%, 20rem);
+        }
+
+        .search-wrap::before {
+            content: "⌕";
+            position: absolute;
+            top: 50%;
+            left: 1rem;
+            color: var(--ink-soft);
+            font-size: 1.25rem;
+            transform: translateY(-53%);
+        }
+
+        .recipe-search {
+            width: 100%;
+            min-height: 2.8rem;
+            padding: 0.65rem 1rem 0.65rem 2.8rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 253, 248, 0.72);
+            outline: none;
+        }
+
+        .recipe-search::placeholder {
+            color: #8a908b;
+        }
+
+        .recipe-search:focus {
+            border-color: var(--sage-deep);
+            box-shadow: 0 0 0 4px rgba(56, 85, 69, 0.1);
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.35rem;
+        }
+
+        .recipe-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(36, 50, 43, 0.1);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 253, 248, 0.84);
+            box-shadow: 0 14px 45px rgba(54, 49, 38, 0.07);
+            transition: transform 220ms ease, box-shadow 220ms ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 24px 55px rgba(54, 49, 38, 0.14);
+        }
+
+        .recipe-card[hidden] {
+            display: none;
+        }
+
+        .recipe-media {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 4 / 3.1;
+        }
+
+        .recipe-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+        }
+
+        .recipe-card:hover .recipe-media img {
+            transform: scale(1.045);
+        }
+
+        .category-label {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.42rem 0.7rem;
+            border-radius: 999px;
+            color: var(--ink);
+            background: rgba(255, 253, 248, 0.9);
+            box-shadow: 0 6px 18px rgba(36, 50, 43, 0.12);
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+        }
+
+        .favorite-button {
+            position: absolute;
+            top: 0.85rem;
+            right: 0.85rem;
+            display: grid;
+            width: 2.75rem;
+            height: 2.75rem;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            color: var(--ink);
+            background: rgba(255, 253, 248, 0.92);
+            box-shadow: 0 6px 18px rgba(36, 50, 43, 0.14);
+            cursor: pointer;
+            font-size: 1.05rem;
+            transition: color 160ms ease, transform 160ms ease, background 160ms ease;
+        }
+
+        .favorite-button:hover {
+            transform: scale(1.07);
+        }
+
+        .favorite-button[aria-pressed="true"] {
+            color: white;
+            background: var(--terracotta);
+        }
+
+        .recipe-body {
+            padding: 1.4rem 1.4rem 1.5rem;
+        }
+
+        .recipe-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.7rem;
+            color: var(--ink-soft);
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .recipe-meta span + span::before {
+            content: "•";
+            margin-right: 0.8rem;
+            color: var(--terracotta);
+        }
+
+        .recipe-body h3 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            line-height: 1.15;
+        }
+
+        .recipe-summary {
+            min-height: 3.2em;
+            margin: 0.8rem 0 1.2rem;
+            color: var(--ink-soft);
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+
+        .recipe-toggle {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 2.7rem;
+            padding: 0.6rem 0;
+            border: 0;
+            border-top: 1px solid var(--line);
+            color: var(--ink);
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .toggle-icon {
+            display: grid;
+            width: 1.8rem;
+            height: 1.8rem;
+            place-items: center;
+            border-radius: 50%;
+            color: white;
+            background: var(--sage-deep);
+            transition: transform 220ms ease;
+        }
+
+        .recipe-toggle[aria-expanded="true"] .toggle-icon {
+            transform: rotate(45deg);
+        }
+
+        .recipe-details {
+            display: grid;
+            grid-template-rows: 1fr;
+            transition: grid-template-rows 300ms ease;
+        }
+
+        .js .recipe-details {
+            grid-template-rows: 0fr;
+        }
+
+        .js .recipe-details.is-open {
+            grid-template-rows: 1fr;
+        }
+
+        .no-js .recipe-toggle {
+            display: none;
+        }
+
+        .recipe-details-inner {
+            overflow: hidden;
+        }
+
+        .recipe-details-content {
+            padding-top: 0.8rem;
+        }
+
+        .recipe-details h4 {
+            margin: 1rem 0 0.5rem;
+            color: var(--terracotta-dark);
+            font-family: var(--serif);
+            font-size: 1.02rem;
+        }
+
+        .recipe-details ul,
+        .recipe-details ol {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: var(--ink-soft);
+            font-size: 0.82rem;
+        }
+
+        .recipe-details li + li {
+            margin-top: 0.35rem;
+        }
+
+        .cook-button {
+            display: flex;
+            width: 100%;
+            min-height: 3rem;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.25rem;
+            padding: 0.72rem 1rem;
+            border: 0;
+            border-radius: 0.85rem;
+            color: white;
+            background: var(--ink);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: left;
+            transition: background 160ms ease, transform 160ms ease;
+        }
+
+        .cook-button:hover {
+            background: var(--sage-deep);
+            transform: translateY(-1px);
+        }
+
+        .cook-button span {
+            color: #e6bc72;
+            font-size: 1rem;
+        }
+
+        .no-js .cook-button {
+            display: none;
+        }
+
+        .js .reveal {
+            opacity: 0;
+            transform: translateY(1.6rem);
+            transition:
+                opacity 620ms ease var(--reveal-delay, 0ms),
+                transform 620ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms);
+        }
+
+        .js .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .js .recipe-card.reveal {
+            transition:
+                opacity 620ms ease var(--reveal-delay, 0ms),
+                transform 620ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--reveal-delay, 0ms),
+                box-shadow 220ms ease;
+        }
+
+        .js .recipe-card.reveal.is-visible:hover {
+            transform: translateY(-6px);
+        }
+
+        .cook-dialog {
+            width: min(46rem, calc(100% - 1.5rem));
+            max-height: min(90vh, 52rem);
+            margin: auto;
+            padding: 0;
+            overflow: visible;
+            border: 0;
+            color: var(--ink);
+            background: transparent;
+        }
+
+        .cook-dialog::backdrop {
+            background: rgba(24, 31, 27, 0.72);
+            backdrop-filter: blur(8px);
+        }
+
+        .cook-panel {
+            position: relative;
+            display: flex;
+            max-height: min(90vh, 52rem);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 1.8rem;
+            background: var(--cream);
+            box-shadow: 0 35px 90px rgba(18, 24, 21, 0.34);
+            flex-direction: column;
+        }
+
+        .cook-topbar {
+            display: flex;
+            min-height: 4.5rem;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.4rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .cook-topbar p {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            margin: 0;
+            color: var(--terracotta-dark);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .cook-topbar p::before {
+            content: "";
+            width: 1.8rem;
+            height: 1px;
+            background: currentColor;
+        }
+
+        .cook-close {
+            display: grid;
+            width: 2.6rem;
+            height: 2.6rem;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            color: var(--ink);
+            background: var(--paper);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
+        }
+
+        .cook-close:hover {
+            border-color: var(--terracotta);
+            color: var(--terracotta);
+            transform: rotate(5deg);
+        }
+
+        .cook-progress {
+            height: 4px;
+            background: var(--paper-deep);
+        }
+
+        .cook-progress span {
+            display: block;
+            width: 0;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--terracotta), var(--gold));
+            transition: width 280ms ease;
+        }
+
+        .cook-content {
+            min-height: 0;
+            overflow-y: auto;
+            padding: clamp(1.4rem, 4vw, 2.5rem);
+        }
+
+        .cook-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .cook-step-label {
+            margin: 0 0 0.35rem;
+            color: var(--terracotta-dark);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .cook-heading h2 {
+            margin: 0;
+            font-family: var(--serif);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 600;
+            letter-spacing: -0.04em;
+            line-height: 1.08;
+        }
+
+        .servings-control {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 0.15rem;
+            padding: 0.28rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--paper);
+        }
+
+        .servings-control button {
+            display: grid;
+            width: 2rem;
+            height: 2rem;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            color: var(--ink);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .servings-control button:hover:not(:disabled) {
+            color: white;
+            background: var(--sage-deep);
+        }
+
+        .servings-control button:disabled {
+            cursor: not-allowed;
+            opacity: 0.35;
+        }
+
+        .servings-value {
+            min-width: 4.8rem;
+            color: var(--ink-soft);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .cook-stage-title {
+            margin: 0 0 0.8rem;
+            font-family: var(--serif);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .ingredient-checklist {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.65rem;
+        }
+
+        .ingredient-item {
+            display: grid;
+            min-height: 3.5rem;
+            align-items: center;
+            padding: 0.75rem 0.85rem;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            background: var(--paper);
+            cursor: pointer;
+            font-size: 0.82rem;
+            grid-template-columns: 1.4rem 1fr;
+            gap: 0.65rem;
+            transition: border-color 160ms ease, background 160ms ease;
+        }
+
+        .ingredient-item:hover {
+            border-color: var(--sage);
+        }
+
+        .ingredient-item input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .ingredient-box {
+            display: grid;
+            width: 1.25rem;
+            height: 1.25rem;
+            place-items: center;
+            border: 1px solid rgba(36, 50, 43, 0.28);
+            border-radius: 0.35rem;
+            color: transparent;
+            background: var(--cream);
+            font-size: 0.72rem;
+            transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+        }
+
+        .ingredient-item input:checked + .ingredient-box {
+            border-color: var(--sage-deep);
+            color: white;
+            background: var(--sage-deep);
+        }
+
+        .ingredient-item:has(input:checked) {
+            color: var(--ink-soft);
+            background: rgba(124, 146, 124, 0.12);
+        }
+
+        .ingredient-item:has(input:focus-visible) {
+            outline: 3px solid var(--gold);
+            outline-offset: 3px;
+        }
+
+        .cook-step-card {
+            position: relative;
+            min-height: 13rem;
+            overflow: hidden;
+            padding: clamp(1.4rem, 4vw, 2.3rem);
+            border-radius: 1.4rem;
+            color: white;
+            background:
+                radial-gradient(circle at 90% 15%, rgba(214, 164, 73, 0.24), transparent 12rem),
+                var(--ink);
+        }
+
+        .cook-step-number {
+            display: block;
+            color: #e6bc72;
+            font-family: var(--serif);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
+        .cook-step-card p {
+            max-width: 31rem;
+            margin: 1.1rem 0 0;
+            font-family: var(--serif);
+            font-size: clamp(1.4rem, 4vw, 2.15rem);
+            line-height: 1.32;
+        }
+
+        .cook-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1.4rem;
+            border-top: 1px solid var(--line);
+            background: var(--cream);
+        }
+
+        .cook-footer button {
+            min-height: 2.8rem;
+            padding: 0.6rem 1.15rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--ink);
+            background: var(--paper);
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .cook-footer button:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .cook-footer .cook-next {
+            min-width: 8.5rem;
+            border-color: var(--ink);
+            color: white;
+            background: var(--ink);
+        }
+
+        .cook-footer .cook-next:hover {
+            background: var(--sage-deep);
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            padding: 3.5rem 1.5rem;
+            border: 1px dashed rgba(36, 50, 43, 0.28);
+            border-radius: var(--radius-lg);
+            color: var(--ink-soft);
+            text-align: center;
+        }
+
+        .empty-state[hidden] {
+            display: none;
+        }
+
+        .empty-state strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: var(--ink);
+            font-family: var(--serif);
+            font-size: 1.4rem;
+        }
+
+        .story-section {
+            margin-top: clamp(3rem, 6vw, 6rem);
+            padding-block: clamp(5rem, 9vw, 8rem);
+            background: var(--ink);
+            color: var(--cream);
+        }
+
+        .story-grid {
+            display: grid;
+            align-items: center;
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap: clamp(3rem, 8vw, 8rem);
+        }
+
+        .story-image-wrap {
+            position: relative;
+        }
+
+        .story-image-wrap::before {
+            content: "";
+            position: absolute;
+            inset: -1rem 1rem 1rem -1rem;
+            border: 1px solid rgba(255, 253, 248, 0.28);
+            border-radius: var(--radius-lg);
+        }
+
+        .story-image-wrap img {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 4.2;
+            border-radius: var(--radius-lg);
+            object-fit: cover;
+        }
+
+        .story-copy .eyebrow {
+            color: #e6bc72;
+        }
+
+        .story-copy h2 {
+            max-width: 9ch;
+        }
+
+        .story-copy > p {
+            max-width: 31rem;
+            color: rgba(255, 253, 248, 0.7);
+        }
+
+        .kitchen-notes {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .kitchen-notes li {
+            display: grid;
+            align-items: start;
+            grid-template-columns: 2.7rem 1fr;
+            gap: 0.9rem;
+        }
+
+        .note-number {
+            display: grid;
+            width: 2.5rem;
+            height: 2.5rem;
+            place-items: center;
+            border: 1px solid rgba(255, 253, 248, 0.22);
+            border-radius: 50%;
+            color: #e6bc72;
+            font-family: var(--serif);
+            font-size: 0.9rem;
+        }
+
+        .kitchen-notes strong {
+            display: block;
+            margin-bottom: 0.1rem;
+            color: var(--cream);
+            font-family: var(--serif);
+            font-size: 1rem;
+        }
+
+        .kitchen-notes span {
+            color: rgba(255, 253, 248, 0.62);
+            font-size: 0.82rem;
+        }
+
+        .quote-section {
+            padding-block: clamp(6rem, 11vw, 11rem);
+        }
+
+        .quote-block {
+            max-width: 58rem;
+            margin-inline: auto;
+            text-align: center;
+        }
+
+        .quote-mark {
+            display: block;
+            height: 3rem;
+            color: var(--terracotta);
+            font-family: var(--serif);
+            font-size: 5.5rem;
+            line-height: 0.8;
+        }
+
+        .quote-block blockquote {
+            font-size: clamp(2.3rem, 5vw, 4.6rem);
+        }
+
+        .quote-block cite {
+            display: block;
+            margin-top: 1.4rem;
+            color: var(--ink-soft);
+            font-size: 0.76rem;
+            font-style: normal;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            padding-block: 2rem;
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            color: var(--ink-soft);
+            font-size: 0.76rem;
+        }
+
+        .footer-inner p {
+            margin: 0;
+        }
+
+        .footer-inner a {
+            color: var(--ink);
+            font-weight: 700;
+            text-underline-offset: 0.25rem;
+        }
+
+        .toast {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 50;
+            max-width: min(22rem, calc(100% - 2rem));
+            padding: 0.85rem 1.1rem;
+            border-radius: 0.85rem;
+            color: white;
+            background: var(--ink);
+            box-shadow: 0 16px 40px rgba(36, 50, 43, 0.28);
+            font-size: 0.82rem;
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(1rem);
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .toast.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 980px) {
+            .hero {
+                min-height: auto;
+                grid-template-columns: 1fr 0.9fr;
+                gap: 2.5rem;
             }
-            d.x += (d.targetX - d.x) * 0.1;
-            d.y += (d.targetY - d.y) * 0.1;
-            d.el.style.left = d.x + "px";
-            d.el.style.top = d.y + "px";
+
+            .hero h1 {
+                font-size: clamp(3.2rem, 7vw, 5rem);
+            }
+
+            .hero-visual {
+                min-height: 500px;
+            }
+
+            .recipe-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .recipe-card:last-of-type {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+            }
+
+            .recipe-card:last-of-type .recipe-media {
+                height: 100%;
+                aspect-ratio: auto;
+            }
+
+            .story-grid {
+                gap: 4rem;
+            }
         }
-        requestAnimationFrame(animate);
-    })();
 
-    const flowers = ["🌸", "🌻", "🌼", "🌹", "🌷", "💐", "🌺", "🌾", "🌿", "🍄"],
-        container = document.querySelector('.flower-container');
-    const createPlant = (x, y) => {
-        const p = document.createElement("div");
-        p.className = "flower";
-        p.textContent = flowers[Math.floor(Math.random() * flowers.length)];
-        p.style.left = x + "px";
-        p.style.top = y + "px";
-        container.appendChild(p);
-        setTimeout(() => p.classList.add("grown"), 10);
-    };
+        @media (max-width: 760px) {
+            .site-shell {
+                width: min(100% - 1.25rem, 42rem);
+            }
 
-    let flowerInterval, mouseTimeout;
-    document.addEventListener("mousedown", e => {
-        if (!e.target.closest('.recipe-container, .cat-fact-container, .todo-container')) {
-            createPlant(e.pageX, e.pageY);
-            mouseTimeout = setTimeout(() => {
-                flowerInterval = setInterval(() => createPlant(e.pageX, e.pageY), 100);
-            }, 200);
+            .nav {
+                min-height: 4.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .nav-saved {
+                padding-inline: 0.75rem;
+            }
+
+            .nav-saved > span:not(.saved-count) {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                padding-top: 3.5rem;
+            }
+
+            .hero h1 {
+                max-width: 10ch;
+                font-size: clamp(3.35rem, 15vw, 5.2rem);
+            }
+
+            .hero-intro {
+                max-width: 31rem;
+            }
+
+            .hero-visual {
+                min-height: min(125vw, 600px);
+            }
+
+            .hero-image-main {
+                inset: 0.5rem 1rem 3rem 2.5rem;
+                width: calc(100% - 3.5rem);
+                height: calc(100% - 3.5rem);
+            }
+
+            .hero-image-small {
+                right: 0;
+            }
+
+            .recipe-stamp {
+                width: 6.3rem;
+                height: 6.3rem;
+                bottom: 2rem;
+            }
+
+            .stats-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .stat {
+                padding: 1rem;
+            }
+
+            .stat + .stat {
+                border-top: 1px solid var(--line);
+                border-left: 0;
+            }
+
+            .section-header,
+            .recipe-tools,
+            .footer-inner {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .section-header h2,
+            .story-copy h2 {
+                font-size: clamp(2.6rem, 12vw, 4rem);
+            }
+
+            .search-wrap {
+                width: 100%;
+            }
+
+            .recipe-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recipe-card:last-of-type {
+                display: block;
+                grid-column: auto;
+            }
+
+            .recipe-card:last-of-type .recipe-media {
+                aspect-ratio: 4 / 3.1;
+            }
+
+            .story-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .story-image-wrap {
+                margin-left: 1rem;
+            }
+
+            .cook-dialog {
+                width: calc(100% - 0.75rem);
+                max-height: calc(100vh - 0.75rem);
+            }
+
+            .cook-panel {
+                max-height: calc(100vh - 0.75rem);
+                border-radius: 1.35rem;
+            }
+
+            .cook-heading {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .servings-control {
+                align-self: flex-start;
+            }
+
+            .ingredient-checklist {
+                grid-template-columns: 1fr;
+            }
         }
-    });
 
-    document.addEventListener("mouseup", () => {
-        clearTimeout(mouseTimeout);
-        clearInterval(flowerInterval);
-        mouseTimeout = flowerInterval = null;
-    });
+        @media (max-width: 430px) {
+            .brand-copy small {
+                display: none;
+            }
 
-    ["🌱", "🌿", "🌷", "🍄", "🌳", "🌾"].forEach((emoji) => {
-        for (let i = 0; i < 3; i++) {
-            const p = document.createElement("div");
-            p.className = "animated-plant";
-            p.textContent = emoji;
-            p.style.left = Math.random() * 100 + "vw";
-            p.style.top = Math.random() * 100 + "%";
-            p.style.fontSize = (Math.random() * 1 + 0.8) + "rem";
-            p.style.animationDelay = Math.random() * 5 + "s";
-            container.appendChild(p);
+            .hero-actions .button {
+                width: 100%;
+            }
+
+            .hero-note {
+                align-items: flex-start;
+            }
+
+            .filters {
+                display: grid;
+                width: 100%;
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-button {
+                padding-inline: 0.5rem;
+            }
         }
-    });
 
-    (async () => {
-        try {
-            const cat = await fetch("https://api.thecatapi.com/v1/images/search").then(r => r.json());
-            document.getElementById("cat-img").src = cat[0].url;
-            const fact = await fetch("https://catfact.ninja/fact").then(r => r.json());
-            document.getElementById("fact").textContent = fact.fact;
-        } catch (e) {
-            document.getElementById("fact").textContent = "Не успях да заредя коте 😿";
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
         }
-    })();
 
-    const todoInput = document.querySelector('.todo-input');
-    const todoList = document.querySelector('.todo-list');
+        @media print {
+            .site-header,
+            .hero,
+            .stats-strip,
+            .recipe-tools,
+            .favorite-button,
+            .story-section,
+            .quote-section,
+            .site-footer,
+            .toast,
+            .cook-dialog,
+            .scroll-progress {
+                display: none !important;
+            }
 
-    const loadTasks = () => {
-        const tasks = JSON.parse(localStorage.getItem('catTasks') || '[]');
-        tasks.forEach(task => addTaskToDOM(task));
-    };
+            body {
+                background: white;
+            }
 
-    const saveTasks = () => {
-        const tasks = Array.from(todoList.children).map(li => li.querySelector('span').textContent.replace('🐱 ', ''));
-        localStorage.setItem('catTasks', JSON.stringify(tasks));
-    };
+            body::before {
+                display: none;
+            }
 
-    const addTaskToDOM = (task) => {
-        const li = document.createElement('li');
-        li.className = 'todo-item';
-        li.innerHTML = `<span>🐱 ${task}</span><button>🗑️</button>`;
-        todoList.appendChild(li);
-        li.querySelector('button').addEventListener('click', () => {
-            li.remove();
-            saveTasks();
+            .section {
+                padding: 0;
+            }
+
+            .recipe-grid {
+                display: block;
+            }
+
+            .recipe-card {
+                break-inside: avoid;
+                margin-bottom: 1rem;
+                box-shadow: none;
+            }
+
+            .js .recipe-details,
+            .recipe-details {
+                grid-template-rows: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a class="skip-link" href="#main-content">Към съдържанието</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+    <header class="site-header" id="top">
+        <div class="site-shell nav">
+            <a class="brand" href="#top" aria-label="Рецептите на мама — начало">
+                <span class="brand-mark" aria-hidden="true">РМ</span>
+                <span class="brand-copy">
+                    <strong>Рецептите на мама</strong>
+                    <small>вкусът на дома</small>
+                </span>
+            </a>
+
+            <nav aria-label="Основна навигация">
+                <ul class="nav-links">
+                    <li><a href="#top">Начало</a></li>
+                    <li><a href="#recipes">Рецепти</a></li>
+                    <li><a href="#story">Мамините тайни</a></li>
+                </ul>
+            </nav>
+
+            <button class="nav-saved" type="button" aria-pressed="false" aria-label="Покажи само любимите рецепти">
+                <span aria-hidden="true">♥</span>
+                <span>Любими</span>
+                <span class="saved-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <section class="site-shell hero" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <p class="eyebrow">От семейната тетрадка</p>
+                <h1 id="hero-title">Вкусът, който ни връща <em>у дома.</em></h1>
+                <p class="hero-intro">
+                    Тук пазим любимите рецепти на мама — с точните щипки подправки,
+                    малките хитринки и аромата на неделния обяд.
+                </p>
+                <div class="hero-actions">
+                    <a class="button button-primary" href="#recipes">
+                        Разгледай рецептите <span class="arrow" aria-hidden="true">→</span>
+                    </a>
+                    <a class="button button-secondary" href="#story">Мамините тайни</a>
+                </div>
+                <div class="hero-note">
+                    <div class="hero-note-avatars" aria-hidden="true">
+                        <span>🥘</span><span>🥣</span><span>🥧</span>
+                    </div>
+                    <span>Три изпитани рецепти, разказани стъпка по стъпка</span>
+                </div>
+            </div>
+
+            <div class="hero-visual" aria-label="Домашна яхния и ябълков пай">
+                <img
+                    class="hero-image-main"
+                    src="https://commons.wikimedia.org/wiki/Special:FilePath/Home-made_Dumplings_%26_beef_stew_dish.jpg"
+                    alt="Купа с топла домашна яхния"
+                    fetchpriority="high"
+                    decoding="async"
+                >
+                <img
+                    class="hero-image-small"
+                    src="https://commons.wikimedia.org/wiki/Special:FilePath/ApplePie.jpg"
+                    alt="Домашен ябълков пай"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <div class="recipe-stamp" aria-hidden="true">
+                    <div><span>Сготвено<br>с обич</span><small>вкъщи</small></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="site-shell stats-strip reveal" aria-label="За рецептите">
+            <div class="stat"><strong>3</strong><span>семейни рецепти</span></div>
+            <div class="stat"><strong>100%</strong><span>домашен вкус</span></div>
+            <div class="stat"><strong>∞</strong><span>щипки обич</span></div>
+        </div>
+
+        <section class="site-shell section" id="recipes" aria-labelledby="recipes-title">
+            <div class="section-header reveal">
+                <div>
+                    <p class="eyebrow">Любими за всяка трапеза</p>
+                    <h2 id="recipes-title">От мамината<br>тетрадка</h2>
+                </div>
+                <p>Прости продукти, ясни стъпки и онзи неподправен вкус, който се помни дълго.</p>
+            </div>
+
+            <div class="recipe-tools">
+                <div class="filters" aria-label="Филтрирай по категория">
+                    <button class="filter-button" type="button" data-filter="all" aria-pressed="true">Всички</button>
+                    <button class="filter-button" type="button" data-filter="main" aria-pressed="false">Основни</button>
+                    <button class="filter-button" type="button" data-filter="soup" aria-pressed="false">Супи</button>
+                    <button class="filter-button" type="button" data-filter="dessert" aria-pressed="false">Десерти</button>
+                </div>
+                <label class="search-wrap">
+                    <span class="sr-only">Търси рецепта</span>
+                    <input class="recipe-search" type="search" placeholder="Търси рецепта или продукт…" autocomplete="off">
+                </label>
+            </div>
+
+            <div class="recipe-grid" aria-live="polite">
+                <article class="recipe-card reveal" data-recipe="stew" data-category="main" data-search="яхния свинско месо лук моркови гъби основно">
+                    <div class="recipe-media">
+                        <img
+                            src="https://commons.wikimedia.org/wiki/Special:FilePath/Home-made_Dumplings_%26_beef_stew_dish.jpg"
+                            alt="Домашна яхния с месо и зеленчуци"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                        <span class="category-label">Основно</span>
+                        <button class="favorite-button" type="button" data-recipe="stew" aria-label="Добави яхнията в любими" aria-pressed="false">♡</button>
+                    </div>
+                    <div class="recipe-body">
+                        <div class="recipe-meta"><span>60 мин.</span><span>Лесна</span></div>
+                        <h3>Бавно готвена свинска яхния</h3>
+                        <p class="recipe-summary">Сочно месо, сладки моркови и гъби в богат, ароматен сос.</p>
+                        <button class="recipe-toggle" type="button" aria-expanded="false" aria-controls="recipe-stew">
+                            <span>Виж цялата рецепта</span><span class="toggle-icon" aria-hidden="true">+</span>
+                        </button>
+                        <div class="recipe-details" id="recipe-stew">
+                            <div class="recipe-details-inner">
+                                <div class="recipe-details-content">
+                                    <h4>Необходими продукти</h4>
+                                    <ul>
+                                        <li>500 г свинско месо</li>
+                                        <li>2 глави лук</li>
+                                        <li>3–4 моркова</li>
+                                        <li>200 г гъби</li>
+                                        <li>Сол, черен и червен пипер на вкус</li>
+                                    </ul>
+                                    <h4>Приготвяне</h4>
+                                    <ol>
+                                        <li>Запечатайте месото и добавете лука. Гответе до златисто.</li>
+                                        <li>Сложете нарязаните моркови и гъби.</li>
+                                        <li>Поръсете с подправките и разбъркайте добре.</li>
+                                        <li>Долейте малко вода и оставете да къкри около 45 минути.</li>
+                                    </ol>
+                                    <button class="cook-button" type="button">
+                                        Готви стъпка по стъпка <span aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="recipe-card reveal" style="--reveal-delay: 90ms" data-recipe="soup" data-category="soup" data-search="крем супа карфиол картофи лук сметана зеленчукова">
+                    <div class="recipe-media">
+                        <img
+                            src="https://commons.wikimedia.org/wiki/Special:FilePath/Cream_Soup_with_Garlic_Bread.jpg"
+                            alt="Кадифена крем супа с крутони"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                        <span class="category-label">Супа</span>
+                        <button class="favorite-button" type="button" data-recipe="soup" aria-label="Добави крем супата в любими" aria-pressed="false">♡</button>
+                    </div>
+                    <div class="recipe-body">
+                        <div class="recipe-meta"><span>35 мин.</span><span>Много лесна</span></div>
+                        <h3>Кадифена крем супа</h3>
+                        <p class="recipe-summary">Нежна супа от карфиол и картофи, завършена с малко сметана.</p>
+                        <button class="recipe-toggle" type="button" aria-expanded="false" aria-controls="recipe-soup">
+                            <span>Виж цялата рецепта</span><span class="toggle-icon" aria-hidden="true">+</span>
+                        </button>
+                        <div class="recipe-details" id="recipe-soup">
+                            <div class="recipe-details-inner">
+                                <div class="recipe-details-content">
+                                    <h4>Необходими продукти</h4>
+                                    <ul>
+                                        <li>1 глава карфиол</li>
+                                        <li>2 картофа</li>
+                                        <li>1 глава лук</li>
+                                        <li>500 мл зеленчуков бульон</li>
+                                        <li>100 мл сметана за готвене</li>
+                                    </ul>
+                                    <h4>Приготвяне</h4>
+                                    <ol>
+                                        <li>Сварете зеленчуците в бульона, докато омекнат.</li>
+                                        <li>Пасирайте до фина и гладка консистенция.</li>
+                                        <li>Добавете сметаната и разбъркайте на слаб огън.</li>
+                                        <li>Сервирайте топла с хрупкави крутони.</li>
+                                    </ol>
+                                    <button class="cook-button" type="button">
+                                        Готви стъпка по стъпка <span aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="recipe-card reveal" style="--reveal-delay: 180ms" data-recipe="pie" data-category="dessert" data-search="ябълков пай ябълки канела захар бутер тесто десерт сладко">
+                    <div class="recipe-media">
+                        <img
+                            src="https://commons.wikimedia.org/wiki/Special:FilePath/ApplePie.jpg"
+                            alt="Златист домашен ябълков пай"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                        <span class="category-label">Десерт</span>
+                        <button class="favorite-button" type="button" data-recipe="pie" aria-label="Добави ябълковия пай в любими" aria-pressed="false">♡</button>
+                    </div>
+                    <div class="recipe-body">
+                        <div class="recipe-meta"><span>50 мин.</span><span>Лесна</span></div>
+                        <h3>Ябълков пай с канела</h3>
+                        <p class="recipe-summary">Хрупкава коричка, сочни ябълки и уютният аромат на канела.</p>
+                        <button class="recipe-toggle" type="button" aria-expanded="false" aria-controls="recipe-pie">
+                            <span>Виж цялата рецепта</span><span class="toggle-icon" aria-hidden="true">+</span>
+                        </button>
+                        <div class="recipe-details" id="recipe-pie">
+                            <div class="recipe-details-inner">
+                                <div class="recipe-details-content">
+                                    <h4>Необходими продукти</h4>
+                                    <ul>
+                                        <li>1 кг ябълки</li>
+                                        <li>1 ч.ч. захар</li>
+                                        <li>1 ч.л. канела</li>
+                                        <li>2 листа бутер тесто</li>
+                                        <li>1 жълтък за намазване</li>
+                                    </ul>
+                                    <h4>Приготвяне</h4>
+                                    <ol>
+                                        <li>Нарежете ябълките и ги смесете със захарта и канелата.</li>
+                                        <li>Поставете първия лист тесто в подходяща тавичка.</li>
+                                        <li>Разпределете ябълковата плънка равномерно.</li>
+                                        <li>Покрийте с втория лист, намажете с жълтък и печете до златисто.</li>
+                                    </ol>
+                                    <button class="cook-button" type="button">
+                                        Готви стъпка по стъпка <span aria-hidden="true">→</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="empty-state" hidden>
+                    <strong>Няма намерена рецепта</strong>
+                    <span>Опитайте с друга дума или изберете различна категория.</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="story-section" id="story" aria-labelledby="story-title">
+            <div class="site-shell story-grid">
+                <div class="story-image-wrap reveal">
+                    <img
+                        src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&amp;fit=crop&amp;w=1200&amp;q=85"
+                        alt="Семейно готвене в уютна кухня"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </div>
+                <div class="story-copy reveal" style="--reveal-delay: 120ms">
+                    <p class="eyebrow">Мамините тайни</p>
+                    <h2 id="story-title">Добрият вкус е в малките неща.</h2>
+                    <p>
+                        Няма нужда от сложни техники. Търпение, хубави продукти и малко внимание
+                        превръщат обикновеното ястие в спомен.
+                    </p>
+                    <ul class="kitchen-notes">
+                        <li>
+                            <span class="note-number">01</span>
+                            <div><strong>Опитвай по време на готвенето</strong><span>Рецептата е посока, а вкусът се настройва с всяка щипка.</span></div>
+                        </li>
+                        <li>
+                            <span class="note-number">02</span>
+                            <div><strong>Дай време на ароматите</strong><span>Бавният огън често прави повече от още една подправка.</span></div>
+                        </li>
+                        <li>
+                            <span class="note-number">03</span>
+                            <div><strong>Сервирай с настроение</strong><span>Най-хубавата съставка винаги е човекът отсреща.</span></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="site-shell quote-section" aria-label="Семейна мисъл">
+            <div class="quote-block reveal">
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Домът е там, където от кухнята ухае на нещо вкусно.</blockquote>
+                <cite>От мамината тетрадка</cite>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-shell footer-inner">
+            <p>© <span id="year"></span> Рецептите на мама. Направено с обич.</p>
+            <a href="#top">Обратно нагоре ↑</a>
+        </div>
+    </footer>
+
+    <dialog class="cook-dialog" aria-labelledby="cook-title">
+        <div class="cook-panel">
+            <div class="cook-topbar">
+                <p>Режим „Готвене“</p>
+                <button class="cook-close" type="button" aria-label="Затвори режима за готвене">×</button>
+            </div>
+            <div class="cook-progress" aria-hidden="true"><span></span></div>
+            <div class="cook-content">
+                <div class="cook-heading">
+                    <div>
+                        <p class="cook-step-label">Подготовка</p>
+                        <h2 id="cook-title">Рецепта</h2>
+                    </div>
+                    <div class="servings-control" aria-label="Брой порции">
+                        <button type="button" data-serving-action="minus" aria-label="Намали порциите">−</button>
+                        <span class="servings-value">4 порции</span>
+                        <button type="button" data-serving-action="plus" aria-label="Увеличи порциите">+</button>
+                    </div>
+                </div>
+                <div class="cook-stage" aria-live="polite"></div>
+            </div>
+            <div class="cook-footer">
+                <button class="cook-previous" type="button">← Назад</button>
+                <button class="cook-next" type="button">Започваме →</button>
+            </div>
+        </div>
+    </dialog>
+
+    <div class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const header = document.querySelector(".site-header");
+            const scrollProgress = document.querySelector(".scroll-progress span");
+            const filterButtons = [...document.querySelectorAll(".filter-button")];
+            const cards = [...document.querySelectorAll(".recipe-card")];
+            const searchInput = document.querySelector(".recipe-search");
+            const emptyState = document.querySelector(".empty-state");
+            const emptyStateTitle = emptyState.querySelector("strong");
+            const emptyStateCopy = emptyState.querySelector("span");
+            const favoriteButtons = [...document.querySelectorAll(".favorite-button")];
+            const savedButton = document.querySelector(".nav-saved");
+            const savedCount = document.querySelector(".saved-count");
+            const toast = document.querySelector(".toast");
+            const cookDialog = document.querySelector(".cook-dialog");
+            const cookClose = document.querySelector(".cook-close");
+            const cookTitle = document.getElementById("cook-title");
+            const cookStepLabel = document.querySelector(".cook-step-label");
+            const cookStage = document.querySelector(".cook-stage");
+            const cookProgress = document.querySelector(".cook-progress span");
+            const servingsValue = document.querySelector(".servings-value");
+            const servingsButtons = [...document.querySelectorAll("[data-serving-action]")];
+            const cookPrevious = document.querySelector(".cook-previous");
+            const cookNext = document.querySelector(".cook-next");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            let activeFilter = "all";
+            let favoritesOnly = false;
+            let toastTimer;
+            let cookState = null;
+
+            document.getElementById("year").textContent = new Date().getFullYear();
+
+            const updatePageChrome = () => {
+                header.classList.toggle("is-scrolled", window.scrollY > 12);
+                const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
+                scrollProgress.style.transform = `scaleX(${progress})`;
+            };
+
+            updatePageChrome();
+            window.addEventListener("scroll", updatePageChrome, { passive: true });
+            window.addEventListener("resize", updatePageChrome, { passive: true });
+
+            const revealElements = [...document.querySelectorAll(".reveal")];
+            if ("IntersectionObserver" in window && !reducedMotion) {
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("is-visible");
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.12, rootMargin: "0px 0px -30px" });
+                revealElements.forEach((element) => revealObserver.observe(element));
+            } else {
+                revealElements.forEach((element) => element.classList.add("is-visible"));
+            }
+
+            const normalize = (value) => value.toLocaleLowerCase("bg-BG").trim();
+
+            const getFavorites = () => {
+                try {
+                    const saved = JSON.parse(localStorage.getItem("momsRecipesFavorites") || "[]");
+                    return Array.isArray(saved) ? saved : [];
+                } catch {
+                    return [];
+                }
+            };
+
+            const saveFavorites = (favorites) => {
+                try {
+                    localStorage.setItem("momsRecipesFavorites", JSON.stringify(favorites));
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+
+            const showToast = (message) => {
+                toast.textContent = message;
+                toast.classList.add("is-visible");
+                window.clearTimeout(toastTimer);
+                toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+            };
+
+            const updateRecipes = () => {
+                const term = normalize(searchInput.value);
+                const favorites = getFavorites();
+                let visibleCount = 0;
+
+                cards.forEach((card) => {
+                    const matchesCategory = activeFilter === "all" || card.dataset.category === activeFilter;
+                    const matchesSearch = !term || normalize(`${card.textContent} ${card.dataset.search}`).includes(term);
+                    const matchesFavorites = !favoritesOnly || favorites.includes(card.dataset.recipe);
+                    const isVisible = matchesCategory && matchesSearch && matchesFavorites;
+                    card.hidden = !isVisible;
+                    if (isVisible) visibleCount += 1;
+                });
+
+                if (favoritesOnly && favorites.length === 0) {
+                    emptyStateTitle.textContent = "Още няма любими рецепти";
+                    emptyStateCopy.textContent = "Докоснете сърцето върху рецепта, за да я запазите тук.";
+                } else {
+                    emptyStateTitle.textContent = "Няма намерена рецепта";
+                    emptyStateCopy.textContent = "Опитайте с друга дума или изберете различна категория.";
+                }
+
+                emptyState.hidden = visibleCount !== 0;
+            };
+
+            filterButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    activeFilter = button.dataset.filter;
+                    filterButtons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+                    updateRecipes();
+                });
+            });
+
+            searchInput.addEventListener("input", updateRecipes);
+
+            savedButton.addEventListener("click", () => {
+                favoritesOnly = !favoritesOnly;
+                savedButton.setAttribute("aria-pressed", String(favoritesOnly));
+                savedButton.setAttribute(
+                    "aria-label",
+                    favoritesOnly ? "Покажи всички рецепти" : "Покажи само любимите рецепти"
+                );
+                updateRecipes();
+                document.getElementById("recipes").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
+            });
+
+            document.querySelectorAll(".recipe-toggle").forEach((button) => {
+                const details = document.getElementById(button.getAttribute("aria-controls"));
+                details.setAttribute("aria-hidden", "true");
+
+                button.addEventListener("click", () => {
+                    const willOpen = button.getAttribute("aria-expanded") !== "true";
+                    button.setAttribute("aria-expanded", String(willOpen));
+                    button.querySelector("span:first-child").textContent = willOpen ? "Скрий рецептата" : "Виж цялата рецепта";
+                    details.classList.toggle("is-open", willOpen);
+                    details.setAttribute("aria-hidden", String(!willOpen));
+                });
+            });
+
+            const renderFavorites = () => {
+                const favorites = getFavorites();
+                savedCount.textContent = favorites.length;
+                favoriteButtons.forEach((button) => {
+                    const isSaved = favorites.includes(button.dataset.recipe);
+                    const recipeName = button.closest(".recipe-card").querySelector("h3").textContent;
+                    button.setAttribute("aria-pressed", String(isSaved));
+                    button.textContent = isSaved ? "♥" : "♡";
+                    button.setAttribute(
+                        "aria-label",
+                        `${isSaved ? "Премахни" : "Добави"} „${recipeName}“ ${isSaved ? "от" : "в"} любими`
+                    );
+                });
+                if (favoritesOnly) updateRecipes();
+            };
+
+            favoriteButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const favorites = getFavorites();
+                    const recipeId = button.dataset.recipe;
+                    const index = favorites.indexOf(recipeId);
+                    const isRemoving = index >= 0;
+
+                    if (isRemoving) {
+                        favorites.splice(index, 1);
+                    } else {
+                        favorites.push(recipeId);
+                    }
+
+                    if (!saveFavorites(favorites)) {
+                        showToast("Браузърът не позволи запазване на любими.");
+                        return;
+                    }
+
+                    showToast(isRemoving ? "Рецептата е премахната от любими." : "Рецептата е запазена в любими.");
+                    renderFavorites();
+                });
+            });
+
+            const formatAmount = (value) => {
+                const rounded = Math.round(value * 10) / 10;
+                return String(rounded).replace(".", ",");
+            };
+
+            const scaleIngredient = (text, ratio) => text.replace(
+                /^(\d+(?:[.,]\d+)?)(?:\s*([–-])\s*(\d+(?:[.,]\d+)?))?/,
+                (match, start, dash, end) => {
+                    const scaledStart = formatAmount(Number(start.replace(",", ".")) * ratio);
+                    if (!end) return scaledStart;
+                    const scaledEnd = formatAmount(Number(end.replace(",", ".")) * ratio);
+                    return `${scaledStart}${dash}${scaledEnd}`;
+                }
+            );
+
+            const renderCookStage = () => {
+                if (!cookState) return;
+
+                const { data, stage, servings, checkedIngredients } = cookState;
+                const totalStages = data.steps.length + 1;
+                const isPreparation = stage === 0;
+                const isLastStage = stage === totalStages - 1;
+
+                cookTitle.textContent = data.title;
+                cookStepLabel.textContent = isPreparation ? "Подготовка" : `Стъпка ${stage} от ${data.steps.length}`;
+                cookProgress.style.width = `${((stage + 1) / totalStages) * 100}%`;
+                servingsValue.textContent = `${servings} порции`;
+                servingsButtons.forEach((button) => {
+                    button.disabled = button.dataset.servingAction === "minus" ? servings <= 2 : servings >= 8;
+                });
+                cookPrevious.disabled = stage === 0;
+                cookNext.textContent = isPreparation ? "Започваме →" : isLastStage ? "Готово ✓" : "Следваща стъпка →";
+                cookStage.replaceChildren();
+
+                if (isPreparation) {
+                    const title = document.createElement("h3");
+                    title.className = "cook-stage-title";
+                    title.textContent = "Подгответе продуктите";
+
+                    const list = document.createElement("div");
+                    list.className = "ingredient-checklist";
+                    const ratio = servings / 4;
+
+                    data.ingredients.forEach((ingredient, index) => {
+                        const label = document.createElement("label");
+                        label.className = "ingredient-item";
+
+                        const input = document.createElement("input");
+                        input.type = "checkbox";
+                        input.dataset.ingredientIndex = String(index);
+                        input.checked = checkedIngredients.has(index);
+
+                        const box = document.createElement("span");
+                        box.className = "ingredient-box";
+                        box.textContent = "✓";
+                        box.setAttribute("aria-hidden", "true");
+
+                        const text = document.createElement("span");
+                        text.textContent = scaleIngredient(ingredient, ratio);
+
+                        label.append(input, box, text);
+                        list.appendChild(label);
+                    });
+
+                    cookStage.append(title, list);
+                } else {
+                    const stepCard = document.createElement("div");
+                    stepCard.className = "cook-step-card";
+
+                    const stepNumber = document.createElement("span");
+                    stepNumber.className = "cook-step-number";
+                    stepNumber.textContent = `Стъпка ${String(stage).padStart(2, "0")}`;
+
+                    const stepText = document.createElement("p");
+                    stepText.textContent = data.steps[stage - 1];
+
+                    stepCard.append(stepNumber, stepText);
+                    cookStage.appendChild(stepCard);
+                }
+            };
+
+            const openCookMode = (button) => {
+                const card = button.closest(".recipe-card");
+                cookState = {
+                    data: {
+                        title: card.querySelector("h3").textContent,
+                        ingredients: [...card.querySelectorAll(".recipe-details ul li")].map((item) => item.textContent),
+                        steps: [...card.querySelectorAll(".recipe-details ol li")].map((item) => item.textContent)
+                    },
+                    stage: 0,
+                    servings: 4,
+                    checkedIngredients: new Set(),
+                    trigger: button
+                };
+
+                renderCookStage();
+                if (typeof cookDialog.showModal === "function") {
+                    cookDialog.showModal();
+                } else {
+                    cookDialog.setAttribute("open", "");
+                }
+                cookClose.focus();
+            };
+
+            const closeCookMode = (completed = false) => {
+                const trigger = cookState?.trigger;
+                if (typeof cookDialog.close === "function" && cookDialog.open) {
+                    cookDialog.close();
+                } else {
+                    cookDialog.removeAttribute("open");
+                    trigger?.focus();
+                }
+                if (completed) showToast("Браво — ястието е готово! Добър апетит.");
+            };
+
+            document.querySelectorAll(".cook-button").forEach((button) => {
+                button.addEventListener("click", () => openCookMode(button));
+            });
+
+            cookClose.addEventListener("click", () => closeCookMode());
+            cookDialog.addEventListener("click", (event) => {
+                if (event.target === cookDialog) closeCookMode();
+            });
+            cookDialog.addEventListener("close", () => cookState?.trigger?.focus());
+
+            cookStage.addEventListener("change", (event) => {
+                const checkbox = event.target.closest("[data-ingredient-index]");
+                if (!checkbox || !cookState) return;
+                const index = Number(checkbox.dataset.ingredientIndex);
+                if (checkbox.checked) cookState.checkedIngredients.add(index);
+                else cookState.checkedIngredients.delete(index);
+            });
+
+            servingsButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    if (!cookState) return;
+                    cookState.servings += button.dataset.servingAction === "plus" ? 2 : -2;
+                    renderCookStage();
+                });
+            });
+
+            cookPrevious.addEventListener("click", () => {
+                if (!cookState || cookState.stage === 0) return;
+                cookState.stage -= 1;
+                renderCookStage();
+            });
+
+            cookNext.addEventListener("click", () => {
+                if (!cookState) return;
+                const lastStage = cookState.data.steps.length;
+                if (cookState.stage === lastStage) {
+                    closeCookMode(true);
+                    return;
+                }
+                cookState.stage += 1;
+                renderCookStage();
+            });
+
+            renderFavorites();
+            updateRecipes();
         });
-    };
-
-    todoInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && todoInput.value.trim()) {
-            addTaskToDOM(todoInput.value.trim());
-            saveTasks();
-            todoInput.value = '';
-        }
-    });
-
-    loadTasks();
-});
-</script>
+    </script>
 </body>
 </html>

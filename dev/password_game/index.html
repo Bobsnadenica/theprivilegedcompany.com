@@ -1,498 +1,1260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Password Game</title>
-<meta property="og:title" content="Password Game">
-<meta property="og:description" content="ThePrivilegedCompany project page.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://www.theprivilegedcompany.com/dev/password_game/index.html">
-<meta name="twitter:title" content="Password Game">
-<meta name="twitter:description" content="ThePrivilegedCompany project page.">
-<meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="4501">
-<meta property="og:image:height" content="4500">
-<meta property="og:image:alt" content="ThePrivilegedCompany logo">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-<meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    background-color: #000;
-    background-image: radial-gradient(circle at top, #1a1a1a, #000);
-    background-attachment: fixed;
-    color: #fff;
-    font-family: "Inter", sans-serif;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  .container {
-    width: 90%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    padding: 30px;
-    backdrop-filter: blur(8px);
-    text-align: center;
-    margin: 40px 0 80px 0;
-  }
-  h1 {
-    font-size: 2em;
-    margin-bottom: 10px;
-  }
-  input {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.1em;
-    border-radius: 8px;
-    border: none;
-    outline: none;
-    margin-bottom: 20px;
-  }
-  .rules {
-    text-align: left;
-    font-size: 0.95em;
-    line-height: 1.6em;
-    max-height: 55vh;
-    overflow-y: auto;
-    padding-right: 8px;
-    scrollbar-width: thin;
-    scrollbar-color: #00ff99 #222;
-  }
-  .rules::-webkit-scrollbar {
-    width: 8px;
-  }
-  .rules::-webkit-scrollbar-thumb {
-    background-color: #00ff99;
-    border-radius: 8px;
-  }
-  .rule {
-    position: relative;
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: all 0.4s ease;
-  }
-  .rule.valid {
-    color: #00ff99;
-    background: rgba(0, 255, 100, 0.1);
-    border-left: 3px solid #00ff99;
-    transform: translateX(4px);
-  }
-  .rule.invalid {
-    color: #ff5555;
-    background: rgba(255, 80, 80, 0.05);
-    border-left: 3px solid transparent;
-    transform: translateX(0);
-  }
-  .rule span {
-    display: inline-block;
-    margin-right: 6px;
-    font-weight: bold;
-    transition: transform 0.3s ease;
-  }
-  .rule.valid span {
-    transform: scale(1.2) rotate(-10deg);
-  }
-  #success {
-    margin-top: 20px;
-    font-size: 1.2em;
-    color: #00ffcc;
-    opacity: 0;
-    transition: opacity 1s ease;
-  }
-  #success.visible { opacity: 1; }
-  @media (max-width: 600px) {
-    .container {
-      width: 95%;
-      padding: 20px;
-      margin: 20px 0 60px 0;
-      border-radius: 12px;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0c16">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2284%22>🔐</text></svg>">
+  <title>The Password Game — TPC Labs</title>
+  <meta name="description" content="An increasingly ridiculous password game. The next requirement stays secret until you earn it.">
+  <meta property="og:title" content="The Password Game">
+  <meta property="og:description" content="The requirements keep coming. One perfectly legal password. Can you find it?">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/password_game/index.html">
+  <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="4501">
+  <meta property="og:image:height" content="4500">
+  <meta property="og:image:alt" content="The Privileged Company logo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Password Game">
+  <meta name="twitter:description" content="The requirements keep coming. One perfectly legal password. Can you find it?">
+  <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta name="twitter:image:alt" content="The Privileged Company logo">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f7f4ec;
+      --muted: #a9a8b7;
+      --bg: #0b0c16;
+      --panel: rgba(25, 25, 42, 0.86);
+      --panel-strong: #1d1e31;
+      --line: rgba(255, 255, 255, 0.11);
+      --accent: #ffcf70;
+      --accent-strong: #ffad5c;
+      --violet: #9f91ff;
+      --good: #7ef3b2;
+      --bad: #ff8e9e;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
     }
-    h1 {
-      font-size: 1.6em;
+
+    * {
+      box-sizing: border-box;
     }
-    p {
-      font-size: 0.95em;
-      line-height: 1.4em;
+
+    [hidden] {
+      display: none !important;
     }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(159, 145, 255, 0.2), transparent 33rem),
+        radial-gradient(circle at 92% 18%, rgba(255, 173, 92, 0.17), transparent 30rem),
+        linear-gradient(145deg, #0b0c16 0%, #10111d 48%, #090a12 100%);
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      opacity: 0.4;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    button,
     textarea {
-      font-size: 1em !important;
-      padding: 10px !important;
-      max-height: 150px !important;
+      font: inherit;
     }
-    .rules {
-      font-size: 0.9em;
-      line-height: 1.4em;
-      max-height: 50vh;
-      padding-right: 4px;
+
+    button {
+      color: inherit;
     }
-    .rule {
+
+    .page {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 38px 0 54px;
+    }
+
+    .hero {
+      position: relative;
+      padding: 16px 4px 28px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 34px;
+    }
+
+    .brand,
+    .best-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.045);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--good);
+      box-shadow: 0 0 14px rgba(126, 243, 178, 0.8);
+    }
+
+    .hero-copy {
+      max-width: 790px;
+    }
+
+    .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 0.76rem;
+      font-weight: 850;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 800px;
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(3rem, 8vw, 6.8rem);
+      font-weight: 500;
+      letter-spacing: -0.065em;
+      line-height: 0.88;
+    }
+
+    h1 em {
+      color: var(--accent);
+      font-weight: inherit;
+    }
+
+    .lede {
+      max-width: 610px;
+      margin: 22px 0 0;
+      color: #c6c4d0;
+      font-size: clamp(1rem, 2.4vw, 1.18rem);
+      line-height: 1.65;
+    }
+
+    .game-shell {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.13fr) minmax(280px, 0.87fr);
+    }
+
+    .composer,
+    .challenge {
+      min-width: 0;
+      padding: 30px;
+    }
+
+    .challenge {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(159, 145, 255, 0.15), transparent 18rem),
+        rgba(255, 255, 255, 0.018);
+    }
+
+    .field-label,
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+      color: #d6d4de;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timer {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    #password {
+      display: block;
+      width: 100%;
+      min-height: 160px;
+      max-height: 280px;
+      resize: none;
+      overflow-y: auto;
+      padding: 18px 18px 46px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 16px;
+      outline: none;
+      color: #fff;
+      caret-color: var(--accent);
+      background: #0e0f1a;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 1rem;
+      line-height: 1.55;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    #password::placeholder {
+      color: #666777;
+    }
+
+    #password:focus {
+      border-color: rgba(255, 207, 112, 0.64);
+      box-shadow: 0 0 0 4px rgba(255, 207, 112, 0.09);
+    }
+
+    #password:read-only {
+      border-color: rgba(126, 243, 178, 0.45);
+      color: #e8fff2;
+      cursor: default;
+    }
+
+    .char-count {
+      position: absolute;
+      right: 13px;
+      bottom: 12px;
       padding: 4px 8px;
-      border-left-width: 2px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 0.72rem;
+      font-variant-numeric: tabular-nums;
     }
-    .rule.valid span,
-    .rule.invalid span {
-      font-size: 0.9em;
+
+    .composer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
     }
-    #success {
-      font-size: 1em;
+
+    .microcopy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.5;
     }
-    #reward {
-      font-size: 1em;
-      word-wrap: break-word;
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.055);
+      font-size: 0.82rem;
+      font-weight: 800;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
     }
-    canvas#confetti {
-      width: 100vw !important;
-      height: 100vh !important;
+
+    .button:hover {
+      border-color: rgba(255, 255, 255, 0.23);
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-1px);
     }
-  }
-</style>
+
+    .button:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(255, 207, 112, 0.4);
+      outline-offset: 3px;
+    }
+
+    .button.primary {
+      border-color: transparent;
+      color: #17131a;
+      background: var(--accent);
+    }
+
+    .button.primary:hover {
+      background: #ffda8d;
+    }
+
+    .rule-number {
+      display: inline-flex;
+      align-items: center;
+      align-self: flex-start;
+      min-height: 29px;
+      padding: 6px 10px;
+      border: 1px solid rgba(255, 142, 158, 0.24);
+      border-radius: 999px;
+      color: var(--bad);
+      background: rgba(255, 142, 158, 0.08);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .rule-number.complete {
+      border-color: rgba(126, 243, 178, 0.28);
+      color: var(--good);
+      background: rgba(126, 243, 178, 0.09);
+    }
+
+    .rule-title {
+      margin: 17px 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.55rem, 3vw, 2.05rem);
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 1.12;
+    }
+
+    .rule-detail {
+      min-height: 44px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .challenge-note {
+      margin-top: auto;
+      padding-top: 24px;
+      margin-bottom: 0;
+      color: #858493;
+      font-size: 0.76rem;
+      line-height: 1.55;
+    }
+
+    .rulebook {
+      border-top: 1px solid var(--line);
+    }
+
+    .rulebook summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 19px 23px;
+      cursor: pointer;
+      color: #d5d3dd;
+      list-style: none;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .rulebook summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .summary-meta {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .rule-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+      padding: 0 22px 22px;
+      list-style: none;
+    }
+
+    .rule-item {
+      display: grid;
+      grid-template-columns: 23px 1fr;
+      gap: 9px;
+      align-items: start;
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .rule-item.passed {
+      color: #ccebd9;
+      background: rgba(126, 243, 178, 0.045);
+    }
+
+    .rule-item.current {
+      border-color: rgba(255, 142, 158, 0.2);
+      color: #f0c4ca;
+      background: rgba(255, 142, 158, 0.06);
+    }
+
+    .rule-icon {
+      font-size: 0.86rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .victory {
+      display: none;
+      position: relative;
+      overflow: hidden;
+      margin-top: 20px;
+      padding: 32px;
+      border: 1px solid rgba(126, 243, 178, 0.25);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(126, 243, 178, 0.2), transparent 20rem),
+        linear-gradient(135deg, rgba(30, 54, 48, 0.96), rgba(24, 27, 42, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .victory.visible {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      animation: reveal 420ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+    }
+
+    .victory h2 {
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 5vw, 3.7rem);
+      font-weight: 500;
+      letter-spacing: -0.04em;
+    }
+
+    .victory p {
+      max-width: 630px;
+      margin: 0;
+      color: #bdd5c9;
+      line-height: 1.6;
+    }
+
+    .victory-code {
+      display: block;
+      max-width: 100%;
+      margin-top: 18px;
+      padding: 13px 15px;
+      overflow-wrap: anywhere;
+      border: 1px solid rgba(126, 243, 178, 0.2);
+      border-radius: 12px;
+      color: #e9fff2;
+      background: rgba(0, 0, 0, 0.2);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .victory-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-width: 150px;
+    }
+
+    .footer-note {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 24px 0 0;
+      color: #747483;
+      font-size: 0.74rem;
+      text-align: center;
+    }
+
+    .footer-note span + span::before {
+      margin-right: 8px;
+      content: "·";
+    }
+
+    #confetti {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 20px, 620px);
+        padding-top: 18px;
+      }
+
+      .hero {
+        padding-bottom: 22px;
+      }
+
+      .brand-row {
+        margin-bottom: 30px;
+      }
+
+      .best-time {
+        padding-inline: 10px;
+        letter-spacing: 0.07em;
+      }
+
+      h1 {
+        font-size: clamp(3.35rem, 16vw, 5.5rem);
+      }
+
+      .game-shell {
+        border-radius: 20px;
+      }
+
+      .game-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .composer,
+      .challenge {
+        padding: 22px 18px;
+      }
+
+      .challenge {
+        min-height: 285px;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      #password {
+        min-height: 142px;
+      }
+
+      .rule-list {
+        grid-template-columns: 1fr;
+        padding-inline: 14px;
+      }
+
+      .rulebook summary {
+        padding-inline: 18px;
+      }
+
+      .victory {
+        padding: 24px 20px;
+      }
+
+      .victory.visible {
+        grid-template-columns: 1fr;
+      }
+
+      .victory-actions {
+        flex-direction: row;
+      }
+
+      .victory-actions .button {
+        flex: 1;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .brand-row {
+        align-items: flex-start;
+      }
+
+      .brand {
+        max-width: 150px;
+      }
+
+      .best-time {
+        max-width: 135px;
+        text-align: right;
+      }
+
+      .composer-footer {
+        align-items: flex-end;
+      }
+
+      .microcopy {
+        max-width: 205px;
+      }
+
+      .footer-note {
+        flex-direction: column;
+      }
+
+      .footer-note span + span::before {
+        content: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🔐 The Password Game</h1>
-    <p>Create a password that satisfies all the rules below.</p>
-    <textarea id="password" rows="2" placeholder="Type your password masterpiece..." autocomplete="off" style="
-  width:100%;
-  resize:none;
-  overflow:hidden;
-  min-height:60px;
-  max-height:200px;
-  font-size:1.05em;
-  border-radius:8px;
-  border:none;
-  outline:none;
-  padding:12px;
-  font-family:'Inter', sans-serif;
-  margin-bottom:20px;
-"></textarea>
-    <div class="rules" id="rules"></div>
-    <div id="success">🎉 Perfect! You beat the password game!</div>
-    <div id="reward" style="display:none; margin-top:20px; font-size:1.1em; color:#00ff99;"></div>
-    <canvas id="confetti" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
-  </div>
+  <main class="page">
+    <header class="hero">
+      <div class="brand-row">
+        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>TPC Labs / Game 01</div>
+        <div class="best-time" id="bestTime">Best —</div>
+      </div>
+      <div class="hero-copy">
+        <p class="kicker">Looks impossible. Isn’t.</p>
+        <h1>The <em>Password</em> Game</h1>
+        <p class="lede">Build one password while the requirements get progressively more unreasonable. The next one stays secret until the current chain passes.</p>
+      </div>
+    </header>
 
-<script>
-const allRules = [
-  { text: "Must be at least 5 characters long", check: p => p.length >= 5 },
-  { text: "Cannot contain any spaces", check: p => !/\s/.test(p) },
-  { text: "Cannot repeat numbers consecutively (like 11 or 222)", check: p => !/(\d)\1+/.test(p) },
-  { text: "Must include a number", check: p => /[0-9]/.test(p) },
-  { text: "Must include an uppercase letter", check: p => /[A-Z]/.test(p) },
-  { text: "Must include a lowercase letter", check: p => /[a-z]/.test(p) },
-  { text: "Must include the word 'cat'", check: p => /cat/i.test(p) },
-  { text: "Must include a color (red, green, blue)", check: p => /(red|green|blue|yellow|purple|orange|pink|cyan|magenta|black|white|brown|gray|grey|teal|gold|silver)/i.test(p) },
-  { text: "Must include an emoji 😺", check: p => /[\u{1F300}-\u{1FAFF}]/u.test(p) },
-  { text: "Must include today's year", check: p => p.includes(new Date().getFullYear().toString()) },
-  { text: "Must not contain the word 'password'", check: p => !/password/i.test(p) },
-  { text: "Must include the word 'bacon'", check: p => /bacon/i.test(p) },
-  { text: "If it includes 'bacon', it must also include 'chicken'", check: p => /bacon/i.test(p) ? /chicken/i.test(p) : true },
-  { text: "Must contain the name of a planet (Mars, Venus, Earth...)", check: p => /(mercury|venus|earth|mars|jupiter|saturn|uranus|neptune|pluto)/i.test(p)  },
-  { text: "Must include at least 3 different vowels", check: p => {
-      const vowels = p.match(/[aeiou]/gi);
-      return vowels && new Set(vowels.map(v => v.toLowerCase())).size >= 3;
-    } 
-  },
-  { text: "Must include at least one Roman numeral (I, V, X, L, C, D, M)", check: p => /[IVXLCDM]/.test(p) },
-  { text: "Must reference time (like 12:00 or 3PM)", check: p => /(\d{1,2}(:\d{2})?\s?(am|pm)?)/i.test(p) },
-  { text: "Must include at least one Greek letter (α, β, γ...)", check: p => /[αβγδεζηθικλμνξοπρστυφχψω]/i.test(p) },
-  { text: "Must include the phrase '💪strong' (no space)", check: p => /(💪\s*strong|💪strong)/i.test(p) },
-  { 
-    text: "Must mention your favorite animal (dog, frog, sloth...)", 
-    check: p => /(dog|frog|sloth|owl|bear|fox|penguin|koala|cat|lion|tiger|elephant|monkey|giraffe|wolf|dolphin|panda|eagle|horse)/i.test(p) 
-  },
-  { text: "Must contain a food item (pizza, sushi, taco)", check: p => /(pizza|sushi|taco|burger|pasta|steak|noodles|ramen|salad|cookie|cake|bread|cheese|donut|icecream|burrito|fries|sandwich|pancake|waffle)/i.test(p) },
-  { text: "Must include a random math equation (like 2+2=4)", check: p => /\d+\+\d+=\d+/.test(p) },
-  { 
-    text: "All numbers in your password must add up to exactly 69", 
-    check: p => {
-      const nums = p.match(/\d/g);
-      if (!nums) return false;
-      const sum = nums.map(Number).reduce((a, b) => a + b, 0);
-      return sum === 69;
-    } 
-  },
-  { text: "Must include the word 'banana' — because potassium", check: p => /banana/i.test(p) },
-  { text: "Must contain the word '404' to honor the internet gods", check: p => /404/.test(p) },
-  { text: "Must include a hashtag (e.g., #winning)", check: p => /#\w+/.test(p) },
-  { text: "Must mention a movie title (Matrix, Shrek, Inception)", check: p => /(matrix|shrek|inception|avatar|titanic|rocky|terminator|gladiator|frozen|avengers|lotr|harrypotter|jurassicpark|starwars|spiderman|interstellar|batman|superman|dune|oppenheimer)/i.test(p)  },
-  { text: "Must include 'coffee' or 'tea' to stay awake", check: p => /(coffee|tea)/i.test(p) },
-  { text: "Must include laughter (haha or lol)", check: p => /(haha|lol)/i.test(p) },
-  { text: "Must quote a number greater than 9000", check: p => /(900[1-9]|9[1-9][0-9]{2,})/.test(p) },
-  { text: "Must mention 'AI' or 'robot' because we’re watching", check: p => /(ai|robot)/i.test(p) },
-  { text: "Must include a weather word (rain, sun, storm, snow)", check: p => /(rain|sun|storm|snow|fog|wind|hail|lightning|thunder|cloud|mist|hurricane|tornado|drizzle|rainbow)/i.test(p) },
-  { 
-    text: "Must include the missing word 'P. Sherman, 42 _______ Way, Sydney'", 
-    check: p => /wallaby/i.test(p) 
-  },
-  {
-    text: "If your password contains 'cat', it must also contain 'dog' — balance in nature",
-    check: p => /cat/i.test(p) ? /dog/i.test(p) : true
-  },
-  {
-    text: "If your password contains 'sun', it must also contain 'moon' — for cosmic harmony",
-    check: p => /sun/i.test(p) ? /moon/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'AI', it must also mention 'human' — to keep the peace",
-    check: p => /(ai)/i.test(p) ? /human/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'pizza', it must also include 'pineapple' — controversial, but fair",
-    check: p => /pizza/i.test(p) ? /pineapple/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'rain', it must also include 'umbrella' ☂️",
-    check: p => /rain/i.test(p) ? /umbrella/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'robot', it must also include 'laws' — Asimov demands it",
-    check: p => /robot/i.test(p) ? /laws/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'coffee', it cannot mention 'sleep' — that’s cheating",
-    check: p => /coffee/i.test(p) ? !/sleep/i.test(p) : true
-  },
-    { text: "The 3rd character must be a vowel (A, E, I, O, U)", check: p => p.length >= 3 && /[AEIOUaeiou]/.test(p[2]) },
-  { text: "Your password must start and end with the same letter", check: p => p.length > 1 && p[0].toLowerCase() === p[p.length - 1].toLowerCase() },
-  { text: "The 7th character (if it exists) must be a symbol like ! or ?", check: p => p.length >= 7 ? /[!@#$%^&*?]/.test(p[6]) : false },
-  { text: "Must contain exactly 8 uppercase letters", check: p => (p.match(/[A-Z]/g) || []).length === 8 },
-  { text: "Must include a palindrome of 3 letters (like 'aba' or 'pop')", check: p => /([a-zA-Z])([a-zA-Z])\1/i.test(p) },
-  { text: "The total number of characters must be a prime number", check: p => {
-      const len = p.length;
-      if (len < 2) return false;
-      for (let i = 2; i <= Math.sqrt(len); i++) if (len % i === 0) return false;
+    <section class="game-shell" aria-label="Password game">
+      <div class="game-grid">
+        <section class="composer">
+          <label class="field-label" for="password">
+            <span>Your password</span>
+            <span class="timer" id="timer">00:00</span>
+          </label>
+          <div class="password-wrap">
+            <textarea id="password" rows="5" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="inputHelp" placeholder="Start typing. The next rule will reveal itself…"></textarea>
+            <span class="char-count" id="charCount">0 characters</span>
+          </div>
+          <div class="composer-footer">
+            <p class="microcopy" id="inputHelp">No hidden penalties. Earlier rules stay active.</p>
+            <button class="button" id="resetButton" type="button">Reset</button>
+          </div>
+        </section>
+
+        <section class="challenge" aria-live="polite" aria-atomic="true">
+          <div class="section-label"><span>Current challenge</span></div>
+          <span class="rule-number" id="ruleNumber">Active requirement</span>
+          <h2 class="rule-title" id="ruleTitle">Use at least 8 characters.</h2>
+          <p class="rule-detail" id="ruleDetail">0 / 8 characters</p>
+          <p class="challenge-note" id="challengeNote">Whatever comes next remains classified until this requirement passes.</p>
+        </section>
+      </div>
+
+      <details class="rulebook" id="rulebook">
+        <summary>
+          <span>Discovered requirements</span>
+          <span class="summary-meta">Review</span>
+        </summary>
+        <ol class="rule-list" id="ruleList"></ol>
+      </details>
+    </section>
+
+    <section class="victory" id="victory" aria-live="assertive">
+      <div>
+        <p class="kicker">Policy defeated</p>
+        <h2>That should not have worked.</h2>
+        <p>You found the legal loophole in a deeply unreasonable security policy. Your final password is locked in below.</p>
+        <code class="victory-code" id="victoryPassword"></code>
+      </div>
+      <div class="victory-actions">
+        <button class="button primary" id="copyButton" type="button">Copy password</button>
+        <button class="button" id="playAgainButton" type="button">Play again</button>
+      </div>
+    </section>
+
+    <p class="footer-note"><span>Rules reveal one at a time</span><span>No spoilers</span><span>Built to be beaten</span></p>
+  </main>
+
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div class="sr-only" id="announcer" aria-live="polite"></div>
+
+  <script>
+    const currentYear = String(new Date().getFullYear());
+    const colors = ["red", "green", "blue", "yellow", "purple", "orange", "pink", "black", "white", "teal", "gold", "silver"];
+    const planets = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"];
+    const foods = ["pizza", "sushi", "taco", "burger", "pasta", "ramen", "salad", "cookie", "cake", "bread", "cheese", "waffle"];
+    const weatherWords = ["rain", "sun", "storm", "snow", "fog", "wind", "hail", "cloud", "mist", "thunder"];
+    const movies = ["matrix", "shrek", "inception", "avatar", "titanic", "rocky", "frozen", "batman", "dune", "interstellar"];
+    const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    const toCharacters = value => Array.from(value);
+    const characterCount = value => toCharacters(value).length;
+    const uppercaseCount = value => (value.match(/[A-Z]/g) || []).length;
+    const digitSum = value => (value.match(/\d/g) || []).reduce((total, digit) => total + Number(digit), 0);
+    const emojiCount = value => Array.from(value.matchAll(/\p{Extended_Pictographic}/gu)).length;
+
+    function isPrime(number) {
+      if (number < 2) return false;
+      for (let divisor = 2; divisor <= Math.sqrt(number); divisor += 1) {
+        if (number % divisor === 0) return false;
+      }
       return true;
-    } 
-  },
-  { text: "Must contain a secret message 'SOS' (uppercase)", check: p => /SOS/.test(p) },
-  { text: "If it contains 'Mars', it must also contain '42' (because Hitchhiker)", check: p => /mars/i.test(p) ? /42/.test(p) : true },
-  { text: "If your password includes both 'cat' and 'dog', it must also include 'peace'", check: p => (/cat/i.test(p) && /dog/i.test(p)) ? /peace/i.test(p) : true },
-  { text: "Must include the word 'rule' or 'rules' — ironic, isn’t it?", check: p => /rules?/i.test(p) },
-  { text: "Must contain a Fibonacci number (1, 2, 3, 5, 8, 13, 21, 34)", check: p => /(1|2|3|5|8|13|21|34)/.test(p) },
-  {
-    text: "If your password mentions 'chicken', it must also mention 'egg' — which came first?",
-    check: p => /chicken/i.test(p) ? /egg/i.test(p) : true
-  },
-  {
-    text: "If your password includes both 'AI' and 'robot', it must end with 'beep boop' 🤖",
-    check: p => (/ai/i.test(p) && /robot/i.test(p)) ? /(beep\s*boop|beepboop)/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'bacon' and 'banana', it must also include 'breakfast' — obviously",
-    check: p => (/bacon/i.test(p) && /banana/i.test(p)) ? /breakfast/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'moon', it must also include 'tides' — science demands balance",
-    check: p => /moon/i.test(p) ? /tides/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'fire', it must also include 'water' — elemental harmony",
-    check: p => /fire/i.test(p) ? /water/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'banana', it must also include 'monkey' — it’s only fair",
-    check: p => /banana/i.test(p) ? /monkey/i.test(p) : true
-  },
-  {
-    text: "If your password contains 'AI' and 'human', it must also include 'love' ❤️",
-    check: p => (/ai/i.test(p) && /human/i.test(p)) ? /love/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'snow', it must also mention 'winter is coming'",
-    check: p => /snow/i.test(p) ? /(winter\s*is\s*coming|winteriscoming)/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'taco', it must also include 'Tuesday' 🌮",
-    check: p => /taco/i.test(p) ? /tuesday/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'time', it must also include 'space' — we respect physics here",
-    check: p => /time/i.test(p) ? /space/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'pineapple', it must also contain 'controversy' 🍍",
-    check: p => /pineapple/i.test(p) ? /controversy/i.test(p) : true
-  },
-  {
-    text: "If your password contains 'rainbow', it must also contain 'unicorn' 🦄",
-    check: p => /rainbow/i.test(p) ? /unicorn/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'matrix', it must also include 'blue pill' or 'red pill' — your choice",
-    check: p => /matrix/i.test(p) ? /(blue\s*pill|red\s*pill|bluepill|redpill)/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'chicken' and 'egg', it must also include 'answer: both'",
-    check: p => (/chicken/i.test(p) && /egg/i.test(p)) ? /both/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'coffee', it must also include 'productivity' ☕️",
-    check: p => /coffee/i.test(p) ? /productivity/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'internet', it must also include 'cats' — the rule of the web",
-    check: p => /internet/i.test(p) ? /cats/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'Australia', it must also mention 'kangaroo' 🦘",
-    check: p => /australia/i.test(p) ? /kangaroo/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'wizard', it must also include 'staff' or 'wand' 🪄",
-    check: p => /wizard/i.test(p) ? /(staff|wand)/i.test(p) : true
-  },
-  {
-    text: "If your password mentions 'music', it must also include a note symbol 🎵",
-    check: p => /music/i.test(p) ? /🎵/.test(p) : true
-  },
-  {
-    text: "If your password mentions 'sun' and 'moon', it must also include 'eclipse' 🌘",
-    check: p => (/sun/i.test(p) && /moon/i.test(p)) ? /eclipse/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'king', it must also include 'queen' 👑",
-    check: p => /king/i.test(p) ? /queen/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'hacker', it must also include 'ethics' — we have standards here",
-    check: p => /hacker/i.test(p) ? /ethics/i.test(p) : true
-  },
-  {
-    text: "If your password includes 'frog', it must also include 'ribbit' 🐸",
-    check: p => /frog/i.test(p) ? /ribbit/i.test(p) : true
-  }
-];
-
-const rulesContainer = document.getElementById("rules");
-let visibleRules = 1;
-
-function renderRules() {
-  // Only append new rule, do not clear or rebuild all
-  const rule = allRules[visibleRules - 1];
-  const el = document.createElement("div");
-  el.classList.add("rule", "invalid");
-  el.innerHTML = `<span>❌</span><b>${visibleRules}.</b> ${rule.text}`;
-  rulesContainer.appendChild(el);
-  rule.el = el;
-}
-renderRules();
-
-const passwordInput = document.getElementById("password");
-const success = document.getElementById("success");
-
-passwordInput.addEventListener("input", () => {
-  passwordInput.style.height = "auto";
-  passwordInput.style.height = Math.min(passwordInput.scrollHeight, 200) + "px";
-});
-
-passwordInput.addEventListener("input", () => {
-  const value = passwordInput.value; // do NOT trim; respect end-char rules exactly
-
-  // 1) Evaluate all currently visible rules
-  for (let i = 0; i < visibleRules; i++) {
-    const rule = allRules[i];
-    setRuleState(rule, rule.check(value));
-  }
-
-  // 2) Immediately unlock next rules as long as everything visible is valid
-  while (visibleRules < allRules.length && allPassedVisible(value)) {
-    visibleRules++;
-    const nextRule = allRules[visibleRules - 1];
-    const el = document.createElement("div");
-    el.className = "rule invalid";
-    el.innerHTML = `<span>❌</span><b>${visibleRules}.</b> ${nextRule.text}`;
-    rulesContainer.appendChild(el);
-    nextRule.el = el;
-
-    // Evaluate the newly revealed rule right away
-    setRuleState(nextRule, nextRule.check(value));
-    el.scrollIntoView({ behavior: "smooth", block: "end" });
-  }
-
-  // 3) Win state if *all* rules exist and pass
-  const allExist = allRules.every(r => r.el);
-  const allPass = allExist && allRules.every(r => r.check(value));
-  if (allPass) {
-    success.classList.add("visible");
-    showReward(value);
-  } else {
-    success.classList.remove("visible");
-    reward.style.display = "none";
-  }
-});
-
-function setRuleState(rule, ok) {
-  if (ok) {
-    if (!rule.el.classList.contains("valid")) {
-      rule.el.classList.remove("invalid");
-      rule.el.classList.add("valid");
-      rule.el.innerHTML = `<span>✅</span><b>${allRules.indexOf(rule) + 1}.</b> ${rule.text}`;
-      rule.el.style.boxShadow = "0 0 12px rgba(0,255,100,0.6)";
-      setTimeout(() => rule.el.style.boxShadow = "none", 250);
     }
-  } else {
-    if (!rule.el.classList.contains("invalid")) {
-      rule.el.classList.remove("valid");
-      rule.el.classList.add("invalid");
-      rule.el.innerHTML = `<span>❌</span><b>${allRules.indexOf(rule) + 1}.</b> ${rule.text}`;
+
+    function additionMatches(value) {
+      const matches = value.matchAll(/(\d{1,3})\+(\d{1,3})=(\d{1,4})/g);
+      for (const match of matches) {
+        if (Number(match[1]) + Number(match[2]) === Number(match[3])) return true;
+      }
+      return false;
     }
-  }
-}
 
-function allPassedVisible(value) {
-  for (let i = 0; i < visibleRules; i++) {
-    if (!allRules[i].check(value)) return false;
-  }
-  return true;
-}
+    function largestInteger(value) {
+      const numbers = (value.match(/\d+/g) || []).map(Number).filter(Number.isFinite);
+      return numbers.length ? Math.max(...numbers) : null;
+    }
 
-const reward = document.getElementById("reward");
-const confettiCanvas = document.getElementById("confetti");
-const ctx = confettiCanvas.getContext("2d");
-let particles = [];
+    function distinctVowels(value) {
+      return new Set((value.toLowerCase().match(/[aeiou]/g) || [])).size;
+    }
 
-function showReward(password) {
-  reward.style.display = "block";
-  reward.innerHTML = `🏆 Congratulations! Your final password is:<br><b style="color:#fff;background:#00ff99;padding:6px 10px;border-radius:8px;">${password}</b>`;
-  launchConfetti();
-}
+    function findIncluded(value, options) {
+      const normalized = value.toLowerCase();
+      return options.find(option => normalized.includes(option));
+    }
 
-function launchConfetti() {
-  const width = confettiCanvas.width = window.innerWidth;
-  const height = confettiCanvas.height = window.innerHeight;
-  particles = Array.from({ length: 200 }, () => ({
-    x: Math.random() * width,
-    y: Math.random() * height - height,
-    r: Math.random() * 6 + 2,
-    d: Math.random() * 2 + 1,
-    color: `hsl(${Math.random() * 360}, 100%, 60%)`
-  }));
-  animateConfetti();
-}
+    const rules = [
+      {
+        text: "Use at least 8 characters.",
+        check: value => characterCount(value) >= 8,
+        detail: value => `${characterCount(value)} / 8 characters`
+      },
+      {
+        text: "Do not use whitespace.",
+        check: value => !/\s/.test(value),
+        detail: value => /\s/.test(value) ? "Whitespace detected" : "No whitespace detected"
+      },
+      {
+        text: "Include both lowercase and uppercase letters.",
+        check: value => /[a-z]/.test(value) && /[A-Z]/.test(value),
+        detail: value => `${/[a-z]/.test(value) ? "Lowercase ✓" : "Lowercase missing"} · ${/[A-Z]/.test(value) ? "Uppercase ✓" : "Uppercase missing"}`
+      },
+      {
+        text: "Include at least one number.",
+        check: value => /\d/.test(value),
+        detail: value => `${(value.match(/\d/g) || []).length} digit${(value.match(/\d/g) || []).length === 1 ? "" : "s"} found`
+      },
+      {
+        text: "Include a symbol.",
+        check: value => /[!@#$%^&*?+=._-]/.test(value),
+        detail: value => /[!@#$%^&*?+=._-]/.test(value) ? "Symbol found" : "No accepted symbol yet"
+      },
+      {
+        text: "Make the 3rd character a vowel.",
+        check: value => /[aeiou]/i.test(toCharacters(value)[2] || ""),
+        detail: value => `3rd character: ${toCharacters(value)[2] ? `“${toCharacters(value)[2]}”` : "not entered"}`
+      },
+      {
+        text: "Make the 7th character !, @, #, $, %, ^, &, *, or ?.",
+        check: value => /[!@#$%^&*?]/.test(toCharacters(value)[6] || ""),
+        detail: value => `7th character: ${toCharacters(value)[6] ? `“${toCharacters(value)[6]}”` : "not entered"}`
+      },
+      {
+        text: "Include the word “cat”.",
+        check: value => value.toLowerCase().includes("cat"),
+        detail: value => value.toLowerCase().includes("cat") ? "Cat located 😺" : "No cat yet"
+      },
+      {
+        text: "Include a color.",
+        check: value => colors.some(color => value.toLowerCase().includes(color)),
+        detail: value => {
+          const match = colors.find(color => value.toLowerCase().includes(color));
+          return match ? `Color found: ${match}` : "No accepted color yet";
+        }
+      },
+      {
+        text: `Include the current year: ${currentYear}.`,
+        check: value => value.includes(currentYear),
+        detail: value => value.includes(currentYear) ? `${currentYear} found` : `${currentYear} is missing`
+      },
+      {
+        text: "Include an emoji.",
+        check: value => /\p{Extended_Pictographic}/u.test(value),
+        detail: value => /\p{Extended_Pictographic}/u.test(value) ? "Emoji found" : "No emoji detected"
+      },
+      {
+        text: "Include both “bacon” and “chicken”.",
+        check: value => value.toLowerCase().includes("bacon") && value.toLowerCase().includes("chicken"),
+        detail: value => `${value.toLowerCase().includes("bacon") ? "Bacon ✓" : "Bacon missing"} · ${value.toLowerCase().includes("chicken") ? "Chicken ✓" : "Chicken missing"}`
+      },
+      {
+        text: "Name a planet in our solar system.",
+        check: value => planets.some(planet => value.toLowerCase().includes(planet)),
+        detail: value => {
+          const match = planets.find(planet => value.toLowerCase().includes(planet));
+          return match ? `Planet found: ${match}` : "No planet found";
+        }
+      },
+      {
+        text: "Use at least 3 different vowels.",
+        check: value => distinctVowels(value) >= 3,
+        detail: value => `${distinctVowels(value)} / 3 distinct vowels`
+      },
+      {
+        text: "Include a lowercase Greek letter.",
+        check: value => /[α-ω]/u.test(value),
+        detail: value => /[α-ω]/u.test(value) ? "Greek letter found" : "No lowercase Greek letter yet"
+      },
+      {
+        text: "Include a food word.",
+        check: value => Boolean(findIncluded(value, foods)),
+        detail: value => findIncluded(value, foods) ? `Food found: ${findIncluded(value, foods)}` : "Accepted foods include pizza, sushi, taco, pasta, ramen, cake, and waffle"
+      },
+      {
+        text: "Include either “coffee” or “tea”.",
+        check: value => /coffee|tea/i.test(value),
+        detail: value => /coffee|tea/i.test(value) ? "Caffeine secured" : "Coffee or tea is missing"
+      },
+      {
+        text: "Include a weather word.",
+        check: value => Boolean(findIncluded(value, weatherWords)),
+        detail: value => findIncluded(value, weatherWords) ? `Weather found: ${findIncluded(value, weatherWords)}` : "Accepted weather includes rain, sun, storm, snow, fog, wind, and cloud"
+      },
+      {
+        text: "Mention a movie title.",
+        check: value => Boolean(findIncluded(value, movies)),
+        detail: value => findIncluded(value, movies) ? `Movie found: ${findIncluded(value, movies)}` : "Try a title such as Matrix, Shrek, Inception, Batman, Dune, or Interstellar"
+      },
+      {
+        text: "Include laughter: “haha” or “lol”.",
+        check: value => /haha|lol/i.test(value),
+        detail: value => /haha|lol/i.test(value) ? "Laughter detected" : "This password is too serious"
+      },
+      {
+        text: "Include a day of the week.",
+        check: value => Boolean(findIncluded(value, weekdays)),
+        detail: value => findIncluded(value, weekdays) ? `Day found: ${findIncluded(value, weekdays)}` : "No weekday found"
+      },
+      {
+        text: "Include a hashtag made of letters.",
+        check: value => /#[a-z]+/i.test(value),
+        detail: value => /#[a-z]+/i.test(value) ? "Hashtag found" : "No letter-based hashtag found"
+      },
+      {
+        text: "Include the uppercase distress signal “SOS”.",
+        check: value => value.includes("SOS"),
+        detail: value => value.includes("SOS") ? "SOS received" : "SOS is missing"
+      },
+      {
+        text: "Include an uppercase Roman numeral.",
+        check: value => /[IVXLCDM]/.test(value),
+        detail: value => /[IVXLCDM]/.test(value) ? "Roman numeral found" : "Use one of I, V, X, L, C, D, or M"
+      },
+      {
+        text: "Include a currency symbol: $, €, £, or ¥.",
+        check: value => /[$€£¥]/u.test(value),
+        detail: value => /[$€£¥]/u.test(value) ? "Currency symbol found" : "No accepted currency symbol found"
+      },
+      {
+        text: "Include “www.” somewhere.",
+        check: value => value.toLowerCase().includes("www."),
+        detail: value => value.toLowerCase().includes("www.") ? "The web is represented" : "www. is missing"
+      },
+      {
+        text: "Include a doubled lowercase letter.",
+        check: value => /([a-z])\1/.test(value),
+        detail: value => /([a-z])\1/.test(value) ? "Double letter found" : "No doubled lowercase letter found"
+      },
+      {
+        text: "Use exactly two emoji.",
+        check: value => emojiCount(value) === 2,
+        detail: value => `${emojiCount(value)} emoji detected`
+      },
+      {
+        text: "Include the word “rules”.",
+        check: value => value.toLowerCase().includes("rules"),
+        detail: value => value.toLowerCase().includes("rules") ? "Rules acknowledged" : "The word rules is missing"
+      },
+      {
+        text: "Include a correct compact addition equation, such as 8+7=15.",
+        check: additionMatches,
+        detail: value => additionMatches(value) ? "The math checks out" : "No valid compact addition equation found"
+      },
+      {
+        text: "Include “404” for the internet gods.",
+        check: value => value.includes("404"),
+        detail: value => value.includes("404") ? "404 found (the rule is not lost)" : "404 is missing"
+      },
+      {
+        text: "Include an integer greater than 9000.",
+        check: value => (largestInteger(value) || 0) > 9000,
+        detail: value => largestInteger(value) === null ? "No integer found" : `Largest integer: ${largestInteger(value).toLocaleString()}`
+      },
+      {
+        text: "Include a 3-letter palindrome.",
+        check: value => /([a-z])([a-z])\1/i.test(value),
+        detail: value => /([a-z])([a-z])\1/i.test(value) ? "3-letter palindrome found" : "No 3-letter palindrome yet"
+      },
+      {
+        text: "Start and end with the same letter.",
+        check: value => {
+          const characters = toCharacters(value);
+          return characters.length > 1 && /^[a-z]$/i.test(characters[0]) && characters[0].toLowerCase() === characters.at(-1).toLowerCase();
+        },
+        detail: value => {
+          const characters = toCharacters(value);
+          return characters.length ? `First: “${characters[0]}” · Last: “${characters.at(-1)}”` : "No first or last character yet";
+        }
+      },
+      {
+        text: "Use exactly 8 uppercase English letters.",
+        check: value => uppercaseCount(value) === 8,
+        detail: value => `${uppercaseCount(value)} / 8 uppercase letters`
+      },
+      {
+        text: "Make every digit add up to exactly 69.",
+        check: value => digitSum(value) === 69,
+        detail: value => `${digitSum(value)} / 69 total digit value`
+      },
+      {
+        text: "Finish with a prime number of characters.",
+        check: value => isPrime(characterCount(value)),
+        detail: value => {
+          const length = characterCount(value);
+          return isPrime(length) ? `${length} characters · prime ✓` : `${length} characters · not prime`;
+        }
+      }
+    ];
 
-function animateConfetti() {
-  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-  particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
-    ctx.fill();
-    p.y += p.d;
-    if (p.y > confettiCanvas.height) p.y = -10;
-  });
-  requestAnimationFrame(animateConfetti);
-}
-</script>
+    const passwordInput = document.getElementById("password");
+    const charCountElement = document.getElementById("charCount");
+    const timerElement = document.getElementById("timer");
+    const bestTimeElement = document.getElementById("bestTime");
+    const ruleNumber = document.getElementById("ruleNumber");
+    const ruleTitle = document.getElementById("ruleTitle");
+    const ruleDetail = document.getElementById("ruleDetail");
+    const challengeNote = document.getElementById("challengeNote");
+    const ruleList = document.getElementById("ruleList");
+    const resetButton = document.getElementById("resetButton");
+    const victory = document.getElementById("victory");
+    const victoryPassword = document.getElementById("victoryPassword");
+    const copyButton = document.getElementById("copyButton");
+    const playAgainButton = document.getElementById("playAgainButton");
+    const announcer = document.getElementById("announcer");
+
+    let visibleRules = 1;
+    let activeRuleIndex = 0;
+    let hasWon = false;
+    let startTime = null;
+    let finishTime = null;
+    let timerId = null;
+
+    function formatTime(milliseconds) {
+      const totalSeconds = Math.floor(milliseconds / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function readBestTime() {
+      try {
+        const best = Number(localStorage.getItem("password-game-best-time"));
+        bestTimeElement.textContent = best > 0 ? `Best ${formatTime(best)}` : "Best —";
+      } catch {
+        bestTimeElement.textContent = "Best —";
+      }
+    }
+
+    function beginTimer() {
+      if (startTime || hasWon) return;
+      startTime = Date.now();
+      timerId = window.setInterval(() => {
+        timerElement.textContent = formatTime(Date.now() - startTime);
+      }, 250);
+    }
+
+    function stopTimer() {
+      if (timerId) window.clearInterval(timerId);
+      timerId = null;
+      finishTime = startTime ? Date.now() - startTime : 0;
+      timerElement.textContent = formatTime(finishTime);
+
+      if (!finishTime) return;
+      try {
+        const oldBest = Number(localStorage.getItem("password-game-best-time"));
+        if (!oldBest || finishTime < oldBest) localStorage.setItem("password-game-best-time", String(finishTime));
+      } catch {
+        // The game remains fully functional when storage is unavailable.
+      }
+      readBestTime();
+    }
+
+    function resizeInput() {
+      passwordInput.style.height = "auto";
+      passwordInput.style.height = `${Math.min(Math.max(passwordInput.scrollHeight, 160), 280)}px`;
+    }
+
+    function getStates(value) {
+      return rules.map(rule => rule.check(value));
+    }
+
+    function renderRulebook(states) {
+      ruleList.replaceChildren();
+      for (let index = 0; index < visibleRules; index += 1) {
+        const item = document.createElement("li");
+        item.className = `rule-item ${states[index] ? "passed" : "failed"}${index === activeRuleIndex && !hasWon ? " current" : ""}`;
+
+        const icon = document.createElement("span");
+        icon.className = "rule-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = states[index] ? "✓" : "○";
+
+        const copy = document.createElement("span");
+        copy.textContent = rules[index].text;
+
+        item.append(icon, copy);
+        ruleList.appendChild(item);
+      }
+    }
+
+    function render(value, states) {
+      const firstInvalid = states.slice(0, visibleRules).findIndex(state => !state);
+      activeRuleIndex = firstInvalid === -1 ? Math.max(0, visibleRules - 1) : firstInvalid;
+
+      const length = characterCount(value);
+      charCountElement.textContent = `${length} character${length === 1 ? "" : "s"}`;
+
+      if (hasWon) {
+        ruleNumber.textContent = "Complete";
+        ruleNumber.classList.add("complete");
+        ruleTitle.textContent = "Every rule passes.";
+        ruleDetail.textContent = `${length} characters · digit sum ${digitSum(value)} · ${uppercaseCount(value)} uppercase letters`;
+        challengeNote.hidden = true;
+      } else {
+        const activeRule = rules[activeRuleIndex];
+        ruleNumber.textContent = "Active requirement";
+        ruleNumber.classList.remove("complete");
+        ruleTitle.textContent = activeRule.text;
+        ruleDetail.textContent = activeRule.detail(value);
+        challengeNote.hidden = false;
+      }
+
+      renderRulebook(states);
+    }
+
+    function updateGame() {
+      const value = passwordInput.value;
+      const states = getStates(value);
+      const previousVisibleRules = visibleRules;
+
+      while (visibleRules < rules.length && states.slice(0, visibleRules).every(Boolean)) {
+        visibleRules += 1;
+      }
+
+      if (visibleRules !== previousVisibleRules) {
+        announcer.textContent = `New requirement: ${rules[visibleRules - 1].text}`;
+      }
+
+      const allPassed = visibleRules === rules.length && states.every(Boolean);
+      if (allPassed && !hasWon) winGame(value);
+      render(value, states);
+    }
+
+    function winGame(value) {
+      hasWon = true;
+      stopTimer();
+      passwordInput.readOnly = true;
+      victoryPassword.textContent = value;
+      victory.classList.add("visible");
+      announcer.textContent = "Congratulations. Every password requirement is valid.";
+      launchConfetti();
+      window.setTimeout(() => victory.scrollIntoView({ behavior: "smooth", block: "center" }), 180);
+    }
+
+    function resetGame() {
+      if (timerId) window.clearInterval(timerId);
+      stopConfetti();
+      timerId = null;
+      visibleRules = 1;
+      activeRuleIndex = 0;
+      hasWon = false;
+      startTime = null;
+      finishTime = null;
+      passwordInput.readOnly = false;
+      passwordInput.value = "";
+      passwordInput.style.height = "160px";
+      timerElement.textContent = "00:00";
+      victory.classList.remove("visible");
+      copyButton.textContent = "Copy password";
+      updateGame();
+      passwordInput.focus();
+    }
+
+    async function copyPassword() {
+      try {
+        await navigator.clipboard.writeText(passwordInput.value);
+      } catch {
+        passwordInput.focus();
+        passwordInput.select();
+        document.execCommand("copy");
+        passwordInput.setSelectionRange(passwordInput.value.length, passwordInput.value.length);
+      }
+      copyButton.textContent = "Copied ✓";
+      window.setTimeout(() => { copyButton.textContent = "Copy password"; }, 1600);
+    }
+
+    const confettiCanvas = document.getElementById("confetti");
+    const confettiContext = confettiCanvas.getContext("2d");
+    let confettiParticles = [];
+    let confettiFrame = null;
+    let confettiEndsAt = 0;
+
+    function sizeConfettiCanvas() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      confettiCanvas.width = Math.floor(window.innerWidth * ratio);
+      confettiCanvas.height = Math.floor(window.innerHeight * ratio);
+      confettiContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function launchConfetti() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      stopConfetti();
+      sizeConfettiCanvas();
+      const palette = ["#ffcf70", "#7ef3b2", "#9f91ff", "#ff8e9e", "#f7f4ec"];
+      confettiParticles = Array.from({ length: 150 }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: -20 - Math.random() * window.innerHeight * 0.65,
+        width: 5 + Math.random() * 7,
+        height: 8 + Math.random() * 11,
+        velocityX: -1.8 + Math.random() * 3.6,
+        velocityY: 2.2 + Math.random() * 4,
+        rotation: Math.random() * Math.PI,
+        spin: -0.11 + Math.random() * 0.22,
+        color: palette[Math.floor(Math.random() * palette.length)]
+      }));
+      confettiEndsAt = performance.now() + 4200;
+      confettiFrame = requestAnimationFrame(drawConfetti);
+    }
+
+    function drawConfetti(now) {
+      confettiContext.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      confettiParticles.forEach(particle => {
+        particle.x += particle.velocityX;
+        particle.y += particle.velocityY;
+        particle.rotation += particle.spin;
+        confettiContext.save();
+        confettiContext.translate(particle.x, particle.y);
+        confettiContext.rotate(particle.rotation);
+        confettiContext.fillStyle = particle.color;
+        confettiContext.fillRect(-particle.width / 2, -particle.height / 2, particle.width, particle.height);
+        confettiContext.restore();
+      });
+      confettiParticles = confettiParticles.filter(particle => particle.y < window.innerHeight + 30);
+
+      if (now < confettiEndsAt && confettiParticles.length) {
+        confettiFrame = requestAnimationFrame(drawConfetti);
+      } else {
+        stopConfetti();
+      }
+    }
+
+    function stopConfetti() {
+      if (confettiFrame) cancelAnimationFrame(confettiFrame);
+      confettiFrame = null;
+      confettiParticles = [];
+      confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+
+    function findNumericPairForSolution() {
+      const largeNumbersByDigitSum = new Map();
+      for (let number = 9001; number <= 9999; number += 1) {
+        const sum = digitSum(String(number));
+        if (!largeNumbersByDigitSum.has(sum)) largeNumbersByDigitSum.set(sum, String(number));
+      }
+
+      const equations = ["8+7=15"];
+      for (let left = 1; left <= 99; left += 1) {
+        for (let right = 1; right <= 99; right += 1) {
+          equations.push(`${left}+${right}=${left + right}`);
+        }
+      }
+
+      for (const equation of equations) {
+        const requiredLargeNumberSum = 69 - digitSum(currentYear) - digitSum("404") - digitSum(equation);
+        if (largeNumbersByDigitSum.has(requiredLargeNumberSum)) {
+          return { equation, largeNumber: largeNumbersByDigitSum.get(requiredLargeNumberSum) };
+        }
+      }
+      throw new Error("Unable to construct the built-in winning path for this year.");
+    }
+
+    function buildVerifiedSolution() {
+      const { equation, largeNumber } = findNumericPairForSolution();
+      const core = `abaxyz!ABCDEcatgreen${currentYear}😺baconchickenvenusαsushicoffeefogshreklolmonday#winningSOS$www.🎵rules${equation}#404#${largeNumber}`;
+      let padding = "";
+      while (!isPrime(characterCount(`${core}${padding}a`))) padding += "x";
+      const solution = `${core}${padding}a`;
+      const failedRules = rules.reduce((failures, rule, index) => rule.check(solution) ? failures : [...failures, index + 1], []);
+      if (failedRules.length) throw new Error(`Built-in solvability check failed on rules: ${failedRules.join(", ")}`);
+      return solution;
+    }
+
+    passwordInput.addEventListener("input", () => {
+      if (passwordInput.value && !startTime) beginTimer();
+      resizeInput();
+      updateGame();
+    });
+    resetButton.addEventListener("click", resetGame);
+    playAgainButton.addEventListener("click", resetGame);
+    copyButton.addEventListener("click", copyPassword);
+    window.addEventListener("resize", () => {
+      if (confettiFrame) sizeConfettiCanvas();
+    });
+
+    buildVerifiedSolution();
+
+    readBestTime();
+    updateGame();
+  </script>
 </body>
 </html>

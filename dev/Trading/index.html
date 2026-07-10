@@ -3,92 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Tracker</title>
-    <meta property="og:title" content="Trading Tracker">
-    <meta property="og:description" content="ThePrivilegedCompany project page.">
+    <meta name="theme-color" content="#050816">
+    <title>Asset Intel — Market Signals</title>
+    <meta name="description" content="Technical market signals for Bitcoin, Ethereum, and 20 leading NYSE-listed companies.">
+    <meta property="og:title" content="Asset Intel — Market Signals">
+    <meta property="og:description" content="A data-driven Buy, Hold, or Sell dashboard across three time horizons.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/Trading/index.html">
-    <meta name="twitter:title" content="Trading Tracker">
-    <meta name="twitter:description" content="ThePrivilegedCompany project page.">
     <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="4501">
-    <meta property="og:image:height" content="4500">
-    <meta property="og:image:alt" content="ThePrivilegedCompany logo">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-    <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Asset Intel</h1>
-            <p class="subtitle">Proprietary signals & predictive analytics</p>
+    <div class="page-shell">
+        <header class="site-header">
+            <a class="brand" href="#top" aria-label="Asset Intel home">
+                <span>
+                    <strong>Asset Intel</strong>
+                    <small>Market signal dashboard</small>
+                </span>
+            </a>
+            <div class="data-status" aria-live="polite">
+                <span class="status-indicator" aria-hidden="true"></span>
+                <span id="data-status-text">Loading market snapshot</span>
+            </div>
         </header>
 
-        <main class="grid">
-            <!-- S&P 500 Card -->
-            <section class="card" id="sp500-card">
-                <div class="card-header">
-                    <h2>S&P 500 Index</h2>
-                    <span class="symbol">SPX</span>
+        <main id="top">
+            <section class="hero" aria-labelledby="hero-title">
+                <div class="hero-copy">
+                    <p class="eyebrow">Technical momentum, simplified</p>
+                    <h1 id="hero-title">Signals without<br>the noise.</h1>
+                    <p class="hero-description">One clear view of Bitcoin, Ethereum, and 20 NYSE leaders across one day, one month, and one year.</p>
                 </div>
-                <div class="price-container">
-                    <span class="price" id="sp500-price">0.00</span>
-                    <span class="change" id="sp500-change">0.00%</span>
-                </div>
-                <div class="predictions">
-                    <div class="prediction-item">
-                        <span class="timeframe">24H Forecast</span>
-                        <span class="signal" id="sp500-24h">ANALYZING</span>
-                    </div>
-                    <div class="prediction-item">
-                        <span class="timeframe">7D Forecast</span>
-                        <span class="signal" id="sp500-7d">ANALYZING</span>
-                    </div>
-                    <div class="prediction-item">
-                        <span class="timeframe">1Y Forecast</span>
-                        <span class="signal" id="sp500-1y">ANALYZING</span>
-                    </div>
+                <div class="hero-meta">
+                    <span>Latest market close</span>
+                    <strong id="snapshot-date">—</strong>
+                    <small id="source-label">Source pending</small>
                 </div>
             </section>
 
-            <!-- Bitcoin Card -->
-            <section class="card" id="btc-card">
-                <div class="card-header">
-                    <h2>Bitcoin Core</h2>
-                    <span class="symbol">BTC/USD</span>
+            <section class="freshness-banner" id="freshness-banner" role="status" hidden>
+                <strong>Market snapshot needs attention</strong>
+                <span id="freshness-message">The automated refresh is overdue.</span>
+            </section>
+
+            <section class="signal-summary" aria-label="Signal summary">
+                <article class="summary-card summary-buy">
+                    <span class="summary-label">Buy</span>
+                    <strong id="buy-count">—</strong>
+                    <small id="buy-context">assets on 1 month</small>
+                </article>
+                <article class="summary-card summary-hold">
+                    <span class="summary-label">Hold</span>
+                    <strong id="hold-count">—</strong>
+                    <small id="hold-context">assets on 1 month</small>
+                </article>
+                <article class="summary-card summary-sell">
+                    <span class="summary-label">Sell</span>
+                    <strong id="sell-count">—</strong>
+                    <small id="sell-context">assets on 1 month</small>
+                </article>
+            </section>
+
+            <section class="system-health" aria-label="Analysis status">
+                <div>
+                    <span>Data health</span>
+                    <strong id="health-status">Checking</strong>
                 </div>
-                <div class="price-container">
-                    <span class="price" id="btc-price">0.00</span>
-                    <span class="change" id="btc-change">0.00%</span>
+                <div>
+                    <span>Coverage</span>
+                    <strong id="health-coverage">—</strong>
                 </div>
-                <div class="predictions">
-                    <div class="prediction-item">
-                        <span class="timeframe">24H Forecast</span>
-                        <span class="signal" id="btc-24h">ANALYZING</span>
+                <div>
+                    <span>Signal model</span>
+                    <strong id="model-version">—</strong>
+                </div>
+                <div>
+                    <span>NYSE universe</span>
+                    <strong id="universe-status">—</strong>
+                </div>
+            </section>
+
+            <section class="dashboard" aria-labelledby="dashboard-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Current analysis</p>
+                        <h2 id="dashboard-title">Market overview</h2>
                     </div>
-                    <div class="prediction-item">
-                        <span class="timeframe">7D Forecast</span>
-                        <span class="signal" id="btc-7d">ANALYZING</span>
+                    <button class="text-button" id="methodology-button" type="button">How signals work</button>
+                </div>
+
+                <div class="toolbar" aria-label="Market filters">
+                    <label class="search-field">
+                        <span>Search assets</span>
+                        <input id="asset-search" type="search" placeholder="Ticker or company" autocomplete="off">
+                    </label>
+                    <fieldset class="horizon-control">
+                        <legend>Summary horizon</legend>
+                        <div class="segmented-control" id="horizon-control">
+                            <button type="button" data-horizon="one_day">1 day</button>
+                            <button type="button" data-horizon="one_month" class="is-active" aria-pressed="true">1 month</button>
+                            <button type="button" data-horizon="one_year">1 year</button>
+                        </div>
+                    </fieldset>
+                    <label class="select-field">
+                        <span>Signal</span>
+                        <select id="signal-filter">
+                            <option value="ALL">All signals</option>
+                            <option value="BUY">Buy</option>
+                            <option value="HOLD">Hold</option>
+                            <option value="SELL">Sell</option>
+                        </select>
+                    </label>
+                    <label class="select-field">
+                        <span>Sort by</span>
+                        <select id="sort-control">
+                            <option value="market_cap">Market cap</option>
+                            <option value="strength">Signal strength</option>
+                            <option value="change">Daily change</option>
+                            <option value="risk">Lowest risk</option>
+                            <option value="name">Name</option>
+                        </select>
+                    </label>
+                </div>
+
+                <section class="asset-section" aria-labelledby="crypto-title">
+                    <div class="asset-section-header">
+                        <div>
+                            <h3 id="crypto-title">Digital assets</h3>
+                            <p>Always-on markets, based on daily closes</p>
+                        </div>
+                        <span id="crypto-visible-count">2 assets</span>
                     </div>
-                    <div class="prediction-item">
-                        <span class="timeframe">1Y Forecast</span>
-                        <span class="signal" id="btc-1y">ANALYZING</span>
+                    <div class="crypto-grid" id="crypto-grid" aria-live="polite"></div>
+                </section>
+
+                <section class="asset-section" aria-labelledby="stocks-title">
+                    <div class="asset-section-header">
+                        <div>
+                            <h3 id="stocks-title">NYSE leaders</h3>
+                            <p>20 largest eligible NYSE listings by market cap</p>
+                        </div>
+                        <span id="stock-visible-count">20 assets</span>
                     </div>
+                    <div class="market-table" role="table" aria-label="NYSE market signals">
+                        <div class="market-row market-head" role="row">
+                            <span role="columnheader">Asset</span>
+                            <span role="columnheader">Price</span>
+                            <span role="columnheader">1 day</span>
+                            <span role="columnheader">1 month</span>
+                            <span role="columnheader">1 year</span>
+                            <span role="columnheader">Risk</span>
+                        </div>
+                        <div id="stock-list" role="rowgroup" aria-live="polite"></div>
+                    </div>
+                </section>
+
+                <div class="empty-state" id="empty-state" hidden>
+                    <strong>No assets match these filters.</strong>
+                    <span>Try another ticker or include more signal types.</span>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>&copy; 2024 Asset Intel Dashboard. System status: Live. Simulated data feed active.</p>
+            <div>
+                <strong>Asset Intel</strong>
+                <span>Updated automatically by GitHub Actions.</span>
+            </div>
+            <p>Technical signals are educational indicators, not personalized financial advice. Markets can move against any model.</p>
         </footer>
     </div>
-    <script src="app.js"></script>
+
+    <dialog class="detail-dialog" id="asset-dialog" aria-labelledby="dialog-title">
+        <div class="dialog-panel">
+            <button class="dialog-close" id="dialog-close" type="button" aria-label="Close details">Close</button>
+            <p class="eyebrow" id="dialog-type">Asset analysis</p>
+            <div class="dialog-title-row">
+                <div>
+                    <h2 id="dialog-title">—</h2>
+                    <span id="dialog-symbol">—</span>
+                    <small id="dialog-asof">—</small>
+                </div>
+                <div class="dialog-price">
+                    <strong id="dialog-price">—</strong>
+                    <span id="dialog-change">—</span>
+                </div>
+            </div>
+            <div class="dialog-signals" id="dialog-signals"></div>
+            <div class="dialog-section-heading">
+                <div>
+                    <p class="eyebrow">Technical diagnostics</p>
+                    <h3>Indicator stack</h3>
+                </div>
+                <span>Trend, momentum, position, and risk</span>
+            </div>
+            <div class="metric-grid" id="dialog-metrics"></div>
+            <p class="dialog-note">These are rules-based technical classifications—not price targets or probabilities. They do not include company fundamentals, news, valuation, or your personal risk tolerance.</p>
+        </div>
+    </dialog>
+
+    <dialog class="method-dialog" id="method-dialog" aria-labelledby="method-title">
+        <div class="dialog-panel method-panel">
+            <button class="dialog-close" id="method-close" type="button" aria-label="Close methodology">Close</button>
+            <p class="eyebrow">Transparent by design</p>
+            <h2 id="method-title">How signals work</h2>
+            <div class="method-grid">
+                <article>
+                    <span>1 day</span>
+                    <h3>Short momentum</h3>
+                    <p>20-day trend, five-session momentum, RSI, MACD, and Bollinger position.</p>
+                </article>
+                <article>
+                    <span>1 month</span>
+                    <h3>Medium trend</h3>
+                    <p>50-day trend, 20/50-day alignment, one-month return, MACD, and regime.</p>
+                </article>
+                <article>
+                    <span>1 year</span>
+                    <h3>Long trend</h3>
+                    <p>200-day trend, 50/200-day alignment, one-year return, regime, and distance from the yearly high.</p>
+                </article>
+                <article>
+                    <span>Signal strength</span>
+                    <h3>Indicator alignment</h3>
+                    <p>Strength measures how many independent checks agree. It is not statistical confidence.</p>
+                </article>
+                <article>
+                    <span>Risk</span>
+                    <h3>Realized volatility</h3>
+                    <p>Annualized 20-session volatility is classified with separate thresholds for stocks and crypto.</p>
+                </article>
+            </div>
+            <p class="dialog-note">At least 35% net positive alignment produces Buy; at least 35% net negative alignment produces Sell; mixed evidence produces Hold.</p>
+        </div>
+    </dialog>
+
+    <script src="app.js?v=6" defer></script>
 </body>
 </html>

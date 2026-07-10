@@ -534,6 +534,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("post-now", help="Generate and publish one post immediately.")
     sub.add_parser("generate", help="Generate one post and print it (does NOT publish).")
     sub.add_parser("status", help="Show configuration and recent posts.")
+    sub.add_parser("test", help="Run repository tests through run.py (Git checkout only).")
     sub.add_parser("login-gemini", help="Log in to the selected login-only AI provider.")
     sub.add_parser("train", help="Open the 'train your business' form (saved as a skill).")
     sub.add_parser("learn", help="Read post engagement and refresh skill.md (what works).")
@@ -580,13 +581,21 @@ def main(argv=None) -> int:
         business.run_training(MEMORY_DIR)
         return 0
 
+    if command == "test":
+        log.error("Run repository tests through the launcher: python run.py test")
+        return 2
+
     config = load_config()
 
-    if command in {"run", "post-now", "generate"} and not config.is_ready():
-        log.warning("Not configured yet (missing: %s). Launching setup ...", ", ".join(config.missing()))
+    needs_full_setup = command in {"run", "post-now"} and not config.is_ready()
+    needs_ai_setup = command == "generate" and not config.ai_ready()
+    if needs_full_setup or needs_ai_setup:
+        missing = config.missing() if needs_full_setup else ["OPENAI_API_KEY"]
+        log.warning("Not configured yet (missing: %s). Launching setup ...", ", ".join(missing))
         run_setup_wizard(config)
         config = load_config()
-        if not config.is_ready():
+        ready = config.is_ready() if command in {"run", "post-now"} else config.ai_ready()
+        if not ready:
             log.error("Setup incomplete. Exiting.")
             return 1
 

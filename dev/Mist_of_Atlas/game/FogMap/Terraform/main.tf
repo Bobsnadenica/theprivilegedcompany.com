@@ -501,7 +501,7 @@ resource "aws_cloudfront_distribution" "approved_landmarks" {
   enabled         = true
   is_ipv6_enabled = true
   http_version    = "http2and3"
-  comment         = "World Of Fog approved landmark delivery"
+  comment         = "Mist of Atlas: World of Fog approved landmark delivery"
 
   origin {
     domain_name              = aws_s3_bucket.approved_landmarks.bucket_regional_domain_name
@@ -543,7 +543,7 @@ resource "aws_cloudfront_distribution" "shared_tiles" {
   enabled         = true
   is_ipv6_enabled = true
   http_version    = "http2and3"
-  comment         = "World Of Fog shared tile delivery"
+  comment         = "Mist of Atlas: World of Fog shared tile delivery"
 
   origin {
     domain_name              = aws_s3_bucket.discovery_cache.bucket_regional_domain_name

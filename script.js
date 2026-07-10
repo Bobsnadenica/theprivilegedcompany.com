@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260705a';
+import { languageMeta, translations } from './translations.js?v=20260710b';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260705a';
+const assetVersion = '20260710b';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -366,7 +366,7 @@ const getTheme = () => (document.documentElement.getAttribute('data-theme') === 
 const applyTheme = (theme, persist) => {
     document.documentElement.setAttribute('data-theme', theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'light' ? '#f6f8fc' : '#030201');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f3eadf' : '#030201');
     const scheme = document.querySelector('meta[name="color-scheme"]');
     if (scheme) scheme.setAttribute('content', theme === 'light' ? 'light' : 'dark');
     if (persist) {
@@ -403,12 +403,13 @@ const getRouteKey = () => {
  */
 const router = async () => {
     const { key, route } = getCurrentRoute();
+    document.body.dataset.route = key || 'home';
     
     // Start Transition Mask. Skip the wait entirely for reduced-motion users, and
-    // otherwise wait only long enough for the mask to cover (CSS clip-path is 0.45s).
+    // otherwise wait only long enough for the mask to cover (CSS clip-path is 0.35s).
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     transitionMask.classList.add('is-active');
-    await new Promise(r => setTimeout(r, prefersReducedMotion ? 0 : 460));
+    await new Promise(r => setTimeout(r, prefersReducedMotion ? 0 : 360));
 
     // Update active state in nav
     document.querySelectorAll('#main-nav a').forEach(link => {
@@ -466,12 +467,17 @@ const initTabs = () => {
     triggers.forEach(trigger => {
         trigger.addEventListener('click', () => {
             const tab = trigger.dataset.tab;
-            triggers.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.style.display = 'none');
+            triggers.forEach(t => {
+                const isActive = t === trigger;
+                t.classList.toggle('active', isActive);
+                t.setAttribute('aria-selected', String(isActive));
+            });
+            contents.forEach(content => {
+                content.hidden = content.id !== `tab-${tab}`;
+            });
 
-            trigger.classList.add('active');
             const target = document.getElementById(`tab-${tab}`);
-            if (target) target.style.display = 'block';
+            if (target) target.hidden = false;
         });
     });
 };
@@ -1302,6 +1308,7 @@ const initHealthCheck = () => {
     const syncExpandedState = () => {
         const isExpanded = !dashboard.classList.contains('minimized');
         toggleBtn.setAttribute('aria-expanded', String(isExpanded));
+        toggleBtn.setAttribute('aria-label', t(isExpanded ? 'Close website diagnostics' : 'Open website diagnostics'));
         if (isExpanded) startDiagnostics();
     };
 

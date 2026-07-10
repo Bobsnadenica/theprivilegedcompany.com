@@ -1,27 +1,27 @@
 import fs from 'fs';
 import path from 'path';
 
+const siteRoot = process.argv[2] ? path.resolve(process.argv[2]) : process.cwd();
 const files = [
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/contact/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/privacy/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/faq/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/Tech Tools/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/what-we-can/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/showcase/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/kakvo-mozhem/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/contact/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/privacy/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/faq/index.html',
-  '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany/bg/showcase/index.html'
-];
+  'index.html',
+  'contact/index.html',
+  'privacy/index.html',
+  'faq/index.html',
+  'Tech Tools/index.html',
+  'what-we-can/index.html',
+  'showcase/index.html',
+  'bg/index.html',
+  'bg/kakvo-mozhem/index.html',
+  'bg/contact/index.html',
+  'bg/privacy/index.html',
+  'bg/faq/index.html',
+  'bg/showcase/index.html'
+].map(relativePath => path.join(siteRoot, relativePath));
 
 files.forEach(filePath => {
   let content = fs.readFileSync(filePath, 'utf8');
   
-  const myCompanyPath = '/Users/privileged/Projects/BobSNadenica.com/bobsnadenica.com/mycompany';
-  const relativeDir = path.relative(myCompanyPath, path.dirname(filePath));
+  const relativeDir = path.relative(siteRoot, path.dirname(filePath));
   const depth = relativeDir === '' ? 0 : relativeDir.split(path.sep).length;
   const prefix = '../'.repeat(depth);
   const cssPath = `${prefix}styles.css`;

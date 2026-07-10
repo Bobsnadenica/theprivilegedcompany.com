@@ -1,11 +1,11 @@
 {
-    "name": "Mist of Atlas",
+    "name": "Mist of Atlas: World of Fog",
     "short_name": "Mist of Atlas",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Mist of Atlas is a location-based exploration game where you uncover the world as you travel.",
+    "description": "Mist of Atlas: World of Fog is a location-based exploration game where you uncover the world as you travel.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

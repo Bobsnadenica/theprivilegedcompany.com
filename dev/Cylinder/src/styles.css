@@ -82,6 +82,13 @@ textarea:focus-visible {
   border-color: var(--teal);
 }
 
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--red);
+  box-shadow: 0 0 0 1px rgba(181, 61, 43, 0.12);
+}
+
 label {
   display: grid;
   gap: 5px;
@@ -118,6 +125,16 @@ label small {
   margin: 4px 0 0;
   font-size: 24px;
   letter-spacing: 0;
+}
+
+.session-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .eyebrow {
@@ -241,18 +258,12 @@ label small {
   color: var(--muted);
 }
 
-.design-panel ol,
 .blocked-panel ul {
   margin: 0;
   padding-left: 20px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
-}
-
-.selected-direction {
-  color: var(--teal-dark);
-  font-weight: 760;
 }
 
 .metrics-strip {
@@ -344,6 +355,24 @@ label small {
 
 .notice.info {
   border-color: #b7c5c1;
+}
+
+.calculation-health {
+  align-items: center;
+}
+
+.calculation-health div {
+  display: grid;
+  gap: 2px;
+}
+
+.calculation-health strong,
+.calculation-health span {
+  display: block;
+}
+
+.calculation-health span {
+  opacity: 0.86;
 }
 
 .source-note {
@@ -672,6 +701,10 @@ label small {
   .workspace[data-active-mobile-section="build"] .work-grid[data-mobile-section="build"],
   .workspace[data-active-mobile-section="results"] .metrics-strip[data-mobile-section="results"] {
     display: grid !important;
+  }
+
+  .workspace[data-active-mobile-section="results"] .calculation-health[data-mobile-section="results"] {
+    display: flex !important;
   }
 
   .workspace[data-active-mobile-section="results"] .panel[data-mobile-section="results"],

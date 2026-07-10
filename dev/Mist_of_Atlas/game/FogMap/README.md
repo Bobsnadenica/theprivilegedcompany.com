@@ -1,8 +1,8 @@
-# World of Fog: Realmwalker
+# Mist of Atlas: World of Fog
 
-`FogMap` is the repository name. The product/app is `World of Fog: Realmwalker`.
+The product/app is **Mist of Atlas: World of Fog**. `FogMap`, `fog_frontier`, and `world_of_fog` are internal repository, Dart package, and binary identifiers rather than public product names.
 
-World of Fog: Realmwalker is a local-first exploration app with an optional shared realm.
+Mist of Atlas: World of Fog is a local-first exploration app with an optional shared realm.
 
 The product has two distinct responsibilities:
 

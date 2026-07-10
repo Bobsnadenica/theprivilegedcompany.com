@@ -6,6 +6,7 @@
     python run.py post-now   # generate + publish one post immediately
     python run.py generate   # generate one post and print it (does NOT publish)
     python run.py status     # show configuration + recent posts
+    python run.py test       # run the repository test suite (Git checkout only)
     python run.py add-knowledge "text" [--topic T]
     python run.py add-instruction "text"
 
@@ -118,11 +119,35 @@ def ensure_dependencies() -> None:
     print("[setup] Dependencies ready.\n")
 
 
+def _run_tests() -> int:
+    """Run repository tests without taking the application's instance lock."""
+    import unittest
+
+    tests_dir = os.path.join(HERE, "tests")
+    if not os.path.isdir(tests_dir):
+        print(
+            "[test] The test suite is available in the Git checkout, but is not "
+            "included in the downloadable app archive.",
+            file=sys.stderr,
+        )
+        return 2
+
+    suite = unittest.defaultTestLoader.discover(
+        start_dir=tests_dir,
+        pattern="test*.py",
+    )
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    return 0 if result.wasSuccessful() else 1
+
+
 def main() -> None:
     if sys.argv[1:] == ["--version"]:
         print(f"AIPost247 {_version()}")
         return
     ensure_dependencies()
+    if sys.argv[1:] == ["test"]:
+        raise SystemExit(_run_tests())
+
     # Imported only AFTER dependencies are guaranteed to be present.
     from aipost247.app import main as app_main
     from aipost247.config import DATA_DIR

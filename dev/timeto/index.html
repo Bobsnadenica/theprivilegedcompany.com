@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#070b14" />
     <title>Time Left To...</title>
+    <meta name="description" content="A private dashboard for upcoming renewals, deadlines, and recurring payments." />
     <meta property="og:title" content="Time Left To...">
     <meta property="og:description" content="ThePrivilegedCompany project page.">
     <meta property="og:type" content="website">
@@ -20,116 +21,1301 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
     <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        body.site-locked { overflow: hidden; }
+        :root {
+            color-scheme: dark;
+            --bg: #070b14;
+            --surface: rgba(15, 21, 36, 0.78);
+            --surface-strong: #111827;
+            --surface-soft: rgba(255, 255, 255, 0.035);
+            --border: rgba(148, 163, 184, 0.14);
+            --border-strong: rgba(148, 163, 184, 0.22);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --subtle: #64748b;
+            --accent: #a78bfa;
+            --accent-2: #67e8f9;
+            --critical: #fb7185;
+            --critical-rgb: 251, 113, 133;
+            --soon: #fb923c;
+            --soon-rgb: 251, 146, 60;
+            --upcoming: #facc15;
+            --upcoming-rgb: 250, 204, 21;
+            --healthy: #34d399;
+            --healthy-rgb: 52, 211, 153;
+            --expired: #94a3b8;
+            --expired-rgb: 148, 163, 184;
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+        }
 
-        @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
-            50%       { box-shadow: 0 0 18px 4px rgba(239,68,68,0.25); }
+        * {
+            box-sizing: border-box;
         }
-        @keyframes pulse-orange {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
-            50%       { box-shadow: 0 0 14px 3px rgba(249,115,22,0.2); }
-        }
-        .glow-red    { animation: pulse-red 2.4s ease-in-out infinite; }
-        .glow-orange { animation: pulse-orange 3s ease-in-out infinite; }
 
-        @keyframes bar-fill {
-            from { width: 0; }
-            to   { width: var(--w); }
+        html {
+            min-width: 320px;
+            background: var(--bg);
+            scroll-behavior: smooth;
         }
-        .bar-anim { animation: bar-fill 1.1s cubic-bezier(.4,0,.2,1) forwards; }
 
-        .card { opacity: 0; transform: translateY(16px); }
-        .card.show { opacity: 1; transform: translateY(0); transition: opacity .45s ease, transform .45s ease; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            color: var(--text);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 14% 0%, rgba(124, 58, 237, 0.14), transparent 27rem),
+                radial-gradient(circle at 90% 8%, rgba(8, 145, 178, 0.11), transparent 26rem),
+                var(--bg);
+        }
 
-        .lock-screen {
-            position: fixed; inset: 0; z-index: 50;
-            display: flex; align-items: center; justify-content: center;
-            padding: 1.5rem;
-            background: rgba(2, 6, 23, 0.78);
-            backdrop-filter: blur(18px);
+        body::before {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            content: "";
+            pointer-events: none;
+            opacity: 0.24;
+            background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: linear-gradient(to bottom, black, transparent 72%);
         }
-        .lock-screen.is-hidden {
-            opacity: 0; visibility: hidden; pointer-events: none;
-            transition: opacity .35s ease, visibility .35s ease;
+
+        button,
+        input {
+            font: inherit;
         }
-        .lock-card {
-            width: min(100%, 26rem);
-            padding: 1.75rem;
-            border-radius: 1.5rem;
-            background: rgba(15, 23, 42, 0.94);
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
         }
+
+        button {
+            color: inherit;
+        }
+
+        svg {
+            display: block;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        :focus-visible {
+            outline: 3px solid rgba(167, 139, 250, 0.48);
+            outline-offset: 3px;
+        }
+
         .content-shell {
-            transition: opacity .35s ease, filter .35s ease, transform .35s ease;
+            transition: opacity .3s ease, filter .3s ease, transform .3s ease;
         }
+
+        body.site-locked {
+            overflow: hidden;
+        }
+
         body.site-locked .content-shell {
             opacity: 0;
-            filter: blur(10px);
-            transform: scale(.985);
+            filter: blur(14px);
+            transform: scale(.988);
             pointer-events: none;
             user-select: none;
         }
+
+        .lock-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 50% 40%, rgba(124, 58, 237, 0.15), transparent 25rem),
+                rgba(4, 7, 15, 0.88);
+            backdrop-filter: blur(22px);
+        }
+
+        .lock-screen.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .3s ease, visibility .3s ease;
+        }
+
+        .lock-card {
+            position: relative;
+            width: min(100%, 440px);
+            padding: 32px;
+            overflow: hidden;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-xl);
+            background: rgba(13, 18, 31, 0.94);
+            box-shadow: 0 32px 120px rgba(0, 0, 0, 0.52);
+        }
+
+        .lock-card::before {
+            position: absolute;
+            inset: 0 0 auto;
+            height: 1px;
+            content: "";
+            background: linear-gradient(90deg, transparent, rgba(167,139,250,.8), rgba(103,232,249,.65), transparent);
+        }
+
+        .brand-icon,
+        .lock-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            color: #ddd6fe;
+            border: 1px solid rgba(167, 139, 250, 0.24);
+            border-radius: 16px;
+            background: linear-gradient(145deg, rgba(124, 58, 237, 0.23), rgba(8, 145, 178, 0.12));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .lock-icon {
+            margin-bottom: 24px;
+        }
+
+        .brand-icon svg,
+        .lock-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .eyebrow {
+            margin: 0 0 9px;
+            color: #a5b4fc;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .lock-card h1 {
+            margin: 0;
+            font-size: clamp(25px, 6vw, 32px);
+            line-height: 1.1;
+            letter-spacing: -.035em;
+        }
+
+        .lock-description {
+            margin: 11px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+        .lock-form {
+            margin-top: 28px;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 9px;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .field-control {
+            width: 100%;
+            min-height: 52px;
+            padding: 0 16px;
+            color: var(--text);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-md);
+            outline: none;
+            background: rgba(2, 6, 23, 0.44);
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .field-control::placeholder {
+            color: #64748b;
+        }
+
+        .field-control:focus {
+            border-color: rgba(167, 139, 250, 0.65);
+            background: rgba(2, 6, 23, 0.68);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+        }
+
+        .unlock-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            width: 100%;
+            min-height: 52px;
+            margin-top: 12px;
+            padding: 0 18px;
+            color: #111827;
+            border: 0;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #f8fafc, #ddd6fe);
+            box-shadow: 0 10px 28px rgba(167, 139, 250, 0.16);
+            font-size: 14px;
+            font-weight: 750;
+            cursor: pointer;
+            transition: transform .2s ease, filter .2s ease, opacity .2s ease;
+        }
+
+        .unlock-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .unlock-button:disabled {
+            opacity: .62;
+            cursor: wait;
+        }
+
+        .unlock-button svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .lock-status {
+            min-height: 20px;
+            margin: 12px 0 0;
+            color: var(--subtle);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .app-shell {
+            width: min(100% - 40px, 1180px);
+            margin-inline: auto;
+            padding: 36px 0 80px;
+        }
+
+        .page-header {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 34px;
+        }
+
+        .icon-button {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            color: #cbd5e1;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: rgba(15, 23, 42, 0.7);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease;
+        }
+
+        .icon-button:hover {
+            color: white;
+            border-color: var(--border-strong);
+            background: rgba(30, 41, 59, 0.92);
+            transform: translateX(-2px);
+        }
+
+        .icon-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .page-identity {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 14px;
+        }
+
+        .page-title-wrap {
+            min-width: 0;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: clamp(25px, 4vw, 34px);
+            line-height: 1.05;
+            letter-spacing: -.045em;
+        }
+
+        .today {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .privacy-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 42px;
+            gap: 9px;
+            padding: 0 14px;
+            color: #cbd5e1;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.58);
+            font-size: 12px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .privacy-pill svg {
+            width: 15px;
+            height: 15px;
+            color: #a5b4fc;
+        }
+
+        .overview {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr);
+            gap: 16px;
+        }
+
+        .overview-lead,
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(16px);
+        }
+
+        .overview-lead {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-height: 222px;
+            padding: 28px;
+            border-radius: var(--radius-xl);
+            background:
+                radial-gradient(circle at 88% 18%, rgba(103, 232, 249, 0.10), transparent 17rem),
+                radial-gradient(circle at 15% 100%, rgba(124, 58, 237, 0.16), transparent 21rem),
+                var(--surface);
+        }
+
+        .overview-lead::after {
+            position: absolute;
+            right: -42px;
+            bottom: -70px;
+            width: 210px;
+            height: 210px;
+            content: "";
+            border: 1px solid rgba(103, 232, 249, 0.09);
+            border-radius: 50%;
+            box-shadow: 0 0 0 28px rgba(103, 232, 249, 0.025), 0 0 0 62px rgba(167, 139, 250, 0.018);
+        }
+
+        .overview-copy {
+            position: relative;
+            z-index: 1;
+            align-self: end;
+        }
+
+        .overview-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 34px;
+            color: #c4b5fd;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .overview-label svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .overview-name {
+            max-width: 680px;
+            margin: 0;
+            overflow-wrap: anywhere;
+            font-size: clamp(22px, 3.3vw, 36px);
+            line-height: 1.15;
+            letter-spacing: -.04em;
+        }
+
+        .overview-date {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .overview-countdown {
+            position: relative;
+            z-index: 1;
+            align-self: end;
+            padding-left: 24px;
+            text-align: right;
+        }
+
+        .overview-value {
+            display: block;
+            color: var(--critical);
+            font-size: clamp(36px, 6vw, 60px);
+            font-weight: 800;
+            line-height: .95;
+            letter-spacing: -.06em;
+        }
+
+        .overview-caption {
+            display: block;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .metric-card {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            min-height: 66px;
+            gap: 13px;
+            padding: 14px 16px;
+            border-radius: 18px;
+        }
+
+        .metric-icon {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            color: #c4b5fd;
+            border: 1px solid rgba(167, 139, 250, 0.16);
+            border-radius: 12px;
+            background: rgba(124, 58, 237, 0.10);
+        }
+
+        .metric-icon svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .metric-label {
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+
+        .metric-value {
+            margin: 0;
+            color: white;
+            font-size: 18px;
+            font-weight: 750;
+            letter-spacing: -.025em;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .toolbar {
+            position: sticky;
+            top: 14px;
+            z-index: 20;
+            margin: 22px 0 34px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: rgba(9, 14, 25, 0.84);
+            box-shadow: 0 16px 46px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(20px);
+        }
+
+        .toolbar-main {
+            display: grid;
+            grid-template-columns: auto minmax(220px, 1fr) auto;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .view-switch {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: rgba(2, 6, 23, 0.36);
+        }
+
+        .view-button,
+        .filter-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            gap: 8px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+        .view-button {
+            padding: 0 13px;
+        }
+
+        .view-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .view-button[aria-pressed="true"] {
+            color: white;
+            background: rgba(255, 255, 255, 0.085);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .button-count {
+            display: inline-grid;
+            place-items: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            color: #cbd5e1;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.12);
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 0;
+        }
+
+        .search-box svg {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            width: 17px;
+            height: 17px;
+            color: #64748b;
+            pointer-events: none;
+            transform: translateY(-50%);
+        }
+
+        .search-input {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 16px 0 43px;
+            color: var(--text);
+            border: 1px solid transparent;
+            border-radius: 14px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.042);
+            font-size: 13px;
+            transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .search-input:focus {
+            border-color: rgba(167, 139, 250, 0.32);
+            background: rgba(255, 255, 255, 0.055);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+        }
+
+        .filters {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-button {
+            flex: 0 0 auto;
+            padding: 0 11px;
+            white-space: nowrap;
+        }
+
+        .filter-button[aria-pressed="true"] {
+            color: white;
+            background: rgba(167, 139, 250, 0.12);
+        }
+
+        .results-note {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 0 2px 20px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: clamp(21px, 3vw, 28px);
+            letter-spacing: -.035em;
+        }
+
+        .result-count {
+            margin: 0;
+            color: var(--subtle);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .content-root {
+            display: grid;
+            gap: 34px;
+        }
+
+        .group-section {
+            display: grid;
+            gap: 14px;
+        }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .group-name-wrap {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 10px;
+        }
+
+        .group-icon {
+            display: grid;
+            flex: 0 0 auto;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            color: #a5b4fc;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: rgba(15, 23, 42, 0.64);
+        }
+
+        .group-icon svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .group-title {
+            margin: 0;
+            overflow: hidden;
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .015em;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .group-count {
+            color: var(--subtle);
+            font-size: 11px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .group-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .item-card {
+            --status-color: var(--healthy);
+            --status-rgb: var(--healthy-rgb);
+            position: relative;
+            min-width: 0;
+            min-height: 188px;
+            padding: 19px;
+            overflow: hidden;
+            border: 1px solid rgba(var(--status-rgb), .17);
+            border-radius: var(--radius-lg);
+            background:
+                linear-gradient(145deg, rgba(var(--status-rgb), .072), transparent 60%),
+                rgba(13, 19, 32, .82);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+            transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+        }
+
+        .item-card:hover {
+            border-color: rgba(var(--status-rgb), .34);
+            background:
+                linear-gradient(145deg, rgba(var(--status-rgb), .095), transparent 62%),
+                rgba(15, 22, 37, .92);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            transform: translateY(-2px);
+        }
+
+        .status-critical {
+            --status-color: var(--critical);
+            --status-rgb: var(--critical-rgb);
+        }
+
+        .status-soon {
+            --status-color: var(--soon);
+            --status-rgb: var(--soon-rgb);
+        }
+
+        .status-upcoming {
+            --status-color: var(--upcoming);
+            --status-rgb: var(--upcoming-rgb);
+        }
+
+        .status-healthy {
+            --status-color: var(--healthy);
+            --status-rgb: var(--healthy-rgb);
+        }
+
+        .status-expired {
+            --status-color: var(--expired);
+            --status-rgb: var(--expired-rgb);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            min-width: 0;
+            gap: 16px;
+        }
+
+        .card-copy {
+            min-width: 0;
+        }
+
+        .item-name {
+            margin: 0;
+            overflow-wrap: anywhere;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .item-meta {
+            margin: 5px 0 0;
+            color: var(--subtle);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .time-block {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+
+        .time-value {
+            display: block;
+            color: var(--status-color);
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -.045em;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .time-label {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .card-bottom {
+            position: absolute;
+            right: 19px;
+            bottom: 18px;
+            left: 19px;
+        }
+
+        .card-detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 13px;
+        }
+
+        .due-date {
+            display: inline-flex;
+            align-items: center;
+            min-width: 0;
+            gap: 7px;
+            color: var(--muted);
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        .due-date svg {
+            flex: 0 0 auto;
+            width: 13px;
+            height: 13px;
+            color: var(--subtle);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 25px;
+            padding: 0 9px;
+            color: var(--status-color);
+            border: 1px solid rgba(var(--status-rgb), .16);
+            border-radius: 999px;
+            background: rgba(var(--status-rgb), .095);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: .085em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 5px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.12);
+        }
+
+        .progress-fill {
+            width: var(--progress);
+            height: 100%;
+            border-radius: inherit;
+            background: var(--status-color);
+            box-shadow: 0 0 16px rgba(var(--status-rgb), .28);
+        }
+
+        .payment-card {
+            min-height: 216px;
+        }
+
+        .payment-amount {
+            color: #bae6fd;
+            font-size: 17px;
+        }
+
+        .payment-due {
+            margin-top: 23px;
+        }
+
+        .payment-due .time-value {
+            font-size: 22px;
+        }
+
+        .empty-state,
+        .loading-state {
+            display: grid;
+            place-items: center;
+            min-height: 280px;
+            padding: 34px;
+            color: var(--muted);
+            border: 1px dashed var(--border-strong);
+            border-radius: var(--radius-xl);
+            background: rgba(15, 23, 42, 0.28);
+            text-align: center;
+        }
+
+        .empty-icon {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            margin: 0 auto 14px;
+            color: #a5b4fc;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: rgba(124, 58, 237, 0.08);
+        }
+
+        .empty-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .empty-state h3 {
+            margin: 0;
+            color: white;
+            font-size: 17px;
+        }
+
+        .empty-state p,
+        .loading-state p {
+            margin: 8px 0 0;
+            color: var(--subtle);
+            font-size: 12px;
+        }
+
+        .loading-dot {
+            width: 26px;
+            height: 26px;
+            margin-bottom: 14px;
+            border: 2px solid rgba(148, 163, 184, 0.16);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 980px) {
+            .overview {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: none;
+            }
+
+            .metric-card {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+
+            .metric-value {
+                grid-column: 1 / -1;
+                text-align: left;
+            }
+
+            .toolbar-main {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+
+            .filters {
+                grid-column: 1 / -1;
+            }
+
+            .card-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 680px) {
+            .app-shell {
+                width: min(100% - 28px, 1180px);
+                padding-top: 22px;
+            }
+
+            .page-header {
+                grid-template-columns: auto minmax(0, 1fr) auto;
+                gap: 11px;
+                margin-bottom: 24px;
+            }
+
+            .page-identity {
+                gap: 0;
+            }
+
+            .brand-icon {
+                display: none;
+            }
+
+            .page-title {
+                font-size: 25px;
+                white-space: nowrap;
+            }
+
+            .today {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .privacy-pill {
+                width: 42px;
+                padding: 0;
+                justify-content: center;
+            }
+
+            .privacy-pill span {
+                display: none;
+            }
+
+            .overview-lead {
+                grid-template-columns: 1fr;
+                min-height: 254px;
+                padding: 22px;
+            }
+
+            .overview-label {
+                margin-bottom: 28px;
+            }
+
+            .overview-countdown {
+                align-self: end;
+                padding: 20px 0 0;
+                text-align: left;
+            }
+
+            .overview-value {
+                font-size: 44px;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-card {
+                grid-template-columns: auto minmax(0, 1fr) auto;
+            }
+
+            .metric-value {
+                grid-column: auto;
+                text-align: right;
+            }
+
+            .toolbar {
+                position: static;
+                margin-bottom: 28px;
+                border-radius: 19px;
+            }
+
+            .toolbar-main {
+                grid-template-columns: 1fr;
+            }
+
+            .view-switch {
+                width: 100%;
+            }
+
+            .view-button {
+                flex: 1;
+            }
+
+            .filters {
+                grid-column: auto;
+                padding-bottom: 1px;
+            }
+
+            .filter-button {
+                min-height: 40px;
+            }
+
+            .results-note {
+                align-items: flex-end;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .item-card {
+                min-height: 178px;
+            }
+
+            .payment-card {
+                min-height: 210px;
+            }
+        }
+
+        @media (max-width: 410px) {
+            .app-shell {
+                width: min(100% - 22px, 1180px);
+            }
+
+            .icon-button {
+                width: 42px;
+                height: 42px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .overview-name {
+                font-size: 23px;
+            }
+
+            .card-top {
+                gap: 10px;
+            }
+
+            .time-value {
+                font-size: 22px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
     </style>
 </head>
-<body class="site-locked bg-slate-950 min-h-screen">
+<body class="site-locked">
 
 <div id="lock-screen" class="lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-description">
     <div class="lock-card">
-        <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-slate-500 mb-3">Restricted Access</p>
-        <h1 id="lock-title" class="text-2xl font-extrabold text-white tracking-tight">Enter access code</h1>
-        <p id="lock-description" class="text-slate-400 text-sm mt-2">Authorized access only.</p>
-        <form id="lock-form" class="mt-6 space-y-3" novalidate>
-            <label for="lock-input" class="block text-sm font-semibold text-slate-300">Access code</label>
-            <input id="lock-input" name="password" type="password" inputmode="numeric" autocomplete="off" spellcheck="false"
-                   class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                   placeholder="Enter code" aria-describedby="lock-status" />
-            <button type="submit"
-                    class="w-full rounded-2xl bg-slate-200 text-slate-950 font-bold px-4 py-3 hover:bg-white transition-colors">
-                Unlock
+        <div class="lock-icon" aria-hidden="true"><i data-lucide="shield-check"></i></div>
+        <p class="eyebrow">Private dashboard</p>
+        <h1 id="lock-title">Welcome back</h1>
+        <p id="lock-description" class="lock-description">Enter your access code to view upcoming renewals and payments.</p>
+        <form id="lock-form" class="lock-form" novalidate>
+            <label for="lock-input" class="field-label">Access code</label>
+            <input id="lock-input" class="field-control" name="password" type="password" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="Enter code" aria-describedby="lock-status" />
+            <button type="submit" class="unlock-button">
+                <span>Open dashboard</span>
+                <i data-lucide="arrow-right" aria-hidden="true"></i>
             </button>
         </form>
-        <p id="lock-status" class="text-slate-500 text-sm mt-3" aria-live="polite">Protected page.</p>
+        <p id="lock-status" class="lock-status" aria-live="polite">Your data stays behind this access screen.</p>
     </div>
 </div>
 
 <div class="content-shell">
-<div class="max-w-3xl mx-auto px-4 py-8">
+    <main id="main-content" class="app-shell" tabindex="-1">
+        <header class="page-header">
+            <a href="../index.html" class="icon-button" aria-label="Back to home">
+                <i data-lucide="arrow-left" aria-hidden="true"></i>
+            </a>
+            <div class="page-identity">
+                <div class="brand-icon" aria-hidden="true"><i data-lucide="calendar"></i></div>
+                <div class="page-title-wrap">
+                    <h1 class="page-title">Time left to…</h1>
+                    <p id="today" class="today"></p>
+                </div>
+            </div>
+            <div class="privacy-pill" aria-label="Private dashboard">
+                <i data-lucide="lock" aria-hidden="true"></i>
+                <span>Private dashboard</span>
+            </div>
+        </header>
 
-    <!-- Header -->
-    <div class="flex items-center gap-3 mb-10">
-        <a href="../index.html"
-           class="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:scale-110 transition-all shrink-0"
-           aria-label="Back to home">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <div class="flex-1">
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">⏳ Time Left To…</h1>
-            <p id="today" class="text-slate-500 text-sm mt-0.5"></p>
+        <section class="overview" aria-labelledby="overview-heading">
+            <h2 id="overview-heading" class="sr-only">Deadline overview</h2>
+            <article class="overview-lead">
+                <div class="overview-copy">
+                    <p class="overview-label"><i data-lucide="alert-triangle" aria-hidden="true"></i> Next deadline</p>
+                    <h3 id="overview-next-name" class="overview-name">Loading your schedule…</h3>
+                    <p id="overview-next-date" class="overview-date">Finding the nearest renewal</p>
+                </div>
+                <div class="overview-countdown">
+                    <span id="overview-next-value" class="overview-value">—</span>
+                    <span id="overview-next-caption" class="overview-caption">days remaining</span>
+                </div>
+            </article>
+            <div class="metrics" aria-label="Summary metrics">
+                <article class="metric-card">
+                    <div class="metric-icon" aria-hidden="true"><i data-lucide="clock"></i></div>
+                    <p class="metric-label">Due in 90 days</p>
+                    <p id="metric-soon" class="metric-value">—</p>
+                </article>
+                <article class="metric-card">
+                    <div class="metric-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></div>
+                    <p class="metric-label">Renewals tracked</p>
+                    <p id="metric-total" class="metric-value">—</p>
+                </article>
+                <article class="metric-card">
+                    <div class="metric-icon" aria-hidden="true"><i data-lucide="wallet"></i></div>
+                    <p class="metric-label">Fixed monthly</p>
+                    <p id="metric-monthly" class="metric-value">—</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="toolbar" aria-label="Dashboard controls">
+            <div class="toolbar-main">
+                <div class="view-switch" aria-label="Choose dashboard view">
+                    <button type="button" class="view-button" data-view="renewals" aria-pressed="true">
+                        <i data-lucide="calendar-days" aria-hidden="true"></i>
+                        <span>Renewals</span>
+                        <span id="renewal-count" class="button-count">0</span>
+                    </button>
+                    <button type="button" class="view-button" data-view="payments" aria-pressed="false">
+                        <i data-lucide="credit-card" aria-hidden="true"></i>
+                        <span>Payments</span>
+                        <span id="payment-count" class="button-count">0</span>
+                    </button>
+                </div>
+                <label class="search-box">
+                    <span class="sr-only">Search dashboard</span>
+                    <i data-lucide="search" aria-hidden="true"></i>
+                    <input id="search-input" class="search-input" type="search" autocomplete="off" placeholder="Search renewals" />
+                </label>
+                <div class="filters" aria-label="Filter by urgency">
+                    <button type="button" class="filter-button" data-filter="all" aria-pressed="true">All</button>
+                    <button type="button" class="filter-button" data-filter="critical" aria-pressed="false">Critical</button>
+                    <button type="button" class="filter-button" data-filter="soon" aria-pressed="false">Soon</button>
+                    <button type="button" class="filter-button" data-filter="upcoming" aria-pressed="false">Upcoming</button>
+                    <button type="button" class="filter-button" data-filter="healthy" aria-pressed="false">Healthy</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="results-note">
+            <h2 id="view-title" class="section-title">Renewals</h2>
+            <p id="result-count" class="result-count" aria-live="polite">Loading…</p>
         </div>
-        <div id="summary" class="flex gap-2 text-xs font-semibold hidden sm:flex"></div>
-    </div>
 
-    <!-- Content -->
-    <div id="root" class="space-y-10">
-        <div class="flex items-center justify-center py-20 text-slate-500 gap-3">
-            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-            </svg>
-            Loading…
+        <div id="root" class="content-root">
+            <div class="loading-state">
+                <div>
+                    <div class="loading-dot" aria-hidden="true"></div>
+                    <p>Preparing your dashboard…</p>
+                </div>
+            </div>
         </div>
-    </div>
-
-</div>
+    </main>
 </div>
 
 <script>
@@ -138,26 +1324,67 @@ const LOCK_ATTEMPTS_KEY = 'timetoLockAttempts';
 const LOCK_UNTIL_KEY = 'timetoLockUntil';
 const ACCESS_HASH = '73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049';
 
+const TIERS = [
+    { max: -1, key: 'expired', label: 'Expired' },
+    { max: 60, key: 'critical', label: 'Critical' },
+    { max: 180, key: 'soon', label: 'Soon' },
+    { max: 365, key: 'upcoming', label: 'Upcoming' },
+    { max: Infinity, key: 'healthy', label: 'Healthy' }
+];
+
+const GROUP_ICONS = {
+    'Cloudflare domains': 'globe',
+    'Store Subscription': 'app-window',
+    'Car': 'car',
+    'Contacts': 'contact',
+    'Work': 'briefcase',
+    'Other payments': 'wallet',
+    'Other': 'circle'
+};
+
+const DATED_PAYMENT_GROUPS = ['Other payments'];
+
+const appState = {
+    groups: [],
+    payments: [],
+    activeView: 'renewals',
+    activeFilter: 'all',
+    query: ''
+};
+
 async function sha256(value) {
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(new Uint8Array(digest)).map(function (byte) {
+        return byte.toString(16).padStart(2, '0');
+    }).join('');
+}
+
+function refreshIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons({ attrs: { 'stroke-width': 1.8 } });
+    }
 }
 
 function unlockPage() {
     sessionStorage.setItem(LOCK_STORAGE_KEY, 'true');
     document.body.classList.remove('site-locked');
-    document.getElementById('lock-screen').classList.add('is-hidden');
+    const lockScreen = document.getElementById('lock-screen');
+    lockScreen.classList.add('is-hidden');
+    lockScreen.setAttribute('aria-hidden', 'true');
+    window.setTimeout(function () {
+        document.getElementById('main-content').focus({ preventScroll: true });
+    }, 320);
 }
 
-function updateLockCooldown(statusEl, submitBtn) {
+function updateLockCooldown(statusElement, submitButton) {
     const lockUntil = Number(localStorage.getItem(LOCK_UNTIL_KEY) || 0);
     const remaining = Math.max(0, Math.ceil((lockUntil - Date.now()) / 1000));
     if (remaining > 0) {
-        submitBtn.disabled = true;
-        statusEl.textContent = `Too many attempts. Try again in ${remaining}s.`;
+        submitButton.disabled = true;
+        statusElement.textContent = 'Too many attempts. Try again in ' + remaining + 's.';
         return true;
     }
-    submitBtn.disabled = false;
+    submitButton.disabled = false;
     return false;
 }
 
@@ -174,20 +1401,23 @@ function initLockScreen() {
 
     input.focus();
     updateLockCooldown(status, submit);
-    const timer = window.setInterval(() => updateLockCooldown(status, submit), 1000);
+    const timer = window.setInterval(function () {
+        updateLockCooldown(status, submit);
+    }, 1000);
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async function (event) {
         event.preventDefault();
         if (updateLockCooldown(status, submit)) return;
 
         const candidate = input.value.trim();
         if (!candidate) {
             status.textContent = 'Enter the access code first.';
+            input.focus();
             return;
         }
 
         submit.disabled = true;
-        status.textContent = 'Checking code...';
+        status.textContent = 'Checking your code…';
 
         try {
             const hashed = await sha256(candidate);
@@ -204,152 +1434,142 @@ function initLockScreen() {
             if (attempts >= 3) {
                 const cooldown = Math.min(60, (attempts - 2) * 10);
                 localStorage.setItem(LOCK_UNTIL_KEY, String(Date.now() + cooldown * 1000));
-                status.textContent = `Wrong code. Locked for ${cooldown}s.`;
+                status.textContent = 'That code is not right. Try again in ' + cooldown + 's.';
             } else {
-                status.textContent = `Wrong code. ${3 - attempts} attempt${3 - attempts === 1 ? '' : 's'} before cooldown.`;
+                const attemptsLeft = 3 - attempts;
+                status.textContent = 'That code is not right. ' + attemptsLeft + ' attempt' + (attemptsLeft === 1 ? '' : 's') + ' before a short pause.';
             }
             input.select();
             updateLockCooldown(status, submit);
-        } catch {
-            status.textContent = 'Unlock failed.';
+        } catch (error) {
+            status.textContent = 'We could not unlock the dashboard. Please try again.';
             submit.disabled = false;
         }
     });
 }
 
-// ── Urgency tiers ────────────────────────────────────────────────────────────
-const TIERS = [
-    { max: -1,   label: 'Expired',  badge: 'bg-slate-700 text-slate-400',   ring: 'border-slate-600/60',   bg: 'bg-slate-800/60',      num: 'text-slate-400',   bar: 'bg-slate-500',   glow: '' },
-    { max: 60,   label: 'Critical', badge: 'bg-red-500/20 text-red-400',     ring: 'border-red-500/50',     bg: 'bg-red-950/40',        num: 'text-red-400',     bar: 'bg-red-500',     glow: 'glow-red' },
-    { max: 180,  label: 'Soon',     badge: 'bg-orange-500/20 text-orange-400', ring: 'border-orange-500/40', bg: 'bg-orange-950/30',   num: 'text-orange-400',  bar: 'bg-orange-500',  glow: 'glow-orange' },
-    { max: 365,  label: 'Upcoming', badge: 'bg-yellow-500/15 text-yellow-400', ring: 'border-yellow-500/30', bg: 'bg-yellow-950/20',   num: 'text-yellow-400',  bar: 'bg-yellow-400',  glow: '' },
-    { max: Infinity, label: 'OK',   badge: 'bg-emerald-500/15 text-emerald-400', ring: 'border-emerald-500/25', bg: 'bg-emerald-950/20', num: 'text-emerald-400', bar: 'bg-emerald-500', glow: '' },
-];
-
 function tier(days) {
-    if (days < 0)    return TIERS[0];
-    if (days <= 60)  return TIERS[1];
+    if (days < 0) return TIERS[0];
+    if (days <= 60) return TIERS[1];
     if (days <= 180) return TIERS[2];
     if (days <= 365) return TIERS[3];
     return TIERS[4];
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function daysUntil(date) {
-    const now = new Date(); now.setHours(0,0,0,0);
-    const d   = new Date(date); d.setHours(0,0,0,0);
-    return Math.ceil((d - now) / 86400000);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    return Math.ceil((target - now) / 86400000);
 }
 
 function humanTime(days) {
-    if (days < 0)  return { big: 'Expired',  small: Math.abs(days) + 'd ago' };
-    if (days === 0) return { big: 'Today!',  small: 'Expires today' };
-    const n = days.toLocaleString('en-US');
+    if (days === Infinity) return { big: 'No expiry', small: 'Always valid' };
+    if (days < 0) return { big: 'Expired', small: Math.abs(days) + 'd ago' };
+    if (days === 0) return { big: 'Today', small: 'Due today' };
+    const number = days.toLocaleString('en-US');
     const monthsRaw = days / 30.44;
     const months = monthsRaw < 2 ? Number(monthsRaw.toFixed(1)) : Math.round(monthsRaw);
     const label = months === 1 ? 'month' : 'months';
-    return { big: n + 'd', small: '~' + months.toLocaleString('en-US') + ' ' + label + ' left' };
+    return { big: number + 'd', small: '~' + months.toLocaleString('en-US') + ' ' + label + ' left' };
 }
 
-// Bar = % filled as we approach the date (full = very close or expired)
 function barWidth(days) {
+    if (days === Infinity) return 2;
     if (days <= 0) return 100;
-    const horizon = 1095; // 3-year horizon
+    const horizon = 1095;
     const progress = ((horizon - days) / horizon) * 100;
     return Math.min(100, Math.max(3, progress));
 }
 
-// ── Parser ───────────────────────────────────────────────────────────────────
 function parseExpiry(text) {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = text.split('\n').map(function (line) { return line.trim(); }).filter(Boolean);
     const groups = [];
-    let cur = null;
+    let current = null;
 
-    for (const line of lines) {
-        // Section header: ends with ':' and has no "Expires"
+    lines.forEach(function (line) {
         if (/:\s*$/.test(line) && !/expires/i.test(line)) {
-            cur = { name: line.replace(/:$/, '').trim(), items: [] };
-            groups.push(cur);
-            continue;
+            current = { name: line.replace(/:$/, '').trim(), items: [] };
+            groups.push(current);
+            return;
         }
 
-        // Entry: "Name - Expires Month D[,] YYYY"
-        const m = line.match(/^(.+?)\s*[:\-–—]\s*[Ee]xpires?\s+([A-Za-z]+ \d{1,2},?\s*\d{4})\s*$/);
-        if (m) {
-            const name    = m[1].trim();
-            const dateRaw = m[2].replace(/,(\d)/, ', $1'); // normalise "6,2026" → "6, 2026"
-            const date    = new Date(dateRaw);
-            if (isNaN(date)) continue;
-            const days = daysUntil(date);
-            if (!cur) { cur = { name: 'Other', items: [] }; groups.push(cur); }
-            cur.items.push({ name, date, days, group: cur.name });
+        const match = line.match(/^(.+?)\s*[:\-–—]\s*[Ee]xpires?\s+(.+?)\s*$/);
+        if (!match) return;
+
+        const name = match[1].trim();
+        const rawValue = match[2].trim();
+        if (!current) {
+            current = { name: 'Other', items: [] };
+            groups.push(current);
         }
-    }
-    return groups.filter(g => g.items.length > 0);
+
+        if (/^never$/i.test(rawValue)) {
+            current.items.push({ name: name, date: null, days: Infinity, group: current.name });
+            return;
+        }
+
+        const normalized = rawValue.replace(/,(\d)/, ', $1');
+        const date = new Date(normalized);
+        if (isNaN(date)) return;
+        current.items.push({ name: name, date: date, days: daysUntil(date), group: current.name });
+    });
+
+    return groups.filter(function (group) { return group.items.length > 0; });
 }
 
 function parsePayments(text) {
-    const lines = text.split('\n').map((l) => l.trim());
+    const lines = text.split('\n').map(function (line) { return line.trim(); });
     const items = [];
     let inPayments = false;
 
-    for (const raw of lines) {
-        if (!raw) continue;
+    lines.forEach(function (raw) {
+        if (!raw) return;
         if (/^Payments:\s*$/i.test(raw)) {
             inPayments = true;
-            continue;
+            return;
         }
         if (/:\s*$/.test(raw) && !/^Payments:\s*$/i.test(raw)) {
             inPayments = false;
-            continue;
+            return;
         }
-        if (!inPayments) continue;
+        if (!inPayments) return;
 
         const match = raw.match(/^(.+?)\s*-\s*(.+?)\s*-\s*([0-9.,]+(?:\s*-\s*[0-9.,]+)?)\s*EUR(?:\s*-\s*(.+))?$/i);
-        if (!match) continue;
+        if (!match) return;
 
-        const [, name, schedule, amountRaw, note = ''] = match;
+        const name = match[1];
+        const schedule = match[2];
+        const amountRaw = match[3];
+        const note = match[4] || '';
         const isRange = amountRaw.includes('-');
         const amount = isRange
-            ? amountRaw.split('-').map((part) => Number(part.replace(',', '.').trim()))
+            ? amountRaw.split('-').map(function (part) { return Number(part.replace(',', '.').trim()); })
             : Number(amountRaw.replace(',', '.').trim());
 
         items.push({
             name: name.trim(),
             schedule: schedule.trim(),
             amountRaw: amountRaw.replace(/\s+/g, ''),
-            amount,
-            isRange,
-            note: note.trim(),
+            amount: amount,
+            isRange: isRange,
+            note: note.trim()
         });
-    }
+    });
+
     return items;
 }
 
 function monthIndexFromName(name) {
-    const months = [
-        'january', 'february', 'march', 'april', 'may', 'june',
-        'july', 'august', 'september', 'october', 'november', 'december'
-    ];
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
     return months.indexOf(name.toLowerCase());
 }
 
 function atStartOfDay(date) {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
-}
-
-function addMonths(date, count) {
-    const d = new Date(date);
-    d.setMonth(d.getMonth() + count);
-    return d;
-}
-
-function addYears(date, count) {
-    const d = new Date(date);
-    d.setFullYear(d.getFullYear() + count);
-    return d;
+    const value = new Date(date);
+    value.setHours(0, 0, 0, 0);
+    return value;
 }
 
 function nextPaymentDue(schedule, note) {
@@ -362,7 +1582,7 @@ function nextPaymentDue(schedule, note) {
         const previousDue = nextDue.getTime() === currentMonthDue.getTime()
             ? atStartOfDay(new Date(today.getFullYear(), today.getMonth() - 1, day))
             : currentMonthDue;
-        return { nextDue, previousDue };
+        return { nextDue: nextDue, previousDue: previousDue };
     }
 
     const yearlyMatch = schedule.match(/yearly in ([a-z]+)/i);
@@ -370,13 +1590,11 @@ function nextPaymentDue(schedule, note) {
         const month = monthIndexFromName(yearlyMatch[1]);
         const thisYearDue = atStartOfDay(new Date(today.getFullYear(), month, 1));
         let nextDue = thisYearDue >= today ? thisYearDue : atStartOfDay(new Date(today.getFullYear() + 1, month, 1));
-
         if (/paid/i.test(note) && thisYearDue < today) {
             nextDue = atStartOfDay(new Date(today.getFullYear() + 1, month, 1));
         }
-
         const previousDue = atStartOfDay(new Date(nextDue.getFullYear() - 1, nextDue.getMonth(), 1));
-        return { nextDue, previousDue };
+        return { nextDue: nextDue, previousDue: previousDue };
     }
 
     return null;
@@ -393,191 +1611,328 @@ function paymentProgress(schedule, note) {
     const daysLeft = Math.ceil((due.nextDue - today) / 86400000);
     const dueLabel = due.nextDue.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    return { daysLeft, progress, dueLabel };
+    return { daysLeft: daysLeft, progress: progress, dueLabel: dueLabel };
 }
 
-// ── Render ───────────────────────────────────────────────────────────────────
-function cardHTML(item, idx) {
-    const t  = tier(item.days);
-    const h  = humanTime(item.days);
-    const bw = barWidth(item.days);
-    const fmt = item.date.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-
-    return `
-    <div class="card ${t.bg} border ${t.ring} ${t.glow} rounded-2xl p-4 sm:p-5 hover:scale-[1.025] transition-transform duration-200 cursor-default"
-         style="transition-delay:${idx * 70}ms">
-        <div class="flex items-start gap-3">
-            <div class="flex-1 min-w-0">
-                <p class="text-white font-semibold text-sm sm:text-base leading-snug truncate">${esc(item.name)}</p>
-                <p class="text-slate-500 text-xs mt-0.5">${fmt}</p>
-            </div>
-            <div class="text-right shrink-0 ml-2">
-                <p class="${t.num} font-black text-xl sm:text-2xl leading-none tabular-nums">${h.big}</p>
-                <p class="text-slate-500 text-xs mt-0.5 whitespace-nowrap">${h.small}</p>
-            </div>
-        </div>
-
-        <!-- Progress bar: full = lots of time left -->
-        <div class="mt-4 h-1 rounded-full bg-slate-800 overflow-hidden">
-            <div class="${t.bar} h-full rounded-full bar-anim" style="--w:${bw}%; width:0"></div>
-        </div>
-
-        ${t.label !== 'OK' ? `
-        <div class="mt-2.5 flex justify-end">
-            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${t.badge}">${t.label}</span>
-        </div>` : ''}
-    </div>`;
+function escapeHTML(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
-function groupHTML(group) {
-    return `
-    <section class="space-y-3">
-        <div class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-slate-800"></div>
-            <h2 class="text-slate-500 text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">${esc(group.name)}</h2>
-            <div class="h-px flex-1 bg-slate-800"></div>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2">
-            ${group.items.map((it, i) => cardHTML(it, i)).join('')}
-        </div>
-    </section>`;
+function formatDate(date) {
+    if (!date) return 'No expiry date';
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatCurrency(value) {
+    return new Intl.NumberFormat('en-IE', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+    }).format(value);
 }
 
 function euroAmount(value) {
     if (Array.isArray(value)) {
-        return `${value[0].toFixed(2)}-${value[1].toFixed(2)} EUR`;
+        return value[0].toFixed(2) + '–' + value[1].toFixed(2) + ' EUR';
     }
-    return `${Number(value).toFixed(2)} EUR`;
+    return Number(value).toFixed(2) + ' EUR';
+}
+
+function renewalCardHTML(item) {
+    const status = tier(item.days);
+    const human = humanTime(item.days);
+    const progress = barWidth(item.days);
+    const due = formatDate(item.date);
+
+    return [
+        '<article class="item-card status-', status.key, '">',
+            '<div class="card-top">',
+                '<div class="card-copy">',
+                    '<h4 class="item-name">', escapeHTML(item.name), '</h4>',
+                    '<p class="item-meta">', escapeHTML(item.group), '</p>',
+                '</div>',
+                '<div class="time-block">',
+                    '<span class="time-value">', escapeHTML(human.big), '</span>',
+                    '<span class="time-label">', escapeHTML(human.small), '</span>',
+                '</div>',
+            '</div>',
+            '<div class="card-bottom">',
+                '<div class="card-detail-row">',
+                    '<span class="due-date"><i data-lucide="calendar" aria-hidden="true"></i>', escapeHTML(due), '</span>',
+                    '<span class="status-badge">', escapeHTML(status.label), '</span>',
+                '</div>',
+                '<div class="progress-track" role="progressbar" aria-label="Urgency for ', escapeHTML(item.name), '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="', Math.round(progress), '">',
+                    '<div class="progress-fill" style="--progress:', progress, '%"></div>',
+                '</div>',
+            '</div>',
+        '</article>'
+    ].join('');
+}
+
+function groupHTML(group) {
+    const icon = GROUP_ICONS[group.name] || 'circle';
+    return [
+        '<section class="group-section" aria-labelledby="group-', escapeHTML(group.name.replace(/\s+/g, '-').toLowerCase()), '">',
+            '<div class="group-header">',
+                '<div class="group-name-wrap">',
+                    '<span class="group-icon" aria-hidden="true"><i data-lucide="', icon, '"></i></span>',
+                    '<h3 id="group-', escapeHTML(group.name.replace(/\s+/g, '-').toLowerCase()), '" class="group-title">', escapeHTML(group.name), '</h3>',
+                    '<span class="group-count">', group.items.length, ' item', group.items.length === 1 ? '' : 's', '</span>',
+                '</div>',
+                '<span class="group-line" aria-hidden="true"></span>',
+            '</div>',
+            '<div class="card-grid">', group.items.map(renewalCardHTML).join(''), '</div>',
+        '</section>'
+    ].join('');
 }
 
 function paymentCardHTML(item) {
     const due = paymentProgress(item.schedule, item.note);
-    const dueTier = due.daysLeft === null ? TIERS[4] : tier(due.daysLeft);
-    const dueBig = due.daysLeft === null
-        ? 'Set'
-        : due.daysLeft < 0
-            ? 'Late'
-            : due.daysLeft === 0
-                ? 'Today'
-                : `${due.daysLeft}d`;
-    const dueSmall = due.daysLeft === null
-        ? item.schedule
-        : due.daysLeft === 0
-            ? `Due today (${due.dueLabel})`
-            : `Due ${due.dueLabel}`;
+    const status = due.daysLeft === null ? TIERS[4] : tier(due.daysLeft);
+    const dueBig = due.daysLeft === null ? 'Scheduled' : due.daysLeft < 0 ? 'Late' : due.daysLeft === 0 ? 'Today' : due.daysLeft + 'd';
+    const dueSmall = due.daysLeft === null ? item.schedule : due.daysLeft === 0 ? 'Due today' : 'until next payment';
+    const note = item.note ? item.schedule + ' · ' + item.note : item.schedule;
 
-    return `
-    <div class="card bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 hover:scale-[1.02] transition-transform duration-200 cursor-default">
-        <div class="flex items-start gap-3">
-            <div class="flex-1 min-w-0">
-                <p class="text-white font-semibold text-sm sm:text-base leading-snug truncate">${esc(item.name)}</p>
-                <p class="text-slate-500 text-xs mt-0.5">${esc(item.schedule)}${item.note ? ` • ${esc(item.note)}` : ''}</p>
-            </div>
-            <div class="text-right shrink-0 ml-2">
-                <p class="text-sky-300 font-black text-lg sm:text-xl leading-none tabular-nums">${esc(euroAmount(item.amount))}</p>
-            </div>
-        </div>
-        <div class="mt-4 flex items-end justify-between gap-3">
-            <div>
-                <p class="${dueTier.num} font-black text-lg sm:text-xl leading-none tabular-nums">${dueBig}</p>
-                <p class="text-slate-500 text-xs mt-1">${esc(dueSmall)}</p>
-            </div>
-            ${due.daysLeft !== null ? `<span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${dueTier.badge}">${dueTier.label}</span>` : ''}
-        </div>
-        <div class="mt-3 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-            <div class="${dueTier.bar} h-full rounded-full" style="width:${due.progress}%; transition: width .6s ease"></div>
-        </div>
-    </div>`;
+    return [
+        '<article class="item-card payment-card status-', status.key, '">',
+            '<div class="card-top">',
+                '<div class="card-copy">',
+                    '<h3 class="item-name">', escapeHTML(item.name), '</h3>',
+                    '<p class="item-meta">', escapeHTML(note), '</p>',
+                '</div>',
+                '<div class="time-block">',
+                    '<span class="time-value payment-amount">', escapeHTML(euroAmount(item.amount)), '</span>',
+                '</div>',
+            '</div>',
+            '<div class="payment-due">',
+                '<span class="time-value">', escapeHTML(dueBig), '</span>',
+                '<span class="time-label">', escapeHTML(dueSmall), '</span>',
+            '</div>',
+            '<div class="card-bottom">',
+                '<div class="card-detail-row">',
+                    '<span class="due-date"><i data-lucide="calendar" aria-hidden="true"></i>', escapeHTML(due.dueLabel), '</span>',
+                    '<span class="status-badge">', escapeHTML(status.label), '</span>',
+                '</div>',
+                '<div class="progress-track" role="progressbar" aria-label="Payment cycle for ', escapeHTML(item.name), '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="', Math.round(due.progress), '">',
+                    '<div class="progress-fill" style="--progress:', due.progress, '%"></div>',
+                '</div>',
+            '</div>',
+        '</article>'
+    ].join('');
 }
 
-function paymentSummaryHTML(payments) {
-    if (payments.length === 0) return '';
-
-    return `
-    <section class="space-y-3">
-        <div class="flex items-center gap-3">
-            <div class="h-px flex-1 bg-slate-800"></div>
-            <h2 class="text-slate-500 text-[11px] font-bold uppercase tracking-widest whitespace-nowrap">Payments</h2>
-            <div class="h-px flex-1 bg-slate-800"></div>
-        </div>
-        <div class="grid gap-3 sm:grid-cols-2">
-            ${payments.map(paymentCardHTML).join('')}
-        </div>
-    </section>`;
+function datedPaymentCardHTML(item) {
+    return renewalCardHTML(Object.assign({}, item, {
+        group: 'Dated payment · amount not set'
+    }));
 }
 
-function summaryHTML(groups) {
-    const all = groups.flatMap(g => g.items);
-    const counts = { Critical: 0, Soon: 0, Upcoming: 0, OK: 0, Expired: 0 };
-    all.forEach(it => { counts[tier(it.days).label]++; });
-    const pills = [
-        { k: 'Expired',  cls: 'bg-slate-700 text-slate-300' },
-        { k: 'Critical', cls: 'bg-red-500/20 text-red-400' },
-        { k: 'Soon',     cls: 'bg-orange-500/20 text-orange-400' },
-        { k: 'Upcoming', cls: 'bg-yellow-500/15 text-yellow-400' },
-        { k: 'OK',       cls: 'bg-emerald-500/15 text-emerald-400' },
-    ];
-    return pills
-        .filter(p => counts[p.k] > 0)
-        .map(p => `<span class="px-2.5 py-1 rounded-full ${p.cls}">${counts[p.k]} ${p.k}</span>`)
-        .join('');
+function paymentSectionHTML(title, items, renderer, icon) {
+    const sectionId = 'payment-' + title.replace(/\s+/g, '-').toLowerCase();
+    return [
+        '<section class="group-section" aria-labelledby="', escapeHTML(sectionId), '">',
+            '<div class="group-header">',
+                '<div class="group-name-wrap">',
+                    '<span class="group-icon" aria-hidden="true"><i data-lucide="', icon, '"></i></span>',
+                    '<h3 id="', escapeHTML(sectionId), '" class="group-title">', escapeHTML(title), '</h3>',
+                    '<span class="group-count">', items.length, ' item', items.length === 1 ? '' : 's', '</span>',
+                '</div>',
+                '<span class="group-line" aria-hidden="true"></span>',
+            '</div>',
+            '<div class="card-grid">', items.map(renderer).join(''), '</div>',
+        '</section>'
+    ].join('');
 }
 
-function esc(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function datedPayments() {
+    return appState.groups
+        .filter(function (group) { return DATED_PAYMENT_GROUPS.includes(group.name); })
+        .flatMap(function (group) { return group.items; });
 }
 
-function animateCards() {
-    const cards = document.querySelectorAll('.card');
-    cards.forEach((c, i) => {
-        setTimeout(() => c.classList.add('show'), i * 70 + 40);
+function matchesQuery(values) {
+    if (!appState.query) return true;
+    return values.join(' ').toLowerCase().includes(appState.query);
+}
+
+function filterRenewal(item) {
+    const status = tier(item.days);
+    const statusMatches = appState.activeFilter === 'all' || status.key === appState.activeFilter;
+    return statusMatches && matchesQuery([item.name, item.group, status.label]);
+}
+
+function filterPayment(item) {
+    const due = paymentProgress(item.schedule, item.note);
+    const status = due.daysLeft === null ? TIERS[4] : tier(due.daysLeft);
+    const statusMatches = appState.activeFilter === 'all' || status.key === appState.activeFilter;
+    return statusMatches && matchesQuery([item.name, item.schedule, item.note, euroAmount(item.amount), status.label]);
+}
+
+function filterDatedPayment(item) {
+    const status = tier(item.days);
+    const statusMatches = appState.activeFilter === 'all' || status.key === appState.activeFilter;
+    return statusMatches && matchesQuery([item.name, item.group, 'dated payment', status.label]);
+}
+
+function emptyStateHTML() {
+    return [
+        '<div class="empty-state">',
+            '<div>',
+                '<span class="empty-icon" aria-hidden="true"><i data-lucide="search"></i></span>',
+                '<h3>No matching items</h3>',
+                '<p>Try another search or choose a different urgency filter.</p>',
+            '</div>',
+        '</div>'
+    ].join('');
+}
+
+function renderDashboard() {
+    const root = document.getElementById('root');
+    const resultCount = document.getElementById('result-count');
+    const viewTitle = document.getElementById('view-title');
+    const searchInput = document.getElementById('search-input');
+    let visibleCount = 0;
+
+    if (appState.activeView === 'renewals') {
+        const groups = appState.groups.map(function (group) {
+            return {
+                name: group.name,
+                items: group.items.filter(filterRenewal)
+            };
+        }).filter(function (group) { return group.items.length > 0; });
+
+        visibleCount = groups.reduce(function (total, group) { return total + group.items.length; }, 0);
+        root.innerHTML = visibleCount ? groups.map(groupHTML).join('') : emptyStateHTML();
+        viewTitle.textContent = 'Renewals';
+        searchInput.placeholder = 'Search renewals';
+    } else {
+        const payments = appState.payments.filter(filterPayment);
+        const otherPayments = datedPayments().filter(filterDatedPayment);
+        const paymentSections = [];
+
+        if (payments.length) {
+            paymentSections.push(paymentSectionHTML('Recurring payments', payments, paymentCardHTML, 'credit-card'));
+        }
+        if (otherPayments.length) {
+            paymentSections.push(paymentSectionHTML('Other payments', otherPayments, datedPaymentCardHTML, 'wallet'));
+        }
+
+        visibleCount = payments.length + otherPayments.length;
+        root.innerHTML = visibleCount ? paymentSections.join('') : emptyStateHTML();
+        viewTitle.textContent = 'Payments';
+        searchInput.placeholder = 'Search payments';
+    }
+
+    resultCount.textContent = visibleCount + ' item' + (visibleCount === 1 ? '' : 's') + ' shown';
+    refreshIcons();
+}
+
+function updateOverview() {
+    const renewals = appState.groups.flatMap(function (group) { return group.items; });
+    const next = renewals.filter(function (item) { return item.days >= 0 && item.days !== Infinity; })
+        .sort(function (a, b) { return a.days - b.days; })[0];
+    const soonCount = renewals.filter(function (item) { return item.days >= 0 && item.days <= 90; }).length;
+    const monthlyTotal = appState.payments
+        .filter(function (item) { return /monthly/i.test(item.schedule); })
+        .reduce(function (total, item) {
+            const value = Array.isArray(item.amount)
+                ? (item.amount[0] + item.amount[1]) / 2
+                : item.amount;
+            return total + value;
+        }, 0);
+
+    if (next) {
+        document.getElementById('overview-next-name').textContent = next.name;
+        document.getElementById('overview-next-date').textContent = formatDate(next.date) + ' · ' + next.group;
+        document.getElementById('overview-next-value').textContent = next.days === 0 ? 'Today' : next.days + 'd';
+        document.getElementById('overview-next-caption').textContent = next.days === 0 ? 'due today' : 'days remaining';
+    } else {
+        document.getElementById('overview-next-name').textContent = 'Nothing due soon';
+        document.getElementById('overview-next-date').textContent = 'Your schedule is clear';
+        document.getElementById('overview-next-value').textContent = 'All good';
+        document.getElementById('overview-next-caption').textContent = 'no active deadline';
+    }
+
+    document.getElementById('metric-soon').textContent = soonCount;
+    document.getElementById('metric-total').textContent = renewals.length;
+    document.getElementById('metric-monthly').textContent = formatCurrency(monthlyTotal);
+    document.getElementById('renewal-count').textContent = renewals.length;
+    document.getElementById('payment-count').textContent = appState.payments.length + datedPayments().length;
+}
+
+function setView(view) {
+    appState.activeView = view;
+    document.querySelectorAll('[data-view]').forEach(function (button) {
+        button.setAttribute('aria-pressed', String(button.dataset.view === view));
     });
-    // Trigger bar animations
-    setTimeout(() => {
-        document.querySelectorAll('.bar-anim').forEach(el => {
-            el.style.animation = 'none';
-            el.offsetHeight; // reflow
-            el.style.animation = '';
-        });
-    }, 100);
+    renderDashboard();
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+function setFilter(filter) {
+    appState.activeFilter = filter;
+    document.querySelectorAll('[data-filter]').forEach(function (button) {
+        button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+    });
+    renderDashboard();
+}
+
+function initControls() {
+    document.querySelectorAll('[data-view]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            setView(button.dataset.view);
+        });
+    });
+
+    document.querySelectorAll('[data-filter]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            setFilter(button.dataset.filter);
+        });
+    });
+
+    document.getElementById('search-input').addEventListener('input', function (event) {
+        appState.query = event.target.value.trim().toLowerCase();
+        renderDashboard();
+    });
+}
+
 document.getElementById('today').textContent = new Date().toLocaleDateString('en-GB', {
-    weekday:'long', day:'numeric', month:'long', year:'numeric'
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
 });
+
 initLockScreen();
+initControls();
+window.addEventListener('load', refreshIcons);
 
 fetch('timeto.txt')
-    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-    .then(text => {
-        const groups = parseExpiry(text);
-        const payments = parsePayments(text);
-        const root   = document.getElementById('root');
-        const sumEl  = document.getElementById('summary');
+    .then(function (response) {
+        if (!response.ok) throw new Error(response.status);
+        return response.text();
+    })
+    .then(function (text) {
+        appState.groups = parseExpiry(text);
+        appState.payments = parsePayments(text);
 
-        if (groups.length === 0 && payments.length === 0) {
-            root.innerHTML = '<p class="text-center text-slate-500 py-20">No entries found in timeto.txt</p>';
+        if (appState.groups.length === 0 && appState.payments.length === 0) {
+            document.getElementById('root').innerHTML = '<div class="empty-state"><div><h3>No schedule found</h3><p>Add entries to timeto.txt to populate the dashboard.</p></div></div>';
+            document.getElementById('result-count').textContent = '0 items shown';
             return;
         }
 
-        root.innerHTML  = [
-            groups.map(groupHTML).join(''),
-            paymentSummaryHTML(payments)
-        ].filter(Boolean).join('');
-
-        if (groups.length > 0) {
-            sumEl.innerHTML = summaryHTML(groups);
-            sumEl.classList.remove('hidden');
-        }
-        requestAnimationFrame(animateCards);
+        updateOverview();
+        renderDashboard();
     })
-    .catch(() => {
-        document.getElementById('root').innerHTML =
-            `<div class="text-center py-20 space-y-2">
-                <p class="text-red-400 font-semibold">Could not load timeto.txt</p>
-                <p class="text-slate-600 text-sm">Make sure the file exists next to index.html</p>
-            </div>`;
+    .catch(function () {
+        document.getElementById('root').innerHTML = '<div class="empty-state"><div><span class="empty-icon" aria-hidden="true"><i data-lucide="alert-triangle"></i></span><h3>Could not load the schedule</h3><p>Make sure timeto.txt is available next to this page.</p></div></div>';
+        document.getElementById('result-count').textContent = 'Schedule unavailable';
+        refreshIcons();
     });
 </script>
 </body>

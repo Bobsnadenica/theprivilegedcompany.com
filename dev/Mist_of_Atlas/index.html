@@ -6,15 +6,15 @@
   <title>Mist of Atlas: World of Fog</title>
   <meta name="twitter:title" content="Mist of Atlas: World of Fog">
   <meta name="twitter:description" content="Turn your real-world movement into a premium fantasy exploration map. Footsteps write the atlas.">
-  <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-  <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta property="og:image" content="https://bobsnadenica.com/Mist_of_Atlas/icon.png">
+  <meta property="og:image:secure_url" content="https://bobsnadenica.com/Mist_of_Atlas/icon.png">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="4501">
-  <meta property="og:image:height" content="4500">
-  <meta property="og:image:alt" content="ThePrivilegedCompany logo">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
-  <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="Mist of Atlas compass emblem">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://bobsnadenica.com/Mist_of_Atlas/icon.png">
+  <meta name="twitter:image:alt" content="Mist of Atlas compass emblem">
   <meta
     name="description"
     content="Mist of Atlas: World of Fog turns real-world movement into a premium fantasy-style exploration map with personal progress, shared expeditions, and hidden discoveries."
@@ -60,16 +60,17 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
-  <link rel="stylesheet" href="styles.css?v=20260516c" />
+  <link rel="stylesheet" href="styles.css?v=20260710a" />
   <link rel="icon" type="image/png" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#08111a" />
+  <link rel="manifest" href="manifest.json?v=20260710b" />
+  <meta name="theme-color" content="#090d0a" />
 </head>
-<body>
+<body id="top">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="site-header">
     <div class="container nav">
-      <a href="#" class="brand" aria-label="Mist of Atlas home">
+      <a href="#top" class="brand" aria-label="Mist of Atlas home">
         <img src="icon.png" alt="Mist of Atlas logo" class="logo" />
         <div class="brand-text">
           <span class="brand-title">Mist of Atlas</span>
@@ -77,29 +78,36 @@
         </div>
       </a>
 
-      <nav class="nav-links" id="navLinks">
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
         <a href="#experience">Experience</a>
         <a href="#modes">Modes</a>
         <a href="#features">Features</a>
-        <a href="#download">Download</a>
+        <a href="#download">Launch</a>
       </nav>
 
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+      <button
+        class="menu-toggle"
+        id="menuToggle"
+        type="button"
+        aria-label="Open navigation"
+        aria-controls="mobileMenu"
+        aria-expanded="false"
+      >
         <span></span>
         <span></span>
         <span></span>
       </button>
     </div>
 
-    <div class="mobile-menu" id="mobileMenu">
+    <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation" hidden>
       <a href="#experience">Experience</a>
       <a href="#modes">Modes</a>
       <a href="#features">Features</a>
-      <a href="#download">Download</a>
-    </div>
+      <a href="#download">Launch</a>
+    </nav>
   </header>
 
-  <main>
+  <main id="main-content" tabindex="-1">
     <section class="hero">
       <div class="container hero-layout">
         <div class="hero-copy reveal">
@@ -111,7 +119,7 @@
           </p>
 
           <div class="hero-actions">
-            <a href="#download" class="btn btn-primary">Get the App</a>
+            <a href="#download" class="btn btn-primary">Get Launch Updates</a>
             <a href="#experience" class="btn btn-secondary">See the Experience</a>
           </div>
         </div>
@@ -151,14 +159,14 @@
               </div>
 
               <div class="demo-console">
-                <div class="demo-buttons" aria-label="Interactive demo modes">
+                <div class="demo-buttons" role="group" aria-label="Interactive demo modes">
                   <button class="demo-toggle is-active" type="button" data-demo-mode="solo" aria-pressed="true">Solo</button>
                   <button class="demo-toggle" type="button" data-demo-mode="party" aria-pressed="false">Party</button>
                   <button class="demo-toggle" type="button" data-demo-mode="treasure" aria-pressed="false">Treasure</button>
                 </div>
                 <div class="location-console">
                   <button class="location-btn" id="useLocationBtn" type="button">Use My Location</button>
-                  <p class="location-copy" id="locationStatus">Showing a sample city center. Use your location to load a real map around you.</p>
+                  <p class="location-copy" id="locationStatus" role="status" aria-live="polite">Showing a sample city center. Use your location to load a real map around you.</p>
                 </div>
                 <div class="demo-copy">
                   <strong id="demoTitle">Personal Atlas Active</strong>
@@ -192,7 +200,15 @@
               <span>Expedition Chronicle</span>
               <strong>Live Route</strong>
             </div>
-            <div class="chronicle-map" data-spotlight>
+            <div
+              class="chronicle-map"
+              data-spotlight
+              tabindex="0"
+              role="img"
+              aria-describedby="chronicleNoteMeta"
+              aria-label="Interactive fog-of-war route demo. Move the pointer, drag a finger, or use the arrow keys to reveal streets."
+              aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight"
+            >
               <div class="map-live-base" id="chronicleMapBase" aria-hidden="true"></div>
               <div class="atlas-grid soft"></div>
               <div class="fog-bank fog-bank-c"></div>
@@ -315,14 +331,15 @@
     <section id="download" class="section cta-section">
       <div class="container">
         <div class="cta-panel reveal">
-          <h2>Clear the mist from your world, one walk at a time.</h2>
+          <p class="availability"><span aria-hidden="true"></span> Private beta in development for iOS and Android</p>
+          <h2>Be there when the first expedition begins.</h2>
           <p>
-            Build a personal atlas, explore with friends, and save the places that mattered.
+            Get launch news, ask about early access, and help shape the atlas before its public release.
           </p>
 
           <div class="hero-actions cta-actions">
-            <a href="#" class="btn btn-primary">Download for iPhone</a>
-            <a href="#" class="btn btn-secondary">Get it on Android</a>
+            <a href="mailto:support@bobsnadenica.com?subject=Mist%20of%20Atlas%20launch%20updates" class="btn btn-primary">Get Launch Updates</a>
+            <a href="mailto:support@bobsnadenica.com?subject=Mist%20of%20Atlas%20beta%20access" class="btn btn-secondary">Ask About Beta Access</a>
           </div>
         </div>
       </div>
@@ -343,13 +360,13 @@
         <a href="#experience">Experience</a>
         <a href="#modes">Modes</a>
         <a href="#features">Features</a>
-        <a href="#download">Download</a>
+        <a href="#download">Launch</a>
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
       </div>
     </div>
     <div class="container footer-bottom">
-      <p>&copy; 2026 Mist of Atlas. All rights reserved.</p>
+      <p>&copy; 2026 Mist of Atlas: World of Fog. All rights reserved.</p>
     </div>
   </footer>
 
@@ -358,11 +375,11 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script src="script.js?v=20260516i"></script>
+  <script src="script.js?v=20260710a"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js');
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
       });
     }
   </script>

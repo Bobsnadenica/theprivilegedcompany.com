@@ -8,11 +8,12 @@ import {
   Layers3,
   Plus,
   Ruler,
+  Save,
   ShieldCheck,
   TableProperties,
   Trash2,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { checksumText, makeCalibrationTable, parseCalibrationCsv } from './core/calibration';
 import { formulaByShape, formulaRegistry } from './core/formulas';
 import { customLiquid, liquidPresets } from './core/liquids';
@@ -32,6 +33,7 @@ import {
   type MassUnit,
   type VolumeUnit,
 } from './core/units';
+import { loadWorkspaceState, saveWorkspaceState } from './core/workspace';
 
 type Language = 'en' | 'bg';
 type MobileSection = 'build' | 'results' | 'evidence' | 'tables';
@@ -41,6 +43,7 @@ const ui = {
     mode: 'Formula-Traceable Certified Calculation Mode',
     title: 'Tank Volume And Fill Calculator',
     profile: 'Profile',
+    savedLocally: 'Workspace auto-saves in this browser.',
     exportReport: 'Export report',
     chambers: 'Chambers',
     add: 'Add',
@@ -57,11 +60,16 @@ const ui = {
     presets: 'Tank Presets',
     preset: 'Preset',
     applyPreset: 'Apply preset',
-    visualDirection: 'Visual Direction',
     observedVolume: 'Observed volume',
     totalCapacity: 'Total capacity',
     fill: 'Fill',
     headspace: 'Headspace',
+    statusReady: 'Calculation ready',
+    statusReadyDetail: 'No blocking input issues were detected.',
+    statusReview: 'Review recommended',
+    statusWarnings: 'Warnings to review',
+    statusBlocked: 'Calculation blocked',
+    statusBlockers: 'Blocking issues',
     builder: 'Chamber Builder',
     chamberName: 'Chamber name',
     shapeBasis: 'Shape basis',
@@ -106,6 +114,7 @@ const ui = {
     mode: 'Проследим режим за сертифицирани изчисления',
     title: 'Калкулатор за обем и запълване на резервоари',
     profile: 'Профил',
+    savedLocally: 'Работното пространство се запазва автоматично в този браузър.',
     exportReport: 'Експорт на отчет',
     chambers: 'Камери',
     add: 'Добави',
@@ -122,11 +131,16 @@ const ui = {
     presets: 'Шаблони за резервоар',
     preset: 'Шаблон',
     applyPreset: 'Приложи шаблон',
-    visualDirection: 'Визуална посока',
     observedVolume: 'Изчислен обем',
     totalCapacity: 'Пълен капацитет',
     fill: 'Запълване',
     headspace: 'Свободен обем',
+    statusReady: 'Изчислението е готово',
+    statusReadyDetail: 'Не са открити блокиращи проблеми във входните данни.',
+    statusReview: 'Препоръчва се преглед',
+    statusWarnings: 'Предупреждения за преглед',
+    statusBlocked: 'Изчислението е блокирано',
+    statusBlockers: 'Блокиращи проблеми',
     builder: 'Конструктор на камера',
     chamberName: 'Име на камера',
     shapeBasis: 'Форма / база',
@@ -212,19 +226,6 @@ const dimensionHelpers: Record<string, Record<Language, string>> = {
   headDepth: { en: 'For 2:1 ellipsoidal heads use D / 4.', bg: 'За 2:1 елипсоидни дъна използвайте D / 4.' },
   slopeHeight: { en: 'Vertical rise from low end to high end.', bg: 'Вертикална разлика от ниския към високия край.' },
   gaugeOffset: { en: '0 = low end, L / 2 = center, L = high end.', bg: '0 = нисък край, L / 2 = център, L = висок край.' },
-};
-
-const visualDirections: Record<Language, string[]> = {
-  en: [
-    'Audit Console: dense layout, visible formula provenance, restrained neutral surfaces.',
-    'Field Tablet: larger touch targets and simplified chamber flow for mobile inspections.',
-    'Laboratory Ledger: spreadsheet-first layout optimized for certified table imports.',
-  ],
-  bg: [
-    'Одитна конзола: плътен интерфейс, видима формула и източник.',
-    'Полеви таблет: по-големи контроли за проверки на място.',
-    'Лабораторен регистър: таблици и импорт на сертифицирани данни.',
-  ],
 };
 
 const defaultDimensions: Record<ShapeId, Record<string, number>> = {
@@ -378,8 +379,11 @@ function downloadText(filename: string, text: string): void {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
+  anchor.hidden = true;
+  document.body.append(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function schematicFamily(shapeId: ShapeId): string {
@@ -426,14 +430,15 @@ function FillSchematic({
 }
 
 export function App() {
-  const [language, setLanguage] = useState<Language>('en');
+  const [initialWorkspace] = useState(loadWorkspaceState);
+  const [language, setLanguage] = useState<Language>(initialWorkspace?.language ?? 'en');
   const copy = ui[language];
-  const [profileName, setProfileName] = useState('Formula traceable tank profile');
-  const [chambers, setChambers] = useState<Chamber[]>([makeChamber(1)]);
-  const [selectedChamberId, setSelectedChamberId] = useState(chambers[0].id);
-  const [lengthUnit, setLengthUnit] = useState<LengthUnit>('m');
-  const [volumeUnit, setVolumeUnit] = useState<VolumeUnit>('m3');
-  const [massUnit, setMassUnit] = useState<MassUnit>('kg');
+  const [profileName, setProfileName] = useState(initialWorkspace?.profileName ?? 'Formula traceable tank profile');
+  const [chambers, setChambers] = useState<Chamber[]>(() => initialWorkspace?.chambers ?? [makeChamber(1)]);
+  const [selectedChamberId, setSelectedChamberId] = useState(initialWorkspace?.selectedChamberId ?? chambers[0].id);
+  const [lengthUnit, setLengthUnit] = useState<LengthUnit>(initialWorkspace?.lengthUnit ?? 'm');
+  const [volumeUnit, setVolumeUnit] = useState<VolumeUnit>(initialWorkspace?.volumeUnit ?? 'm3');
+  const [massUnit, setMassUnit] = useState<MassUnit>(initialWorkspace?.massUnit ?? 'kg');
   const [customDensityKgM3, setCustomDensityKgM3] = useState(900);
   const [tableCsv, setTableCsv] = useState('');
   const [tableTitle, setTableTitle] = useState('Certified tank table');
@@ -443,6 +448,23 @@ export function App() {
   const [tableError, setTableError] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState(tankPresets[0].id);
   const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('build');
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
+    saveWorkspaceState({
+      version: 1,
+      profileName,
+      chambers,
+      selectedChamberId,
+      language,
+      lengthUnit,
+      volumeUnit,
+      massUnit,
+    });
+  }, [profileName, chambers, selectedChamberId, language, lengthUnit, volumeUnit, massUnit]);
 
   const selectedChamber = chambers.find((chamber) => chamber.id === selectedChamberId) ?? chambers[0];
   const mobileSections: Array<{ id: MobileSection; label: string }> = [
@@ -466,6 +488,25 @@ export function App() {
 
   const selectedResult = calculation.report?.chamberResults.find((result) => result.chamberId === selectedChamber.id);
   const currentFormula = selectedChamber.shapeId === 'calibration-table' ? undefined : formulaByShape.get(selectedChamber.shapeId);
+  const calculationWarnings = calculation.report?.chamberResults.flatMap((result) => result.warnings) ?? [];
+  const blockingIssueCount = calculationWarnings.filter((warning) => warning.level === 'blocker').length;
+  const reviewIssueCount = calculationWarnings.filter((warning) => warning.level === 'warning').length;
+  const calculationHealth = calculation.error || blockingIssueCount > 0
+    ? 'blocker'
+    : reviewIssueCount > 0
+      ? 'warning'
+      : 'ready';
+  const calculationHealthTitle = calculationHealth === 'blocker'
+    ? copy.statusBlocked
+    : calculationHealth === 'warning'
+      ? copy.statusReview
+      : copy.statusReady;
+  const calculationHealthDetail = calculation.error
+    ?? (calculationHealth === 'blocker'
+      ? `${copy.statusBlockers}: ${blockingIssueCount}`
+      : calculationHealth === 'warning'
+        ? `${copy.statusWarnings}: ${reviewIssueCount}`
+        : copy.statusReadyDetail);
   const tablePreview = useMemo(() => {
     if (!tableCsv.trim()) {
       return { points: [], error: null as string | null, checksum: '', minHeight: 0, maxHeight: 0, minVolume: 0, maxVolume: 0 };
@@ -571,8 +612,11 @@ export function App() {
   };
 
   const reportText = calculation.report ? makeAuditText(calculation.report, chambers) : '';
-  const targetVolumeValue = selectedChamber.targetVolumeM3 ?? shapeTotalVolume(selectedChamber) * 0.5;
+  const totalVolumeM3 = shapeTotalVolume(selectedChamber);
+  const minimumTargetVolumeM3 = selectedChamber.calibrationTable?.points[0]?.volumeM3 ?? 0;
+  const targetVolumeValue = selectedChamber.targetVolumeM3 ?? selectedResult?.volumeM3 ?? minimumTargetVolumeM3;
   const maxHeight = maxFillHeight(selectedChamber);
+  const reportFilename = `${profileName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'tank'}-calculation-report.txt`;
 
   return (
     <div className="app-shell">
@@ -580,6 +624,7 @@ export function App() {
         <div>
           <div className="eyebrow"><ShieldCheck size={16} /> {copy.mode}</div>
           <h1>{copy.title}</h1>
+          <div className="session-note"><Save size={13} /> {copy.savedLocally}</div>
         </div>
         <div className="topbar-actions">
           <label className="profile-name">
@@ -597,7 +642,7 @@ export function App() {
             className="primary-action"
             type="button"
             disabled={!calculation.report}
-            onClick={() => downloadText('tank-calculation-report.txt', reportText)}
+            onClick={() => downloadText(reportFilename, reportText)}
           >
             <Download size={16} />
             {copy.exportReport}
@@ -704,17 +749,6 @@ export function App() {
             </div>
           </section>
 
-          <section className="panel design-panel">
-            <div className="panel-title">
-              <FileCheck2 size={17} />
-              {copy.visualDirection}
-            </div>
-            <ol>
-              {visualDirections[language].map((direction, index) => (
-                <li key={direction} className={index === 0 ? 'selected-direction' : ''}>{direction}</li>
-              ))}
-            </ol>
-          </section>
         </aside>
 
         <section className="main-column">
@@ -740,6 +774,19 @@ export function App() {
               <small>%</small>
             </div>
           </section>
+
+          <div
+            className={`notice calculation-health ${calculationHealth === 'ready' ? 'info' : calculationHealth} mobile-section`}
+            data-mobile-section="results"
+            role={calculationHealth === 'blocker' ? 'alert' : 'status'}
+            aria-live={calculationHealth === 'blocker' ? 'assertive' : 'polite'}
+          >
+            {calculationHealth === 'ready' ? <ShieldCheck size={18} /> : <AlertTriangle size={18} />}
+            <div>
+              <strong>{calculationHealthTitle}</strong>
+              <span>{calculationHealthDetail}</span>
+            </div>
+          </div>
 
           {calculation.error && (
             <div className="notice blocker mobile-section" data-mobile-section="evidence" role="alert" aria-live="assertive">
@@ -780,25 +827,30 @@ export function App() {
                 <div className="dimension-section">
                   <div className="section-caption">{copy.dimensionsSi}</div>
                   <div className="field-grid two">
-                    {currentFormula.requiredDimensions.map((dimension) => (
-                      <label key={dimension.key}>
-                        <span>{dimensionLabels[dimension.key]?.[language] ?? dimension.label}</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.001"
-                          value={formatNumber(fromMeters(selectedChamber.dimensions[dimension.key] ?? 0, lengthUnit), 6)}
-                          onChange={(event) => {
-                            const valueM = toMeters(Number(event.target.value), lengthUnit);
-                            applyChamber((chamber) => ({
-                              ...chamber,
-                              dimensions: { ...chamber.dimensions, [dimension.key]: valueM },
-                            }));
-                          }}
-                        />
-                        <small>{dimensionHelpers[dimension.key]?.[language] ?? dimension.helper}</small>
-                      </label>
-                    ))}
+                    {currentFormula.requiredDimensions.map((dimension) => {
+                      const valueM = selectedChamber.dimensions[dimension.key] ?? 0;
+                      const invalid = !Number.isFinite(valueM) || (dimension.min < 0 ? valueM < 0 : valueM <= dimension.min);
+                      return (
+                        <label key={dimension.key}>
+                          <span>{dimensionLabels[dimension.key]?.[language] ?? dimension.label} ({lengthUnitLabels[lengthUnit]})</span>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.001"
+                            aria-invalid={invalid}
+                            value={formatNumber(fromMeters(valueM, lengthUnit), 6)}
+                            onChange={(event) => {
+                              const nextValueM = toMeters(Number(event.target.value), lengthUnit);
+                              applyChamber((chamber) => ({
+                                ...chamber,
+                                dimensions: { ...chamber.dimensions, [dimension.key]: nextValueM },
+                              }));
+                            }}
+                          />
+                          <small>{dimensionHelpers[dimension.key]?.[language] ?? dimension.helper}</small>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -815,7 +867,16 @@ export function App() {
                   <span>{copy.fillMode}</span>
                   <select
                     value={selectedChamber.useTargetVolume ? 'volume' : 'height'}
-                    onChange={(event) => applyChamber((chamber) => ({ ...chamber, useTargetVolume: event.target.value === 'volume' }))}
+                    onChange={(event) => {
+                      const solveByVolume = event.target.value === 'volume';
+                      applyChamber((chamber) => ({
+                        ...chamber,
+                        useTargetVolume: solveByVolume,
+                        ...(solveByVolume
+                          ? { targetVolumeM3: selectedResult?.volumeM3 ?? minimumTargetVolumeM3 }
+                          : { fillHeightM: selectedResult?.fillHeightM ?? chamber.fillHeightM }),
+                      }));
+                    }}
                   >
                     <option value="height">{copy.knownFillHeight}</option>
                     <option value="volume">{copy.solveHeight}</option>
@@ -826,7 +887,11 @@ export function App() {
                     <span>{copy.targetVolume} ({volumeUnitLabels[volumeUnit]})</span>
                     <input
                       type="number"
-                      min={0}
+                      min={fromCubicMeters(minimumTargetVolumeM3, volumeUnit)}
+                      max={fromCubicMeters(totalVolumeM3, volumeUnit)}
+                      aria-invalid={!Number.isFinite(targetVolumeValue)
+                        || targetVolumeValue < minimumTargetVolumeM3
+                        || targetVolumeValue > totalVolumeM3}
                       value={formatNumber(fromCubicMeters(targetVolumeValue, volumeUnit), 6)}
                       onChange={(event) => applyChamber((chamber) => ({
                         ...chamber,
@@ -841,6 +906,9 @@ export function App() {
                       type="number"
                       min={0}
                       max={fromMeters(maxHeight, lengthUnit)}
+                      aria-invalid={!Number.isFinite(selectedChamber.fillHeightM)
+                        || selectedChamber.fillHeightM < 0
+                        || selectedChamber.fillHeightM > maxHeight}
                       value={formatNumber(fromMeters(selectedChamber.fillHeightM, lengthUnit), 6)}
                       onChange={(event) => applyChamber((chamber) => ({
                         ...chamber,
@@ -897,7 +965,8 @@ export function App() {
                   <input
                     type="number"
                     min={0}
-                    value={selectedChamber.liquid.id === 'custom' ? customDensityKgM3 : selectedChamber.liquid.densityKgM3}
+                    aria-invalid={!Number.isFinite(selectedChamber.liquid.densityKgM3) || selectedChamber.liquid.densityKgM3 <= 0}
+                    value={selectedChamber.liquid.densityKgM3}
                     onChange={(event) => {
                       const density = Number(event.target.value);
                       setCustomDensityKgM3(density);

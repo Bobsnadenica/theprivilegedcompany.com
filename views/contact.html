@@ -1,17 +1,21 @@
 <section class="monolith-view contact-view">
-    <header class="view-header reveal-mask">
-        <span class="label">Contact Protocol</span>
-        <h1 class="display-huge" data-scramble>Start the brief.</h1>
-        <p class="view-lead">Tell us what you are trying to build, fix, protect, or understand. The cleaner the brief, the faster we can tell you the right next move.</p>
-    </header>
+    <div class="contact-layout">
+        <div class="contact-intro">
+            <header class="view-header reveal-mask">
+                <span class="label">Contact Protocol</span>
+                <h1 class="display-huge" data-scramble>Start the brief.</h1>
+                <p class="view-lead">Tell us what you are trying to build, fix, protect, or understand. The cleaner the brief, the faster we can tell you the right next move.</p>
+            </header>
 
-    <ul class="contact-assurances reveal-mask" aria-label="What to expect">
-        <li>A senior engineer reads every brief — no call centers, no bots.</li>
-        <li>We reply by email to talk through scope and next steps.</li>
-        <li>No obligation, and your details are only used to respond to you.</li>
-    </ul>
+            <ul class="contact-assurances reveal-mask" aria-label="What to expect">
+                <li>A senior engineer reads every brief — no call centers, no bots.</li>
+                <li>We reply by email to talk through scope and next steps.</li>
+                <li>No obligation, and your details are only used to respond to you.</li>
+            </ul>
+        </div>
 
-    <div class="contact-shell reveal-mask">
+        <div class="contact-shell reveal-mask">
+        <p class="contact-form-kicker">A few details are enough to start.</p>
         <form class="contact-form" id="contact-form">
             <input type="text" name="_honey" class="contact-honey" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="contact-service-context" id="contact-service-context" hidden>
@@ -22,22 +26,18 @@
 
             <div class="field-grid">
                 <label>
-                    <span>Name</span>
+                    <span>Name <small>Required</small></span>
                     <input name="name" type="text" autocomplete="name" required placeholder="Your name">
                 </label>
                 <label>
-                    <span>Phone Number</span>
-                    <input name="phone" type="tel" autocomplete="tel" required placeholder="+1 555 0100">
+                    <span>Email <small>Required</small></span>
+                    <input name="email" type="email" autocomplete="email" required placeholder="you@example.com">
                 </label>
             </div>
 
             <div class="field-grid">
                 <label>
-                    <span>Email</span>
-                    <input name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-                </label>
-                <label>
-                    <span>What Are You Looking For?</span>
+                    <span>What Are You Looking For? <small>Required</small></span>
                     <select name="requestType" required>
                         <option value="">Select one</option>
                         <option value="Company data or market intelligence">Company data or market intelligence</option>
@@ -53,11 +53,22 @@
                         <option value="Something unusual">Something unusual</option>
                     </select>
                 </label>
+                <label>
+                    <span>Budget <small>Optional</small></span>
+                    <select name="budget">
+                        <option value="">Not sure yet</option>
+                        <option value="Under €1,000">Under €1,000</option>
+                        <option value="€1,000–€5,000">€1,000–€5,000</option>
+                        <option value="€5,000–€15,000">€5,000–€15,000</option>
+                        <option value="€15,000+">€15,000+</option>
+                        <option value="Need guidance">Need guidance</option>
+                    </select>
+                </label>
             </div>
 
             <div class="field-grid">
                 <label>
-                    <span>Timeline</span>
+                    <span>Timeline <small>Optional</small></span>
                     <select name="timeline">
                         <option value="">Not sure yet</option>
                         <option value="ASAP">ASAP</option>
@@ -68,56 +79,84 @@
                     </select>
                 </label>
                 <label>
-                    <span>Budget</span>
-                    <input name="budget" type="text" placeholder="How much do you expect it to cost?">
+                    <span>Phone Number <small>Optional</small></span>
+                    <input name="phone" type="tel" autocomplete="tel" placeholder="+1 555 0100">
                 </label>
             </div>
 
             <label>
-                <span>Details</span>
+                <span>Details <small>Required</small></span>
                 <textarea name="details" required rows="7" placeholder="What is the goal, what is broken, and what would a good outcome look like?"></textarea>
             </label>
 
             <div class="contact-actions">
-                <button class="btn-hud" type="submit">Send Brief</button>
-                <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
+                <button class="btn-hud contact-submit" type="submit">Send Brief</button>
+                <div class="contact-secondary">
+                    <span>We reply by email with scope and next steps.</span>
+                    <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
+                </div>
             </div>
             <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
         </form>
+        </div>
     </div>
 </section>
 
 <style>
-    .contact-assurances { width: min(920px, 100%); margin: clamp(1.5rem, 4vw, 2.5rem) auto 0; padding: 0; list-style: none; display: grid; gap: 0.75rem; text-align: left; }
-    .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; line-height: 1.55; }
+    .contact-layout { display: grid; grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr); gap: clamp(3rem, 7vw, 6rem); align-items: start; text-align: left; }
+    .contact-intro { position: sticky; top: 9rem; }
+    #dynamic-view .contact-view .view-header { margin: 0 0 2.25rem; text-align: left; }
+    .contact-view .display-huge { font-size: clamp(3.4rem, 6.5vw, 5.8rem); }
+    #dynamic-view .contact-view .view-lead { margin: 1.5rem 0 0; font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
+    .contact-assurances { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; text-align: left; }
+    .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; font-weight: 400; line-height: 1.6; }
     .contact-assurances li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--c-accent); font-weight: 800; }
-    .contact-shell { width: min(920px, 100%); margin: 0 auto; border-top: 1px solid var(--c-dim); padding-top: clamp(2rem, 5vw, 4rem); }
+    .contact-shell { margin: 0; padding: clamp(1.35rem, 3vw, 2.25rem); border: 1px solid rgba(var(--c-accent-rgb), 0.24); border-radius: 14px; background: rgba(var(--c-surface-rgb), 0.72); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2); }
+    .contact-shell.reveal-mask { overflow: visible; }
+    .contact-form-kicker { margin-bottom: 1.35rem; color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 700; }
     .contact-form { display: grid; gap: 1.25rem; text-align: left; }
     .contact-honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-    .contact-service-context { border: 1px solid rgba(255, 157, 0, 0.3); border-radius: 8px; background: rgba(255, 157, 0, 0.06); padding: 1rem 1.1rem; }
+    .contact-service-context { border: 1px solid rgba(var(--c-accent-rgb), 0.3); border-radius: 8px; background: rgba(var(--c-accent-rgb), 0.06); padding: 1rem 1.1rem; }
     .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.35rem; }
     .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.1; }
     .contact-form label { display: grid; gap: 0.6rem; }
-    .contact-form label span { color: var(--c-accent); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+    .contact-form label span { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--c-accent); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    .contact-form label small { color: var(--c-muted); font-size: 0.56rem; font-weight: 600; letter-spacing: 0.08em; }
     .contact-form input,
     .contact-form select,
-    .contact-form textarea { width: 100%; border: 1px solid rgba(255, 157, 0, 0.24); border-radius: 8px; background: rgba(5, 3, 1, 0.72); color: var(--c-fg); font: inherit; font-size: 0.95rem; padding: 0.95rem 1rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
-    .contact-form textarea { resize: vertical; min-height: 170px; line-height: 1.65; }
+    .contact-form textarea { width: 100%; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: 9px; background: rgba(var(--c-bg-rgb), 0.76); color: var(--c-fg); font: inherit; font-size: 0.96rem; padding: 0.95rem 1rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
+    .contact-form textarea { resize: vertical; min-height: 150px; line-height: 1.65; }
     .contact-form input::placeholder,
-    .contact-form textarea::placeholder { color: rgba(255, 224, 190, 0.38); }
+    .contact-form textarea::placeholder { color: var(--c-muted); opacity: 0.7; }
+    .contact-form select option { background: var(--c-surface); color: var(--c-fg); }
     .contact-form input:focus,
     .contact-form select:focus,
-    .contact-form textarea:focus { border-color: var(--c-accent); background: rgba(8, 5, 2, 0.9); box-shadow: 0 0 0 3px rgba(255, 157, 0, 0.1); }
+    .contact-form textarea:focus { border-color: var(--c-accent); background: var(--c-surface); box-shadow: 0 0 0 3px rgba(var(--c-accent-rgb), 0.12); }
     .contact-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; }
     .contact-form button { cursor: pointer; font: inherit; text-transform: uppercase; letter-spacing: 0.16em; }
+    .contact-submit { min-width: 10rem; border-color: var(--c-accent); background: var(--c-accent); color: var(--c-on-accent); font-weight: 800 !important; }
+    .contact-submit:hover { background: var(--c-accent-strong); border-color: var(--c-accent-strong); }
+    .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: right; }
     .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
     .contact-email:hover { color: var(--c-accent); }
     .contact-form-status { min-height: 1.5rem; color: var(--c-accent-strong); font-size: 0.85rem; text-align: center; opacity: 0; transition: opacity 0.25s; }
     .contact-form-status.is-visible { opacity: 1; }
 
+    @media (max-width: 900px) {
+        .contact-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+        .contact-intro { position: static; }
+        #dynamic-view .contact-view .view-header { margin-bottom: 1.75rem; text-align: center; }
+        .contact-assurances { width: min(620px, 100%); margin-inline: auto; }
+    }
+
     @media (max-width: 720px) {
-        .contact-shell { padding-top: 2rem; }
+        .contact-layout { gap: 2rem; }
+        .contact-view .display-huge { font-size: clamp(2.65rem, 13vw, 3.2rem); }
+        #dynamic-view .contact-view .view-lead { margin-top: 1.1rem; font-size: 1rem; }
+        .contact-assurances { gap: 0.7rem; }
+        .contact-assurances li { font-size: 0.9rem; line-height: 1.5; }
+        .contact-shell { padding: 1rem; }
         .field-grid { grid-template-columns: 1fr; }
         .contact-form { gap: 1rem; }
         .contact-form label span { font-size: 0.6rem; letter-spacing: 0.12em; }
@@ -127,6 +166,7 @@
         .contact-form textarea { min-height: 150px; }
         .contact-actions { align-items: stretch; flex-direction: column; }
         .contact-actions .btn-hud { width: 100%; }
+        .contact-secondary { text-align: center; }
         .contact-email { text-align: center; }
     }
 </style>

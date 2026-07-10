@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f172a" id="theme-color-meta" />
-  <title>Converter Hub</title>
+  <meta name="theme-color" content="#f5f1e8" id="theme-color-meta">
+  <title>Converter Lab — Useful tools, unserious energy</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
-  <meta property="og:title" content="Converter Hub">
-  <meta property="og:description" content="ThePrivilegedCompany project page.">
+  <meta name="description" content="A small collection of useful converters and one delightfully unserious translator.">
+  <meta property="og:title" content="Converter Lab">
+  <meta property="og:description" content="Useful tools, unserious energy.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/converter/index.html">
-  <meta name="twitter:title" content="Converter Hub">
-  <meta name="twitter:description" content="ThePrivilegedCompany project page.">
   <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta property="og:image:type" content="image/png">
@@ -19,94 +19,664 @@
   <meta property="og:image:height" content="4500">
   <meta property="og:image:alt" content="ThePrivilegedCompany logo">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Converter Lab">
+  <meta name="twitter:description" content="Useful tools, unserious energy.">
   <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { darkMode: 'class' }
-  </script>
-
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .icon-sun, .icon-moon { transition: opacity .3s ease; }
-  </style>
 
   <script>
-    // Prevent flash of wrong theme
     (() => {
       const stored = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const htmlEl = document.documentElement;
-      if (stored === 'dark' || (!stored && prefersDark)) {
-        htmlEl.classList.add('dark');
-      } else {
-        htmlEl.classList.remove('dark');
-      }
+      document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
     })();
   </script>
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f1e8;
+      --surface: rgba(255, 255, 255, 0.66);
+      --surface-strong: #fffdf8;
+      --ink: #171710;
+      --muted: #69675f;
+      --line: rgba(23, 23, 16, 0.14);
+      --shadow: 0 24px 70px rgba(48, 42, 28, 0.12);
+      --green: #b8f26d;
+      --green-deep: #365b12;
+      --blue: #a9d8ff;
+      --blue-deep: #174c75;
+      --pink: #f8b7d4;
+      --pink-deep: #7a1f4d;
+      --orange: #ffcc70;
+      --orange-deep: #704200;
+      --focus: #6957ff;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #11130f;
+      --surface: rgba(28, 31, 25, 0.72);
+      --surface-strong: #1b1e18;
+      --ink: #f7f4ea;
+      --muted: #aaa99f;
+      --line: rgba(247, 244, 234, 0.14);
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+      --green: #88c83f;
+      --green-deep: #e4ffc3;
+      --blue: #4c91c7;
+      --blue-deep: #d3ecff;
+      --pink: #c66191;
+      --pink-deep: #ffe0ef;
+      --orange: #c8892d;
+      --orange-deep: #fff0c9;
+      --focus: #b6adff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--green) 32%, transparent) 0, transparent 26rem),
+        radial-gradient(circle at 96% 72%, color-mix(in srgb, var(--pink) 24%, transparent) 0, transparent 30rem),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: color 180ms ease, background-color 180ms ease;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      opacity: 0.42;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .shell {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 92px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      background: var(--green);
+      color: #171710;
+      font-size: 1rem;
+      letter-spacing: -0.06em;
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-button,
+    .theme-toggle {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .back-button {
+      gap: 8px;
+      padding: 0 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 750;
+    }
+
+    .theme-toggle {
+      width: 44px;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    .theme-toggle .moon,
+    html[data-theme="dark"] .theme-toggle .sun {
+      display: none;
+    }
+
+    html[data-theme="dark"] .theme-toggle .moon {
+      display: block;
+    }
+
+    .back-button:hover,
+    .theme-toggle:hover {
+      border-color: var(--ink);
+      background: var(--surface-strong);
+      transform: translateY(-2px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+      gap: clamp(32px, 7vw, 100px);
+      align-items: end;
+      padding: clamp(70px, 10vw, 132px) 0 clamp(48px, 7vw, 82px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 20px;
+      font-size: 0.76rem;
+      font-weight: 850;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 24%, transparent);
+      content: "";
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(3.35rem, 8.4vw, 7.4rem);
+      font-weight: 850;
+      letter-spacing: -0.075em;
+      line-height: 0.89;
+    }
+
+    .scribble {
+      position: relative;
+      display: inline-block;
+      z-index: 0;
+      white-space: nowrap;
+    }
+
+    .scribble::after {
+      position: absolute;
+      right: -0.02em;
+      bottom: -0.04em;
+      left: -0.02em;
+      z-index: -1;
+      height: 0.16em;
+      border-radius: 999px;
+      background: var(--pink);
+      content: "";
+      transform: rotate(-1.5deg);
+    }
+
+    .hero-copy {
+      max-width: 400px;
+      padding-bottom: 6px;
+    }
+
+    .hero-copy p {
+      margin: 0 0 26px;
+      color: var(--muted);
+      font-size: clamp(1.04rem, 1.6vw, 1.22rem);
+      line-height: 1.65;
+    }
+
+    .tiny-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      font-size: 0.76rem;
+      font-weight: 750;
+      backdrop-filter: blur(12px);
+    }
+
+    .tiny-note svg {
+      flex: 0 0 auto;
+    }
+
+    .converter-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 18px;
+      padding-bottom: clamp(54px, 8vw, 96px);
+    }
+
+    .converter-card {
+      --accent: var(--green);
+      --accent-ink: var(--green-deep);
+      position: relative;
+      display: flex;
+      min-height: 360px;
+      flex-direction: column;
+      grid-column: span 3;
+      overflow: hidden;
+      padding: clamp(24px, 3vw, 34px);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      backdrop-filter: blur(16px);
+      isolation: isolate;
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    }
+
+    .converter-card::before {
+      position: absolute;
+      width: 230px;
+      height: 230px;
+      right: -80px;
+      bottom: -100px;
+      z-index: -1;
+      border-radius: 50%;
+      background: var(--accent);
+      content: "";
+      opacity: 0.82;
+      transition: transform 300ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .converter-card.currency {
+      --accent: var(--green);
+      --accent-ink: var(--green-deep);
+    }
+
+    .converter-card.units {
+      --accent: var(--blue);
+      --accent-ink: var(--blue-deep);
+    }
+
+    .converter-card.data {
+      --accent: var(--orange);
+      --accent-ink: var(--orange-deep);
+    }
+
+    .converter-card.fun {
+      --accent: var(--pink);
+      --accent-ink: var(--pink-deep);
+    }
+
+    .converter-card:hover {
+      border-color: color-mix(in srgb, var(--accent) 64%, var(--ink));
+      box-shadow: 0 30px 78px rgba(48, 42, 28, 0.18);
+      transform: translateY(-8px) rotate(-0.3deg);
+    }
+
+    .converter-card:nth-child(2):hover {
+      transform: translateY(-8px) rotate(0.3deg);
+    }
+
+    .converter-card:hover::before {
+      transform: scale(1.22);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 56px;
+    }
+
+    .card-icon {
+      display: grid;
+      width: 58px;
+      height: 58px;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--accent) 70%, var(--ink));
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--accent) 24%, var(--surface-strong));
+      color: var(--accent-ink);
+    }
+
+    .card-kicker {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .converter-card h2 {
+      margin: auto 0 12px;
+      font-size: clamp(1.6rem, 2.4vw, 2.15rem);
+      letter-spacing: -0.045em;
+      line-height: 1;
+    }
+
+    .converter-card p {
+      max-width: 28ch;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .card-arrow {
+      position: absolute;
+      right: 26px;
+      bottom: 25px;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--bg);
+      transition: transform 220ms ease;
+    }
+
+    .converter-card:hover .card-arrow {
+      transform: translate(4px, -4px);
+    }
+
+    .site-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 28px 0 34px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .footer-wink {
+      color: var(--ink);
+      font-weight: 750;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 4px;
+    }
+
+    @media (max-width: 1080px) {
+      .converter-card {
+        grid-column: span 6;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .hero-copy {
+        max-width: 620px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .shell {
+        width: min(100% - 28px, 1160px);
+      }
+
+      .site-header {
+        min-height: 78px;
+      }
+
+      .brand-label,
+      .back-button span {
+        display: none;
+      }
+
+      .back-button {
+        width: 44px;
+        padding: 0;
+        border-radius: 50%;
+      }
+
+      .hero {
+        padding-top: 54px;
+      }
+
+      h1 {
+        font-size: clamp(3.15rem, 16vw, 4.8rem);
+      }
+
+      .converter-card {
+        min-height: 320px;
+        grid-column: span 12;
+        border-radius: 24px;
+      }
+
+      .site-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300">
+<body>
+  <header class="site-header shell">
+    <a class="brand" href="index.html" aria-label="Converter Lab home">
+      <span class="brand-mark" aria-hidden="true">C↔</span>
+      <span class="brand-label">Converter Lab</span>
+    </a>
 
-  <!-- Toggle -->
-  <button id="theme-toggle" aria-label="Toggle Dark Mode" aria-pressed="true"
-    class="absolute top-4 right-4 p-3 rounded-full bg-slate-300 dark:bg-slate-700 text-gray-800 dark:text-gray-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all">
-    <svg id="sun-icon" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-    </svg>
-    <svg id="moon-icon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-    </svg>
-  </button>
+    <div class="header-actions">
+      <button class="back-button" type="button" onclick="history.back()" aria-label="Go back">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>Go back</span>
+      </button>
 
-  <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-50 mb-8 text-center px-4">Choose a Converter</h1>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+        <svg class="sun" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path>
+        </svg>
+        <svg class="moon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
 
-  <div class="flex flex-col gap-4 w-full max-w-sm px-4">
-    <!-- Go Back Button -->
-    <button onclick="history.back()" class="w-full py-3 px-4 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-semibold hover:scale-[1.02] transition-all">
-      Go Back
-    </button>
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Four doors. Ten-ish conversions. No clutter.</p>
+        <h1 id="page-title">Convert the boring.<br>Decode the <span class="scribble">weird.</span></h1>
+      </div>
 
-    <!-- Converters -->
-    <button onclick="location.href='currency.html'" class="w-full py-3 px-4 rounded-xl bg-slate-300 dark:bg-slate-700 text-gray-900 dark:text-gray-100 font-semibold hover:scale-[1.02] transition-all">
-      Currency Converter
-    </button>
-    <button onclick="location.href='eu_us.html'" class="w-full py-3 px-4 rounded-xl bg-slate-300 dark:bg-slate-700 text-gray-900 dark:text-gray-100 font-semibold hover:scale-[1.02] transition-all">
-      US to EU Converter
-    </button>
-	<button onclick="location.href='women_to_no_bs.html'" class="w-full py-3 px-4 rounded-xl bg-slate-300 dark:bg-slate-700 text-gray-900 dark:text-gray-100 font-semibold hover:scale-[1.02] transition-all">
-      Women talk to No BS
-    </button>
-	
-  </div>
+      <div class="hero-copy">
+        <p>Live money rates, everyday units, digital file sizes, and a phrase translator that should absolutely not be used as relationship advice.</p>
+        <span class="tiny-note">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          No sign-up. No spreadsheet required.
+        </span>
+      </div>
+    </section>
+
+    <section class="converter-grid" aria-label="Available converters">
+      <a class="converter-card currency" href="currency.html">
+        <div class="card-top">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8M12 6v12"></path>
+            </svg>
+          </span>
+          <span class="card-kicker">Live rates</span>
+        </div>
+        <h2>Currency converter</h2>
+        <p>Quick swaps between BGN, EUR, and USD without opening a finance app.</p>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+      </a>
+
+      <a class="converter-card units" href="eu_us.html">
+        <div class="card-top">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M4 19 19 4M8 4h11v11"></path>
+              <path d="M5 8h3M5 12h3M5 16h3M12 16v3M16 16v3"></path>
+            </svg>
+          </span>
+          <span class="card-kicker">7 converters</span>
+        </div>
+        <h2>US ↔ EU units</h2>
+        <p>Weight, distance, temperature, volume, area, speed, and fuel economy.</p>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+      </a>
+
+      <a class="converter-card data" href="data.html">
+        <div class="card-top">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="4" width="18" height="6" rx="2"></rect>
+              <rect x="3" y="14" width="18" height="6" rx="2"></rect>
+              <path d="M7 7h.01M7 17h.01M11 7h6M11 17h6" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span class="card-kicker">Decimal + binary</span>
+        </div>
+        <h2>Data sizes</h2>
+        <p>Bytes through petabytes, with both 1,000 and 1,024-based calculations.</p>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+      </a>
+
+      <a class="converter-card fun" href="women_to_no_bs.html">
+        <div class="card-top">
+          <span class="card-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path>
+              <path d="M8 9h8M8 13h5"></path>
+            </svg>
+          </span>
+          <span class="card-kicker">Just for laughs</span>
+        </div>
+        <h2>The “No BS” translator</h2>
+        <p>A tongue-in-cheek phrase decoder. Not science. Definitely not relationship advice.</p>
+        <span class="card-arrow" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+      </a>
+    </section>
+  </main>
+
+  <footer class="site-footer shell">
+    <span>© <span id="year"></span> ThePrivilegedCompany</span>
+    <span class="footer-wink">Useful-ish since today.</span>
+  </footer>
 
   <script>
-    const toggleBtn = document.getElementById('theme-toggle');
-    const sunIcon = document.getElementById('sun-icon');
-    const moonIcon = document.getElementById('moon-icon');
-    const htmlEl = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
     const themeMeta = document.getElementById('theme-color-meta');
 
-    const updateIcons = (dark) => {
-      sunIcon.classList.toggle('hidden', dark);
-      moonIcon.classList.toggle('hidden', !dark);
-      toggleBtn.setAttribute('aria-pressed', dark);
-      themeMeta.setAttribute('content', dark ? '#0f172a' : '#ffffff');
-    };
+    function updateThemeControl() {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      themeToggle.setAttribute('aria-pressed', String(isDark));
+      themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      themeMeta.setAttribute('content', isDark ? '#11130f' : '#f5f1e8');
+    }
 
-    const applyTheme = () => {
-      const isDark = htmlEl.classList.contains('dark');
-      updateIcons(isDark);
-    };
-
-    applyTheme();
-
-    toggleBtn.addEventListener('click', () => {
-      htmlEl.classList.toggle('dark');
-      const isDark = htmlEl.classList.contains('dark');
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      updateIcons(isDark);
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = nextTheme;
+      localStorage.setItem('theme', nextTheme);
+      updateThemeControl();
     });
+
+    updateThemeControl();
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>

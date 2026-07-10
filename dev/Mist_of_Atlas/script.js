@@ -4,14 +4,37 @@ const menuToggle = document.getElementById("menuToggle");
 const mobileMenu = document.getElementById("mobileMenu");
 
 if (menuToggle && mobileMenu) {
+  const setMobileMenuOpen = (isOpen, restoreFocus = false) => {
+    mobileMenu.classList.toggle("open", isOpen);
+    mobileMenu.hidden = !isOpen;
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+    menuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+
+    if (restoreFocus) {
+      menuToggle.focus();
+    }
+  };
+
   menuToggle.addEventListener("click", () => {
-    mobileMenu.classList.toggle("open");
+    setMobileMenuOpen(menuToggle.getAttribute("aria-expanded") !== "true");
   });
 
   mobileMenu.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
-      mobileMenu.classList.remove("open");
+      setMobileMenuOpen(false);
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
+      setMobileMenuOpen(false, true);
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900 && menuToggle.getAttribute("aria-expanded") === "true") {
+      setMobileMenuOpen(false);
+    }
   });
 }
 
@@ -1014,6 +1037,41 @@ chronicleMaps.forEach((map) => {
     }
   });
 
+  map.addEventListener("focus", () => {
+    const rect = map.getBoundingClientRect();
+    revealAtClientPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  });
+
+  map.addEventListener("keydown", (event) => {
+    const directions = {
+      ArrowUp: [0, -28],
+      ArrowDown: [0, 28],
+      ArrowLeft: [-28, 0],
+      ArrowRight: [28, 0],
+    };
+    const direction = directions[event.key];
+
+    if (!direction) {
+      return;
+    }
+
+    event.preventDefault();
+    const rect = map.getBoundingClientRect();
+    const origin = lastPoint ?? { x: rect.width / 2, y: rect.height / 2 };
+    const x = Math.max(0, Math.min(rect.width, origin.x + direction[0]));
+    const y = Math.max(0, Math.min(rect.height, origin.y + direction[1]));
+    revealAtClientPoint(rect.left + x, rect.top + y);
+  });
+
+  map.addEventListener("blur", () => {
+    lastPoint = null;
+    hideScout();
+
+    if (hasRevealed) {
+      scheduleReset();
+    }
+  });
+
   if ("ResizeObserver" in window) {
     const resizeObserver = new ResizeObserver(() => {
       resizeFog();
@@ -1035,11 +1093,6 @@ if (
   landmarksValue &&
   revealedValue
 ) {
-  const modes = Object.keys(demoStates);
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let currentIndex = 0;
-  let cycleTimer = null;
-
   const applyDemoState = (mode) => {
     const state = demoStates[mode];
     if (!state) {
@@ -1056,44 +1109,18 @@ if (
     revealedValue.textContent = state.revealed;
     renderHeroScene(mode);
 
-    demoButtons.forEach((button, index) => {
+    demoButtons.forEach((button) => {
       const isActive = button.dataset.demoMode === mode;
       button.classList.toggle("is-active", isActive);
       button.setAttribute("aria-pressed", String(isActive));
-
-      if (isActive) {
-        currentIndex = index;
-      }
     });
-  };
-
-  const startCycle = () => {
-    if (prefersReducedMotion) {
-      return;
-    }
-
-    window.clearInterval(cycleTimer);
-    cycleTimer = window.setInterval(() => {
-      currentIndex = (currentIndex + 1) % modes.length;
-      applyDemoState(modes[currentIndex]);
-    }, 7600);
   };
 
   demoButtons.forEach((button) => {
     button.addEventListener("click", () => {
       applyDemoState(button.dataset.demoMode);
-      startCycle();
     });
   });
 
-  atlasPanel.addEventListener("mouseenter", () => {
-    window.clearInterval(cycleTimer);
-  });
-
-  atlasPanel.addEventListener("mouseleave", startCycle);
-  atlasPanel.addEventListener("focusin", () => window.clearInterval(cycleTimer));
-  atlasPanel.addEventListener("focusout", startCycle);
-
   applyDemoState("solo");
-  startCycle();
 }

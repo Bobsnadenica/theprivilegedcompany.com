@@ -12,6 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import run as launcher
 from aipost247 import app, business, cli_provider, config, dashboard
 from aipost247.facebook_client import FacebookAmbiguousWriteError, FacebookClient
 from aipost247.instance_lock import AlreadyRunning, InstanceLock
@@ -55,6 +56,58 @@ class ConfigValidationTests(unittest.TestCase):
                 },
                 config.Config(),
             )
+
+
+class LauncherTests(unittest.TestCase):
+    def test_test_command_skips_application_lock_and_returns_runner_status(self):
+        with mock.patch.object(sys, "argv", ["run.py", "test"]):
+            with mock.patch.object(launcher, "ensure_dependencies") as dependencies:
+                with mock.patch.object(launcher, "_run_tests", return_value=0) as run_tests:
+                    with self.assertRaises(SystemExit) as stopped:
+                        launcher.main()
+
+        self.assertEqual(stopped.exception.code, 0)
+        dependencies.assert_called_once_with()
+        run_tests.assert_called_once_with()
+
+    def test_help_lists_repository_test_command(self):
+        self.assertIn("test", app.build_parser().format_help())
+
+
+class CommandReadinessTests(unittest.TestCase):
+    def test_generate_does_not_require_facebook_configuration(self):
+        cfg = config.Config(ai_provider="codex", fb_page_id="", fb_page_access_token="")
+        memory = mock.Mock()
+
+        with mock.patch.object(app, "ensure_dirs"):
+            with mock.patch.object(app, "setup_logging"):
+                with mock.patch.object(app, "load_config", return_value=cfg):
+                    with mock.patch.object(app, "run_setup_wizard") as setup:
+                        with mock.patch.object(app, "MemoryStore", return_value=memory):
+                            with mock.patch.object(app, "FacebookClient"):
+                                with mock.patch.object(app, "safe_cycle", return_value=True) as cycle:
+                                    with mock.patch.object(app, "_prompt_post_feedback"):
+                                        result = app.main(["generate"])
+
+        self.assertEqual(result, 0)
+        setup.assert_not_called()
+        cycle.assert_called_once()
+        self.assertTrue(cycle.call_args.kwargs["dry_run"])
+        memory.close.assert_called_once_with()
+
+    def test_publish_still_requires_complete_configuration(self):
+        cfg = config.Config(ai_provider="codex", fb_page_id="", fb_page_access_token="")
+
+        with mock.patch.object(app, "ensure_dirs"):
+            with mock.patch.object(app, "setup_logging"):
+                with mock.patch.object(app, "load_config", side_effect=[cfg, cfg]):
+                    with mock.patch.object(app, "run_setup_wizard") as setup:
+                        with mock.patch.object(app, "safe_cycle") as cycle:
+                            result = app.main(["post-now"])
+
+        self.assertEqual(result, 1)
+        setup.assert_called_once_with(cfg)
+        cycle.assert_not_called()
 
 
 class MemoryTests(unittest.TestCase):

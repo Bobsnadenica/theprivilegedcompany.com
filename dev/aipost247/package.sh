@@ -60,6 +60,12 @@ rsync -a \
   --exclude='tests/' \
   --exclude='__pycache__/' \
   --exclude='*.pyc' \
+  --exclude='.pytest_cache/' \
+  --exclude='.mypy_cache/' \
+  --exclude='.ruff_cache/' \
+  --exclude='.coverage' \
+  --exclude='coverage.xml' \
+  --exclude='htmlcov/' \
   --exclude='*.log' \
   --exclude='*.out' \
   --exclude='.DS_Store' \
@@ -85,6 +91,18 @@ FORBIDDEN="$(cd "$STAGE" && find aipost247 \
 if [ -n "$FORBIDDEN" ]; then
   echo "ABORT: personal/secret files would be packaged:" >&2
   echo "$FORBIDDEN" | sed 's/^/  /' >&2
+  exit 1
+fi
+
+# Development caches are harmless locally but signal a dirty, needlessly large
+# release. Keep this as a second guard in case a future rsync edit misses one.
+JUNK="$(cd "$STAGE" && find aipost247 \
+  \( -name '__pycache__' -o -name '.pytest_cache' -o -name '.mypy_cache' \
+     -o -name '.ruff_cache' -o -name '.coverage' -o -name 'coverage.xml' \
+     -o -name 'htmlcov' -o -name '*.pyc' -o -name '*.pyo' \) -print)"
+if [ -n "$JUNK" ]; then
+  echo "ABORT: development cache files would be packaged:" >&2
+  echo "$JUNK" | sed 's/^/  /' >&2
   exit 1
 fi
 

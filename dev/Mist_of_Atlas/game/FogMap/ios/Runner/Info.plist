@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Mist of Atlas</string>
+	<string>Mist of Atlas: World of Fog</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Mist of Atlas</string>
+	<string>Mist of Atlas: World of Fog</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -31,13 +31,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Mist of Atlas uses the camera so you can capture landmark photos for review.</string>
+	<string>Mist of Atlas: World of Fog uses the camera so you can capture landmark photos for review.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>If you enable Always access, Mist of Atlas can continue uncovering places while you move with the app in the background.</string>
+	<string>If you enable Always access, Mist of Atlas: World of Fog can continue uncovering places while you move with the app in the background.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>If you enable Always access, Mist of Atlas can continue uncovering places while you move with the app in the background.</string>
+	<string>If you enable Always access, Mist of Atlas: World of Fog can continue uncovering places while you move with the app in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Mist of Atlas uses your location to uncover the map as you explore.</string>
+	<string>Mist of Atlas: World of Fog uses your location to uncover the map as you explore.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

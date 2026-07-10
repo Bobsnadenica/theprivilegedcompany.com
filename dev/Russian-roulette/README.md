@@ -10,7 +10,7 @@ This project was built just for fun
 
 ## Play In Browser
 
-- **Solo bot demo:** [Play Solo Demo](http://dimitar-todorov-russian-roulette-liars-deck-8da39c.pages.git.ringcentral.com/?autostart=1). GitLab Pages/GitDocs publishes a static solo-only build that can auto-start for dashboard checks.
+- **Solo bot demo:** [Play Solo Demo](play/?autostart=1). The repository includes a static solo-only build that can auto-start for dashboard checks.
 - **Multiplayer:** Real player rooms still require the Node/Socket.IO server because hidden cards, turns, timers, reconnect, and voice signaling are authoritative on the backend.
 
 ## What It Is
@@ -160,11 +160,11 @@ For production voice chat, use HTTPS and configure STUN/TURN with `VITE_RTC_ICE_
 
 See [Deployment Checklist](docs/DEPLOYMENT.md).
 
-## GitLab Pages / GitDocs Solo Demo
+## Static Solo Demo
 
-The static GitLab-hosted build is playable directly from the README and runs solo against bots. It does not need a Node server:
+The static build is playable directly from the README and runs solo against bots. It does not need a Node server:
 
-[Play Solo Demo](http://dimitar-todorov-russian-roulette-liars-deck-8da39c.pages.git.ringcentral.com/?autostart=1)
+[Play Solo Demo](play/?autostart=1)
 
 To build the static artifact locally:
 
@@ -172,7 +172,7 @@ To build the static artifact locally:
 npm run build:pages
 ```
 
-The GitLab CI `pages` job runs the same client build with a Pages-safe base path and publishes `packages/client/dist` as the `public/` artifact.
+The static build uses the same client bundle with a relative, static-hosting-safe base path.
 
 The static demo disables room codes, WebRTC voice, and Socket.IO. It uses a local solo scheduler for bot turns, bot quotes, challenge pacing, and lightweight table sounds. The `?autostart=1` URL starts the bot demo immediately for hosted dashboard monitors; the in-game **Play** button also auto-plays one card in solo mode when no card is selected. For human-vs-human multiplayer, run the local/LAN/private Node server instructions above.
 
@@ -311,15 +311,8 @@ scripts/    Cinematic GLB and texture asset generators
 - [SPEC.md](SPEC.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 
-## Repository Target
+## Repository Location
 
 ```text
-https://git.ringcentral.com/rc-ai-learning/dimitar-todorov-russian-roulette-liars-deck
+dev/Russian-roulette
 ```
-
-
-## Note
-![AI usage](docs/ai_use.png)
-
-AI is expensive. If you just use it blindly it's not worth it. I spend ~500$ in credits to create this game. That's crazy.
-But then again it's worth it because it would have taken people way longer than what it took AI to do it.

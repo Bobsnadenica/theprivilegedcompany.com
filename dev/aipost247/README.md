@@ -133,6 +133,9 @@ Nothing is hardcoded; data only goes to Google/OpenAI and Facebook themselves.
 **Recommended first run:** `./run.sh generate` to preview the AI's output
 safely, then `./run.sh post-now`, then `./run.sh run`.
 
+`generate` only needs a working AI provider; you can preview and tune drafts
+before connecting Facebook. `post-now` and `run` still require a configured Page.
+
 ---
 
 ## 4. The memory / skill store
@@ -218,7 +221,27 @@ dev/aipost247/
 
 ---
 
-## 8. Troubleshooting
+## 8. Development checks
+
+From a Git checkout, run the complete test suite through the same launcher used
+by the application:
+
+```bash
+./run.sh test             # macOS / Linux / WSL / Git Bash
+# run.bat test            # Windows
+```
+
+The command installs declared dependencies when needed, does not acquire the
+application instance lock, and exits non-zero when a test fails. Tests are not
+included in the smaller downloadable app archive.
+
+`./package.sh` runs the same suite before building `download/aipost247.zip` and
+refuses to package secrets, runtime data, Python bytecode, or test/coverage
+caches.
+
+---
+
+## 9. Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
