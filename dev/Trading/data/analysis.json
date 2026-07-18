@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "methodology_version": "trend-momentum-macd-v2",
-  "generated_at": "2026-07-17T23:12:02+00:00",
-  "latest_price_date": "2026-07-17",
+  "generated_at": "2026-07-18T23:14:40+00:00",
+  "latest_price_date": "2026-07-18",
   "source": "Yahoo Finance via yfinance",
   "universe_selection": "dynamic_market_cap",
   "universe_note": "Bitcoin, Ethereum, and the 20 largest eligible NYSE listings by current screener market capitalization.",
@@ -11,7 +11,7 @@
     "asset_count": 22,
     "expected_asset_count": 22,
     "minimum_history_points": 501,
-    "maximum_price_age_days": 0,
+    "maximum_price_age_days": 1,
     "missing_assets": []
   },
   "assets": [
@@ -25,31 +25,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 63844.3203,
-      "change": 55.0391,
-      "change_pct": 0.0863,
-      "price_as_of": "2026-07-17",
+      "price": 64690.7109,
+      "change": 791.25,
+      "change_pct": 1.2383,
+      "price_as_of": "2026-07-18",
       "price_age_days": 0,
       "history_points": 731,
       "metrics": {
-        "rsi14": 51.5262,
-        "sma20": 62643.5377,
-        "sma50": 63707.6596,
-        "sma200": 73276.6177,
-        "return_5d": 0.135,
-        "return_1m": 6.3781,
-        "return_1y": -38.2385,
-        "volatility_20d": 27.185,
-        "distance_sma200": -12.8722,
-        "distance_year_high": -39.7676,
+        "rsi14": 54.8528,
+        "sma20": 62904.2133,
+        "sma50": 63535.1262,
+        "sma200": 73158.1963,
+        "return_5d": 3.939,
+        "return_1m": 7.9256,
+        "return_1y": -36.7527,
+        "volatility_20d": 27.0844,
+        "distance_sma200": -11.5742,
+        "distance_year_high": -38.9691,
         "max_drawdown_1y": -44.754,
-        "macd_line": 91.8611,
-        "macd_signal": -246.1911,
-        "macd_histogram": 338.0523,
-        "macd_histogram_pct": 0.5295,
-        "bollinger_upper": 66165.2546,
-        "bollinger_lower": 59121.8208,
-        "bollinger_percent_b": 67.0483
+        "macd_line": 179.5975,
+        "macd_signal": -160.3296,
+        "macd_histogram": 339.9272,
+        "macd_histogram_pct": 0.5255,
+        "bollinger_upper": 66229.8785,
+        "bollinger_lower": 59578.5481,
+        "bollinger_percent_b": 76.8593
       },
       "indicators": {
         "trend_regime": "MIXED",
@@ -60,19 +60,19 @@
       "signals": {
         "one_day": {
           "label": "BUY",
-          "score": 3,
+          "score": 4,
           "max_score": 5,
-          "alignment": 0.6,
-          "strength": 77,
-          "summary": "price is above its 20-day average; MACD momentum is bullish."
+          "alignment": 0.8,
+          "strength": 86,
+          "summary": "price is above its 20-day average; five-session momentum is +3.9%."
         },
         "one_month": {
-          "label": "HOLD",
-          "score": 1,
+          "label": "BUY",
+          "score": 2,
           "max_score": 5,
-          "alignment": 0.2,
-          "strength": 59,
-          "summary": "one-month return is +6.4%; MACD momentum is bullish."
+          "alignment": 0.4,
+          "strength": 68,
+          "summary": "price is above its 50-day average; one-month return is +7.9%."
         },
         "one_year": {
           "label": "SELL",
@@ -94,31 +94,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 1834.55,
-      "change": -28.6433,
-      "change_pct": -1.5373,
-      "price_as_of": "2026-07-17",
+      "price": 1859.38,
+      "change": 18.3918,
+      "change_pct": 0.999,
+      "price_as_of": "2026-07-18",
       "price_age_days": 0,
       "history_points": 731,
       "metrics": {
-        "rsi14": 56.1766,
-        "sma20": 1754.8167,
-        "sma50": 1740.4631,
-        "sma200": 2194.6382,
-        "return_5d": 1.5928,
-        "return_1m": 16.36,
-        "return_1y": -46.5971,
-        "volatility_20d": 39.4984,
-        "distance_sma200": -16.4076,
-        "distance_year_high": -48.7931,
+        "rsi14": 58.5408,
+        "sma20": 1769.5896,
+        "sma50": 1737.5399,
+        "sma200": 2189.1102,
+        "return_5d": 4.8424,
+        "return_1m": 18.3122,
+        "return_1y": -45.3184,
+        "volatility_20d": 39.1221,
+        "distance_sma200": -15.0623,
+        "distance_year_high": -48.1,
         "max_drawdown_1y": -56.322,
-        "macd_line": 35.3941,
-        "macd_signal": 18.2121,
-        "macd_histogram": 17.1821,
-        "macd_histogram_pct": 0.9366,
-        "bollinger_upper": 1947.4989,
-        "bollinger_lower": 1562.1346,
-        "bollinger_percent_b": 70.6904
+        "macd_line": 36.9408,
+        "macd_signal": 22.04,
+        "macd_histogram": 14.9008,
+        "macd_histogram_pct": 0.8014,
+        "bollinger_upper": 1948.0525,
+        "bollinger_lower": 1591.1267,
+        "bollinger_percent_b": 75.1566
       },
       "indicators": {
         "trend_regime": "MIXED",
@@ -133,7 +133,7 @@
           "max_score": 5,
           "alignment": 1.0,
           "strength": 95,
-          "summary": "price is above its 20-day average; five-session momentum is +1.6%."
+          "summary": "price is above its 20-day average; five-session momentum is +4.8%."
         },
         "one_month": {
           "label": "BUY",
@@ -167,7 +167,7 @@
       "change": -11.37,
       "change_pct": -2.7749,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 39.1762,
@@ -236,7 +236,7 @@
       "change": -2.21,
       "change_pct": -0.4482,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.1916,
@@ -305,7 +305,7 @@
       "change": 9.9399,
       "change_pct": 0.8502,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 54.866,
@@ -374,7 +374,7 @@
       "change": -2.05,
       "change_pct": -0.5974,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 60.9312,
@@ -443,7 +443,7 @@
       "change": -6.58,
       "change_pct": -1.8021,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 62.3243,
@@ -512,7 +512,7 @@
       "change": 1.41,
       "change_pct": 0.9661,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 59.4912,
@@ -581,7 +581,7 @@
       "change": 3.07,
       "change_pct": 1.2281,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 54.5022,
@@ -590,7 +590,7 @@
         "sma200": 221.1177,
         "return_5d": -1.5332,
         "return_1m": 7.5942,
-        "return_1y": 57.3992,
+        "return_1y": 57.3993,
         "volatility_20d": 32.2091,
         "distance_sma200": 14.4368,
         "distance_year_high": -5.3136,
@@ -650,7 +650,7 @@
       "change": -7.94,
       "change_pct": -1.4396,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 64.1159,
@@ -719,7 +719,7 @@
       "change": 0.1,
       "change_pct": 0.0393,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 65.8626,
@@ -782,13 +782,13 @@
       "type": "stock",
       "exchange": "NYSE",
       "sector": "Financials",
-      "market_cap": 429990871040,
+      "market_cap": 434808127488,
       "currency": "USD",
       "price": 61.27,
       "change": -0.22,
       "change_pct": -0.3578,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 70.3175,
@@ -857,7 +857,7 @@
       "change": 3.11,
       "change_pct": 0.3546,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 40.1174,
@@ -926,7 +926,7 @@
       "change": 2.71,
       "change_pct": 0.6401,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 58.1184,
@@ -995,7 +995,7 @@
       "change": 3.52,
       "change_pct": 1.9145,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 63.8543,
@@ -1051,75 +1051,6 @@
       }
     },
     {
-      "id": "ge",
-      "query_symbol": "GE",
-      "symbol": "GE",
-      "name": "GE Aerospace",
-      "type": "stock",
-      "exchange": "NYSE",
-      "sector": "Industrials",
-      "market_cap": 364467912704,
-      "currency": "USD",
-      "price": 348.83,
-      "change": 3.1,
-      "change_pct": 0.8966,
-      "price_as_of": "2026-07-17",
-      "price_age_days": 0,
-      "history_points": 501,
-      "metrics": {
-        "rsi14": 47.9947,
-        "sma20": 362.6427,
-        "sma50": 333.3586,
-        "sma200": 311.7327,
-        "return_5d": -2.9059,
-        "return_1m": -0.7009,
-        "return_1y": 31.716,
-        "volatility_20d": 26.3465,
-        "distance_sma200": 11.9004,
-        "distance_year_high": -7.8826,
-        "max_drawdown_1y": -20.8515,
-        "macd_line": 4.5212,
-        "macd_signal": 8.8508,
-        "macd_histogram": -4.3296,
-        "macd_histogram_pct": -1.2412,
-        "bollinger_upper": 381.6742,
-        "bollinger_lower": 343.6112,
-        "bollinger_percent_b": 13.7109
-      },
-      "indicators": {
-        "trend_regime": "BULLISH",
-        "macd": "BEARISH",
-        "bollinger": "LOWER HALF",
-        "volatility_risk": "MEDIUM"
-      },
-      "signals": {
-        "one_day": {
-          "label": "SELL",
-          "score": -4,
-          "max_score": 5,
-          "alignment": -0.8,
-          "strength": 86,
-          "summary": "price is below its 20-day average; five-session momentum is -2.9%."
-        },
-        "one_month": {
-          "label": "BUY",
-          "score": 2,
-          "max_score": 5,
-          "alignment": 0.4,
-          "strength": 68,
-          "summary": "price is above its 50-day average; the 20-day trend leads the 50-day trend."
-        },
-        "one_year": {
-          "label": "BUY",
-          "score": 5,
-          "max_score": 5,
-          "alignment": 1.0,
-          "strength": 95,
-          "summary": "price is above its 200-day average; the 50-day trend leads the 200-day trend."
-        }
-      }
-    },
-    {
       "id": "orcl",
       "query_symbol": "ORCL",
       "symbol": "ORCL",
@@ -1133,7 +1064,7 @@
       "change": 2.2,
       "change_pct": 1.7712,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 29.3952,
@@ -1189,6 +1120,75 @@
       }
     },
     {
+      "id": "ge",
+      "query_symbol": "GE",
+      "symbol": "GE",
+      "name": "GE Aerospace",
+      "type": "stock",
+      "exchange": "NYSE",
+      "sector": "Industrials",
+      "market_cap": 361932914688,
+      "currency": "USD",
+      "price": 348.83,
+      "change": 3.1,
+      "change_pct": 0.8966,
+      "price_as_of": "2026-07-17",
+      "price_age_days": 1,
+      "history_points": 501,
+      "metrics": {
+        "rsi14": 47.9947,
+        "sma20": 362.6427,
+        "sma50": 333.3586,
+        "sma200": 311.7327,
+        "return_5d": -2.9059,
+        "return_1m": -0.7009,
+        "return_1y": 31.7159,
+        "volatility_20d": 26.3465,
+        "distance_sma200": 11.9004,
+        "distance_year_high": -7.8826,
+        "max_drawdown_1y": -20.8515,
+        "macd_line": 4.5212,
+        "macd_signal": 8.8508,
+        "macd_histogram": -4.3296,
+        "macd_histogram_pct": -1.2412,
+        "bollinger_upper": 381.6742,
+        "bollinger_lower": 343.6112,
+        "bollinger_percent_b": 13.7109
+      },
+      "indicators": {
+        "trend_regime": "BULLISH",
+        "macd": "BEARISH",
+        "bollinger": "LOWER HALF",
+        "volatility_risk": "MEDIUM"
+      },
+      "signals": {
+        "one_day": {
+          "label": "SELL",
+          "score": -4,
+          "max_score": 5,
+          "alignment": -0.8,
+          "strength": 86,
+          "summary": "price is below its 20-day average; five-session momentum is -2.9%."
+        },
+        "one_month": {
+          "label": "BUY",
+          "score": 2,
+          "max_score": 5,
+          "alignment": 0.4,
+          "strength": 68,
+          "summary": "price is above its 50-day average; the 20-day trend leads the 50-day trend."
+        },
+        "one_year": {
+          "label": "BUY",
+          "score": 5,
+          "max_score": 5,
+          "alignment": 1.0,
+          "strength": 95,
+          "summary": "price is above its 200-day average; the 50-day trend leads the 200-day trend."
+        }
+      }
+    },
+    {
       "id": "ko",
       "query_symbol": "KO",
       "symbol": "KO",
@@ -1202,7 +1202,7 @@
       "change": -3.36,
       "change_pct": -3.9567,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.5768,
@@ -1271,7 +1271,7 @@
       "change": -1.52,
       "change_pct": -1.0033,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 53.1623,
@@ -1340,7 +1340,7 @@
       "change": 0.09,
       "change_pct": 0.0895,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 64.3702,
@@ -1409,7 +1409,7 @@
       "change": -2.87,
       "change_pct": -1.3143,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.35,
@@ -1478,7 +1478,7 @@
       "change": -9.15,
       "change_pct": -2.6292,
       "price_as_of": "2026-07-17",
-      "price_age_days": 0,
+      "price_age_days": 1,
       "history_points": 501,
       "metrics": {
         "rsi14": 51.0744,
