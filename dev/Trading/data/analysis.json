@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "methodology_version": "trend-momentum-macd-v2",
-  "generated_at": "2026-07-18T23:14:40+00:00",
-  "latest_price_date": "2026-07-18",
+  "generated_at": "2026-07-19T23:15:37+00:00",
+  "latest_price_date": "2026-07-19",
   "source": "Yahoo Finance via yfinance",
   "universe_selection": "dynamic_market_cap",
   "universe_note": "Bitcoin, Ethereum, and the 20 largest eligible NYSE listings by current screener market capitalization.",
@@ -11,7 +11,7 @@
     "asset_count": 22,
     "expected_asset_count": 22,
     "minimum_history_points": 501,
-    "maximum_price_age_days": 1,
+    "maximum_price_age_days": 2,
     "missing_assets": []
   },
   "assets": [
@@ -25,31 +25,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 64690.7109,
-      "change": 791.25,
-      "change_pct": 1.2383,
-      "price_as_of": "2026-07-18",
+      "price": 64630.0,
+      "change": -166.6016,
+      "change_pct": -0.2571,
+      "price_as_of": "2026-07-19",
       "price_age_days": 0,
       "history_points": 731,
       "metrics": {
-        "rsi14": 54.8528,
-        "sma20": 62904.2133,
-        "sma50": 63535.1262,
-        "sma200": 73158.1963,
-        "return_5d": 3.939,
-        "return_1m": 7.9256,
-        "return_1y": -36.7527,
-        "volatility_20d": 27.0844,
-        "distance_sma200": -11.5742,
-        "distance_year_high": -38.9691,
+        "rsi14": 54.4499,
+        "sma20": 63134.0889,
+        "sma50": 63354.7473,
+        "sma200": 73044.3316,
+        "return_5d": -0.5021,
+        "return_1m": 8.5628,
+        "return_1y": -38.2828,
+        "volatility_20d": 27.1684,
+        "distance_sma200": -11.5195,
+        "distance_year_high": -39.0263,
         "max_drawdown_1y": -44.754,
-        "macd_line": 179.5975,
-        "macd_signal": -160.3296,
-        "macd_histogram": 339.9272,
-        "macd_histogram_pct": 0.5255,
-        "bollinger_upper": 66229.8785,
-        "bollinger_lower": 59578.5481,
-        "bollinger_percent_b": 76.8593
+        "macd_line": 244.5227,
+        "macd_signal": -78.0076,
+        "macd_histogram": 322.5303,
+        "macd_histogram_pct": 0.499,
+        "bollinger_upper": 66295.1472,
+        "bollinger_lower": 59973.0305,
+        "bollinger_percent_b": 73.6616
       },
       "indicators": {
         "trend_regime": "MIXED",
@@ -60,19 +60,19 @@
       "signals": {
         "one_day": {
           "label": "BUY",
-          "score": 4,
-          "max_score": 5,
-          "alignment": 0.8,
-          "strength": 86,
-          "summary": "price is above its 20-day average; five-session momentum is +3.9%."
-        },
-        "one_month": {
-          "label": "BUY",
           "score": 2,
           "max_score": 5,
           "alignment": 0.4,
           "strength": 68,
-          "summary": "price is above its 50-day average; one-month return is +7.9%."
+          "summary": "price is above its 20-day average; MACD momentum is bullish."
+        },
+        "one_month": {
+          "label": "BUY",
+          "score": 3,
+          "max_score": 5,
+          "alignment": 0.6,
+          "strength": 77,
+          "summary": "price is above its 50-day average; one-month return is +8.6%."
         },
         "one_year": {
           "label": "SELL",
@@ -94,31 +94,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 1859.38,
-      "change": 18.3918,
-      "change_pct": 0.999,
-      "price_as_of": "2026-07-18",
+      "price": 1868.5,
+      "change": 7.1079,
+      "change_pct": 0.3819,
+      "price_as_of": "2026-07-19",
       "price_age_days": 0,
       "history_points": 731,
       "metrics": {
-        "rsi14": 58.5408,
-        "sma20": 1769.5896,
-        "sma50": 1737.5399,
-        "sma200": 2189.1102,
-        "return_5d": 4.8424,
-        "return_1m": 18.3122,
-        "return_1y": -45.3184,
-        "volatility_20d": 39.1221,
-        "distance_sma200": -15.0623,
-        "distance_year_high": -48.1,
+        "rsi14": 59.3544,
+        "sma20": 1782.6049,
+        "sma50": 1734.5609,
+        "sma200": 2183.6276,
+        "return_5d": -1.1104,
+        "return_1m": 18.9854,
+        "return_1y": -47.8455,
+        "volatility_20d": 38.6885,
+        "distance_sma200": -14.4314,
+        "distance_year_high": -47.8455,
         "max_drawdown_1y": -56.322,
-        "macd_line": 36.9408,
-        "macd_signal": 22.04,
-        "macd_histogram": 14.9008,
-        "macd_histogram_pct": 0.8014,
-        "bollinger_upper": 1948.0525,
-        "bollinger_lower": 1591.1267,
-        "bollinger_percent_b": 75.1566
+        "macd_line": 38.1806,
+        "macd_signal": 25.2938,
+        "macd_histogram": 12.8868,
+        "macd_histogram_pct": 0.6897,
+        "bollinger_upper": 1950.2966,
+        "bollinger_lower": 1614.9132,
+        "bollinger_percent_b": 75.611
       },
       "indicators": {
         "trend_regime": "MIXED",
@@ -129,11 +129,11 @@
       "signals": {
         "one_day": {
           "label": "BUY",
-          "score": 5,
+          "score": 3,
           "max_score": 5,
-          "alignment": 1.0,
-          "strength": 95,
-          "summary": "price is above its 20-day average; five-session momentum is +4.8%."
+          "alignment": 0.6,
+          "strength": 77,
+          "summary": "price is above its 20-day average; RSI 59.4 confirms positive momentum."
         },
         "one_month": {
           "label": "BUY",
@@ -167,7 +167,7 @@
       "change": -11.37,
       "change_pct": -2.7749,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 39.1762,
@@ -236,7 +236,7 @@
       "change": -2.21,
       "change_pct": -0.4482,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.1916,
@@ -305,7 +305,7 @@
       "change": 9.9399,
       "change_pct": 0.8502,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 54.866,
@@ -374,7 +374,7 @@
       "change": -2.05,
       "change_pct": -0.5974,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 60.9312,
@@ -443,7 +443,7 @@
       "change": -6.58,
       "change_pct": -1.8021,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 62.3243,
@@ -512,7 +512,7 @@
       "change": 1.41,
       "change_pct": 0.9661,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 59.4912,
@@ -581,7 +581,7 @@
       "change": 3.07,
       "change_pct": 1.2281,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 54.5022,
@@ -590,7 +590,7 @@
         "sma200": 221.1177,
         "return_5d": -1.5332,
         "return_1m": 7.5942,
-        "return_1y": 57.3993,
+        "return_1y": 57.3992,
         "volatility_20d": 32.2091,
         "distance_sma200": 14.4368,
         "distance_year_high": -5.3136,
@@ -650,7 +650,7 @@
       "change": -7.94,
       "change_pct": -1.4396,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 64.1159,
@@ -719,7 +719,7 @@
       "change": 0.1,
       "change_pct": 0.0393,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 65.8626,
@@ -788,7 +788,7 @@
       "change": -0.22,
       "change_pct": -0.3578,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 70.3175,
@@ -857,7 +857,7 @@
       "change": 3.11,
       "change_pct": 0.3546,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 40.1174,
@@ -926,7 +926,7 @@
       "change": 2.71,
       "change_pct": 0.6401,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 58.1184,
@@ -995,7 +995,7 @@
       "change": 3.52,
       "change_pct": 1.9145,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 63.8543,
@@ -1064,7 +1064,7 @@
       "change": 2.2,
       "change_pct": 1.7712,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 29.3952,
@@ -1133,7 +1133,7 @@
       "change": 3.1,
       "change_pct": 0.8966,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 47.9947,
@@ -1202,7 +1202,7 @@
       "change": -3.36,
       "change_pct": -3.9567,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.5768,
@@ -1271,7 +1271,7 @@
       "change": -1.52,
       "change_pct": -1.0033,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 53.1623,
@@ -1340,7 +1340,7 @@
       "change": 0.09,
       "change_pct": 0.0895,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 64.3702,
@@ -1409,7 +1409,7 @@
       "change": -2.87,
       "change_pct": -1.3143,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 48.35,
@@ -1478,7 +1478,7 @@
       "change": -9.15,
       "change_pct": -2.6292,
       "price_as_of": "2026-07-17",
-      "price_age_days": 1,
+      "price_age_days": 2,
       "history_points": 501,
       "metrics": {
         "rsi14": 51.0744,
