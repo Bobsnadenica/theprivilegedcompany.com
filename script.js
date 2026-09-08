@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260710b';
+import { languageMeta, translations } from './translations.js?v=20260907a';
 
 const routes = {
     '': {
@@ -14,17 +14,17 @@ const routes = {
     'manifest': {
         title: 'Services',
         view: 'manifest.html',
-        description: 'Explore IT solutions from ThePrivilegedCompany: app development, website building, technical SEO, audits, automation, consulting, tech training, and custom tools.'
+        description: 'Explore software development, data services, audits, automation, consulting, and training for businesses and individuals.'
     },
     'who-are-we': {
-        title: 'Who We Are',
+        title: 'Who we are',
         view: 'who-are-we.html',
-        description: 'Meet ThePrivilegedCompany, a focused engineering firm for high-stakes software, cloud systems, technical SEO, and private digital problem solving.'
+        description: 'Meet ThePrivilegedCompany: a lead architect working with AI-assisted tools on software, cloud systems, and practical technical challenges.'
     },
     'data-engine': {
         title: 'Data & Intelligence',
         view: 'data-engine.html',
-        description: 'Data systems, analytics architecture, automation, and AI-amplified intelligence for clearer technical decisions and business outcomes.'
+        description: 'Performance data, load testing, and production experience to guide decisions about your software and infrastructure.'
     },
     'b2b': {
         title: 'Business Engineering',
@@ -44,7 +44,7 @@ const routes = {
     'privacy': {
         title: 'Privacy',
         view: 'privacy.html',
-        description: 'Privacy and data handling details for ThePrivilegedCompany website visitors, clients, and technical advisory relationships.'
+        description: 'How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.'
     },
     'terms': {
         title: 'Terms',
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260710b';
+const assetVersion = '20260907a';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -652,23 +652,29 @@ const initArchitectureCanvas = () => {
     if (!layers.length || !details) return;
 
     const data = {
-        edge: { title: 'Edge Protocol', body: 'Global ingress management. We utilize terraformed CloudFront and WAF configurations to neutralize threats at the perimeter while delivering sub-50ms latency globally.' },
-        compute: { title: 'Compute Engine', body: 'Elastic workload orchestration. Our Kubernetes and Serverless clusters are engineered for zero-touch scaling, automatically adjusting to massive traffic spikes.' },
-        data: { title: 'Data Sovereign', body: 'Distributed data integrity. We architect RDBMS and NoSQL systems that utilize multi-region replication and automated failover for zero-loss operations.' },
-        security: { title: 'Zero Trust', body: 'Complete environment hardening. We implement granular IAM, rotatable secret management, and end-to-end encryption for both data-at-rest and data-in-transit.' }
+        edge: { title: 'Edge delivery', body: 'We configure CloudFront and web application firewalls with Terraform to improve content delivery and filter unwanted traffic at the perimeter.' },
+        compute: { title: 'Compute Engine', body: 'We use Kubernetes and serverless services to adjust capacity to demand, with scaling policies and monitoring suited to your workload.' },
+        data: { title: 'Data reliability', body: 'We design relational and NoSQL data systems with replication, backups, and failover. Recovery objectives guide the design and testing.' },
+        security: { title: 'Zero Trust', body: 'We configure access policies, secret rotation, and encryption for stored data and network traffic, with controls suited to each system.' }
     };
 
     layers.forEach(layer => {
         layer.addEventListener('click', () => {
             const key = layer.dataset.layer;
             const info = data[key];
+            layers.forEach(item => item.setAttribute('aria-pressed', String(item === layer)));
             details.innerHTML = `
                 <div class="details-content">
-                    <h2 style="font-family: var(--f-display); font-size: 3rem; margin-bottom: 2rem; color: var(--c-accent);">${info.title}</h2>
-                    <p style="font-size: 1.2rem; color: var(--c-fg); line-height: 1.4;">${info.body}</p>
+                    <h2>${info.title}</h2>
+                    <p>${info.body}</p>
                 </div>
             `;
             applyTranslations(details);
+        });
+        layer.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            layer.click();
         });
     });
 };
@@ -692,6 +698,7 @@ class ScrambleText {
     }
 
     scramble(el, original) {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         if (el.scrambling) return;
         el.scrambling = true;
 

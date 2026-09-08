@@ -2,13 +2,13 @@
     <div class="contact-layout">
         <div class="contact-intro">
             <header class="view-header reveal-mask">
-                <span class="label">Contact Protocol</span>
-                <h1 class="display-huge" data-scramble>Start the brief.</h1>
-                <p class="view-lead">Tell us what you are trying to build, fix, protect, or understand. The cleaner the brief, the faster we can tell you the right next move.</p>
+                <span class="label">Get in touch</span>
+                <h1 class="display-huge" data-scramble>Start a brief.</h1>
+                <p class="view-lead">Tell us what you want to build, improve, or understand. Share your goal and any useful context, and we will discuss the next steps by email.</p>
             </header>
 
             <ul class="contact-assurances reveal-mask" aria-label="What to expect">
-                <li>A senior engineer reads every brief — no call centers, no bots.</li>
+                <li>Your brief is read by a senior engineer.</li>
                 <li>We reply by email to talk through scope and next steps.</li>
                 <li>No obligation, and your details are only used to respond to you.</li>
             </ul>
@@ -19,7 +19,7 @@
         <form class="contact-form" id="contact-form">
             <input type="text" name="_honey" class="contact-honey" tabindex="-1" autocomplete="off" aria-hidden="true">
             <div class="contact-service-context" id="contact-service-context" hidden>
-                <span>Selected Service</span>
+                <span>Selected service</span>
                 <strong id="contact-service-value"></strong>
                 <input type="hidden" name="serviceName" id="contact-service-name">
             </div>
@@ -90,7 +90,7 @@
             </label>
 
             <div class="contact-actions">
-                <button class="btn-hud contact-submit" type="submit">Send Brief</button>
+                <button class="btn-hud contact-submit" type="submit">Send brief</button>
                 <div class="contact-secondary">
                     <span>We reply by email with scope and next steps.</span>
                     <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
@@ -106,26 +106,26 @@
     .contact-layout { display: grid; grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr); gap: clamp(3rem, 7vw, 6rem); align-items: start; text-align: left; }
     .contact-intro { position: sticky; top: 9rem; }
     #dynamic-view .contact-view .view-header { margin: 0 0 2.25rem; text-align: left; }
-    .contact-view .display-huge { font-size: clamp(3.4rem, 6.5vw, 5.8rem); }
+    #dynamic-view .contact-view .display-huge { font-size: clamp(2.65rem, 5vw, 4.5rem); }
     #dynamic-view .contact-view .view-lead { margin: 1.5rem 0 0; font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
     .contact-assurances { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; text-align: left; }
     .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; font-weight: 400; line-height: 1.6; }
     .contact-assurances li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--c-accent); font-weight: 800; }
-    .contact-shell { margin: 0; padding: clamp(1.35rem, 3vw, 2.25rem); border: 1px solid rgba(var(--c-accent-rgb), 0.24); border-radius: 14px; background: rgba(var(--c-surface-rgb), 0.72); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2); }
+    .contact-shell { margin: 0; padding: clamp(1.35rem, 3vw, 2.25rem); border: 1px solid rgba(var(--c-accent-rgb), 0.24); border-radius: var(--radius-surface); background: rgba(var(--c-surface-rgb), 0.72); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2); }
     .contact-shell.reveal-mask { overflow: visible; }
     .contact-form-kicker { margin-bottom: 1.35rem; color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 700; }
     .contact-form { display: grid; gap: 1.25rem; text-align: left; }
     .contact-honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
     .contact-service-context { border: 1px solid rgba(var(--c-accent-rgb), 0.3); border-radius: 8px; background: rgba(var(--c-accent-rgb), 0.06); padding: 1rem 1.1rem; }
-    .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.35rem; }
+    .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.35rem; }
     .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.1; }
     .contact-form label { display: grid; gap: 0.6rem; }
-    .contact-form label span { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--c-accent); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
-    .contact-form label small { color: var(--c-muted); font-size: 0.56rem; font-weight: 600; letter-spacing: 0.08em; }
+    .contact-form label span { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--c-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .contact-form label small { flex-shrink: 0; color: var(--c-muted); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; }
     .contact-form input,
     .contact-form select,
-    .contact-form textarea { width: 100%; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: 9px; background: rgba(var(--c-bg-rgb), 0.76); color: var(--c-fg); font: inherit; font-size: 0.96rem; padding: 0.95rem 1rem; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
+    .contact-form textarea { width: 100%; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: var(--radius-control); background: rgba(var(--c-bg-rgb), 0.76); color: var(--c-fg); font: inherit; font-size: 0.96rem; padding: 0.95rem 1rem; outline: 2px solid transparent; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
     .contact-form textarea { resize: vertical; min-height: 150px; line-height: 1.65; }
     .contact-form input::placeholder,
     .contact-form textarea::placeholder { color: var(--c-muted); opacity: 0.7; }
@@ -133,10 +133,11 @@
     .contact-form input:focus,
     .contact-form select:focus,
     .contact-form textarea:focus { border-color: var(--c-accent); background: var(--c-surface); box-shadow: 0 0 0 3px rgba(var(--c-accent-rgb), 0.12); }
+    .contact-form :is(input, select, textarea):focus-visible { outline-color: var(--c-accent); outline-offset: 2px; }
     .contact-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; }
-    .contact-form button { cursor: pointer; font: inherit; text-transform: uppercase; letter-spacing: 0.16em; }
+    .contact-form button { cursor: pointer; font: inherit; text-transform: uppercase; letter-spacing: 0.08em; }
     .contact-submit { min-width: 10rem; border-color: var(--c-accent); background: var(--c-accent); color: var(--c-on-accent); font-weight: 800 !important; }
-    .contact-submit:hover { background: var(--c-accent-strong); border-color: var(--c-accent-strong); }
+    .contact-submit:not(:disabled):hover { background: var(--c-accent-strong); border-color: var(--c-accent-strong); }
     .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: right; }
     .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
     .contact-email:hover { color: var(--c-accent); }
@@ -159,7 +160,7 @@
         .contact-shell { padding: 1rem; }
         .field-grid { grid-template-columns: 1fr; }
         .contact-form { gap: 1rem; }
-        .contact-form label span { font-size: 0.6rem; letter-spacing: 0.12em; }
+        .contact-form label span { gap: 0.5rem; font-size: 0.72rem; letter-spacing: 0.12em; }
         .contact-form input,
         .contact-form select,
         .contact-form textarea { min-height: 3.1rem; padding: 0.85rem 0.9rem; font-size: 1rem; }

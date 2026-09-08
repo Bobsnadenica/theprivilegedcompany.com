@@ -1,36 +1,36 @@
 <section class="monolith-view">
     <header class="view-header reveal-mask">
-        <span class="label">System Visualization</span>
+        <span class="label">Architecture planning</span>
         <h1 class="display-huge" data-scramble>The Canvas.</h1>
         <p class="view-lead">Interactive planning for high-scale environments. We architect across the four critical layers of the modern IT stack.</p>
     </header>
 
     <div class="architecture-canvas-v2">
         <div class="canvas-layers">
-            <div class="canvas-layer" data-layer="edge" data-magnetic>
+            <div class="canvas-layer" role="button" tabindex="0" aria-pressed="false" data-layer="edge" data-magnetic>
                 <span class="layer-idx">01</span>
                 <h3>Edge Layer</h3>
                 <p>Global delivery and perimeter hardening. High-performance CDN nodes, Integrated WAF, and automated DDoS mitigation.</p>
             </div>
-            <div class="canvas-layer" data-layer="compute" data-magnetic>
+            <div class="canvas-layer" role="button" tabindex="0" aria-pressed="false" data-layer="compute" data-magnetic>
                 <span class="layer-idx">02</span>
                 <h3>Compute Layer</h3>
-                <p>Dynamic orchestration of containerized workloads and serverless functions. Designed for linear, infinite scale.</p>
+                <p>Containerized workloads and serverless functions, with capacity that adjusts to demand.</p>
             </div>
-            <div class="canvas-layer" data-layer="data" data-magnetic>
+            <div class="canvas-layer" role="button" tabindex="0" aria-pressed="false" data-layer="data" data-magnetic>
                 <span class="layer-idx">03</span>
                 <h3>Data Layer</h3>
-                <p>Highly available database systems with automated failover and regional replication. Absolute data integrity.</p>
+                <p>Database systems with replication, backups, and failover designed around your availability and recovery needs.</p>
             </div>
-            <div class="canvas-layer" data-layer="security" data-magnetic>
+            <div class="canvas-layer" role="button" tabindex="0" aria-pressed="false" data-layer="security" data-magnetic>
                 <span class="layer-idx">04</span>
                 <h3>Security Layer</h3>
                 <p>Zero-trust architecture. Granular IAM policies, end-to-end encryption, and continuous monitoring.</p>
             </div>
         </div>
         
-        <div id="layer-details-v2" class="reveal-mask">
-            <div class="details-placeholder">Select a layer to initiate deep architectural analysis.</div>
+        <div id="layer-details-v2" class="reveal-mask" aria-live="polite">
+            <div class="details-placeholder">Select a layer to explore our approach.</div>
         </div>
     </div>
 </section>
@@ -38,13 +38,17 @@
 <style>
     .architecture-canvas-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 4rem; min-height: 60vh; }
     .canvas-layers { display: flex; flex-direction: column; gap: 1rem; }
-    .canvas-layer { padding: 2rem; border: 1px solid var(--c-dim); transition: all 0.3s; cursor: pointer; position: relative; }
-    .canvas-layer:hover { border-color: var(--c-accent); background: rgba(255, 157, 0, 0.05); }
+    .canvas-layer { border-radius: var(--radius-surface); background: rgba(var(--c-surface-rgb), 0.88); padding: 2rem; border: 1px solid var(--c-dim); transition: all 0.3s; cursor: pointer; position: relative; }
+    .canvas-layer:hover, .canvas-layer[aria-pressed="true"] { border-color: var(--c-accent); background: var(--c-accent-soft); }
     .layer-idx { font-size: 0.6rem; color: var(--c-accent); position: absolute; top: 1rem; left: 1rem; }
     .canvas-layer h3 { font-family: var(--f-display); margin-bottom: 0.5rem; font-size: 1.5rem; }
-    .canvas-layer p { font-size: 0.8rem; color: var(--c-muted); }
+    .canvas-layer p { font-size: 0.95rem; line-height: 1.7; color: var(--c-muted); }
     #layer-details-v2 { border-left: 1px solid var(--c-dim); padding-left: 4rem; display: flex; align-items: center; }
-    .details-placeholder { font-family: var(--f-display); font-size: 2rem; color: var(--c-dim); }
+    .details-placeholder { font-family: var(--f-display); font-size: 2rem; color: var(--c-muted); }
+
+    .details-content h2 { font-family: var(--f-display); font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1.2; margin-bottom: 1.5rem; color: var(--c-accent); }
+    .details-content p { font-size: 1.05rem; color: var(--c-fg); line-height: 1.75; }
+    .canvas-layer:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
 
     @media (max-width: 720px) {
         .architecture-canvas-v2 { gap: 2rem; margin-top: 2.5rem; min-height: auto; }

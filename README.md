@@ -2,7 +2,7 @@
 
 The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Start a brief.” This repository also contains a client file portal, AWS infrastructure, and independent tools and experiments.
 
-This guide was checked against the source on **2026-09-06**, at commit `77228f02`. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+This guide was updated on **2026-09-08** for the public-site polish, based on commit `a5437d15` plus the local changes. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
 ## Run the public website locally
 
@@ -101,6 +101,14 @@ Commit the regenerated route pages alongside their source changes. Edit `index.h
 For public-site changes, check direct route loading, navigation and Back/Forward, both languages, both themes, mobile layout, keyboard access, and reduced-motion behavior. There is no root package/test runner. Run each subproject's own checks when working in it.
 
 `robots.txt` disallows `/dev/` except `/dev/bg/`. The root `sw.js` and `service-worker.js` unregister themselves and reload controlled windows; they are legacy service-worker retirement scripts, not an offline-cache implementation.
+
+## Public-site polish (September 2026)
+
+The current structure, service catalog, showcase links, fonts, themes, canvas, cursor, and diagnostics are retained. English and Bulgarian copy now uses clearer descriptions of the work, and Privacy/FAQ copy matches the S3 inbox implementation. All public route titles and descriptions have Bulgarian translations; the existing English-only Terms body remains unchanged.
+
+Visual refinements cover type scale, line lengths, muted-text contrast, shared surface/control tokens, service cards, focus states, form labels, and mobile spacing. Architecture cards support Enter/Space and expose their selection with `aria-pressed`. Text scrambling respects reduced-motion preferences. The public asset version is `20260907a`.
+
+Local browser checks and before/after screenshots are recorded in the ignored `output/playwright/` directory. The project memory records validation and outstanding content questions. These changes have not been deployed.
 
 ## Independent projects
 

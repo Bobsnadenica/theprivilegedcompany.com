@@ -2,12 +2,12 @@
     color-scheme: dark;
     /* Dark theme (default) — Black / Orange Monolith Palette */
     --c-bg: #030201;
-    --c-bg-rgb: 5, 3, 1;
+    --c-bg-rgb: 3, 2, 1;
     --c-surface: #0a0602;
     --c-surface-rgb: 10, 6, 2;
     --c-surface-strong: #110902;
     --c-fg: #fff2df;
-    --c-muted: #d19a61;
+    --c-muted: #c5ad92;
     --c-dim: #583511;
     --c-accent: #ff9d00;
     --c-accent-rgb: 255, 157, 0;
@@ -16,6 +16,11 @@
     --c-accent-soft: rgba(var(--c-accent-rgb), 0.1);
     --c-accent-glow: rgba(var(--c-accent-rgb), 0.24);
     --c-on-accent: #050301; /* text/icon color on top of an accent fill */
+
+    --radius-surface: 14px;
+    --radius-control: 9px;
+    --border-soft: rgba(var(--c-accent-rgb), 0.24);
+    --control-height: 2.75rem;
 
     /* Studio Spacing */
     --gap: clamp(1rem, 5vw, 4rem);
@@ -203,9 +208,9 @@ body.has-custom-cursor #cursor-follower {
     gap: 1rem;
     align-items: center;
     background: linear-gradient(180deg, rgba(var(--c-surface-rgb), 0.96), rgba(var(--c-bg-rgb), 0.88));
-    border: 1px solid rgba(var(--c-accent-rgb), 0.42);
+    border: 1px solid var(--border-soft);
     border-radius: 8px;
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.52), 0 0 34px rgba(var(--c-accent-rgb), 0.1);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.32);
     backdrop-filter: blur(18px);
     z-index: 1000;
 }
@@ -571,11 +576,11 @@ body.has-custom-cursor #cursor-follower {
 .display-huge {
     font-family: var(--f-display);
     font-weight: 900;
-    font-size: clamp(3.1rem, 9vw, 7rem);
+    font-size: clamp(3.1rem, 8.5vw, 6.75rem);
     line-height: 1.04;
     letter-spacing: 0;
     color: var(--c-accent-strong);
-    text-shadow: 0 0 28px rgba(var(--c-accent-rgb), 0.18);
+    text-shadow: 0 0 28px rgba(var(--c-accent-rgb), 0.1);
     max-width: 100%;
     padding-bottom: 0.08em;
     white-space: normal;
@@ -599,7 +604,7 @@ body.has-custom-cursor #cursor-follower {
 }
 
 .hero-lead {
-    font-size: clamp(1rem, 2vw, 1.5rem);
+    font-size: clamp(1.05rem, 1.8vw, 1.35rem);
     max-width: 760px;
     color: var(--c-muted);
     margin: 2.35rem auto 0;
@@ -752,7 +757,7 @@ body.has-custom-cursor #cursor-follower {
     width: 180px;
     height: 180px;
     text-decoration: none;
-    color: #fff;
+    color: var(--c-fg);
 }
 
 .btn-text {
@@ -811,9 +816,10 @@ body.has-custom-cursor #cursor-follower {
 }
 
 .label {
-    font-size: 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.4em;
+    letter-spacing: 0.18em;
     color: var(--c-accent);
     display: block;
     margin-bottom: 2rem;
@@ -944,7 +950,7 @@ body.has-custom-cursor #cursor-follower {
 
 .health-terminal {
     border: 1px solid rgba(var(--c-accent-rgb), 0.22);
-    background: rgba(0, 0, 0, 0.48);
+    background: var(--c-surface-strong);
     padding: 0.8rem;
     min-height: 86px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -1092,7 +1098,7 @@ body.has-custom-cursor #cursor-follower {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: rgba(var(--c-accent-rgb), 0.78);
+    color: var(--c-muted);
     background: var(--c-bg);
     position: relative;
     text-align: center;
@@ -1146,22 +1152,23 @@ body.has-custom-cursor #cursor-follower {
 #dynamic-view .view-header {
     max-width: 960px;
     margin-inline: auto;
-    margin-bottom: clamp(4rem, 8vw, 7rem);
+    margin-bottom: clamp(3rem, 6vw, 5rem);
 }
 
 #dynamic-view .view-lead {
     max-width: 720px;
     margin: 2rem auto 0;
     color: var(--c-muted);
-    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    line-height: 1.75;
 }
 
 #dynamic-view .info-block {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(2rem, 5vw, 4rem);
-    padding: clamp(4rem, 8vw, 6rem) 0;
+    gap: clamp(1rem, 2vw, 1.75rem);
+    padding: clamp(3rem, 6vw, 4.5rem) 0;
     text-align: center;
     border-top: 1px solid var(--c-dim);
 }
@@ -1182,7 +1189,8 @@ body.has-custom-cursor #cursor-follower {
     max-width: 640px;
     margin: 0 auto 2rem;
     color: var(--c-muted);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
+    line-height: 1.8;
 }
 
 #dynamic-view .manifest-item {
@@ -1206,6 +1214,65 @@ body.has-custom-cursor #cursor-follower {
     max-width: 760px;
     margin-inline: auto;
 }
+
+/* Shared component polish; page structure and motion remain unchanged. */
+#main-hud,
+#health-dashboard {
+    border-radius: var(--radius-surface);
+}
+
+.hud-nav a,
+.btn-hud,
+.theme-toggle,
+.language-switcher,
+.copy-probe-btn {
+    min-height: var(--control-height);
+}
+
+.theme-toggle { width: var(--control-height); }
+.hud-nav a { letter-spacing: 0.1em; font-weight: 800; }
+.logo-full { letter-spacing: 0.24em; }
+.btn-hud { font-size: 0.85rem; font-weight: 800; }
+.btn-hud, .hero-action { white-space: normal; text-align: center; }
+.language-switcher select { font-size: 0.75rem; }
+.language-switcher select option { background: var(--c-surface); color: var(--c-fg); }
+
+button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+    box-shadow: none;
+}
+
+.theme-toggle:focus-visible,
+.language-switcher:focus-within {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 3px;
+}
+
+.hero-lead { max-width: 650px; text-wrap: pretty; }
+.monolith-advert h2 { line-height: 1.12; text-wrap: balance; }
+.capability-token, .hero-action { letter-spacing: 0.08em; }
+#dynamic-view .display-huge { font-size: clamp(3rem, 6.5vw, 5.75rem); line-height: 1.1; }
+#dynamic-view .info-text h2 { line-height: 1.2; text-wrap: balance; margin-bottom: 1.25rem; }
+#dynamic-view .info-text p:last-child { margin-bottom: 0; }
+#dynamic-view .idx { color: var(--c-muted); font-family: var(--f-display); }
+#dynamic-view .view-lead, #dynamic-view .info-text p { text-wrap: pretty; }
+
+.health-terminal { border-radius: var(--radius-control); }
+#health-dashboard { overflow-y: auto; overscroll-behavior: contain; }
+.health-title { font-size: 0.7rem; letter-spacing: 0.12em; }
+.terminal-line { font-size: 0.75rem; line-height: 1.65; }
+.diagnostic-log-command, .diagnostic-log-output { font-size: 0.7rem; line-height: 1.6; }
+.node-label { font-size: 0.65rem; }
+.node-status { font-size: 0.75rem; }
+.copy-probe-btn { font-size: 0.7rem; letter-spacing: 0.08em; }
+.copy-probe-status { font-size: 0.65rem; letter-spacing: 0.04em; }
+#main-footer { letter-spacing: 0.08em; }
+.footer-right { gap: 1rem 2rem; }
+.footer-right a { display: inline-flex; align-items: center; min-height: var(--control-height); }
+.footer-right a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
+
+:root[data-theme="light"] #health-dashboard { box-shadow: 0 14px 36px rgba(73, 42, 18, 0.14); }
 
 /* Mobile */
 @media (max-width: 1024px) {
@@ -1316,9 +1383,9 @@ body.has-custom-cursor #cursor-follower {
 
     .hud-nav a {
         width: 100%;
-        min-height: 2.15rem;
+        min-height: var(--control-height);
         padding: 0.48rem 0.42rem;
-        font-size: 0.52rem;
+        font-size: 0.65rem;
         letter-spacing: 0.075em;
         gap: 0.25rem;
     }
@@ -1328,18 +1395,18 @@ body.has-custom-cursor #cursor-follower {
     }
 
     .language-switcher {
-        min-height: 2.1rem;
+        min-height: var(--control-height);
         padding: 0.35rem 1.4rem 0.35rem 0.6rem;
     }
 
     .language-switcher select {
-        font-size: 0.58rem;
+        font-size: 0.75rem;
         letter-spacing: 0.08em;
     }
 
     .monolith-hero {
         min-height: auto;
-        padding: 9rem var(--gap) 3.5rem;
+        padding: 11rem var(--gap) 3.5rem;
     }
 
     .display-huge {
@@ -1403,8 +1470,10 @@ body.has-custom-cursor #cursor-follower {
     #dynamic-view .monolith-view,
     .monolith-view {
         width: 100%;
-        padding: 9.5rem var(--gap) 4rem;
+        padding: 11rem var(--gap) 4rem;
     }
+
+    #dynamic-view .display-huge { font-size: clamp(2.4rem, 10vw, 3.05rem); }
 
     #dynamic-view .view-header,
     .view-header {
@@ -1449,7 +1518,7 @@ body.has-custom-cursor #cursor-follower {
 
     #dynamic-view .tab-trigger,
     .tab-trigger {
-        font-size: 1.45rem;
+        font-size: 0.76rem;
     }
 
     #dynamic-view .detail-list,
@@ -1564,7 +1633,7 @@ body.has-custom-cursor #cursor-follower {
     }
 
     .hud-nav a {
-        font-size: 0.49rem;
+        font-size: 0.62rem;
         letter-spacing: 0.045em;
         padding-inline: 0.3rem;
     }

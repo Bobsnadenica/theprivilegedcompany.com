@@ -8,15 +8,15 @@ const siteOrigin = 'https://www.theprivilegedcompany.com';
 const routes = {
   manifest: {
     title: 'ThePrivilegedCompany | Services',
-    description: 'Explore ThePrivilegedCompany services for companies and individuals: data products, audits, consulting, websites, apps, SEO, marketing, training, and custom tools.'
+    description: 'Explore software development, data services, audits, automation, consulting, and training for businesses and individuals.'
   },
   'who-are-we': {
-    title: 'ThePrivilegedCompany | Who We Are',
-    description: 'Meet ThePrivilegedCompany, a focused engineering firm for high-stakes software, cloud systems, technical SEO, and private digital problem solving.'
+    title: 'ThePrivilegedCompany | Who we are',
+    description: 'Meet ThePrivilegedCompany: a lead architect working with AI-assisted tools on software, cloud systems, and practical technical challenges.'
   },
   'data-engine': {
     title: 'ThePrivilegedCompany | Data & Intelligence',
-    description: 'Data systems, analytics architecture, automation, and AI-amplified intelligence for clearer technical decisions and business outcomes.'
+    description: 'Performance data, load testing, and production experience to guide decisions about your software and infrastructure.'
   },
   b2b: {
     title: 'ThePrivilegedCompany | Business Engineering',
@@ -32,7 +32,7 @@ const routes = {
   },
   privacy: {
     title: 'ThePrivilegedCompany | Privacy',
-    description: 'Privacy and data handling details for ThePrivilegedCompany website visitors, clients, and technical advisory relationships.'
+    description: 'How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.'
   },
   terms: {
     title: 'ThePrivilegedCompany | Terms',
