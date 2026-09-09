@@ -66,3 +66,10 @@ export function csv(entries) {
   };
   return [['Date', 'Type', 'Category', 'Amount', 'Currency', 'Note'], ...entries.map(e => [e.date, e.type, e.category, (e.amount / 100).toFixed(2), e.currency, e.note])].map(row => row.map(cell).join(',')).join('\r\n');
 }
+
+// Allocate from the entire ledger, so filtering a month/currency does not recolor it.
+export function categoryColors(names) {
+  const palette = ['#efaa58', '#68c9ad', '#89a8f0', '#dc8ca7', '#d4cb79', '#bd9aef', '#75bacd', '#ea896b'];
+  return new Map([...new Set(names)].sort().map((name, index) => [name,
+    palette[index] || `hsl(${((index - palette.length) * 137.508 % 360).toFixed(3)} 65% 65%)`]));
+}

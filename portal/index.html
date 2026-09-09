@@ -32,8 +32,8 @@
       rel="stylesheet"
     />
 
-    <script type="module" crossorigin src="/portal/assets/index-EGA4Y5Pl.js"></script>
-    <link rel="stylesheet" crossorigin href="/portal/assets/index-2MtWgKTB.css">
+    <script type="module" crossorigin src="/portal/assets/index-D25SSwgq.js"></script>
+    <link rel="stylesheet" crossorigin href="/portal/assets/index-BoOZn9Hz.css">
   </head>
   <body>
     <main class="shell">
@@ -154,6 +154,7 @@
                 <label for="entry-date">Date</label><input id="entry-date" type="date" min="1900-01-01" max="9999-12-31" required>
                 <label for="entry-note">Note <span class="optional">Optional</span></label><input id="entry-note" type="text" maxlength="240" placeholder="What was it for?">
                 <button id="entry-submit" class="btn-primary" type="submit">Add expense</button>
+                <button id="entry-delete" class="btn-ghost danger delete-entry" type="button" hidden>Delete entry</button>
                 <button id="entry-cancel" class="btn-ghost" type="button" hidden>Cancel edit</button>
               </fieldset>
             </form>
@@ -163,7 +164,7 @@
                 <article class="card chart-card"><h3>Where it comes from</h3><p class="muted">Income by category</p><div id="income-chart" class="chart-content"></div></article>
               </div>
               <section class="card transactions-card" aria-labelledby="transactions-title">
-                <div class="transactions-heading"><div><h3 id="transactions-title">Your entries</h3><p id="entry-count" class="muted"></p></div><button id="budget-export" class="btn-ghost" type="button">Export CSV</button></div>
+                <div class="transactions-heading"><div><h3 id="transactions-title">Your entries</h3><p class="muted">Made a mistake? Edit or delete an entry below.</p><p id="entry-count" class="muted"></p></div><button id="budget-export" class="btn-ghost" type="button">Export CSV</button></div>
                 <p id="transactions-empty" class="empty-state">No entries for this period and currency. Add your first income or expense to get started.</p>
                 <ul id="transaction-list" class="transaction-list"></ul><button type="button" id="load-more" class="btn-ghost" hidden>Show more</button>
               </section>

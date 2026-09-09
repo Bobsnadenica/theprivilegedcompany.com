@@ -468,3 +468,6 @@ button, .btn-ghost { min-height: 44px; }button:disabled { opacity: .55; cursor: 
 }
 @media (max-width: 360px) { .chart-content { grid-template-columns: 1fr; }.chart-empty { text-align: center; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+
+.delete-entry { color: #ffb3ad; border-color: #a55852; background: #351e1e; min-height: 44px; }
+.delete-entry:hover:not(:disabled) { background: #512928; border-color: #ffb3ad; }

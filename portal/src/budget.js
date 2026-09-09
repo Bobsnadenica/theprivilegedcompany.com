@@ -1,7 +1,5 @@
-import { CURRENCIES, categoriesFor, csv, emptyLedger, localDate, money, parseAmount, summarize, validateEntry } from './budget-model.js';
+import { CURRENCIES, categoryColors, categoriesFor, csv, emptyLedger, localDate, money, parseAmount, summarize, validateEntry } from './budget-model.js';
 
-const colors = ['#efaa58', '#68c9ad', '#89a8f0', '#dc8ca7', '#d4cb79', '#bd9aef', '#75bacd', '#ea896b'];
-const colorFor = text => colors[[...text].reduce((n, c) => n + c.codePointAt(0), 0) % colors.length];
 const el = (tag, className, text) => {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -39,10 +37,13 @@ export function createBudgetUI(makeRepository) {
     $('entry-form-title').textContent = 'Add an entry';
     $('entry-submit').textContent = 'Add expense';
     $('entry-cancel').hidden = true;
+    $('entry-delete').hidden = true;
     categoryOptions();
   }
   function renderChart(type, summary) {
     const root = $(`${type}-chart`); root.replaceChildren();
+    const colorMap = categoryColors(ledger.entries.map(entry => entry.category));
+    const colorFor = name => colorMap.get(name);
     const total = summary[type]; const groups = summary.groups[type];
     const figure = el('div', 'pie-chart');
     figure.setAttribute('role', 'img');
@@ -79,6 +80,7 @@ export function createBudgetUI(makeRepository) {
     $('entry-form-title').textContent = 'Edit entry';
     $('entry-submit').textContent = 'Save changes';
     $('entry-cancel').hidden = false;
+    $('entry-delete').hidden = false;
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('entry-amount').focus({ preventScroll: true });
   }
@@ -103,16 +105,18 @@ export function createBudgetUI(makeRepository) {
       const actions = el('div', 'transaction-actions');
       const editButton = el('button', 'btn-ghost entry-action', 'Edit');editButton.type = 'button';editButton.setAttribute('aria-label', `Edit ${entry.category} on ${entry.date}`);
       editButton.addEventListener('click', () => edit(entry));
-      const deleteButton = el('button', 'btn-ghost danger entry-action', 'Delete');deleteButton.type = 'button';deleteButton.setAttribute('aria-label', `Delete ${entry.category} on ${entry.date}`);
-      deleteButton.addEventListener('click', async () => {
-        if (busy || !confirm(`Delete ${money(entry.amount, entry.currency)} for ${entry.category} on ${entry.date}?`)) return;
-        await save({ id: entry.id, expectedRevision: entry.revision, entry: null }, 'Entry deleted.');
-      });
+      const deleteButton = el('button', 'btn-ghost danger entry-action delete-entry', 'Delete entry');deleteButton.type = 'button';deleteButton.setAttribute('aria-label', `Delete ${entry.category} on ${entry.date}`);
+      deleteButton.addEventListener('click', () => removeEntry(entry));
       actions.append(editButton, deleteButton);row.append(mark, details, amount, actions);list.append(row);
     }
     $('load-more').hidden = summary.entries.length <= shown;
     $('budget-export').disabled = !summary.entries.length;
   }
+  async function removeEntry(entry) {
+    if (!entry || busy || !confirm(`Delete ${money(entry.amount, entry.currency)} for ${entry.category} on ${entry.date}?`)) return;
+    await save({ id: entry.id, expectedRevision: entry.revision, entry: null }, 'Entry deleted.');
+  }
+  $('entry-delete').addEventListener('click', () => removeEntry(editing));
   async function refresh() {
     if (busy || !repository) return;
     const generation = epoch; const activeRepository = repository;

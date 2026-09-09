@@ -126,3 +126,11 @@ category, edit, month/currency/all-time filters, failed-save input retention,
 Files navigation and sign-out clearing. Reviewed screenshots at 1440, 820, 390 and
 320 pixels; no document overflow. CSV download and confirmed deletion were also
 exercised. Build and diff whitespace checks passed. Screenshots contain test data.
+
+### Budget deletion and colors follow-up
+
+Made per-entry deletion prominent and available directly in the edit form, with
+confirmation and existing conflict-safe persistence. Chart colors are allocated
+uniquely from the whole ledger's category names rather than a colliding eight-color
+hash. Month/currency filters retain colors; changes to the category set can reassign
+them. Added a regression test for colliding names and more than eight categories.

@@ -86,3 +86,8 @@ categories, invalid storage, concurrent mutations, retries, CSV escaping and S3
 conditional headers. Browser QA uses isolated test fixtures, never real financial
 records. A real Cognito/S3 round trip remains a release check on the configured
 hosting origin; mocked browser tests do not verify deployed AWS permissions.
+
+Use **Delete entry** beneath a transaction or inside its edit form to remove a
+mistake; deletion asks for confirmation. Category colors are distinct within the
+ledger, including custom categories, and stay consistent across period/currency
+filters. Changing the category set can reassign colors.

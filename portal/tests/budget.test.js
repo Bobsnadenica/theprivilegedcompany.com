@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseAmount, summarize, validDate, validateLedger, localDate, csv, categoriesFor } from '../src/budget-model.js';
+import { categoryColors, parseAmount, summarize, validDate, validateLedger, localDate, csv, categoriesFor } from '../src/budget-model.js';
 import { createBudgetRepository } from '../src/budget-repository.js';
 import { budgetStorageAdapter } from '../src/budget-storage.js';
 const entry = (extra = {}) => ({ id: 'entry-1', revision: 'rev-1', type: 'expense', category: 'Food', currency: 'EUR', amount: 1234, date: '2026-09-09', note: '', ...extra });
@@ -95,4 +95,12 @@ test('S3 adapter binds user key and conditional headers, hides no read errors ex
 test('CSV quotes user text and neutralizes spreadsheet formulas', () => {
   const result=csv([entry({category:'=SUM(A1)',note:'  =HYPERLINK("bad")'})]);
   assert(result.includes('"\'=SUM(A1)"'));assert(result.includes('"\'  =HYPERLINK(""bad"")"'));assert(result.includes('"12.34","EUR"'));
+});
+
+test('categories with colliding old hashes and more than eight categories get distinct colors', () => {
+  const names = ['AB', 'BA', ...Array.from({length: 24}, (_, i) => `Custom ${i}`)];
+  const colors = categoryColors(names);
+  assert.equal(new Set(colors.values()).size, names.length);
+  assert.deepEqual(colors, categoryColors([...names].reverse()));
+  assert.equal(categoryColors([...names, 'AB']).size, names.length);
 });
