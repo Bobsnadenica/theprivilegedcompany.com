@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Phone Company | Calls, Logins &amp; Troubleshooting</title>
+  <meta name="description" content="A practical RingCentral learning guide: inbound and outbound calls, user and agent logins, voice components, and troubleshooting with Kibana and SIP3 Hoof.">
+  <meta property="og:title" content="The Phone Company | Tech Tools">
+  <meta property="og:description" content="Follow a call. Find the failing step. A visual guide to voice, logins and troubleshooting.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/Tech%20Tools/the-phone-company.html">
+  <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta property="og:image:alt" content="ThePrivilegedCompany logo">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../../favicon-32.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&amp;family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="phone-company/guide.css">
+  <script src="phone-company/guide.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to guide</a>
+  <nav class="topbar shell" aria-label="Breadcrumb">
+    <a href="index.html">← Tech Tools</a><span>Field guide / Voice operations</span>
+  </nav>
+  <main id="main" class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Understand the journey. Investigate the evidence.</p>
+        <h1>The Phone<br><em>Company.</em></h1>
+        <p class="intro">A call has a route. A login has a session. Audio has its own path. Learn which one stopped working.</p>
+        <nav class="jump-links" aria-label="On this page"><a href="#explorer">Explore flows</a><a href="#components">Components</a><a href="#investigate">Investigate</a><a href="#sources">Sources</a></nav>
+      </div>
+      <div class="hero-signal" aria-label="Three separate checks: identity, signaling and media">
+        <div><span>01 / Identity</span><strong>Who are you?</strong><small>Sign-in, session, permissions</small></div>
+        <div><span>02 / Signaling</span><strong>Who should ring?</strong><small>Routing, SIP, agent availability</small></div>
+        <div><span>03 / Media</span><strong>Can you hear?</strong><small>Microphone, RTP/SRTP, network</small></div>
+      </div>
+    </header>
+
+    <aside class="scope" aria-label="Scope of this guide">
+      <strong>Based on public RingCentral documentation.</strong> These are simplified functional flows, not RingCentral’s private server architecture. RingEX, RingCX/Engage Voice and legacy Contact Center are different products. Product-specific examples are labeled. “User” means an employee using a phone app; “agent” means a contact-center worker. An external caller does not need an app login.
+    </aside>
+
+    <section id="explorer" aria-labelledby="flow-heading">
+      <div class="section-heading"><div><p class="eyebrow">01 / Follow the flow</p><h2 id="flow-heading">One step at a time.</h2></div><p class="section-note">Choose a journey, then select any step.<br>Examples are educational, not live telemetry.</p></div>
+      <div id="flow-controls" class="flow-controls" role="group" aria-label="Choose a journey">
+        <button type="button" data-flow="inbound" aria-pressed="true">Inbound call</button>
+        <button type="button" data-flow="outbound" aria-pressed="false">Outbound call</button>
+        <button type="button" data-flow="user" aria-pressed="false">User login</button>
+        <button type="button" data-flow="agent" aria-pressed="false">Agent login</button>
+      </div>
+      <div class="flow-intro"><span class="pill" id="flow-scope">Contact-center example</span><h3 id="flow-title">A customer calls support</h3><p id="flow-description">The caller reaches your number, hears a menu, joins a queue and speaks with an available agent.</p></div>
+      <ol id="flow-steps" class="flow-steps" aria-label="Journey steps"></ol>
+      <div class="step-panel" id="step-panel" aria-labelledby="step-title">
+        <div class="step-story"><p class="eyebrow" id="step-position"></p><h3 id="step-title"></h3><p id="step-description"></p><div class="example"><span>For example</span><p id="step-example"></p></div><p class="reference" id="step-reference"></p></div>
+        <div class="step-evidence"><h4>What proves this step worked?</h4><p id="step-proof"></p><h4>Where it can fail</h4><p id="step-failure"></p><h4>What to inspect</h4><p id="step-inspect"></p></div>
+      </div>
+      <div class="step-actions"><button type="button" id="previous-step">Previous step</button><span id="step-counter" aria-live="polite"></span><button type="button" id="next-step">Next step</button></div>
+      <noscript><div class="scope">Enable JavaScript for the step explorer. Inbound: caller, carrier, voice entry, IVR, queue, agent. Outbound: agent, policy checks, voice service, carrier, customer, media. User login: app, identity check, session, phone connection. Agent login: identity check, agent access, voice connection, availability. The component and investigation sections below remain readable.</div></noscript>
+      <details><summary>How this differs by product</summary><p><strong>RingEX:</strong> a business call may route directly to an extension, an auto-receptionist or a call queue. An IVR and contact-center agent session are not mandatory for every call.</p><p><strong>RingCX / Engage Voice:</strong> queue access, agent state, agent voice destination and dialing mode matter. The outbound explorer shows a manual call. Preview, progressive and predictive campaigns have different initiation and agent-allocation behavior. <a href="https://www.ringcentral.com/ringcx/outbound.html">RingCX dialing modes</a>.</p><p><strong>Legacy Contact Center / MAX:</strong> use that product’s station and agent-leg instructions. Do not substitute RingCX API endpoints or login behavior. <a href="https://partnersupport.ringcentral.com/content/dam/support/us/en/pdf/knowledge/CC_MAX_Agent_Connecting_the_Agent_Leg_20210812_ivra_d1.pdf">MAX agent-leg guide</a>.</p></details>
+    </section>
+
+    <section id="components" aria-labelledby="components-heading">
+      <p class="eyebrow">02 / Names without the mystery</p><h2 id="components-heading">What does each part do?</h2>
+      <div class="component-grid">
+        <article><span class="pill">Identity</span><h3>IdP &amp; application session</h3><p>The identity provider checks who you are. The application session lets the app act as that user. Permission to open an app does not prove that a phone is connected.</p></article>
+        <article><span class="pill">Network edge</span><h3>Carrier &amp; SBC</h3><p>The carrier connects to the public telephone network (PSTN). A Session Border Controller manages signaling and often media at a voice network boundary. Exact hops depend on the deployment.</p><p class="reference"><a href="https://www.rfc-editor.org/rfc/rfc5853">SBC functions</a></p></article>
+        <article><span class="pill">Caller interaction</span><h3>VRU / IVR</h3><p>VRU means Voice Response Unit. IVR means Interactive Voice Response: menus such as “Press 1 for support.” Think prompts, collected digits and the next routing decision.</p><p class="reference"><a href="https://support.ringcentral.com/gb/en/release-notes/customer-engagement/engage-voice/release-notes-october-2022.html">RingCentral confirms the VRU term</a> · <a href="https://www.nice.com/glossary/what-is-contact-center-voice-response-unit">VRU function</a></p></article>
+        <article><span class="pill">Routing</span><h3>Queue / ACD</h3><p>A queue holds waiting callers. Automatic Call Distribution selects eligible agents using configured rules. Signed in, assigned to a queue and available are separate conditions.</p><p class="reference"><a href="https://developers.ringcentral.com/engage/voice/guide/routing/queues/queues">RingCX queues</a></p></article>
+        <article><span class="pill">Call control</span><h3>SIP &amp; SDP</h3><p>SIP sets up, changes and ends a call. SDP describes proposed media, including codecs and addresses. SIP success is not proof that audio flows in both directions.</p><p class="reference"><a href="https://www.rfc-editor.org/rfc/rfc3261">SIP standard</a> · <a href="https://www.rfc-editor.org/rfc/rfc8866">SDP standard</a></p></article>
+        <article><span class="pill">Audio</span><h3>RTP / SRTP &amp; RTCP</h3><p>RTP carries real-time media; SRTP protects it. RTCP provides control and reception reports. A headset problem and a blocked media path can both sound like silence.</p><p class="reference"><a href="https://www.rfc-editor.org/rfc/rfc3550">RTP / RTCP</a> · <a href="https://www.rfc-editor.org/rfc/rfc3711">SRTP</a></p></article>
+      </div>
+      <details><summary>A few more useful terms</summary><p><strong>Call leg:</strong> one segment of a call, such as customer-to-platform or platform-to-agent. A transfer can introduce another leg.</p><p><strong>WebRTC:</strong> technology for real-time voice and video in browsers. <strong>DTMF:</strong> the signals produced by keypad digits. <strong>DND:</strong> Do Not Disturb.</p><p><strong>MOS:</strong> Mean Opinion Score, used as a voice-quality indicator. <strong>Jitter:</strong> variation in packet arrival timing. <strong>Packet loss:</strong> expected packets that do not arrive at the receiver.</p></details>
+      <div class="unverified">
+        <p class="eyebrow">Terminology checkpoint</p><h3>EIQ, EID and ECC: verify the local meaning.</h3>
+        <p><strong>EIQ and EID:</strong> the public sources reviewed do not establish these as named RingCentral voice components. Their expansions, roles and positions in a call path remain unverified.</p>
+        <p><strong>ECC:</strong> RingCentral’s Contact Center release notes use it for <em>Enhanced Customer Card</em>, which displays customer context. That does not establish the meaning of an ECC service in your environment. <a href="https://support.ringcentral.com/au/en/release-notes/customer-engagement/contact-center/user-hub-2025-4-release.html">Documented ECC usage</a>.</p>
+        <p>To map a local label, obtain its approved service definition, owning team, product/version and a sanitized trace showing upstream and downstream calls. Until then, use the functional names above. Do not assign a failure to a component from its acronym alone.</p>
+      </div>
+    </section>
+
+    <section id="signals" aria-labelledby="signals-heading">
+      <p class="eyebrow">03 / Read the conversation</p><h2 id="signals-heading">Ringing is not the same as audio.</h2>
+      <p>A simplified successful SIP call leg looks like this. Proxies, authentication, early media and additional legs are omitted.</p>
+      <div class="ladder" role="img" aria-label="Caller side sends INVITE. Called side returns 180 Ringing, then 200 OK. Caller sends ACK. Media flows both ways. Either side sends BYE, answered with 200 OK.">
+        <div class="ladder-head"><strong>Caller side</strong><span>Signaling on one call leg</span><strong>Called side</strong></div>
+        <div class="message right"><span>INVITE · start a call</span></div>
+        <div class="message left"><span>180 Ringing · alerting</span></div>
+        <div class="message left"><span>200 OK · INVITE accepted</span></div>
+        <div class="message right"><span>ACK · acknowledge</span></div>
+        <div class="message both"><span>RTP / SRTP · audio in both directions</span></div>
+        <div class="message right"><span>BYE · end this call</span></div>
+        <div class="message left"><span>200 OK · BYE accepted</span></div>
+      </div>
+      <p class="note">A <code>200 OK</code> for an IVR leg can mean the platform answered before an agent joined. Match each response to its request and leg. <a href="https://www.rfc-editor.org/rfc/rfc3261">SIP messages and responses</a>.</p>
+      <details><summary>Response codes: clues, not root causes</summary>
+        <div class="table-wrap" role="region" aria-label="SIP response interpretation" tabindex="0"><table><thead><tr><th scope="col">SIP response</th><th scope="col">Interpretation</th><th scope="col">Next check</th></tr></thead><tbody>
+          <tr><td><code>401 / 407</code></td><td>An authentication challenge can be normal.</td><td>Check whether an authenticated retry succeeds. Repeated challenges need investigation.</td></tr>
+          <tr><td><code>403 Forbidden</code></td><td>The server refuses the request.</td><td>Inspect the emitting hop, account policy, caller identity and response details.</td></tr>
+          <tr><td><code>404 Not Found</code></td><td>The requested user or domain was not found there.</td><td>Check the Request-URI, number normalization and routing destination.</td></tr>
+          <tr><td><code>408 / 480</code></td><td>Request timeout / temporarily unavailable.</td><td>Check downstream responses, endpoint reachability and timing. These codes have different meanings.</td></tr>
+          <tr><td><code>486 Busy Here</code></td><td>The reached endpoint is busy.</td><td>Check endpoint state and alternate routing. Busy is not necessarily a platform outage.</td></tr>
+          <tr><td><code>487 Request Terminated</code></td><td>The request was terminated.</td><td>Look for a preceding CANCEL and who sent it; a caller may have hung up.</td></tr>
+          <tr><td><code>488 Not Acceptable Here</code></td><td>The session offer is unacceptable at this endpoint.</td><td>Compare SDP, supported codecs and media/security requirements.</td></tr>
+          <tr><td><code>503 Service Unavailable</code></td><td>The server is temporarily unable to process the request.</td><td>Check the origin, Retry-After if present, capacity and alternate routes.</td></tr>
+        </tbody></table></div>
+        <p>HTTP <code>401/403</code> in a login API and SIP <code>401/403</code> in a call trace belong to different protocols. Read the method, response body and surrounding events.</p>
+      </details>
+    </section>
+
+    <section id="investigate" aria-labelledby="investigate-heading">
+      <p class="eyebrow">04 / Find the failing boundary</p><h2 id="investigate-heading">Start with a symptom.</h2>
+      <p>These are investigation paths, not automatic diagnoses. Select a symptom to see where to begin and what evidence to collect.</p>
+      <label for="symptom">What happened?</label>
+      <select id="symptom">
+        <option value="login">User cannot sign in</option><option value="agent">Agent signs in but receives no calls</option><option value="entry">Inbound call never reaches the menu</option><option value="ivr">Menu plays but a selection fails</option><option value="outbound">Outbound call fails before ringing</option><option value="audio">Call connects with one-way audio</option><option value="quality">Audio is choppy or delayed</option><option value="drop">Call disconnects unexpectedly</option><option value="missing">No matching call appears in Hoof</option>
+      </select>
+      <article id="incident" class="incident" aria-labelledby="incident-title">
+        <div><span class="pill" id="incident-area"></span><h3 id="incident-title"></h3><p id="incident-boundary"></p><button id="show-flow" type="button">Show this step in the flow</button></div>
+        <div><h4>Inspect in Kibana</h4><p id="incident-kibana"></p><h4>Inspect in SIP3 Hoof</h4><p id="incident-sip3"></p><h4>Before naming a cause</h4><p id="incident-check"></p></div>
+      </article>
+      <noscript><p>For login failures, inspect identity and application logs. For routing failures, compare configured destinations and agent availability with SIP call legs. For audio failures, inspect media in both directions and endpoint audio devices. For missing results, check time range and collection coverage first.</p></noscript>
+      <div class="tool-grid">
+        <article><h3>Kibana: application evidence</h3><p>Use Discover to inspect ingested application, identity and routing events. Choose the correct data view and an absolute time window. Sort by time and follow the request or interaction identifier.</p><p><strong>Start broad:</strong> search a known, sanitized identifier across indexed fields.</p><pre><code>"demo-interaction-001"</code></pre><p><strong>Then narrow:</strong> this example requires these fields to exist in your data.</p><pre><code>trace.id: "demo-trace-001" AND
+http.response.status_code &gt;= 400</code></pre><p>Use KQL mode. Field names and identifiers are examples, not a RingCentral log schema. An empty result does not prove no request occurred. Check ingestion, retention and access.</p><p class="reference"><a href="https://www.elastic.co/docs/explore-analyze/query-filter/languages/kql">KQL syntax</a> · <a href="https://www.elastic.co/docs/explore-analyze/discover/discover-get-started">Discover</a></p></article>
+        <article><h3>SIP3 Hoof: signaling evidence</h3><p>Hoof is SIP3’s web interface. Set the same time window, search a call and inspect its legs, messages and available media reports.</p><p><strong>Find one SIP leg:</strong></p><pre><code>sip.call_id=demo-call-001</code></pre><p><strong>Find failed calls:</strong></p><pre><code>sip.state=failed</code></pre><p><strong>Find flagged one-way streams:</strong></p><pre><code>rtp.one_way=true</code></pre><p>These are separate SIP3 Advanced Search examples, not KQL. Results depend on capture coverage, installed version and media collection. A one-way flag is a clue, not proof of the root cause.</p><p class="reference"><a href="https://sip3.io/docs/features/AdvancedSearch.html">Search attributes</a> · <a href="https://sip3.io/meet-sip3-2021-3-1/">Call Flow and Call Details</a></p></article>
+      </div>
+      <div class="scope"><strong>Correlate; do not equate.</strong> An application interaction ID, an agent login ID and a SIP Call-ID are different identifiers. One interaction can contain several SIP legs. Use logged mappings, timestamps and endpoints to join the evidence. SIP3 can only show traffic or reports supplied to it; encrypted or uncaptured traffic can leave gaps.</div>
+      <details><summary>Worked example: agent sees the caller, but cannot hear</summary><ol class="checklist"><li>Record the direction of missing audio: the agent cannot hear the caller. Confirm the caller can hear the agent.</li><li>In Hoof, check successful setup on both relevant legs. Do not stop at the IVR’s answer.</li><li>Inspect caller-to-agent media reports and negotiated SDP addresses. Compare with the working agent-to-caller direction.</li><li>In Kibana, match the interaction and agent session. Look for media setup errors or a connection change at the same time.</li><li>Check the agent’s selected speaker, volume and headset. If media disappears between two observed points, investigate that network segment. If media reaches the endpoint, investigate playback.</li><li>Report the evidence and remaining gap. “One-way audio” alone does not prove a firewall fault.</li></ol></details>
+      <details><summary>Minimum evidence for a useful escalation</summary><ul class="checklist"><li>Product, tenant/account, region, affected agent or extension, app version and scope: one user, one site or many.</li><li>Exact timestamp with timezone, direction, expected behavior and actual behavior.</li><li>Interaction ID, agent/session ID and all relevant SIP Call-IDs, with the mapping between them.</li><li>Last successful step, first failed step, emitting host and exact protocol response.</li><li>A comparable successful example, affected route, recent changes and known collection gaps.</li></ul><p>Share only necessary, approved evidence. Redact credentials, tokens, private numbers and customer content before exporting logs or captures.</p></details>
+    </section>
+
+    <section id="sources" aria-labelledby="sources-heading">
+      <p class="eyebrow">05 / Evidence, not invented internals</p><h2 id="sources-heading">Source notes.</h2>
+      <p>Reviewed September 10, 2026. The diagrams combine documented product behavior with standard telephony concepts. They do not assert a private service topology.</p>
+      <ul class="source-list">
+        <li><a href="https://assets.ringcentral.com/us/guide/RingCentral_App_Getting_Started_Guide.pdf">RingCentral app getting started guide</a>: employee app login and SSO. UI labels may change after this guide’s publication.</li>
+        <li><a href="https://developers.ringcentral.com/engage/voice/guide/authentication">RingCX authentication</a> and <a href="https://developers.ringcentral.com/engage/voice/guide/authentication/auth-ringcentral">linked RingCentral token exchange</a>: current, direct Engage and legacy API flows differ.</li>
+        <li><a href="https://developers.ringcentral.com/engage/voice/guide/users/agents/agents">RingCX agents</a> and <a href="https://developers.ringcentral.com/engage/voice/guide/routing/queues/queues">queues</a>: voice destinations, permissions, state and queue eligibility.</li>
+        <li><a href="https://github.com/ringcentral/ringcentral-web-phone">RingCentral WebPhone</a>: an illustrative RingEX WebRTC/SIP endpoint, not every client’s implementation.</li>
+        <li><a href="https://www.ringcentral.com/ringcx/outbound.html">RingCX outbound modes</a> and <a href="https://netstorage.ringcentral.com/datasheets/engage_voice_ivr.pdf">Engage Voice IVR</a>: dialing and caller interaction.</li>
+        <li><a href="https://www.rfc-editor.org/rfc/rfc3261">IETF SIP</a>, <a href="https://www.rfc-editor.org/rfc/rfc3550">RTP/RTCP</a>, <a href="https://www.rfc-editor.org/rfc/rfc8866">SDP</a> and <a href="https://www.rfc-editor.org/rfc/rfc3711">SRTP</a>: protocol behavior.</li>
+        <li><a href="https://sip3.io/docs/features/AdvancedSearch.html">SIP3 search</a>, <a href="https://docs.sip3.io/docs/features/HoofConfiguration.html">Hoof configuration</a> and <a href="https://www.elastic.co/docs/explore-analyze/query-filter/languages/kql">Elastic KQL</a>: investigation tools.</li>
+      </ul>
+      <p class="note">EIQ/EID service definitions and a deployment-specific ECC mapping still require approved internal documentation. They are deliberately absent from the verified flow diagrams.</p>
+    </section>
+  </main>
+  <footer class="shell"><a href="index.html">← All Tech Tools</a><span>The Phone Company · An independent learning guide</span></footer>
+</body>
+</html>
