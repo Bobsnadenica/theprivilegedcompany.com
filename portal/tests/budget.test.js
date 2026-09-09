@@ -104,3 +104,13 @@ test('categories with colliding old hashes and more than eight categories get di
   assert.deepEqual(colors, categoryColors([...names].reverse()));
   assert.equal(categoryColors([...names, 'AB']).size, names.length);
 });
+
+test('fresh repository sessions reload saved income and expenses without browser state', async () => {
+  const accountA = memoryStore(), accountB = memoryStore();
+  await createBudgetRepository(accountA).commit(change(entry()));
+  await createBudgetRepository(accountA).commit(change(entry({ id: 'salary', type: 'income', amount: 200000 })));
+  const reopened = await createBudgetRepository(accountA).load();
+  assert.equal(reopened.entries.length, 2);
+  assert.equal(summarize(reopened.entries, '', 'EUR').income, 200000);
+  assert.equal((await createBudgetRepository(accountB).load()).entries.length, 0);
+});

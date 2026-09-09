@@ -10,6 +10,7 @@ const el = (tag, className, text) => {
 export function createBudgetUI(makeRepository) {
   const $ = id => document.getElementById(id);
   const form = $('entry-form');
+  let dirty = false;
   let ledger = emptyLedger(), repository, epoch = 0, busy = false, editing = null, pending = null, shown = 50;
   const currentMonth = () => $('all-time').checked ? '' : $('budget-month').value;
   const currentCurrency = () => $('budget-currency').value;
@@ -30,6 +31,7 @@ export function createBudgetUI(makeRepository) {
     $('custom-category').required = !$('custom-category-wrap').hidden;
   }
   function resetForm() {
+    dirty = false;
     editing = null; pending = null;
     form.reset();
     $('entry-date').value = localDate();
@@ -81,7 +83,7 @@ export function createBudgetUI(makeRepository) {
     $('entry-submit').textContent = 'Save changes';
     $('entry-cancel').hidden = false;
     $('entry-delete').hidden = false;
-    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    form.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
     $('entry-amount').focus({ preventScroll: true });
   }
   function render() {
@@ -147,6 +149,7 @@ export function createBudgetUI(makeRepository) {
       }
       if (change.entry || editing?.id === change.id) resetForm();
       render();status(`${message} Synced to your account.`);
+      if (!change.entry) $('transactions-title').focus({ preventScroll: true });
     } catch (err) {
       if (generation === epoch) {
         const http = err.$metadata?.httpStatusCode;
@@ -155,6 +158,11 @@ export function createBudgetUI(makeRepository) {
       }
     } finally { if (generation === epoch) setBusy(false); }
   }
+  form.addEventListener('input', () => { dirty = true; });
+  form.addEventListener('change', () => { dirty = true; });
+  window.addEventListener('beforeunload', event => {
+    if (dirty) { event.preventDefault(); event.returnValue = ''; }
+  });
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (busy || !repository || !form.reportValidity()) return;
     try {
@@ -197,5 +205,5 @@ export function createBudgetUI(makeRepository) {
     resetForm();render();error('');status('');setBusy(false);
   }
   stop();
-  return { stop, refresh, start() { stop();repository = makeRepository();return refresh(); } };
+  return { stop, refresh, hasUnsaved: () => dirty, start() { stop();repository = makeRepository();return refresh(); } };
 }

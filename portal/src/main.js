@@ -398,6 +398,7 @@ dropzone.addEventListener('keydown', event => {
 
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {
+  if (budget.hasUnsaved() && !confirm('This entry has not been saved. Sign out and discard it?')) return;
   sessionEpoch++;
   authenticated = false;
   budget.stop();

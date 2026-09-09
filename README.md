@@ -131,3 +131,8 @@ This is an orientation list, not a full review of every app:
 | Other `dev/` folders | Additional games, experiments, personal pages and diagnostics tools |
 
 The trading workflow is scheduled for 22:20 UTC daily, also supports manual runs and scoped pushes to `main`, validates output, and commits changed `dev/Trading/data/analysis.json`. Other projects are not covered by that workflow.
+
+Portal QA (2026-09-09): account persistence and concurrent-write tests pass, with
+mobile shortcuts and unsaved-entry warnings. Live S3 versioning is enabled and
+budget records are outside the inbox expiration policy. Real-user Cognito/S3
+round-trip verification is still a release check; see the portal guide.

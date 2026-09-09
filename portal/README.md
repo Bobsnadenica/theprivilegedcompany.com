@@ -91,3 +91,12 @@ Use **Delete entry** beneath a transaction or inside its edit form to remove a
 mistake; deletion asks for confirmation. Category colors are distinct within the
 ledger, including custom categories, and stay consistent across period/currency
 filters. Changing the category set can reassign colors.
+
+Final QA/polish adds shortcuts to the form and entries, clearer filters and chart
+legends, and a warning on sign-out or browser navigation with unsaved form changes.
+Browser warnings cannot protect drafts if the OS kills the tab; wait for the
+saved/synced message before leaving. Saved records live in S3, not browser storage.
+On 2026-09-09, read-only live checks confirmed bucket versioning is Enabled and
+budget objects are outside the inbox-only expiration rule. Historical versions
+provide recovery options; they are not a guarantee against all loss or deliberate
+bucket destruction. A real Cognito-user write/read remains untested in this QA.

@@ -134,3 +134,21 @@ confirmation and existing conflict-safe persistence. Chart colors are allocated
 uniquely from the whole ledger's category names rather than a colliding eight-color
 hash. Month/currency filters retain colors; changes to the category set can reassign
 them. Added a regression test for colliding names and more than eight categories.
+
+### Final portal QA and visual pass — 2026-09-09
+
+Refined filter alignment, brass/green/copper summary surfaces, readable chart
+legends and transaction metadata. Added form/entries shortcuts, explicit reduced
+motion for edit scrolling, and keyboard focus after deletion. Added unsaved draft
+warnings for sign-out and beforeunload; OS termination can still discard drafts.
+Saved records remain account-scoped S3 JSON, with conditional write protection.
+Live read-only AWS checks confirmed bucket versioning Enabled and lifecycle
+expiration limited to inbox/; budget records have no configured expiration.
+No production financial records were read or changed. A 15th test verifies saved
+income/expenses reload through a fresh repository and a second account is empty.
+Final checks: 15 Node tests and production build passed; browser fixtures verified
+reload, sign-out/sign-in persistence, isolation between two accounts, canceled
+unsaved-sign-out warning, deletion focus, reduced motion and shortcuts. Reviewed
+320/390/820/1440 layouts, including a fix for clipped native month text on phones.
+Live CORS exposes ETag and allows conditional writes from both production origins.
+No real Cognito-user save/read, deployment or push performed in this pass.
