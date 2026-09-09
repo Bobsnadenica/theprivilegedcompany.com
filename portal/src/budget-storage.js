@@ -6,7 +6,7 @@ export function budgetStorageAdapter(client, bucket, key) {
     async read() {
       try {
         const out = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
-        if (!out.ETag) throw new Error('Cannot verify the saved budget version. Please refresh before saving.');
+        if (!out.ETag) throw new Error('Cannot verify the saved data version. Please refresh before saving.');
         return { ledger: JSON.parse(await out.Body.transformToString()), etag: out.ETag };
       } catch (error) {
         if (error.name === 'NoSuchKey') return null;

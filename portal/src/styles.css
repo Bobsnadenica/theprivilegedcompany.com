@@ -514,3 +514,19 @@ button:disabled { cursor: not-allowed; }
   .budget-filters label:first-child { flex: 1 0 100%; }
   .budget-filters > label:nth-child(2) { flex: 1; }
 }
+.workspace-head > div:first-child { flex: 1; min-width: 0; }
+.notification-button { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 10px; min-width: 44px; }
+.notification-button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+.notification-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; }
+.timer-list { display: grid; gap: 16px; }
+.timer-card { padding: 24px; min-width: 0; }
+.timer-card-head { display: flex; gap: 16px; align-items: start; justify-content: space-between; }
+.timer-card-head > div { min-width: 0; }
+.timer-card h3, .timer-note { overflow-wrap: anywhere; }
+.timer-days { color: var(--accent); white-space: nowrap; font-size: .9rem; }
+.timer-note { white-space: pre-wrap; line-height: 1.7; color: var(--muted); font-size: .85rem; }
+.timer-amount { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+#timer-note { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font: inherit; font-size: 16px; resize: vertical; width: 100%; }
+#timer-fields button:first-of-type { margin-top: 16px; }
+#category-delete { align-self: flex-start; font-size: .72rem; margin-top: 4px; }
+@media(max-width:680px) { .workspace-head { gap: 8px; }.timer-card { padding: 20px 16px; }.timer-card-head { flex-wrap: wrap; } }

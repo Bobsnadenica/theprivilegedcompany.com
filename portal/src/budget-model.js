@@ -32,6 +32,7 @@ export function validateEntry(entry) {
 }
 export function validateLedger(ledger) {
   if (!ledger || ledger.version !== 1 || !Array.isArray(ledger.entries)) throw new Error('This budget format cannot be read. Your saved data has not been changed.');
+  if (ledger.removedCategories !== undefined && (!Array.isArray(ledger.removedCategories) || ledger.removedCategories.some(c => !c || !['income', 'expense'].includes(c.type) || typeof c.name !== 'string' || c.name.length > 48 || c.name === 'Other'))) throw new Error('Invalid category settings.');
   const ids = new Set();
   for (const entry of ledger.entries) {
     validateEntry(entry);
@@ -40,8 +41,8 @@ export function validateLedger(ledger) {
   }
   return ledger;
 }
-export function categoriesFor(entries, type) {
-  return [...new Set([...DEFAULT_CATEGORIES[type], ...entries.filter(e => e.type === type).map(e => e.category)])];
+export function categoriesFor(entries, type, removed = []) {
+  return [...new Set([...DEFAULT_CATEGORIES[type], ...entries.filter(e => e.type === type).map(e => e.category)])].filter(name => !removed.includes(name));
 }
 export function summarize(entries, month, currency) {
   const selected = entries.filter(e => e.currency === currency && (!month || e.date.startsWith(`${month}-`)))

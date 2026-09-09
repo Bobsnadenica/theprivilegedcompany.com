@@ -29,7 +29,7 @@ The basic Python server serves existing route directories but does not reproduce
 | `views/` | Ten route fragments plus the not-found fragment; home is embedded in `index.html` |
 | `scripts/sync-route-pages.mjs` | Generates ten static route shells from `index.html` with route-specific head metadata |
 | `manifest/`, `contact/`, other route folders | Generated `index.html` files for direct static-host requests |
-| `portal/` | Separate Vite app and committed browser build for Cognito login, budget tracking, personal files and the admin inbox |
+| `portal/` | Separate Vite app and committed browser build for Cognito login, budget tracking, private TimeTo countdowns, personal files and the admin inbox |
 | `backend/` | Terraform for the portal and public contact inbox: Cognito, IAM and S3 |
 | `backend/shorturl/` | Independent Terraform stack and Lambda for short links |
 | `dev/` | Tool hub and independent projects with their own runtimes/build conventions |
@@ -136,3 +136,10 @@ Portal QA (2026-09-09): account persistence and concurrent-write tests pass, wit
 mobile shortcuts and unsaved-entry warnings. Live S3 versioning is enabled and
 budget records are outside the inbox expiration policy. Real-user Cognito/S3
 round-trip verification is still a release check; see the portal guide.
+
+
+The portal also includes private **TimeTo** countdowns and recurring schedules,
+with add/edit/delete per account. Notifications use the top-right bell. Budget
+categories can be deleted without deleting their transaction history; affected
+entries move to Other. The former public TimeTo tool and its dev-index link were
+removed after its owner data was migrated and verified in private account storage.

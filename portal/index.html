@@ -32,8 +32,8 @@
       rel="stylesheet"
     />
 
-    <script type="module" crossorigin src="/portal/assets/index-BNy3EM9d.js"></script>
-    <link rel="stylesheet" crossorigin href="/portal/assets/index-BwChOLWj.css">
+    <script type="module" crossorigin src="/portal/assets/index-Cd_G4IRF.js"></script>
+    <link rel="stylesheet" crossorigin href="/portal/assets/index-cn2eGYJV.css">
   </head>
   <body>
     <main class="shell">
@@ -113,12 +113,13 @@
       <section id="workspace-view" hidden>
         <div class="workspace-head">
           <div><span class="eyebrow">Your personal space</span><h1>Client portal</h1><p class="muted" id="user-email"></p></div>
+          <button type="button" id="inbox-tab" class="btn-ghost notification-button" data-panel="inbox-view" aria-pressed="false" aria-label="Notifications" title="Notifications" hidden><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notification-badge" class="notification-dot" hidden></span></button>
           <button id="logout-btn" type="button" class="btn-ghost">Sign out</button>
         </div>
         <nav class="portal-nav" aria-label="Portal sections">
           <button type="button" data-panel="budget-panel" aria-pressed="true">Budget</button>
           <button type="button" data-panel="files-view" aria-pressed="false">Files</button>
-          <button type="button" id="inbox-tab" data-panel="inbox-view" aria-pressed="false" hidden>Notifications</button>
+          <button type="button" data-panel="timeto-panel" aria-pressed="false">TimeTo</button>
         </nav>
         <section id="budget-panel" aria-labelledby="budget-title">
           <div class="budget-heading">
@@ -151,6 +152,7 @@
                 </div>
                 <small id="amount-help" class="field-hint">Enter a positive amount. Each currency is tracked separately.</small>
                 <label for="entry-category">Category</label><select id="entry-category" required></select>
+                <button id="category-delete" class="btn-ghost danger" type="button">Delete selected category</button>
                 <div id="custom-category-wrap" hidden><label for="custom-category">New category name</label><input id="custom-category" type="text" maxlength="48" placeholder="e.g. My project"></div>
                 <label for="entry-date">Date</label><input id="entry-date" type="date" min="1900-01-01" max="9999-12-31" required>
                 <label for="entry-note">Note <span class="optional">Optional</span></label><input id="entry-note" type="text" maxlength="240" placeholder="What was it for?">
@@ -187,7 +189,23 @@
       </section>
 
       <!-- Authenticated: files -->
-      <section id="files-view" class="card wide" hidden>
+      <section id="timeto-panel" hidden aria-labelledby="timeto-title">
+          <div class="budget-heading"><div><span class="eyebrow">Make room for what’s next</span><h2 id="timeto-title">TimeTo</h2><p class="muted">Your renewals, milestones and recurring payments.</p></div><button id="timer-refresh" class="btn-ghost" type="button">Refresh</button></div>
+          <p id="timer-status" class="sync-status" role="status" aria-live="polite"></p>
+          <div class="budget-layout">
+            <form id="timer-form" class="card entry-card"><fieldset id="timer-fields"><legend id="timer-title-heading">Add a countdown</legend>
+              <label for="timer-title">Title</label><input id="timer-title" type="text" required maxlength="100" placeholder="What are you counting down to?">
+              <label for="timer-group">Group</label><input id="timer-group" type="text" required maxlength="60" value="Personal" placeholder="Renewals, work, payments…">
+              <label for="timer-repeat">Schedule</label><select id="timer-repeat"><option value="once">One-time</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="never">Never expires</option></select>
+              <label for="timer-date">First due date</label><input id="timer-date" type="date" required min="1900-01-01" max="9999-12-31"><p class="field-hint">Recurring dates repeat automatically. Shorter months use their last day. For a yearly payment with only a month specified, use the first of that month.</p>
+              <div class="amount-row"><label>Amount (optional)<input id="timer-amount" type="text" inputmode="decimal" placeholder="0.00"></label><label>Currency<select id="timer-currency"><option>EUR</option><option>USD</option><option>GBP</option><option>BGN</option></select></label></div>
+              <label for="timer-note">Notes</label><textarea id="timer-note" rows="3" maxlength="1000"></textarea>
+              <button type="submit" class="btn-primary">Save countdown</button><button type="button" id="timer-cancel" class="btn-ghost" hidden>Cancel edit</button>
+            </fieldset></form>
+            <div class="budget-detail"><label for="timer-search">Find a countdown</label><input id="timer-search" type="text" placeholder="Search titles, groups or notes"><p id="timer-count" class="muted"></p><p id="timer-empty" class="empty-state"></p><div id="timer-list" class="timer-list"></div></div>
+          </div>
+        </section>
+        <section id="files-view" class="card wide" hidden>
         <div class="files-head">
           <div>
             <h1>Your files</h1>

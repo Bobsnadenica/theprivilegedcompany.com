@@ -114,3 +114,15 @@ test('fresh repository sessions reload saved income and expenses without browser
   assert.equal(summarize(reopened.entries, '', 'EUR').income, 200000);
   assert.equal((await createBudgetRepository(accountB).load()).entries.length, 0);
 });
+
+test('deleting a category preserves totals, hides it, and rejects stale category writes', async () => {
+  const store=memoryStore([entry(),entry({id:'income',type:'income',category:'Food',amount:999})]);
+  const repo=createBudgetRepository(store);
+  await repo.commit({removeCategory:{type:'expense',name:'Food'},revision:'category-revision'});
+  const loaded=await repo.load();assert.equal(loaded.entries[0].category,'Other');assert.equal(loaded.entries[1].category,'Food');assert.equal(loaded.entries[0].amount,1234);
+  assert(!categoriesFor(loaded.entries,'expense',['Food']).includes('Food'));
+  await assert.rejects(repo.commit(change(entry({id:'new'}))),/deleted/);
+  await repo.commit(change(entry({id:'other',category:'Other'})));
+  assert.deepEqual((await repo.load()).removedCategories,[{type:'expense',name:'Food'}]);
+  await assert.rejects(repo.commit({removeCategory:{type:'expense',name:'Other'},revision:'x'}));
+});

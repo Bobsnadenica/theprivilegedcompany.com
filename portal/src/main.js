@@ -1,4 +1,5 @@
 import './styles.css';
+import { createTimeToUI } from './timeto.js';
 import { createBudgetUI } from './budget.js';
 import { createBudgetRepository } from './budget-repository.js';
 import {
@@ -12,6 +13,7 @@ import {
   initStorage,
   resetStorage,
   createBudgetStorage,
+  createTimeToStorage,
   listFiles,
   uploadFile,
   downloadUrl,
@@ -35,13 +37,16 @@ let sessionEpoch = 0;
 let authenticated = false;
 const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()));
 
+const timeto = createTimeToUI(createTimeToStorage);
+
 function selectPanel(id) {
-  for (const panel of ['budget-panel', 'files-view', 'inbox-view']) $(panel).hidden = panel !== id;
+  for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel']) $(panel).hidden = panel !== id;
   document.querySelectorAll('[data-panel]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.panel === id)));
 }
 document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
   selectPanel(button.dataset.panel);
   if (button.dataset.panel === 'budget-panel') budget.refresh();
+  if (button.dataset.panel === 'timeto-panel') timeto.refresh();
 }));
 
 function show(name) {
@@ -99,7 +104,7 @@ async function enterApp(session, email) {
   sessionEpoch++;
   show('workspace');
   selectPanel('budget-panel');
-  await Promise.all([budget.start(), refreshList(), refreshInbox()]);
+  await Promise.all([budget.start(), timeto.start(), refreshList(), refreshInbox()]);
 }
 
 async function refreshList() {
@@ -197,6 +202,8 @@ async function refreshInbox() {
   if (!authenticated || generation !== sessionEpoch) return;
   $('inbox-tab').hidden = false;
   list.innerHTML = '';
+  $('notification-badge').hidden = items.length === 0;
+  $('inbox-tab').setAttribute('aria-label', items.length ? `Notifications, ${items.length} unread` : 'Notifications');
   badge.hidden = items.length === 0;
   badge.textContent = items.length ? String(items.length) : '';
   empty.hidden = items.length > 0;
@@ -263,6 +270,8 @@ async function refreshInbox() {
         await archiveInbox(it.key);
         li.remove();
         const remaining = list.querySelectorAll('.inbox-row').length;
+        $('notification-badge').hidden = remaining === 0;
+        $('inbox-tab').setAttribute('aria-label', remaining ? `Notifications, ${remaining} unread` : 'Notifications');
         badge.hidden = remaining === 0;
         badge.textContent = remaining ? String(remaining) : '';
         empty.hidden = remaining > 0;
@@ -398,10 +407,11 @@ dropzone.addEventListener('keydown', event => {
 
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {
-  if (budget.hasUnsaved() && !confirm('This entry has not been saved. Sign out and discard it?')) return;
+  if ((budget.hasUnsaved() || timeto.hasUnsaved()) && !confirm('This entry has not been saved. Sign out and discard it?')) return;
   sessionEpoch++;
   authenticated = false;
   budget.stop();
+  timeto.stop();
   resetStorage();
   signOut();
   $('inbox-tab').hidden = true;

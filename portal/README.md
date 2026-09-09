@@ -100,3 +100,29 @@ On 2026-09-09, read-only live checks confirmed bucket versioning is Enabled and
 budget objects are outside the inbox-only expiration rule. Historical versions
 provide recovery options; they are not a guarantee against all loss or deliberate
 bucket destruction. A real Cognito-user write/read remains untested in this QA.
+
+
+## TimeTo and category management
+
+TimeTo is a private portal tab for one-time countdowns, monthly/yearly recurring
+payments and items that never expire. Each account starts empty and can add,
+edit, search and delete its own records. Dates are calendar dates; recurring
+month-end dates clamp to the shorter month's last day. Amounts are optional and
+do not create budget transactions automatically. Notifications are accessed by
+the bell at the top right and retain their existing IAM-gated admin permissions.
+
+TimeTo uses `users/<email>/.timeto/ledger-v1.json` with the same conditional-write
+repository, explicit validation, unsaved warnings and account isolation as Budget.
+Both internal ledger folders are excluded from Files. The owner's former public
+countdowns and payments were migrated with a create-only S3 write and verified by
+reading the complete object back. All 23 items and the exact original text were
+preserved privately; personal seed data is absent from the portal source/build.
+The old `dev/timeto/` folder and its developer-index tile have been removed.
+Repository publication is needed to remove that page from the currently live site;
+old Git history is not rewritten by this migration.
+
+To delete a budget category, choose it in the entry form and press **Delete selected
+category**. Confirming moves its transactions to Other with amounts unchanged and
+hides that category for the selected income/expense type. Other cannot be deleted.
+Deletion and reassignment are one conditional write, and stale entry edits cannot
+restore a deleted category. Retained settings survive later transaction changes.

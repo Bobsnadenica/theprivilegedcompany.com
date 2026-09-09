@@ -24,11 +24,12 @@ export function createBudgetUI(makeRepository) {
     $('budget-panel').setAttribute('aria-busy', String(value));
   }
   function categoryOptions(selected = '') {
-    const options = categoriesFor(ledger.entries, $('entry-type').value);
+    const options = categoriesFor(ledger.entries, $('entry-type').value, (ledger.removedCategories || []).filter(c => c.type === $('entry-type').value).map(c => c.name));
     $('entry-category').replaceChildren(...options.map(name => new Option(name, name)), new Option('+ New category', '__new__'));
     if (options.includes(selected)) $('entry-category').value = selected;
     $('custom-category-wrap').hidden = $('entry-category').value !== '__new__';
     $('custom-category').required = !$('custom-category-wrap').hidden;
+    $('category-delete').disabled = ['Other', '__new__'].includes($('entry-category').value);
   }
   function resetForm() {
     dirty = false;
@@ -147,7 +148,7 @@ export function createBudgetUI(makeRepository) {
         $('all-time').checked = false; $('budget-month').disabled = false;
         $('budget-month').value = change.entry.date.slice(0, 7);
       }
-      if (change.entry || editing?.id === change.id) resetForm();
+      if (change.entry || change.removeCategory || editing?.id === change.id) resetForm();
       render();status(`${message} Synced to your account.`);
       if (!change.entry) $('transactions-title').focus({ preventScroll: true });
     } catch (err) {
@@ -179,7 +180,14 @@ export function createBudgetUI(makeRepository) {
   $('entry-type').addEventListener('change', () => {
     categoryOptions();$('entry-submit').textContent = editing ? 'Save changes' : `Add ${$('entry-type').value}`;
   });
+  $('category-delete').addEventListener('click', async () => {
+    const name = $('entry-category').value, type = $('entry-type').value;
+    if (busy || ['Other', '__new__'].includes(name) || !confirm(`Delete category “${name}”? Its entries will move to Other; amounts will be preserved.`)) return;
+    await save({removeCategory: {type, name}, revision: crypto.randomUUID()}, 'Category deleted.');
+    categoryOptions();
+  });
   $('entry-category').addEventListener('change', () => {
+    $('category-delete').disabled = ['Other', '__new__'].includes($('entry-category').value);
     $('custom-category-wrap').hidden = $('entry-category').value !== '__new__';
     $('custom-category').required = !$('custom-category-wrap').hidden;
     if (!$('custom-category-wrap').hidden) $('custom-category').focus();

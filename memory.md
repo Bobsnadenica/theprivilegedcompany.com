@@ -152,3 +152,36 @@ unsaved-sign-out warning, deletion focus, reduced motion and shortcuts. Reviewed
 320/390/820/1440 layouts, including a fix for clipped native month text on phones.
 Live CORS exposes ETag and allows conditional writes from both production origins.
 No real Cognito-user save/read, deployment or push performed in this pass.
+
+
+## Private TimeTo migration and category deletion — 2026-09-09
+
+User explicitly requested migrating the former public TimeTo data to their existing
+account and removing the public folder/launcher. Verified the target Cognito account
+exists; created its `.timeto/ledger-v1.json` with If-None-Match, then read back and
+compared all 23 items and exact original source text. This was an authorized live
+private-data migration; no personal values or owner address are retained here.
+The source text is private migration metadata preserved across subsequent edits.
+Deleted `dev/timeto/` and its tile in `dev/index.html` after readback succeeded.
+Publication still controls removal from the live site; historical Git data remains.
+
+TimeTo supports one-time, monthly, yearly and never-expiring entries, grouping,
+optional money, notes, search, edit/delete, unsaved warnings and private account
+storage. Calendar recurrence clamps month ends and leap dates. Other accounts start
+empty. Recurring payment labels are informational and do not debit the budget.
+The admin notification tab became a top-right accessible bell with unread indicator.
+
+Shared repository accepts a validator for TimeTo and preserves extra ledger fields.
+Budget removedCategories are persisted; deletion reassigns only the chosen type's
+entries to Other without changing amounts, invalidates stale revisions and rejects
+new writes using deleted categories. Other remains available. Internal `.budget/`
+and `.timeto/` keys are hidden from file listings. No backend permissions changed.
+
+Validation for this migration: 18 Node tests passed and the production build was
+regenerated. Isolated browser fixtures passed category reassignment with unchanged
+totals, TimeTo create/edit/delete/search/reload, bell and Files navigation, and
+empty data after switching to another account. Reviewed screenshots at 1440, 820,
+390 and 320 pixels with no horizontal overflow. Personal migration seed data was
+checked absent from source/build; the old folder/link are absent. Live migration
+was verified with administrative S3 readback; browser auth/IAM was fixture-tested,
+not a real-user Cognito sign-in. Repository changes remain uncommitted/unpublished.
