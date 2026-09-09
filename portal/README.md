@@ -126,3 +126,9 @@ category**. Confirming moves its transactions to Other with amounts unchanged an
 hides that category for the selected income/expense type. Other cannot be deleted.
 Deletion and reassignment are one conditional write, and stale entry edits cannot
 restore a deleted category. Retained settings survive later transaction changes.
+
+TimeTo opens with the next upcoming date and clickable due-soon/overdue totals.
+The list is grouped by urgency, with full calendar dates and relative labels.
+Search and All / Next 30 days / Overdue / Recurring filters affect the list;
+overview totals always describe the full account. Add/edit uses an expandable
+form so countdowns are visible first on phones. Existing storage is unchanged.

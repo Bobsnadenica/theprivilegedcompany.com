@@ -185,3 +185,14 @@ empty data after switching to another account. Reviewed screenshots at 1440, 820
 checked absent from source/build; the old folder/link are absent. Live migration
 was verified with administrative S3 readback; browser auth/IAM was fixture-tested,
 not a real-user Cognito sign-in. Repository changes remain uncommitted/unpublished.
+
+### TimeTo clarity pass — 2026-09-09
+
+Replaced the always-visible form-first layout with next-up overview, due-soon and
+overdue counts, urgency-grouped list, human-readable dates and relative badges.
+Added All/Next 30 days/Overdue/Recurring filtering; overview uses the full account
+regardless of filters. Form is collapsed initially and opens for editing. Existing
+storage and migration records unchanged. All 18 tests/build/whitespace checks pass.
+Browser fixtures validated next-up ordering, filters, search, create and edit/cancel;
+reviewed screenshots at 320, 390, 820 and 1440px with no overflow. No production
+records modified and these visual changes were not published in this pass.

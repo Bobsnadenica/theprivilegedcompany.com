@@ -189,9 +189,10 @@
 
       <!-- Authenticated: files -->
       <section id="timeto-panel" hidden aria-labelledby="timeto-title">
-          <div class="budget-heading"><div><span class="eyebrow">Make room for what’s next</span><h2 id="timeto-title">TimeTo</h2><p class="muted">Your renewals, milestones and recurring payments.</p></div><button id="timer-refresh" class="btn-ghost" type="button">Refresh</button></div>
+          <div class="budget-heading"><div><span class="eyebrow">Make room for what’s next</span><h2 id="timeto-title">Know what’s next.</h2><p class="muted">Your dates, in order. A little less to keep in your head.</p></div><button id="timer-refresh" class="btn-ghost" type="button">Refresh</button></div>
           <p id="timer-status" class="sync-status" role="status" aria-live="polite"></p>
-          <div class="budget-layout">
+          <div id="timer-overview" class="timer-overview" aria-label="Countdown overview"></div>
+          <details id="timer-editor" class="timer-editor"><summary>Add a countdown <span aria-hidden="true">＋</span></summary>
             <form id="timer-form" class="card entry-card"><fieldset id="timer-fields"><legend id="timer-title-heading">Add a countdown</legend>
               <label for="timer-title">Title</label><input id="timer-title" type="text" required maxlength="100" placeholder="What are you counting down to?">
               <label for="timer-group">Group</label><input id="timer-group" type="text" required maxlength="60" value="Personal" placeholder="Renewals, work, payments…">
@@ -201,8 +202,9 @@
               <label for="timer-note">Notes</label><textarea id="timer-note" rows="3" maxlength="1000"></textarea>
               <button type="submit" class="btn-primary">Save countdown</button><button type="button" id="timer-cancel" class="btn-ghost" hidden>Cancel edit</button>
             </fieldset></form>
-            <div class="budget-detail"><label for="timer-search">Find a countdown</label><input id="timer-search" type="text" placeholder="Search titles, groups or notes"><p id="timer-count" class="muted"></p><p id="timer-empty" class="empty-state"></p><div id="timer-list" class="timer-list"></div></div>
-          </div>
+          </details>
+          <div class="timer-toolbar"><label for="timer-search">Find a countdown<input id="timer-search" type="text" placeholder="Search your dates…"></label><label for="timer-filter">Show<select id="timer-filter"><option value="all">All countdowns</option><option value="soon">Next 30 days</option><option value="overdue">Overdue</option><option value="recurring">Recurring</option></select></label></div>
+          <p id="timer-count" class="muted"></p><p id="timer-empty" class="empty-state"></p><div id="timer-list" class="timer-list"></div>
         </section>
         <section id="files-view" class="card wide" hidden>
         <div class="files-head">
