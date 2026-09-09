@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260910a';
+import { languageMeta, translations } from './translations.js?v=20260910b';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260910a';
+const assetVersion = '20260910b';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -1337,43 +1337,32 @@ const initHealthCheck = () => {
 /**
  * Custom Cursor Logic
  */
+const enhancedPointerMedia = window.matchMedia('(hover: hover) and (pointer: fine)');
+const reducedMotionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
 const canUseEnhancedPointer = () => (
     window.innerWidth > 760 &&
-    window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
-    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    enhancedPointerMedia.matches &&
+    !reducedMotionMedia.matches
 );
 
 const initCursor = () => {
-    if (!cursor || !follower || !canUseEnhancedPointer()) return;
+    if (!cursor || !follower) return;
 
-    document.body.classList.add('has-custom-cursor');
-
-    let mouseX = 0, mouseY = 0;
-    let followerX = 0, followerY = 0;
-    let cursorFrame = null;
-
-    window.addEventListener('mousemove', e => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        if (!cursorFrame) {
-            cursorFrame = requestAnimationFrame(() => {
-                cursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-                cursorFrame = null;
-            });
+    const hideCursor = () => document.body.classList.remove('has-custom-cursor', 'cursor-hover');
+    window.addEventListener('pointermove', event => {
+        if (event.pointerType === 'touch' || !canUseEnhancedPointer()) {
+            hideCursor();
+            return;
         }
-        
-        const target = e.target.closest('a, button, [data-magnetic]');
-        document.body.classList.toggle('cursor-hover', !!target);
+        // Position follows the pointer directly; only the ring size is animated.
+        const position = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+        cursor.style.transform = position;
+        follower.style.transform = position;
+        document.body.classList.add('has-custom-cursor');
+        document.body.classList.toggle('cursor-hover', !!event.target.closest('a, button, input, select, textarea, [role="link"], [data-magnetic]'));
     }, { passive: true });
-
-    const loop = () => {
-        followerX += (mouseX - followerX) * 0.22;
-        followerY += (mouseY - followerY) * 0.22;
-        follower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
-        requestAnimationFrame(loop);
-    };
-    loop();
+    document.documentElement.addEventListener('pointerleave', hideCursor);
+    window.addEventListener('blur', hideCursor);
 };
 
 /**
@@ -1422,7 +1411,10 @@ class QuantumWeb {
             this.isVisible = !document.hidden;
             if (this.isVisible && !this.isReducedMotion) this.animate(performance.now());
         });
-        document.addEventListener('themechange', () => this.readTheme());
+        document.addEventListener('themechange', () => {
+            this.readTheme();
+            if (this.isReducedMotion) this.animate(performance.now());
+        });
         window.addEventListener('resize', () => {
             clearTimeout(this.resizeTimer);
             this.resizeTimer = setTimeout(() => this.init(), 150);
@@ -1475,7 +1467,7 @@ class QuantumWeb {
         const memory = navigator.deviceMemory || 8;
         const saveData = Boolean(navigator.connection?.saveData);
         this.isEconomy = saveData || cores <= 4 || memory <= 4;
-        this.frameInterval = this.isReducedMotion ? 1000 : (this.isCompact || this.isEconomy ? 33 : 20);
+        this.frameInterval = this.isReducedMotion ? 1000 : (this.isCompact || this.isEconomy ? 33 : 1000 / 60 - 1);
         this.connectionDistance = this.isCompact ? 82 : (this.isEconomy ? 98 : 112);
 
         const density = this.isCompact ? 7600 : (this.isEconomy ? 5600 : 4600);
@@ -1529,7 +1521,7 @@ class QuantumWeb {
             .filter(ripple => ripple.alpha > 0.04 && ripple.radius < Math.max(this.width, this.height));
 
         this.ripples.forEach(ripple => {
-            this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${ripple.alpha * 0.22})`;
+            this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${ripple.alpha * 0.36})`;
             this.ctx.lineWidth = 1;
             this.ctx.beginPath();
             this.ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
@@ -1580,7 +1572,7 @@ class QuantumWeb {
             if (p.y > this.height) p.y = 0;
 
             const twinkle = (Math.sin(timestamp * 0.0012 + p.phase) + 1) * 0.07;
-            const alpha = Math.min(0.95, 0.28 + p.depth * 0.26 + p.heat * 0.42 + twinkle);
+            const alpha = Math.min(0.95, 0.38 + p.depth * 0.34 + p.heat * 0.35 + twinkle);
             const size = p.size + p.heat * 1.45;
             if (p.heat > 0.15) {
                 this.ctx.fillStyle = `rgba(${this.accentStrong}, ${p.heat * 0.16})`;
@@ -1594,7 +1586,7 @@ class QuantumWeb {
             this.ctx.fill();
         });
 
-        this.ctx.lineWidth = 0.5;
+        this.ctx.lineWidth = 0.65;
         if (!this.isReducedMotion && this.particles.length > 1) {
             const grid = new Map();
             const cellSize = this.connectionDistance;
@@ -1623,7 +1615,7 @@ class QuantumWeb {
                             const dist = Math.sqrt(dx * dx + dy * dy);
                             if (dist < this.connectionDistance) {
                                 const heat = Math.max(particle.heat, neighbor.heat);
-                                const alpha = (1 - dist / this.connectionDistance) * (0.1 + heat * 0.18);
+                                const alpha = (1 - dist / this.connectionDistance) * (0.18 + heat * 0.26);
                                 this.ctx.strokeStyle = `rgba(${this.accent}, ${alpha})`;
                                 this.ctx.beginPath();
                                 this.ctx.moveTo(particle.x, particle.y);
@@ -1652,6 +1644,8 @@ class QuantumWeb {
             }
         }
 
+        this.mouse.vx *= 0.85;
+        this.mouse.vy *= 0.85;
         if (!this.isReducedMotion) {
             requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
         }

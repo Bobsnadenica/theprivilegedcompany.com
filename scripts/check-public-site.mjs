@@ -63,3 +63,65 @@ await winner;
 assert.equal(view.innerHTML, 'company');
 assert.equal(seo, 'who-are-we');
 console.log('Public router checks passed: stale response, stale error, rapid navigation.');
+
+// Cursor coordinates must update in the pointer event, with no animation queue.
+const pointerEvents = new Map();
+const cursorClasses = new Set();
+const dot = { style: {} };
+const ring = { style: {} };
+let enhancedPointer = true;
+vm.runInNewContext(
+    source.slice(source.indexOf('const initCursor ='), source.indexOf('/**\n * Magnetic Elements')) + '; initCursor();',
+    {
+        cursor: dot, follower: ring, canUseEnhancedPointer: () => enhancedPointer,
+        window: { addEventListener: (type, handler) => pointerEvents.set(type, handler) },
+        document: {
+            documentElement: { addEventListener: (type, handler) => pointerEvents.set(type, handler) },
+            body: { classList: {
+                add: value => cursorClasses.add(value),
+                remove: (...values) => values.forEach(value => cursorClasses.delete(value)),
+                toggle: (value, enabled) => enabled ? cursorClasses.add(value) : cursorClasses.delete(value)
+            } }
+        }
+    }
+);
+const pointer = { pointerType: 'mouse', clientX: 420, clientY: 210, target: { closest: () => true } };
+pointerEvents.get('pointermove')(pointer);
+assert.equal(dot.style.transform, 'translate3d(420px, 210px, 0)');
+assert.equal(ring.style.transform, dot.style.transform);
+assert.ok(cursorClasses.has('cursor-hover'));
+pointerEvents.get('blur')();
+assert.ok(!cursorClasses.has('has-custom-cursor'));
+enhancedPointer = false;
+pointerEvents.get('pointermove')(pointer);
+assert.ok(!cursorClasses.has('has-custom-cursor'));
+
+// Rich mode must draw every 60 Hz frame, rather than dropping alternate frames.
+const animationQueue = [];
+const Web = vm.runInNewContext(
+    source.slice(source.indexOf('class QuantumWeb'), source.indexOf('/**\n * Telemetry Log Engine')) + '; QuantumWeb;',
+    {
+        requestAnimationFrame: callback => animationQueue.push(callback),
+        window: { innerWidth: 1280, innerHeight: 720, devicePixelRatio: 1, matchMedia: () => ({ matches: false }) },
+        navigator: { hardwareConcurrency: 8, deviceMemory: 8 }
+    }
+);
+const web = Object.create(Web.prototype);
+let frames = 0;
+Object.assign(web, {
+    isVisible: true, isReducedMotion: false, isCompact: false, lastFrame: 0,
+    canvas: { style: {}, dataset: {} },
+    ctx: { fillRect: () => frames++, setTransform() {} }, mouse: { x: null, vx: 0, vy: 0 },
+    ripples: [], particles: []
+});
+web.init();
+web.particles = [];
+for (let frame = 1; frame <= 60; frame++) web.animate(frame * 1000 / 60);
+assert.equal(frames, 60);
+animationQueue.length = 0;
+web.isReducedMotion = true;
+web.animate(2000);
+assert.equal(animationQueue.length, 0);
+const css = await readFile(new URL('../styles.css', import.meta.url), 'utf8');
+assert.doesNotMatch(css.match(/#cursor(?:-follower)?\s*\{[^}]*\}/g).join(''), /transition:\s*[^;]*transform/);
+console.log('Motion checks passed: immediate cursor, pointer fallback, 60 Hz cadence, static reduced motion.');

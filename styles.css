@@ -165,7 +165,7 @@ body::before {
     border-radius: 50%;
     pointer-events: none;
     z-index: 10000;
-    transition: transform 0.04s linear;
+    transition: none;
     box-shadow: 0 0 10px var(--c-accent);
 }
 
@@ -179,7 +179,7 @@ body::before {
     border-radius: 50%;
     pointer-events: none;
     z-index: 9999;
-    transition: transform 0.08s var(--ease-out), width 0.25s, height 0.25s;
+    transition: width 0.12s, height 0.12s, opacity 0.12s;
 }
 
 body.has-custom-cursor #cursor,
@@ -1666,7 +1666,7 @@ body::after {
     inset: -20%;
     z-index: -1;
     pointer-events: none;
-    background: radial-gradient(ellipse at 38% 48%, rgba(var(--c-bg-rgb), .96) 10%, rgba(var(--c-bg-rgb), .76) 32%, transparent 72%);
+    background: radial-gradient(ellipse at 38% 48%, rgba(var(--c-bg-rgb), .48) 10%, rgba(var(--c-bg-rgb), .2) 32%, transparent 72%);
     transition: transform 900ms var(--ease-out);
 }
 body[data-route="manifest"]::after { transform: translateX(12%); }

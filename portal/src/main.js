@@ -44,6 +44,8 @@ const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()
 const timeto = createTimeToUI(createTimeToStorage);
 const bulgaria = createBulgariaUI(createBulgariaStorage);
 const life = createLifeUI(createLifeStorage);
+const trackers = { 'budget-panel': budget, 'timeto-panel': timeto, 'bulgaria-panel': bulgaria, 'life-panel': life };
+const startedTrackers = new Set();
 
 function selectPanel(id) {
   for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel', 'bulgaria-panel', 'life-panel']) $(panel).hidden = panel !== id;
@@ -51,10 +53,10 @@ function selectPanel(id) {
 }
 document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
   selectPanel(button.dataset.panel);
-  if (button.dataset.panel === 'budget-panel') budget.refresh();
-  if (button.dataset.panel === 'timeto-panel') timeto.refresh();
-  if (button.dataset.panel === 'bulgaria-panel') bulgaria.refresh();
-  if (button.dataset.panel === 'life-panel') life.refresh();
+  const tracker = trackers[button.dataset.panel];
+  if (!authenticated || !tracker) return;
+  if (startedTrackers.has(tracker)) tracker.refresh();
+  else { startedTrackers.add(tracker); tracker.start(); }
 }));
 
 function show(name) {
@@ -111,8 +113,9 @@ async function enterApp(session, email) {
   authenticated = true;
   sessionEpoch++;
   show('workspace');
-  selectPanel('budget-panel');
-  await Promise.all([budget.start(), timeto.start(), bulgaria.start(), life.start(), refreshList(), refreshInbox()]);
+  startedTrackers.clear();
+  selectPanel('files-view');
+  await Promise.all([refreshList(), refreshInbox()]);
 }
 
 async function refreshList() {
@@ -422,6 +425,7 @@ $('logout-btn').addEventListener('click', () => {
   timeto.stop();
   bulgaria.stop();
   life.stop();
+  startedTrackers.clear();
   resetStorage();
   signOut();
   $('inbox-tab').hidden = true;

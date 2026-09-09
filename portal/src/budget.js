@@ -120,12 +120,12 @@ export function createBudgetUI(makeRepository) {
     await save({ id: entry.id, expectedRevision: entry.revision, entry: null }, 'Entry deleted.');
   }
   $('entry-delete').addEventListener('click', () => removeEntry(editing));
-  async function refresh() {
+  async function refresh({ force = false } = {}) {
     if (busy || !repository) return;
     const generation = epoch; const activeRepository = repository;
     error('');status('Loading your budget…');setBusy(true);
     try {
-      const next = await activeRepository.load();
+      const next = await activeRepository.load({ force });
       if (generation !== epoch) return;
       ledger = next;render();
       // Refresh preserves unsaved input and selected categories.
@@ -193,7 +193,7 @@ export function createBudgetUI(makeRepository) {
     if (!$('custom-category-wrap').hidden) $('custom-category').focus();
   });
   $('entry-cancel').addEventListener('click', () => { resetForm();error(''); });
-  $('budget-refresh').addEventListener('click', refresh);
+  $('budget-refresh').addEventListener('click', () => refresh({ force: true }));
   for (const id of ['budget-month', 'budget-currency', 'all-time']) $(id).addEventListener('change', () => {
     if (!$('budget-month').value) $('budget-month').value = localDate().slice(0, 7);
     $('budget-month').disabled = $('all-time').checked;
@@ -208,7 +208,7 @@ export function createBudgetUI(makeRepository) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden && repository && !$('budget-panel').hidden) refresh(); });
   for (const id of ['budget-currency', 'entry-currency']) $(id).replaceChildren(...CURRENCIES.map(currency => new Option(currency, currency)));
   function stop() {
-    epoch++;repository = null;ledger = emptyLedger();editing = null;pending = null;shown = 50;
+    epoch++;repository?.clear();repository = null;ledger = emptyLedger();editing = null;pending = null;shown = 50;
     $('budget-currency').value = 'EUR';$('budget-month').value = localDate().slice(0, 7);$('all-time').checked = false;$('budget-month').disabled = false;
     resetForm();render();error('');status('');setBusy(false);
   }

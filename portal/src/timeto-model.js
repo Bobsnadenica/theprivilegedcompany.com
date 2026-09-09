@@ -1,7 +1,21 @@
 import { validDate, localDate, CURRENCIES } from './budget-model.js';
+import { dayNumber, calendarDate } from './calendar.js';
 export function validateTimer(e) {
   if (!e || !/^[a-zA-Z0-9-]{1,80}$/.test(e.id) || typeof e.revision !== 'string' || !e.revision || e.revision.length > 80 || typeof e.title !== 'string' || !e.title.trim() || e.title.length > 100 || typeof e.group !== 'string' || !e.group.trim() || e.group.length > 60 || !['once','monthly','yearly','never'].includes(e.recurrence) || (e.recurrence !== 'never' && !validDate(e.date)) || typeof e.note !== 'string' || e.note.length > 1000 || !(e.amount === null || (Number.isSafeInteger(e.amount) && e.amount > 0 && e.amount <= 99999999999)) || !CURRENCIES.includes(e.currency)) throw new Error('Invalid countdown. Your saved data has not changed.');
+  if (e.kind !== undefined && !['countdown', 'domain'].includes(e.kind)) throw new Error('Choose a valid countdown type.');
+  if (e.termYears !== undefined && (!Number.isInteger(e.termYears) || e.termYears < 1 || e.termYears > 10)) throw new Error('Domain registration must be from 1 to 10 years.');
+  if (e.kind === 'domain' && e.recurrence !== 'once') throw new Error('Domain expiry must be a fixed date.');
   return e;
+}
+// Old imported domain groups remain readable without rewriting account records.
+export const isDomain = entry => entry.kind === 'domain' || (entry.kind === undefined && /\bdomains?\b/i.test(entry.group) && entry.recurrence === 'once');
+export function domainProgress(entry, today = localDate()) {
+  if (!isDomain(entry)) return null;
+  const [year, month, day] = entry.date.split('-').map(Number);
+  const start = calendarDate(year - (entry.termYears ?? 1), month - 1, day);
+  const cycleDays = dayNumber(entry.date) - dayNumber(start);
+  const remaining = Math.max(0, dayNumber(entry.date) - dayNumber(today));
+  return { start, end: entry.date, remaining, cycleDays, percent: Math.max(0, Math.min(100, remaining / cycleDays * 100)) };
 }
 export function validateTimers(value) {
   if (!value || value.version !== 1 || !Array.isArray(value.entries)) throw new Error('Cannot read saved countdowns.');

@@ -31,6 +31,13 @@ Core HTML/CSS/JS/translation assets grew by approximately 2.5 KB gzipped; this i
 an asset-size comparison, not a measured loading-speed score. No production
 briefs were submitted, and this refresh has not been published.
 
+The follow-up restores a stronger particle field and click ripples while retaining
+the studio layout. Cursor coordinates update directly on pointer events, without
+position easing or a continuous follower loop. Desktop canvas timing now permits
+every 60 Hz frame; compact/economy particle limits remain unchanged. The regression
+script also checks cursor alignment, pointer fallback, desktop frame cadence, and
+the absence of an animation loop in reduced-motion mode.
+
 From the repository root:
 
 ```sh
