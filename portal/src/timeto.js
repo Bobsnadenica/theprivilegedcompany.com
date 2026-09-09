@@ -69,7 +69,7 @@ export function createTimeToUI(makeStorage) {
   form.onsubmit=async event=>{event.preventDefault();if(busy||!repo||!form.reportValidity())return;try{
     const values={title:$('timer-title').value.trim(),group:$('timer-group').value.trim(),date:$('timer-repeat').value==='never'?'':$('timer-date').value,recurrence:$('timer-repeat').value,note:$('timer-note').value.trim(),amount:$('timer-amount').value.trim()?parseAmount($('timer-amount').value):null,currency:$('timer-currency').value};
     values.kind=$('timer-kind').value;if(values.kind==='domain')values.termYears=Number($('timer-term').value);
-    const fingerprint=JSON.stringify(values);if(!pending||pending.fingerprint!==fingerprint){const id=editing?.id||crypto.randomUUID();pending={fingerprint,change:{id,expectedRevision:editing?.revision??null,entry:validateTimer({id,revision:crypto.randomUUID(),...values})}}}await save(pending.change);
+    const fingerprint=JSON.stringify(values);if(!pending||pending.fingerprint!==fingerprint){const id=editing?.id||crypto.randomUUID();const entry={...editing,id,revision:crypto.randomUUID(),...values};if(values.kind!=='domain')delete entry.termYears;pending={fingerprint,change:{id,expectedRevision:editing?.revision??null,entry:validateTimer(entry)}}}await save(pending.change);
   }catch(e){status(e.message,true)}};
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&repo&&!$('timeto-panel').hidden)refresh()});

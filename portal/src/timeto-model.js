@@ -18,8 +18,9 @@ export function domainProgress(entry, today = localDate()) {
   return { start, end: entry.date, remaining, cycleDays, percent: Math.max(0, Math.min(100, remaining / cycleDays * 100)) };
 }
 export function validateTimers(value) {
-  if (!value || value.version !== 1 || !Array.isArray(value.entries)) throw new Error('Cannot read saved countdowns.');
-  const ids=new Set();for(const e of value.entries){validateTimer(e);if(ids.has(e.id))throw new Error('Duplicate countdown.');ids.add(e.id)}return value;
+  if (!value || ![1, 2].includes(value.version) || !Array.isArray(value.entries)) throw new Error('Cannot read saved countdowns.');
+  const ids=new Set();for(const e of value.entries){validateTimer(e);if(ids.has(e.id))throw new Error('Duplicate countdown.');ids.add(e.id)}
+  return value.entries.some(e=>e.kind!==undefined||e.termYears!==undefined)?{...value,version:2}:value;
 }
 const utc = date => Date.parse(`${date}T12:00:00Z`);
 const dateInMonth = (year, month, day) => {
