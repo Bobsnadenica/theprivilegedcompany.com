@@ -25,7 +25,7 @@ export function createBulgariaUI(makeStorage){
   return assetsPromise;
  }
  function choose(id,fromList=false){
-  selected=id;pending=null;
+  selected=id;pending=null;$('bg-detail').open=true;
   const visit=entries.find(e=>e.id===id);if(visit)$('bg-visit-date').value=visit.date;
   render();if(fromList)map?.focusPlace(id);$('bg-place-name').focus({preventScroll:true});
   if(matchMedia('(max-width:680px)').matches)$('bg-detail').scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});
@@ -41,7 +41,7 @@ export function createBulgariaUI(makeStorage){
    button.append(el('span','place-number',p.number),title,el('span','place-check',visits.has(p.id)?'✓':''));button.setAttribute('aria-label',`${p.name}, ${visits.has(p.id)?'visited':'not visited'}`);button.onclick=()=>choose(p.id,true);row.append(button);return row;
   }));
   map?.setPlaces(visible,visits,selected);
-  const place=places.find(p=>p.id===selected);$('bg-place-actions').hidden=!place;
+  const place=places.find(p=>p.id===selected);$('bg-place-actions').hidden=!place;$('bg-detail').hidden=!place;
   if(place){
    const visit=entries.find(e=>e.id===place.id);
    $('bg-place-number').textContent=`No. ${place.number} · ${place.category} · ${place.region}`;$('bg-place-name').textContent=place.name;$('bg-place-bg').textContent=place.bg;$('bg-description').textContent=place.description;

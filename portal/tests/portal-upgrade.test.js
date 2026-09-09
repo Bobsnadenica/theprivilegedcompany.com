@@ -105,3 +105,12 @@ test('writes always recheck S3, cache only confirmed saves, and preserve concurr
   fail=true;await assert.rejects(repo.commit({id:'entry',entry:budgetEntry({revision:'two',amount:900}),expectedRevision:'one'}),/Offline/);
   assert.equal((await repo.load()).entries.find(e=>e.id==='entry').amount,100);assert.equal(reads,4);
 });
+
+test('a late display read cannot roll the cache back after a successful write', async () => {
+  let finishWrite,finishRead,reads=0;
+  const writeGate=new Promise(r=>{finishWrite=r}),readGate=new Promise(r=>{finishRead=r});
+  const repo=createBudgetRepository({read:async()=>{reads++;if(reads===2)await readGate;return{ledger:{version:1,entries:[]},etag:'one'}},write:async()=>writeGate});
+  const write=repo.commit({id:'entry',entry:budgetEntry(),expectedRevision:null});
+  await Promise.resolve();const display=repo.load();finishWrite();await write;finishRead();await display;
+  assert.equal((await repo.load()).entries.length,1);assert.equal(reads,2);
+});

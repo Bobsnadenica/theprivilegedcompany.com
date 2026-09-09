@@ -84,6 +84,7 @@ test('S3 adapter binds user key and conditional headers, hides no read errors ex
   const calls=[];const client={send:async command=>{calls.push(command.input);return {ETag:'"v1"',Body:{transformToString:async()=>JSON.stringify(ledger([]))}};}};
   const adapter=budgetStorageAdapter(client,'bucket','users/a@example.com/.budget/ledger-v1.json');
   assert.equal((await adapter.read()).etag,'"v1"');
+  assert.equal(calls[0].ResponseCacheControl,'no-store');
   await adapter.write(ledger([]),null);await adapter.write(ledger([entry()]),'"v1"');
   assert.equal(calls[1].IfNoneMatch,'*');assert.equal(calls[2].IfMatch,'"v1"');assert.equal(calls[2].CacheControl,'no-store');
   assert(calls.every(c=>c.Key==='users/a@example.com/.budget/ledger-v1.json'));

@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260910c';
+import { languageMeta, translations } from './translations.js?v=20260910d';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260910c';
+const assetVersion = '20260910d';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -281,12 +281,9 @@ const applyTranslations = (root = document) => {
     document.documentElement.lang = currentLanguage;
 
     const select = document.getElementById('language-select');
-    const flag = document.getElementById('language-current-flag');
     if (select) {
         select.value = currentLanguage;
-        select.setAttribute('aria-label', translateAttribute('Language'));
     }
-    if (flag) flag.textContent = languageMeta[currentLanguage]?.flag || languageMeta.en.flag;
 
     const sourceElements = [
         ...(root.nodeType === Node.ELEMENT_NODE && root.matches?.('[data-i18n-source]') ? [root] : []),
@@ -513,8 +510,8 @@ const initServiceCards = () => {
         card.setAttribute('aria-label', destination
             ? t(destination.label)
             : (currentLanguage === 'bg'
-                ? `Започнете бриф за ${t(serviceName)}`
-                : `Start a brief for ${serviceName}`)
+                ? `Запитване за: ${t(serviceName)}`
+                : `Ask about: ${serviceName}`)
         );
 
         let cta = card.querySelector('.service-card-cta');
@@ -523,7 +520,7 @@ const initServiceCards = () => {
             cta.className = 'service-card-cta';
             card.append(cta);
         }
-        cta.dataset.i18nSource = destination ? destination.label : 'Start a brief';
+        cta.dataset.i18nSource = destination ? destination.label : 'Discuss your project';
         cta.textContent = t(cta.dataset.i18nSource);
 
         if (card.dataset.serviceBound) return;
@@ -631,7 +628,7 @@ const initContactForm = () => {
         const body = encodeURIComponent(bodyText);
 
         if (data.get('_honey')) {
-            status.textContent = t('Brief received. We will get back to you soon.');
+            status.textContent = t('Inquiry received. We will get back to you soon.');
             status.classList.add('is-visible');
             return;
         }
@@ -639,7 +636,7 @@ const initContactForm = () => {
         if (subjectInput) subjectInput.value = subjectText;
 
         sending = true;
-        status.textContent = t('Sending your brief securely...');
+        status.textContent = t('Sending your inquiry securely...');
         status.classList.add('is-visible');
         if (submitButton) submitButton.disabled = true;
 
@@ -658,7 +655,7 @@ const initContactForm = () => {
                 submittedAt: new Date().toISOString()
             });
 
-            status.textContent = t('Brief sent. We will get back to you soon.');
+            status.textContent = t('Inquiry sent. We will get back to you soon.');
             form.reset();
 
             if (selectedService && serviceInput) {
@@ -736,9 +733,17 @@ class ScrambleText {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         if (el.scrambling) return;
         el.scrambling = true;
+        el.dataset.i18nSource ||= getSourceText(el);
+        const language = currentLanguage;
 
         let iteration = 0;
         const interval = setInterval(() => {
+            if (currentLanguage !== language) {
+                clearInterval(interval);
+                el.textContent = t(el.dataset.i18nSource);
+                el.scrambling = false;
+                return;
+            }
             el.textContent = original.split('').map((char, index) => {
                 if (/\s/.test(char)) return char;
                 if (index < iteration) return original[index];
@@ -1169,7 +1174,7 @@ const initHealthCheck = () => {
             const serverHeader = getHeader(home.response, 'server', '');
             const githubPagesHeaderNote = /github/i.test(serverHeader) && missingHardeningHeaders.length
                 ? (currentLanguage === 'bg'
-                    ? 'GitHub Pages не прилага custom response headers; нужен е CDN/proxy слой.'
+                    ? 'GitHub Pages не прилага персонализирани HTTP заглавки; необходим е CDN или прокси сървър.'
                     : 'GitHub Pages does not apply custom response headers; use a CDN/proxy layer.')
                 : '';
             const sqlLeak = hasSqlErrorLeak(stripEmbeddedProbe(sqlSmoke.text));
@@ -1198,7 +1203,7 @@ const initHealthCheck = () => {
                 {
                     label: 'Routes',
                     summary: currentLanguage === 'bg'
-                        ? `${routeEntries.length - missingFragments}/${routeEntries.length} view фрагмента са достъпни; ${shouldReportDirectRouteIssues ? `${directRouteIssues} директни маршрута имат нужда от fallback.` : 'директните route shell файлове са генерирани.'}`
+                        ? `${routeEntries.length - missingFragments}/${routeEntries.length} фрагмента на страници са достъпни; ${shouldReportDirectRouteIssues ? `${directRouteIssues} директни адреса изискват резервно пренасочване.` : 'файловете за директно зареждане на страниците са генерирани.'}`
                         : `${routeEntries.length - missingFragments}/${routeEntries.length} view fragments reachable; ${shouldReportDirectRouteIssues ? `${directRouteIssues} direct route${directRouteIssues === 1 ? '' : 's'} need fallback.` : 'direct route shells generated.'}`,
                     attention: Boolean(missingFragments || (shouldReportDirectRouteIssues && directRouteIssues)),
                     updates: {
@@ -1209,7 +1214,7 @@ const initHealthCheck = () => {
                 {
                     label: 'Metadata',
                     summary: currentLanguage === 'bg'
-                        ? `Title е наличен; description ${metaDescription ? `${metaDescription.length} символа` : 'липсва'}.`
+                        ? `Заглавието е налично; описание ${metaDescription ? `${metaDescription.length} символа` : 'липсва'}.`
                         : `Title present; description ${metaDescription ? `${metaDescription.length} chars` : 'missing'}.`,
                     attention: !metaDescription,
                     updates: { seo: metaDescription ? 'META OK' : 'META?' }
@@ -1217,8 +1222,8 @@ const initHealthCheck = () => {
                 {
                     label: 'Speed',
                     summary: currentLanguage === 'bg'
-                        ? `Зареждане ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB трансфер.`
-                        : `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} assets; ${transferKb}KB transferred.`,
+                        ? `Зареждане ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} ресурса; ${transferKb}KB трансфер.`
+                        : `Load ${Math.round(nav?.duration || performance.now())}ms; ${resources.length} ресурса; ${transferKb}KB transferred.`,
                     attention: false,
                     updates: {
                         assets: `${resources.length} ASSETS`,
@@ -1228,7 +1233,7 @@ const initHealthCheck = () => {
                 {
                     label: 'Security',
                     summary: currentLanguage === 'bg'
-                        ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} mixed-content URL адреса; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`
+                        ? `${window.isSecureContext ? 'Сигурен контекст' : 'Локален/несигурен контекст'}; ${mixedContent.length} адреса със смесено HTTP/HTTPS съдържание; HTTP заглавки ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} липсват` : 'налични'}; HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`
                         : `${window.isSecureContext ? 'Secure context' : 'Local/non-secure context'}; ${mixedContent.length} mixed-content URL${mixedContent.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `${missingHardeningHeaders.length} missing` : 'present'}; HTML policies ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.${githubPagesHeaderNote ? ` ${githubPagesHeaderNote}` : ''}`,
                     attention: Boolean(mixedContent.length || (missingHardeningHeaders.length && !htmlPolicies.length)),
                     updates: {
@@ -1238,7 +1243,7 @@ const initHealthCheck = () => {
                 {
                     label: 'Browser Smoke',
                     summary: currentLanguage === 'bg'
-                        ? `forms ${browserSmoke.formCount}; POST без CSRF сигнал ${browserSmoke.postMissingCsrf}; cross-origin forms ${browserSmoke.crossOriginForms}; client risks ${browserSmoke.clientIssues}; third-party scripts ${browserSmoke.thirdPartyScripts}, без SRI ${browserSmoke.scriptsWithoutIntegrity}; secrets ${browserSmoke.clientSecretHits}; debug ${browserSmoke.debugHits}.`
+                        ? `формуляри ${browserSmoke.formCount}; POST без видим CSRF маркер ${browserSmoke.postMissingCsrf}; формуляри към друг домейн ${browserSmoke.crossOriginForms}; рискове в клиентския код ${browserSmoke.clientIssues}; външни скриптове ${browserSmoke.thirdPartyScripts}, без SRI ${browserSmoke.scriptsWithoutIntegrity}; възможни тайни ${browserSmoke.clientSecretHits}; данни за отстраняване на грешки ${browserSmoke.debugHits}.`
                         : `forms ${browserSmoke.formCount}; POST missing CSRF signal ${browserSmoke.postMissingCsrf}; cross-origin forms ${browserSmoke.crossOriginForms}; client risks ${browserSmoke.clientIssues}; third-party scripts ${browserSmoke.thirdPartyScripts}, missing SRI ${browserSmoke.scriptsWithoutIntegrity}; secrets ${browserSmoke.clientSecretHits}; debug ${browserSmoke.debugHits}.`,
                     attention: Boolean(
                         browserSmoke.postMissingCsrf ||
@@ -1254,7 +1259,7 @@ const initHealthCheck = () => {
                 {
                     label: 'Vuln Smoke',
                     summary: currentLanguage === 'bg'
-                        ? `SQL error leak ${sqlLeak ? 'възможен' : 'чист'}; ${exposedFiles.length} изложени sensitive файла; response headers ${missingHardeningHeaders.length ? `липсват: ${missingHardeningHeaders.join(', ')}` : 'налични'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
+                        ? `Разкриване на SQL грешки ${sqlLeak ? 'възможно' : 'не е открито'}; ${exposedFiles.length} публично достъпни чувствителни файла; HTTP заглавки ${missingHardeningHeaders.length ? `липсват: ${missingHardeningHeaders.join(', ')}` : 'налични'}; Резервни HTML политики ${htmlPolicies.length ? htmlPolicies.join(', ') : 'няма'}.`
                         : `SQL error leak ${sqlLeak ? 'possible' : 'clear'}; ${exposedFiles.length} exposed sensitive file${exposedFiles.length === 1 ? '' : 's'}; response headers ${missingHardeningHeaders.length ? `missing: ${missingHardeningHeaders.join(', ')}` : 'present'}; HTML fallback ${htmlPolicies.length ? htmlPolicies.join(', ') : 'none'}.`,
                     attention: Boolean(sqlLeak || exposedFiles.length),
                     updates: {
@@ -1264,7 +1269,7 @@ const initHealthCheck = () => {
                 {
                     label: 'External Probe',
                     summary: currentLanguage === 'bg'
-                        ? 'Копираният single-file скрипт добавя DNS, TLS, domain info, CORS, cookies, browser-style DOM checks, secret/debug scan, redirect/reflection/SQL smoke и optional nmap само за web ports.'
+                        ? 'Копираният скрипт добавя проверки на DNS, TLS, домейна, CORS, бисквитките и структурата на страницата. Проверява за разкрити тайни, диагностични данни и основни проблеми с пренасочвания и SQL; по избор използва nmap само за уеб портове.'
                         : 'Copied single-file script adds DNS, TLS, domain info, CORS, cookies, browser-style DOM checks, secret/debug scan, redirect/reflection/SQL smoke, and optional nmap web-port checks.',
                     attention: false,
                     updates: {

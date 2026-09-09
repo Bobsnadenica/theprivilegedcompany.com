@@ -14,6 +14,13 @@ export function createBudgetRepository({ read, write }, validators = {}, { now =
   async function commit(change) {
     // Cached reads are for display only. Every mutation still reads S3 and its ETag.
     clear();
+    const mutationGeneration = generation;
+    const confirmed = ledger => {
+      // A late display read cannot replace a confirmed write. A cleared session
+      // cannot be repopulated by an in-flight mutation finishing after logout.
+      if (generation === mutationGeneration) { clear(); remember(ledger); }
+      return ledger;
+    };
     if (change.entry) {
       checkEntry(change.entry);
       if (change.entry.id !== change.id) throw new Error('Entry identifiers do not match.');
@@ -28,21 +35,21 @@ export function createBudgetRepository({ read, write }, validators = {}, { now =
           removedCategories: [...removed.filter(c => c.type !== type || c.name !== name), {type, name}],
           entries: ledger.entries.map(e => e.type === type && e.category === name ? {...e, category: 'Other', revision: change.revision} : e)
         });
-        try { await write(next, etag); return remember(next); }
+        try { await write(next, etag); return confirmed(next); }
         catch (error) { if (![409, 412].includes(error.$metadata?.httpStatusCode) || attempt === 2) throw error; continue; }
       }
       if (change.entry && (ledger.removedCategories || []).some(c => c.type === change.entry.type && c.name === change.entry.category)) throw new Error('This category was deleted. Choose another category.');
       const current = ledger.entries.find(e => e.id === change.id);
       // The same mutation can be retried after a lost success response.
-      if (change.entry && current?.revision === change.entry.revision) return remember(ledger);
-      if (!change.entry && !current) return remember(ledger);
+      if (change.entry && current?.revision === change.entry.revision) return confirmed(ledger);
+      if (!change.entry && !current) return confirmed(ledger);
       if ((current?.revision ?? null) !== change.expectedRevision) {
         throw new Error('This entry changed on another device. Refresh and open it again before editing. Your input is still here.');
       }
       const entries = ledger.entries.filter(e => e.id !== change.id);
       if (change.entry) entries.push(change.entry);
       const next = checkLedger({ ...ledger, entries });
-      try { await write(next, etag); return remember(next); }
+      try { await write(next, etag); return confirmed(next); }
       catch (error) {
         if (![409, 412].includes(error.$metadata?.httpStatusCode) || attempt === 2) throw error;
         // Merge independent changes after a conditional-write race; never overwrite a stale edit.

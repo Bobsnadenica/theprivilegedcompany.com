@@ -7,7 +7,7 @@ const units={days:'Days',months:'Months',years:'Years'};
 
 export function createLifeUI(makeStorage){
  const $=id=>document.getElementById(id),form=$('life-form');
- let repo,entries=[],epoch=0,busy=false,dirty=false,editing=null,pending=null;
+ let repo,entries=[],epoch=0,busy=false,dirty=false,editing=null,pending=null,pendingView=null;
  const pages=new Map();
  function status(text,error=false){$('life-status').textContent=text;$('life-status').classList.toggle('error',error)}
  function lock(value){busy=value;$('life-fields').disabled=value;$('life-refresh').disabled=value;document.querySelectorAll('.life-action').forEach(b=>b.disabled=value)}
@@ -31,7 +31,7 @@ export function createLifeUI(makeStorage){
   const toolbar=el('div','period-toolbar'),switcher=el('div','unit-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label',`Box size for ${person.name}`);
   for(const [unit,label] of Object.entries(units)){
    const button=el('button','life-action',label);button.type='button';button.setAttribute('aria-pressed',String(person.unit===unit));
-   button.onclick=()=>{if(!busy&&person.unit!==unit)save({id:person.id,expectedRevision:person.revision,entry:{...person,unit,revision:crypto.randomUUID()}},false)};switcher.append(button);
+   button.onclick=()=>{if(!busy&&person.unit!==unit){if(pendingView?.id!==person.id||pendingView?.entry.unit!==unit)pendingView={id:person.id,expectedRevision:person.revision,entry:{...person,unit,revision:crypto.randomUUID()}};save(pendingView,false)}};switcher.append(button);
   }
   toolbar.append(switcher);card.append(toolbar);
   const pager=el('div','period-pager');pager.append(el('span','',gridData.year===gridData.endYear?String(gridData.year):`${gridData.year} – ${gridData.endYear}`));
@@ -71,14 +71,15 @@ export function createLifeUI(makeStorage){
   catch(e){if(gen===epoch)status(`Could not refresh. ${e.message}`,true)}finally{if(gen===epoch)lock(false)}
  }
  async function save(change,finishEdit=true){
-  const gen=epoch,active=repo;lock(true);status('Saving…');
+  const gen=epoch,active=repo;let focusAfterSave=null;lock(true);status('Saving…');
   try{
    const data=await active.commit(change);if(gen!==epoch)return;entries=data.entries;
    if(finishEdit&&(change.entry||editing?.id===change.id)){reset();$('life-editor').open=false}
    else if(editing?.id===change.id){editing=entries.find(e=>e.id===change.id);pending=null;}
+   if(pendingView?.id===change.id)pendingView=null;
    render();status(dirty?'View saved. Your form still has unsaved changes.':'Saved to your account.');
-   if(!finishEdit)document.querySelector(`[data-person="${change.id}"] .unit-switch [aria-pressed="true"]`)?.focus();
-  }catch(e){if(gen===epoch)status(`Not saved. ${e.message} Your input is still here.`,true)}finally{if(gen===epoch)lock(false)}
+   focusAfterSave=!finishEdit?document.querySelector(`[data-person="${change.id}"] .unit-switch [aria-pressed="true"]`):$('life-editor').querySelector('summary');
+  }catch(e){if(gen===epoch)status(`Not saved. ${e.message} Your input is still here.`,true)}finally{if(gen===epoch){lock(false);focusAfterSave?.focus({preventScroll:true})}}
  }
  form.addEventListener('input',()=>dirty=true);form.addEventListener('change',()=>dirty=true);
  form.onsubmit=async event=>{
@@ -95,8 +96,8 @@ export function createLifeUI(makeStorage){
  };
  $('life-cancel').onclick=()=>{if(!dirty||confirm('Discard unsaved changes?')){reset();$('life-editor').open=false;$('life-editor').querySelector('summary').focus()}};
  $('life-refresh').onclick=()=>refresh({force:true});
- window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+ window.addEventListener('beforeunload',e=>{if(dirty||pendingView){e.preventDefault();e.returnValue=''}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&repo&&!$('life-panel').hidden)refresh()});
- function stop(){epoch++;repo?.clear();repo=null;entries=[];pages.clear();reset();$('life-editor').open=false;lock(false);render();status('')}
- stop();return{stop,refresh,hasUnsaved:()=>dirty,start(){stop();repo=createBudgetRepository(makeStorage(),{entry:validatePerson,ledger:validatePeople});return refresh()}};
+ function stop(){epoch++;repo?.clear();repo=null;entries=[];pendingView=null;pages.clear();reset();$('life-editor').open=false;lock(false);render();status('')}
+ stop();return{stop,refresh,hasUnsaved:()=>dirty||pendingView!==null,start(){stop();repo=createBudgetRepository(makeStorage(),{entry:validatePerson,ledger:validatePeople});return refresh()}};
 }

@@ -1,6 +1,6 @@
 # ThePrivilegedCompany website
 
-The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Start a brief.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
+The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Discuss your project.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
 
 This guide was updated on **2026-09-08** for the public-site polish, based on commit `a5437d15` plus the local changes. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
@@ -21,6 +21,20 @@ palette contrast pairs. No live briefs were sent. See
 [security_best_practices_report.md](security_best_practices_report.md) for scope,
 evidence, and two open infrastructure findings: server-side inbox abuse controls
 and real HTTP security headers. Local fixes are unpublished.
+
+## English and Bulgarian copy
+
+The public site uses a native language selector with full language names,
+`English` and `Български`, and a neutral globe icon. Labels, placeholders,
+service descriptions, form feedback, and the terms draft are translated.
+Bulgarian action labels use a consistent polite tone. The existing legal draft
+notice and unfilled jurisdiction details are preserved in both languages.
+
+Language QA covered 88 route/language/layout combinations and 22 exact English
+round trips. Form values survive language changes. The heading animation now
+retains its source text when the language changes mid-animation; this is covered
+by `node scripts/check-public-site.mjs`. Publish the regenerated route shells
+with the matching translation and script assets.
 
 ## Run the public website locally
 
@@ -117,7 +131,7 @@ The public form obtains temporary guest credentials from Cognito Identity and si
 
 The portal authenticates through a Cognito User Pool, including first-login password changes, then obtains temporary credentials through an Identity Pool. Its AWS SDK is bundled locally. IAM scopes personal files to `users/<email>/`; inbox permissions are gated by the configured admin email principal tag. Admins read new briefs and archive them by copying to `inbox/done/` and deleting the original.
 
-Budget is the portal's default screen: income/expenses, custom categories, monthly or all-time totals, separate category pie charts, editing/deletion and CSV export. EUR, USD, GBP and BGN remain separate. The private ledger lives at `users/<email>/.budget/ledger-v1.json`, with conditional writes to protect concurrent device edits. Saving requires connectivity; failed saves retain the current form. See the [portal guide](portal/README.md) for storage behavior and validation limits.
+Files is the portal's default screen after login and session restoration. Budget opens from its header icon: income/expenses, custom categories, monthly or all-time totals, separate category pie charts, editing/deletion and CSV export. EUR, USD, GBP and BGN remain separate. The private ledger lives at `users/<email>/.budget/ledger-v1.json`, with conditional writes to protect concurrent device edits. Saving requires connectivity; failed saves retain the current form. See the [portal guide](portal/README.md) for storage behavior and validation limits.
 
 The Terraform defaults use `eu-west-1` and `theprivilegedcompany-bucket`. `portal/config.js` is generated from Terraform and contains public client identifiers. The public site's `inboxConfig` is separately hardcoded in `script.js`; keep the two aligned when infrastructure changes.
 
@@ -194,8 +208,18 @@ categories can be deleted without deleting their transaction history; affected
 entries move to Other. The former public TimeTo tool and its dev-index link were
 removed after its owner data was migrated and verified in private account storage.
 
-Private portal tools now also include a Bulgaria scratch map (12 starter cities,
-manual check-ins and undo) and Time of your life (year-square grids for entered
-ages and adjustable planning horizons). Tools use icons beside notifications;
-Files remains a text tab. TimeTo groups schedules and shows recurring-cycle
-progress. See the portal README for storage and interpretation details.
+The September 10 portal upgrade adds a zoomable Bulgaria explorer with 250
+reviewed places covering 252 programme listings, including duplicate references.
+Leaflet, regional geography and the catalogue are self-hosted; there are no map
+tile requests. Search, region/type/visit filters and dated check-ins work alongside
+preserved city history. Time of your life accepts a title and inclusive date range,
+with saved day/month/year views and bounded calendar grids. Older age snapshots
+remain visible until the user supplies exact dates.
+
+TimeTo now shows domain registration timelines as well as recurring-payment bars.
+Terms are editable; expired domains stay overdue. Trackers load on first use and
+keep private reads in account-scoped memory for 60 seconds. Writes always recheck
+S3 and its ETag. The private domain-term migration is prepared outside this repository
+and must be applied after publishing the upgraded portal. No deployment or production
+test writes were performed. See the [portal guide](portal/README.md) for validation,
+data sources, caching and migration instructions.

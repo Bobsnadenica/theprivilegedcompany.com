@@ -214,7 +214,7 @@ await success.submit();
 assert.equal(success.deliveries, 1); assert.equal(success.button.disabled, true);
 success.resolve(); await sending;
 assert.equal(success.resets, 1); assert.equal(success.button.disabled, false);
-assert.match(success.status.textContent, /^Brief sent/);
+assert.match(success.status.textContent, /^Inquiry sent/);
 const failure = formHarness();
 const failedSend = failure.submit(); failure.reject(); await failedSend;
 assert.equal(failure.resets, 0); assert.equal(failure.button.disabled, false);
@@ -311,3 +311,24 @@ for (const theme of [':root', ':root[data-theme="light"]']) {
     }
 }
 console.log('Form privacy defaults and 20 core palette contrast pairs passed (at least 4.5:1).');
+
+// Switching language during a heading animation must restore translated source text.
+let scrambleTick;
+let cleared = false;
+const heading = { dataset: {}, textContent: 'Build Anything' };
+const scrambleContext = vm.createContext({
+    currentLanguage: 'en', window: { matchMedia: () => ({ matches: false }) },
+    document: { querySelectorAll: () => [] }, getSourceText: element => element.textContent,
+    t: text => scrambleContext.currentLanguage === 'bg' ? 'Изграждаме всичко' : text,
+    setInterval: callback => { scrambleTick = callback; return 1; }, clearInterval: () => { cleared = true; }
+});
+const Scramble = vm.runInContext(source.slice(source.indexOf('class ScrambleText'), source.indexOf('/**\n * Anagram Pulse Engine')) + '; ScrambleText;', scrambleContext);
+new Scramble('h1').scramble(heading, heading.textContent);
+scrambleTick();
+scrambleContext.currentLanguage = 'bg';
+scrambleTick();
+assert.equal(heading.dataset.i18nSource, 'Build Anything');
+assert.equal(heading.textContent, 'Изграждаме всичко');
+assert.equal(heading.scrambling, false);
+assert.ok(cleared);
+console.log('Language animation check passed: source survives switching languages mid-animation.');

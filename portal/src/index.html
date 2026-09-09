@@ -220,10 +220,10 @@
               <details id="bg-legacy" class="legacy-visits" hidden><summary>Earlier city check-ins</summary><p class="field-hint">Your previous city visits stay here. Mark individual landmarks separately as you explore.</p><ul id="bg-legacy-list"></ul></details>
             </div>
             <aside class="explorer-sidebar" aria-label="Explore places">
-              <section id="bg-detail" class="card explorer-detail" aria-labelledby="bg-place-name">
-                <span id="bg-place-number" class="eyebrow">Your next discovery</span><h3 id="bg-place-name" tabindex="-1">Where will you go next?</h3><p id="bg-place-bg" lang="bg" class="muted">Избери следващото си откритие.</p><p id="bg-description">Choose a pin or search the official catalogue below. Your discoveries stay in your account.</p>
+              <details id="bg-detail" class="card explorer-detail" aria-labelledby="bg-place-name" hidden>
+                <summary><span id="bg-place-number" class="eyebrow">Your next discovery</span><h3 id="bg-place-name" tabindex="-1">Place details</h3></summary><p id="bg-place-bg" lang="bg" class="muted"></p><p id="bg-description"></p>
                 <div id="bg-place-actions" hidden><p id="bg-place-state"></p><label for="bg-visit-date">Visit date</label><input id="bg-visit-date" type="date" min="1900-01-01" required><button id="bg-checkin" class="btn-primary" type="button">Mark as visited</button><button id="bg-undo" class="btn-ghost danger" type="button" hidden>Undo check-in</button><div class="place-links"><a id="bg-directions" target="_blank" rel="noopener">Directions ↗</a><a id="bg-source" target="_blank" rel="noopener">About this place ↗</a></div></div>
-              </section>
+              </details>
               <details id="bg-browser" class="card explorer-browser" open><summary>Find a place <span id="bg-result-count"></span></summary>
                 <div class="explorer-filters"><label for="bg-search">Search places<input id="bg-search" type="search" placeholder="Name, town, or official number…"></label><div class="explorer-filter-row"><label for="bg-region">Region<select id="bg-region"><option value="">All regions</option></select></label><label for="bg-category">Type<select id="bg-category"><option value="">All types</option></select></label></div><label for="bg-filter">Visits<select id="bg-filter"><option value="all">All places</option><option value="unvisited">Still to explore</option><option value="visited">Visited</option></select></label></div>
                 <p id="bg-no-results" class="empty-state" hidden>No places match. Try another name or clear your filters.</p><ul id="bg-results" class="explorer-results"></ul>

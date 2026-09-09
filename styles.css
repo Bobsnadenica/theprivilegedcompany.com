@@ -472,7 +472,7 @@ body.has-custom-cursor #cursor-follower {
     border: 1px solid rgba(var(--c-accent-rgb), 0.28);
     border-radius: 999px;
     background: rgba(var(--c-accent-rgb), 0.06);
-    padding: 0.45rem 1.55rem 0.45rem 0.75rem;
+    padding: 0;
     color: var(--c-accent);
     cursor: pointer;
     transition: border-color 0.25s var(--ease-out), background 0.25s var(--ease-out),
@@ -505,12 +505,17 @@ body.has-custom-cursor #cursor-follower {
     transform: translateY(0.02rem) rotate(45deg);
 }
 
-.language-current-flag {
-    font-size: 1rem;
-    line-height: 1;
+.language-icon {
+    position: absolute;
+    left: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    pointer-events: none;
 }
 
 .language-switcher select {
+    min-height: var(--control-height);
+    width: 100%;
     appearance: none;
     border: 0;
     background: transparent;
@@ -519,9 +524,9 @@ body.has-custom-cursor #cursor-follower {
     font: inherit;
     font-size: 0.66rem;
     font-weight: 800;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.01em;
     outline: none;
-    padding: 0;
+    padding: 0.5rem 1.65rem 0.5rem 2.2rem;
 }
 
 .language-switcher select option {
@@ -1398,12 +1403,12 @@ button:disabled {
 
     .language-switcher {
         min-height: var(--control-height);
-        padding: 0.35rem 1.4rem 0.35rem 0.6rem;
+        padding: 0;
     }
 
     .language-switcher select {
         font-size: 0.75rem;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.01em;
     }
 
     .monolith-hero {

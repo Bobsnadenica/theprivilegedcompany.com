@@ -1,6 +1,6 @@
 # Project memory
 
-Last updated: **2026-09-08**. Initial review baseline: `77228f02`; public-site polish baseline: `a5437d15` plus local changes. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+Last updated: **2026-09-10**. Initial review baseline: `77228f02`; public-site polish baseline: `a5437d15` plus local changes. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
 
 ## Purpose and working agreement
 
@@ -220,3 +220,61 @@ check-in, map reload/undo, people create/edit/delete/reload, two-account isolati
 grouped payment bars and icon navigation. Screenshots at 1440/820/390/320 across all
 four tools showed no horizontal overflow. No real account records were changed in
 this pass; source and deployable portal artifacts are local and not pushed.
+
+
+## Portal explorer and calendar upgrade — 2026-09-10
+
+This supersedes the earlier Budget-default, 12-city map and age-only creation notes.
+Files now opens on login and session restoration. Header icons open the other
+personal tools; trackers are initialized lazily on first use. The public site and
+independent applications remain separate from this portal change.
+
+- TimeTo supports editable domain terms and remaining-time bars alongside recurring
+  payments. Start is expiry minus 1–10 calendar years, with leap-date clamping.
+  Existing domain-named groups are recognized without rewriting account data.
+  Fixed expiries remain overdue until edited. Grouping and nearest-due order remain.
+- Bulgaria uses bundled Leaflet/MarkerCluster with self-hosted Natural Earth
+  regional geography, rivers and cities. A reviewed 250-place catalogue covers all
+  252 BTS programme listings; duplicate physical places retain aliases and source
+  references. It includes English/Bulgarian names, numbers, region/category,
+  descriptions and coordinate provenance. Search/filter/list selection, clusters,
+  visit dates and undo work on desktop and phone. The old city IDs remain private
+  history and do not count as visited landmarks. Data notes are in
+  `portal/src/data/README.md`; keep IDs stable when updating the snapshot.
+- Time of your life accepts title/start/end dates and persists Days/Months/Years per
+  record. End dates are inclusive; elapsed totals count completed calendar days.
+  Day grids page by year, months by ten years and years by a century, keeping at
+  most 366 cells in the DOM. Existing age records remain visible. Conversion uses
+  supplied dates only and preserves the original values in `legacyAge`.
+- All ledgers keep the existing private storage paths. New domain/date/landmark
+  records use schema version 2, while validators still read legacy version 1.
+  Unchanged IDs, metadata and legacy records are retained; edited records get new
+  revisions. Older clients reject schema 2 instead of silently dropping fields.
+- Repository display reads have a 60-second account-scoped memory cache. Explicit
+  refresh bypasses it. Every mutation still reads S3 and checks ETag/revision before
+  writing. Successful writes invalidate pending older display reads. Logout clears
+  private caches. CacheStorage contains only the two public map data assets, with
+  hashed URLs and browser-cache fallback. No network polling or new service.
+
+The private domain-term migration was prepared from a read-only 23-record account
+snapshot and checked without uploading it. All IDs, dates and metadata were
+preserved; seven domain records receive explicit terms, including the requested
+private exception. The reusable preparation tool is
+`portal/scripts/prepare-domain-terms.mjs`; private inputs/outputs are deliberately
+outside the repository. Publish the upgraded frontend before applying that ledger.
+The conditional upload must use the captured ETag; if it changed, re-fetch and
+prepare again. No owner identifiers, storage object identifiers, personal domain
+exceptions or credentials belong in public source/docs.
+
+Validation: 40 portal tests passed, covering models, persistence, migration and
+public data. Isolated browser fixtures passed Files defaults/restoration, lazy
+loads, repeat-open request counts, explicit refresh, term edits, failed-save retry,
+stale-edit rejection, Bulgarian search, region/type/visited filters, clustered
+markers, check-in/undo and legacy city preservation. Date view persistence, keyboard
+focus, legacy conversion, long-grid pagination, category deletion and switching
+between two accounts also passed. No JavaScript page errors or AWS requests occurred.
+Catalogue and geography each fetched once across logout and reload; only public
+CacheStorage namespaces were present. Screenshots at 320, 390, 820 and 1440 pixels
+were checked with Bulgarian labels and reduced motion. Browser artifacts are ignored
+under `output/playwright/`. Real Cognito-user writes remain a post-release check;
+no production test records or deployment were performed.

@@ -1,4 +1,4 @@
-# Client portal — budget and personal files (`/portal/`)
+# Client portal — files and personal tools (`/portal/`)
 
 Static page served at `https://www.theprivilegedcompany.com/portal/`. After login it
 talks **directly** to Cognito and S3 from the browser — no server. Backend (Cognito,
@@ -53,7 +53,8 @@ you (enforced by IAM, not the page).
 
 ## Budget tracker
 
-Budget is the default authenticated screen. Add income or expenses with a date,
+Files opens after login and restored sessions. Budget and the other personal tools
+open from labeled header icons and load their data on first use. Add income or expenses with a date,
 category, optional note and currency. Default and custom categories are available.
 Monthly/all-time totals and two category pie charts update after each saved entry.
 Entries can be edited, deleted (with confirmation) or exported as CSV for the
@@ -77,7 +78,8 @@ No new Terraform resources are required by the source configuration.
 
 Saving requires a connection. Failed saves retain the form in the current page;
 unsaved input is not persisted across reloads or sign-out. Refresh, returning to
-the Budget tab, or returning to the visible page loads current account data.
+the Budget tab, or returning to the visible page reads account data through a
+60-second memory cache. Explicit Refresh always bypasses that cache.
 Signing out clears displayed financial data. This is a personal transaction
 tracker, without bank feeds, exchange rates, recurring payments or offline sync.
 
@@ -128,34 +130,115 @@ Deletion and reassignment are one conditional write, and stale entry edits canno
 restore a deleted category. Retained settings survive later transaction changes.
 
 TimeTo opens with the next upcoming date and clickable due-soon/overdue totals.
-The list is grouped by urgency, with full calendar dates and relative labels.
+The list uses saved groups, ordered by their nearest due date, with full calendar dates and relative labels.
 Search and All / Next 30 days / Overdue / Recurring filters affect the list;
 overview totals always describe the full account. Add/edit uses an expandable
 form so countdowns are visible first on phones. Existing storage is unchanged.
 
-## Bulgaria and Time of your life
+## Bulgaria explorer
 
 Personal tools are icon buttons beside notifications, with accessible names,
 focus states and tooltips. Files remains a text tab; icons wrap onto their own
 row on phones. Notification visibility still follows the existing IAM permissions.
 
-Bulgaria offers 12 starter city destinations. A manual check-in reveals an
-illustrative patch of the map; visiting all 12 reveals the entire outline. This
-is a travel journal, without GPS verification or location permissions. Undo covers
-the patch again. The simplified outline is Natural Earth public-domain data:
-https://www.naturalearthdata.com/about/terms-of-use/. City coordinates are
-approximate display markers, not navigation data or administrative boundaries.
-Progress uses `users/<email>/.bulgaria/ledger-v1.json`.
+Bulgaria uses bundled Leaflet and MarkerCluster with self-hosted Natural Earth
+regional boundaries, rivers, neighbouring land and city labels. No external map
+tiles, geolocation permission, paid provider or runtime scraping is used. Desktop
+has a searchable sidebar; phone layouts have expandable place search and details.
+Filters combine names in Bulgarian/English, official numbers, region, category
+and visit status. Selecting a list result selects its marker. Visited markers gain
+colour and a check mark. Check-ins have a visit date and support undo.
 
-Time of your life stores names/nicknames, entered ages, planning ages and the
-entry date in `users/<email>/.life/ledger-v1.json`. One square represents one year;
-filled squares represent the entered age. The default planning age of 80 is
-adjustable, not a lifespan forecast. Ages are entered snapshots and should be
-updated after birthdays. Ages beyond the planning horizon show zero remaining
-planning years without implying death. Add/edit/delete works per account.
+The reviewed catalogue contains 250 places covering all 252 listings in the
+[official BTS programme](https://www.btsbg.org/node/338) as reviewed on September 10,
+2026. Two repeated physical locations retain aliases and source references rather
+than duplicate check-ins. Sub-sites have their own stable BTS-based IDs. Catalogue
+totals come from the data. Every place has bilingual names, source number, region,
+category, coordinates, a short original description and provenance. Directions
+use a named-place lookup; regional map markers do not identify trailheads or entrances.
+See [data notes](src/data/README.md) and [map licences](MAP-LICENSES.txt).
 
-Both tools reuse validated conditional account storage and are hidden from Files.
-No personal records are seeded or shared between users. TimeTo groups items by
-their saved group, ordered by nearest due date, with remaining-day progress bars
-for monthly/yearly cycles. Bars count down to the next due date and are not proof
-of payment. Before a future cycle starts, that state is labeled explicitly.
+Visits remain at `users/<email>/.bulgaria/ledger-v1.json`. The 12 legacy city IDs
+are still readable and are displayed as history. They do not mark individual
+landmarks visited. Adding a landmark advances the ledger to schema version 2;
+IDs, dates and unrelated ledger metadata remain intact.
+
+## Time of your life
+
+New records contain a title (`name`), `startDate`, `endDate` and saved `unit`
+(`days`, `months` or `years`). Both end dates and start dates are included. The
+overall percentage counts completed calendar days; the current day remains in
+the remaining count until it ends. Boxes use actual calendar boundaries, including
+leap years and partial first/last months. The current box has a striped fill;
+partial calendar periods have a dashed border. Future, active and completed
+periods have distinct labels.
+
+Day boxes are grouped by month and paginated by year. Month views show at most
+ten years per page and year views at most a century. No date range builds more
+than 366 boxes at once; overall progress stays visible when paging. Create, edit,
+delete and view changes use the same conditional account saves.
+
+Records remain at `users/<email>/.life/ledger-v1.json`. Legacy age snapshots stay
+visible with their original planning horizon. **Set exact dates** starts with blank
+dates; it never invents birthdays. Conversion preserves the record ID and saves
+the original values under `legacyAge`. A ledger containing date periods uses
+schema version 2. The end date is a chosen planning horizon, not a lifespan forecast.
+
+## Domain timelines and private migration
+
+Domain records add `kind: "domain"` and `termYears` (integer 1–10), with a fixed
+expiry date and `recurrence: "once"`. Old one-time records in domain-named groups
+remain readable and default to one year until edited or migrated. Start is expiry
+minus the term in calendar years; February 29 anniversaries clamp to February 28
+when necessary. Bars show remaining time, start, expiry and days left. Overdue
+domains stay overdue until explicitly edited. Recurring-payment bars retain their
+existing calendar rules; neither bar proves a payment or renewal occurred.
+
+Personal term exceptions belong in private account records. The reusable
+preparation tool accepts an existing ledger and a private JSON object mapping
+record IDs to term years:
+
+```sh
+node portal/scripts/prepare-domain-terms.mjs /private/path/ledger.json /private/path/overrides.json /private/path/prepared.json
+```
+
+Run that command from the repository root. It refuses paths inside the repository,
+creates the output with owner-only permissions, and never uploads data. Unspecified
+domains keep their stored term or receive one year. It preserves expiry dates,
+IDs, other records and metadata. Only changed domain records receive new revisions
+for conflict detection. Repeating preparation on already migrated data is stable.
+
+The owner's requested term migration was prepared and checked against a read-only
+account snapshot; no migration upload was performed. Keep its files private.
+Publish the upgraded frontend before applying a schema-2 ledger, because older
+frontends reject it. Apply with the source ETag using `If-Match`. If the account
+has changed, fetch the latest ledger and prepare again; never remove the condition.
+Verify the saved object by reading it back after upload.
+
+## Caching, cost and validation
+
+Private trackers keep read caches only in account-scoped repository memory for
+60 seconds. Repeat opens share recent data; explicit Refresh bypasses the cache.
+Every write rereads the latest S3 object and uses conditional headers, regardless
+of the cache. S3 reads also override the response cache policy to `no-store`,
+including for older saved objects. Late reads cannot roll back a confirmed save. Logout clears caches
+and display state; in-flight responses cannot populate another account. Failed
+writes retain input and never populate the cache with an unconfirmed mutation.
+There is no network polling or private data in CacheStorage/localStorage.
+
+The versioned public catalogue and geography have content-hashed build URLs.
+CacheStorage retains only their current public versions and falls back to normal
+browser caching if unavailable or full. Leaflet loads only when opening Bulgaria.
+Files and the admin inbox keep their existing storage behaviour. No backend service
+or new infrastructure is required.
+
+Local validation on September 10, 2026: 40 model/repository/data tests cover calendars,
+domain migration, catalogue completeness and coordinate outliers, filters, legacy
+records, conflicts, cache expiry, account isolation and failed writes. Isolated
+browser fixtures cover Files defaults, lazy reads, domain editing, stale edits,
+check-in/undo, saved views, age conversion, long grids, category deletion, logout
+and restoration. Screenshots were reviewed at 320, 390, 820 and 1440 pixels with
+Bulgarian labels, keyboard operation and reduced motion. Reopening trackers inside
+the cache window made no additional reads; catalogue/geography each fetched once
+across account switches and reloads. Browser tests blocked AWS and used no production
+records. These local checks do not certify deployed Cognito/S3 write permissions.

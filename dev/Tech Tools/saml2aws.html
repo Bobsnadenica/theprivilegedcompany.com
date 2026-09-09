@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>saml2aws: Accounts, Profiles &amp; Simple Examples | Tech Tools</title>
+  <meta name="description" content="Understand saml2aws accounts versus AWS profiles, then configure, log in and run your first AWS CLI command. A simple guide with examples.">
+  <meta property="og:title" content="saml2aws, simply explained | Tech Tools">
+  <meta property="og:description" content="Company login to AWS CLI: accounts versus profiles, setup and everyday examples.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/Tech%20Tools/saml2aws.html">
+  <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
+  <meta property="og:image:alt" content="ThePrivilegedCompany logo">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&amp;family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; --bg: #080502; --panel: #120d07; --line: #51371c; --text: #fff1dc; --muted: #c7b39b; --accent: #ffb13b; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 1.5rem; }
+    body { margin: 0; background: radial-gradient(ellipse at 85% 0, #372009 0, transparent 38rem), var(--bg); color: var(--text); font: 1rem/1.75 Manrope, sans-serif; }
+    main, .topbar, footer { width: min(960px, calc(100% - 2.5rem)); margin-inline: auto; }
+    a { color: var(--accent); text-underline-offset: .25em; }
+    a:hover { color: #ffdb9e; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; }
+    .skip { position: absolute; left: 1rem; top: -5rem; padding: .5rem 1rem; background: var(--panel); }
+    .skip:focus { top: 1rem; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: 1.5rem; border-bottom: 1px solid var(--line); }
+    .topbar a { font-weight: 800; text-decoration: none; }
+    .topbar span, .eyebrow { color: var(--muted); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+    header { padding-block: 4rem 2rem; }
+    h1, h2 { font-family: Fraunces, Georgia, serif; line-height: 1.12; }
+    h1 { font-size: clamp(3rem, 8vw, 5.5rem); letter-spacing: -.035em; margin: .75rem 0 1.5rem; }
+    h1 span { display: block; color: var(--accent); }
+    h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); margin: 0 0 1.5rem; }
+    h3 { font-size: 1.12rem; margin: 0 0 .6rem; }
+    p { margin: .75rem 0; }
+    .intro { max-width: 48rem; font-size: 1.15rem; color: var(--muted); }
+    .jump-links { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; margin-top: 1.75rem; }
+    section { border-top: 1px solid var(--line); padding-block: 2.5rem; }
+    .flow { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; counter-reset: flow; }
+    .flow li { background: var(--panel); border: 1px solid var(--line); border-radius: .5rem; padding: 1.2rem; counter-increment: flow; }
+    .flow li::before { content: "0" counter(flow); display: block; color: var(--accent); font-size: .8rem; margin-bottom: .5rem; }
+    .flow strong, .flow span { display: block; }
+    .flow span, .note, footer { color: var(--muted); }
+    .flow span { font-size: .9rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--accent); font-size: .85rem; }
+    td:first-child { font-weight: 700; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9em; overflow-wrap: anywhere; color: #ffdb9e; }
+    pre { padding: 1.1rem 1.25rem; background: #030201; border: 1px solid var(--line); border-radius: .5rem; overflow-x: auto; line-height: 1.7; }
+    pre code { color: var(--text); overflow-wrap: normal; }
+    .callout { padding: 1rem 1.25rem; border-left: 3px solid var(--accent); background: var(--panel); margin-block: 1.5rem; }
+    .steps { padding-left: 1.5rem; }
+    .steps > li { padding-left: .5rem; margin-bottom: 2rem; }
+    .steps > li::marker { color: var(--accent); font-weight: 800; }
+    .steps > li:last-child { margin-bottom: 0; }
+    details { border-bottom: 1px solid var(--line); padding: 1rem 0; }
+    summary { cursor: pointer; font-weight: 700; }
+    details p { color: var(--muted); }
+    footer { padding-block: 1.5rem 3rem; font-size: .85rem; border-top: 1px solid var(--line); }
+    @media (max-width: 620px) {
+      .flow { grid-template-columns: 1fr; }
+      .topbar span { display: none; }
+      header { padding-top: 2.5rem; }
+      th, td { padding: .75rem .5rem; }
+      .steps { padding-left: 1.1rem; }
+      pre { font-size: .85rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to guide</a>
+  <nav class="topbar" aria-label="Breadcrumb">
+    <a href="index.html">← Tech Tools</a>
+    <span>Cloud &amp; Infrastructure / Authentication</span>
+  </nav>
+  <main id="main">
+    <header>
+      <div class="eyebrow">A practical starting point</div>
+      <h1>saml2aws,<span>simply explained.</span></h1>
+      <p class="intro">You sign in to your company. saml2aws gets temporary AWS credentials. The AWS CLI uses those credentials to run your commands.</p>
+      <nav class="jump-links" aria-label="On this page">
+        <a href="#concepts">Accounts vs profiles</a>
+        <a href="#setup">First setup</a>
+        <a href="#daily">Everyday use</a>
+        <a href="#questions">Common questions</a>
+      </nav>
+    </header>
+
+    <section aria-labelledby="what-title">
+      <h2 id="what-title">What does it actually do?</h2>
+      <p><strong>saml2aws is a command-line login tool.</strong> It connects a company’s SAML sign-in to AWS. SAML 2.0 is a standard for passing proof of a login between systems. Your identity provider (IdP) is the service that handles your company sign-in.</p>
+      <ol class="flow" aria-label="From company sign-in to AWS commands">
+        <li><strong>Sign in</strong><span>Use your company login and complete MFA when required.</span></li>
+        <li><strong>Get temporary access</strong><span>saml2aws exchanges SAML proof for credentials through AWS STS.</span></li>
+        <li><strong>Run AWS commands</strong><span>The AWS CLI reads those credentials from your chosen profile.</span></li>
+      </ol>
+      <p class="note">Your company must already support this SAML login flow and give you an AWS role. If its instructions use IAM Identity Center with <code>aws sso login</code>, follow that flow instead. <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html">AWS’s SSO setup guide</a>.</p>
+    </section>
+
+    <section id="concepts" aria-labelledby="concepts-title">
+      <h2 id="concepts-title">Account ≠ profile</h2>
+      <p>Think of the saml2aws account as a <strong>saved sign-in recipe</strong> and the AWS profile as a <strong>named drawer for AWS settings and credentials</strong>.</p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Account and profile comparison">
+        <table>
+          <thead><tr><th scope="col">Name</th><th scope="col">What it means</th><th scope="col">Our example</th></tr></thead>
+          <tbody>
+            <tr><td>saml2aws account</td><td>A local login configuration: provider, URL, username and destination profile.</td><td><code>company-login</code></td></tr>
+            <tr><td>AWS profile</td><td>A local name AWS tools use to find credentials and settings.</td><td><code>work-dev</code></td></tr>
+            <tr><td>AWS account</td><td>The actual AWS environment containing resources, identified by 12 digits.</td><td><code>123456789012</code> (fictional)</td></tr>
+            <tr><td>IAM role</td><td>The identity you assume, with permissions for what you can do.</td><td><code>Developer</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>The names can match, but they do not have to.</strong> Here, <code>company-login</code> puts credentials into <code>work-dev</code>. Naming a profile <code>admin</code> would not give it admin permissions.</div>
+      <pre aria-label="How the two names connect"><code>saml2aws login --account company-login --profile work-dev
+aws sts get-caller-identity --profile work-dev</code></pre>
+      <p><code>--account</code> (or <code>-a</code>) chooses the sign-in recipe. In saml2aws, <code>--profile</code> (or <code>-p</code>) chooses where credentials are saved. In <code>aws</code>, <code>--profile</code> chooses which profile to use.</p>
+    </section>
+
+    <section id="setup" aria-labelledby="setup-title">
+      <h2 id="setup-title">Your first setup</h2>
+      <p>Example: you want command-line access to your company’s development environment. Use your team’s real provider, login URL and assigned role; the names below are examples.</p>
+      <ol class="steps">
+        <li>
+          <h3>Install the two tools</h3>
+          <p>On macOS with Homebrew already installed:</p>
+          <pre><code>brew install saml2aws awscli
+saml2aws --version
+aws --version</code></pre>
+          <p class="note">Other systems: <a href="https://github.com/Versent/saml2aws#install">saml2aws installation</a> · <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">AWS CLI installation</a>.</p>
+        </li>
+        <li>
+          <h3>Save your login recipe once</h3>
+          <pre><code>saml2aws configure --account company-login --profile work-dev</code></pre>
+          <p>Follow the prompts. Use the provider and AWS SAML application URL supplied by your team, your work username and the required MFA option. Keep <code>work-dev</code> as the AWS profile for this example.</p>
+          <p>Set a default region for AWS commands (replace this with your team’s region):</p>
+          <pre><code>aws configure set region eu-west-1 --profile work-dev</code></pre>
+        </li>
+        <li>
+          <h3>Log in</h3>
+          <pre><code>saml2aws login --account company-login --profile work-dev</code></pre>
+          <p>Complete sign-in and MFA. If asked to choose a role, select your assigned development role. The credentials are saved locally and expire later.</p>
+        </li>
+        <li>
+          <h3>Check who you are, then use AWS</h3>
+          <pre><code>aws sts get-caller-identity --profile work-dev</code></pre>
+          <p>Example output (fictional):</p>
+          <pre><code>{
+  "UserId": "EXAMPLE:your-session",
+  "Account": "123456789012",
+  "Arn": "arn:aws:sts::123456789012:assumed-role/Developer/your-session"
+}</code></pre>
+          <p><code>Account</code> identifies the AWS environment; <code>Developer</code> in the ARN is the role. Check that both are what you expect.</p>
+          <pre><code>aws s3 ls --profile work-dev</code></pre>
+          <p>This lists buckets if your role permits it. It does not create or change resources.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="daily" aria-labelledby="daily-title">
+      <h2 id="daily-title">The everyday version</h2>
+      <p>After setup, these are the commands you will usually need:</p>
+      <pre><code># Log in, or renew an expired session
+saml2aws login --account company-login --profile work-dev
+
+# Confirm the AWS account and role
+aws sts get-caller-identity --profile work-dev
+
+# Do your work (this example only lists buckets)
+aws s3 ls --profile work-dev</code></pre>
+      <details>
+        <summary>Optional: stop typing --profile every time</summary>
+        <p>In macOS/Linux bash or zsh, set it for the current terminal. This selects a profile; it does not log you in. Existing exported access keys can override profile credentials, so use a terminal without old AWS credential exports.</p>
+        <pre><code>export AWS_PROFILE=work-dev
+aws sts get-caller-identity
+aws s3 ls
+
+# Stop selecting this profile by default
+unset AWS_PROFILE</code></pre>
+      </details>
+    </section>
+
+    <section id="questions" aria-labelledby="questions-title">
+      <h2 id="questions-title">A few things that trip people up</h2>
+      <details>
+        <summary>Where are the settings saved?</summary>
+        <p>By default, <code>~/.saml2aws</code> contains the login recipe under <code>[company-login]</code>. <code>~/.aws/credentials</code> holds temporary keys and a session token under <code>[work-dev]</code>. <code>~/.aws/config</code> holds settings such as region under <code>[profile work-dev]</code>. The <code>~</code> means your home folder.</p>
+        <p>Let the tools manage credentials. Do not paste them into code or commit them to Git. <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html">AWS configuration file reference</a>.</p>
+      </details>
+      <details>
+        <summary>Do I also need to run aws configure?</summary>
+        <p>You do not need to enter permanent access keys for this flow. saml2aws supplies temporary credentials. The region command above only saves a setting; it does not authenticate.</p>
+      </details>
+      <details>
+        <summary>My session expired. What now?</summary>
+        <p>Run the login command again. To refresh even if saml2aws considers the credentials valid:</p>
+        <pre><code>saml2aws login --account company-login --profile work-dev --force</code></pre>
+        <p>The allowed session length depends on your company’s configuration and AWS role.</p>
+      </details>
+      <details>
+        <summary>Profile not found, or no credentials?</summary>
+        <p>Check the spelling of <code>work-dev</code> and complete the login step successfully. List the AWS profile names with:</p>
+        <pre><code>aws configure list-profiles</code></pre>
+        <p><code>--account company-login</code> alone will not select an AWS profile in an <code>aws</code> command.</p>
+      </details>
+      <details>
+        <summary>I logged in, but get AccessDenied</summary>
+        <p>Authentication and permission are different. Check your account and role with <code>get-caller-identity</code>. If they are correct, ask your team whether that role allows the operation. Logging in again does not add permissions. <a href="iam.html">See the IAM guide</a>.</p>
+      </details>
+      <details>
+        <summary>Does changing the profile name switch AWS accounts?</summary>
+        <p>No. A profile name is just a local label. The role selected during login determines your AWS access. Use separate profiles for development and production, with the appropriate role in each, and verify the identity before working.</p>
+      </details>
+    </section>
+  </main>
+  <footer>
+    <p>Command reference: <a href="https://github.com/Versent/saml2aws#usage">official saml2aws documentation</a>. Provider prompts can vary; use your team’s login instructions.</p>
+    <a href="index.html">← Back to all Tech Tools</a>
+  </footer>
+</body>
+</html>
