@@ -1,3 +1,5 @@
+import { budgetStorageAdapter } from './budget-storage.js';
+import { getSession, idToken } from './cognito.js';
 // Turns a Cognito login token into temporary AWS credentials and uses them to
 // list / upload / download / delete objects under the caller's own S3 prefix.
 import {
@@ -40,10 +42,14 @@ export async function initStorage(idTokenJwt) {
   );
 
   // Credential provider: the SDK re-invokes this when the creds expire (within
-  // the ID token's lifetime); after that the user signs in again.
+  // the session lifetime); getSession refreshes the ID token when needed.
+  const ownerEmail = userEmail;
   const credentials = async () => {
+    const current = await getSession();
+    if (!current || emailFromJwt(idToken(current.session)) !== ownerEmail) throw new Error('Your session has ended. Please sign in again.');
+    const currentLogins = { [loginKey]: idToken(current.session) };
     const { Credentials } = await identityClient.send(
-      new GetCredentialsForIdentityCommand({ IdentityId, Logins: logins })
+      new GetCredentialsForIdentityCommand({ IdentityId, Logins: currentLogins })
     );
     return {
       accessKeyId: Credentials.AccessKeyId,
@@ -70,28 +76,30 @@ function prefix() {
 }
 
 export async function listFiles() {
-  const out = await s3.send(
-    new ListObjectsV2Command({ Bucket: cfg.bucket, Prefix: prefix() })
-  );
-  return (out.Contents || [])
-    .filter((o) => o.Key !== prefix()) // drop the folder placeholder, if any
-    .map((o) => ({
-      key: o.Key,
-      name: o.Key.slice(prefix().length),
-      size: o.Size,
-      lastModified: o.LastModified,
-    }))
+  const client = s3;
+  const userPrefix = prefix();
+  const objects = [];
+  let token;
+  do {
+    const out = await client.send(new ListObjectsV2Command({ Bucket: cfg.bucket, Prefix: userPrefix, ContinuationToken: token }));
+    objects.push(...(out.Contents || []));
+    token = out.IsTruncated ? out.NextContinuationToken : undefined;
+  } while (token);
+  return objects.filter(o => o.Key !== userPrefix && !o.Key.startsWith(`${userPrefix}.budget/`))
+    .map(o => ({ key: o.Key, name: o.Key.slice(userPrefix.length), size: o.Size, lastModified: o.LastModified }))
     .sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
 }
 
 export async function uploadFile(file) {
+  if (file.name.includes('/') || file.name.includes('\\')) throw new Error('File names cannot contain path separators.');
+  const client = s3;
   const key = `${prefix()}${file.name}`;
   // Read the file into a byte array. Passing a File/Blob directly makes the
   // SDK's checksum middleware call body.getReader() (browser Blobs have no
   // getReader), which throws before the request is sent. A Uint8Array is
   // hashed directly, no streaming.
   const body = new Uint8Array(await file.arrayBuffer());
-  await s3.send(
+  await client.send(
     new PutObjectCommand({
       Bucket: cfg.bucket,
       Key: key,
@@ -151,4 +159,17 @@ export async function archiveInbox(key) {
     })
   );
   await s3.send(new DeleteObjectCommand({ Bucket: cfg.bucket, Key: key }));
+}
+
+// --- Budget ledger: same IAM-protected user space, hidden from file browsing.
+const BUDGET_PATH = '.budget/ledger-v1.json';
+export function resetStorage() { s3 = null; userEmail = null; }
+function budgetScope() {
+  if (!s3 || !userEmail) throw new Error('Please sign in again to access your budget.');
+  return { client: s3, key: `${prefix()}${BUDGET_PATH}` };
+}
+// Capture the signed-in client and key once. A pending save can never switch users.
+export function createBudgetStorage() {
+  const { client, key } = budgetScope();
+  return budgetStorageAdapter(client, cfg.bucket, key);
 }

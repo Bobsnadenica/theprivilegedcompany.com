@@ -1,4 +1,4 @@
-# Portal — login & personal file upload (`/portal/`)
+# Client portal — budget and personal files (`/portal/`)
 
 Static page served at `https://www.theprivilegedcompany.com/portal/`. After login it
 talks **directly** to Cognito and S3 from the browser — no server. Backend (Cognito,
@@ -20,6 +20,7 @@ The AWS SDK is **self-hosted** (bundled by Vite), because the site CSP is
 ```bash
 cd portal
 npm install
+npm test           # model, persistence and conditional-write tests
 npm run build      # emits ./index.html and ./assets/ (committed for GitHub Pages)
 ```
 
@@ -45,7 +46,43 @@ cp config.js src/config.js   # only needed for `npm run dev`
 
 1. `cd ../backend && terraform apply` (writes `config.js`).
 2. Create yourself a user — see [`../backend/README.md`](../backend/README.md).
-3. `npm run build`, deploy, open `/portal/`, sign in, set a permanent password, upload.
+3. `npm run build`, deploy, open `/portal/`, sign in, set a permanent password, and open Budget or Files.
 
-Files land at `s3://<bucket>/private/<your-identity-id>/…` and are only ever visible to
+Files land at `s3://<bucket>/users/<email>/…` and are only ever visible to
 you (enforced by IAM, not the page).
+
+## Budget tracker
+
+Budget is the default authenticated screen. Add income or expenses with a date,
+category, optional note and currency. Default and custom categories are available.
+Monthly/all-time totals and two category pie charts update after each saved entry.
+Entries can be edited, deleted (with confirmation) or exported as CSV for the
+selected period/currency. EUR is the default; USD, GBP and BGN are tracked
+separately, without conversion or mixed-currency totals.
+
+The ledger is versioned JSON at `users/<email>/.budget/ledger-v1.json` in the existing
+private S3 bucket. Existing email-scoped IAM permissions cover this key; the
+ledger is hidden from the Files list. `budget-model.js` handles validation and
+integer minor units, `budget-repository.js` handles concurrent changes,
+`budget-storage.js` binds conditional S3 reads/writes to one account, and
+`budget.js` renders the form, charts and transaction list.
+
+Every mutation rereads the ledger and uses ETag / If-Match (or If-None-Match for
+creation). Independent concurrent additions retry; stale edits/deletions of the
+same entry require reopening it. An unchanged retry uses the same entry revision
+to avoid duplicate entries after a lost successful response. Unknown read errors
+and invalid ledgers cannot silently overwrite existing data with an empty budget.
+The existing bucket CORS exposes ETag and allows conditional request headers.
+No new Terraform resources are required by the source configuration.
+
+Saving requires a connection. Failed saves retain the form in the current page;
+unsaved input is not persisted across reloads or sign-out. Refresh, returning to
+the Budget tab, or returning to the visible page loads current account data.
+Signing out clears displayed financial data. This is a personal transaction
+tracker, without bank feeds, exchange rates, recurring payments or offline sync.
+
+Validation: `npm test` covers amounts/dates, currencies, category totals, custom
+categories, invalid storage, concurrent mutations, retries, CSV escaping and S3
+conditional headers. Browser QA uses isolated test fixtures, never real financial
+records. A real Cognito/S3 round trip remains a release check on the configured
+hosting origin; mocked browser tests do not verify deployed AWS permissions.

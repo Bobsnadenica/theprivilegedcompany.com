@@ -6,6 +6,8 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   root: 'src',
   base: '/portal/',
+  define: { global: 'globalThis' },
+  optimizeDeps: { esbuildOptions: { define: { global: 'globalThis' } } },
   build: {
     outDir: '..',
     emptyOutDir: false,

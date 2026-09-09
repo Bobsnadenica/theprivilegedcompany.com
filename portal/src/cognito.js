@@ -6,12 +6,12 @@ import {
   AuthenticationDetails,
 } from 'amazon-cognito-identity-js';
 
-const cfg = window.__PORTAL_CONFIG__;
+const cfg = window.__PORTAL_CONFIG__ || {};
 
-const userPool = new CognitoUserPool({
+const userPool = cfg.userPoolId && cfg.userPoolClientId ? new CognitoUserPool({
   UserPoolId: cfg.userPoolId,
   ClientId: cfg.userPoolClientId,
-});
+}) : null;
 
 export function signIn(email, password) {
   return new Promise((resolve, reject) => {
@@ -46,7 +46,7 @@ export function completeNewPassword(user, newPassword, userAttributes) {
 // Restore a session from the previous visit (tokens live in localStorage).
 export function getSession() {
   return new Promise((resolve) => {
-    const user = userPool.getCurrentUser();
+    const user = userPool?.getCurrentUser();
     if (!user) return resolve(null);
     user.getSession((err, session) => {
       if (err || !session || !session.isValid()) return resolve(null);
@@ -56,7 +56,7 @@ export function getSession() {
 }
 
 export function signOut() {
-  const user = userPool.getCurrentUser();
+  const user = userPool?.getCurrentUser();
   if (user) user.signOut();
 }
 

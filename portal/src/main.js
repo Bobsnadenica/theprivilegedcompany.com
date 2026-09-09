@@ -1,4 +1,6 @@
 import './styles.css';
+import { createBudgetUI } from './budget.js';
+import { createBudgetRepository } from './budget-repository.js';
 import {
   signIn,
   completeNewPassword,
@@ -8,6 +10,8 @@ import {
 } from './cognito.js';
 import {
   initStorage,
+  resetStorage,
+  createBudgetStorage,
   listFiles,
   uploadFile,
   downloadUrl,
@@ -22,13 +26,26 @@ const $ = (id) => document.getElementById(id);
 const views = {
   login: $('login-view'),
   newpass: $('newpass-view'),
-  files: $('files-view'),
+  workspace: $('workspace-view'),
 };
 
 // The pending user during a FORCE_CHANGE_PASSWORD challenge.
 let challenge = null;
+let sessionEpoch = 0;
+let authenticated = false;
+const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()));
+
+function selectPanel(id) {
+  for (const panel of ['budget-panel', 'files-view', 'inbox-view']) $(panel).hidden = panel !== id;
+  document.querySelectorAll('[data-panel]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.panel === id)));
+}
+document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
+  selectPanel(button.dataset.panel);
+  if (button.dataset.panel === 'budget-panel') budget.refresh();
+}));
 
 function show(name) {
+  document.querySelector('.shell').classList.toggle('authenticated', name === 'workspace');
   Object.entries(views).forEach(([key, el]) => {
     el.hidden = key !== name;
   });
@@ -78,16 +95,21 @@ function fmtDate(d) {
 async function enterApp(session, email) {
   await initStorage(idToken(session));
   $('user-email').textContent = email || '';
-  show('files');
-  await refreshList();
-  await refreshInbox();
+  authenticated = true;
+  sessionEpoch++;
+  show('workspace');
+  selectPanel('budget-panel');
+  await Promise.all([budget.start(), refreshList(), refreshInbox()]);
 }
 
 async function refreshList() {
+  const generation = sessionEpoch;
+  setError($('files-error'), '');
   const list = $('file-list');
   list.innerHTML = '';
   try {
     const files = await listFiles();
+    if (!authenticated || generation !== sessionEpoch) return;
     $('files-empty').hidden = files.length > 0;
     for (const f of files) {
       const li = document.createElement('li');
@@ -155,6 +177,7 @@ function inboxField(label, value) {
 }
 
 async function refreshInbox() {
+  const generation = sessionEpoch;
   const section = $('inbox-view');
   if (!section) return;
   const list = $('inbox-list');
@@ -165,12 +188,14 @@ async function refreshInbox() {
   try {
     items = await listInbox();
   } catch {
-    // Not the admin (AccessDenied) or inbox unreadable — hide the panel entirely.
+    if (!authenticated || generation !== sessionEpoch) return;
+    $('inbox-tab').hidden = true;
     section.hidden = true;
     return;
   }
 
-  section.hidden = false;
+  if (!authenticated || generation !== sessionEpoch) return;
+  $('inbox-tab').hidden = false;
   list.innerHTML = '';
   badge.hidden = items.length === 0;
   badge.textContent = items.length ? String(items.length) : '';
@@ -184,6 +209,7 @@ async function refreshInbox() {
       brief = {};
     }
 
+    if (!authenticated || generation !== sessionEpoch) return;
     const li = document.createElement('li');
     li.className = 'inbox-row';
 
@@ -319,19 +345,23 @@ $('newpass-form').addEventListener('submit', async (e) => {
 
 // --- upload -----------------------------------------------------------------
 async function handleFiles(fileList) {
+  const generation = sessionEpoch;
   const files = Array.from(fileList || []);
   if (!files.length) return;
   setError($('files-error'), '');
   const status = $('upload-status');
   for (const file of files) {
+    if (!authenticated || generation !== sessionEpoch) return;
     status.textContent = `Uploading ${file.name}…`;
     try {
       await uploadFile(file);
     } catch (err) {
+      if (!authenticated || generation !== sessionEpoch) return;
       console.error('[portal] upload failed', err);
       setError($('files-error'), `Upload failed for ${file.name}: ${err.message || err}`);
     }
   }
+  if (!authenticated || generation !== sessionEpoch) return;
   status.textContent = '';
   $('file-input').value = '';
   await refreshList();
@@ -362,9 +392,21 @@ dropzone.addEventListener('click', (e) => {
   fileInput.click();
 });
 
+dropzone.addEventListener('keydown', event => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileInput.click(); }
+});
+
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {
+  sessionEpoch++;
+  authenticated = false;
+  budget.stop();
+  resetStorage();
   signOut();
+  $('inbox-tab').hidden = true;
+  $('inbox-list').replaceChildren();
+  $('file-list').replaceChildren();
+  $('user-email').textContent = '';
   show('login');
   $('password').value = '';
 });
@@ -374,7 +416,7 @@ $('logout-btn').addEventListener('click', () => {
   if (!window.__PORTAL_CONFIG__ || !window.__PORTAL_CONFIG__.userPoolId) {
     setError(
       $('login-error'),
-      'Backend not configured yet. Run `terraform apply` in /backend to generate config.js.'
+      'The portal is not configured yet. Please contact the site administrator.'
     );
     show('login');
     return;

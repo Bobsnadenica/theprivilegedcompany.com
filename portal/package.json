@@ -3,11 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Login + personal file upload portal (Cognito + S3, direct-to-S3).",
+  "description": "Private budget tracker and file portal (Cognito + S3).",
   "scripts": {
     "dev": "vite",
     "build": "rm -rf assets && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity": "^3.658.0",

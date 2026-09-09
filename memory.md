@@ -36,10 +36,10 @@ Keep these two files current when subsequent work changes architecture, setup, d
 
 These are source-level follow-ups. The public-site polish addresses copy and styling; backend and routing behavior findings remain open unless noted below.
 
-1. **Portal lists can silently omit objects after the first S3 page.** `portal/src/storage.js` calls `ListObjectsV2` once in both `listFiles()` and `listInbox()` and ignores continuation tokens. Implement pagination and verify a multi-page response before relying on large listings.
+1. **Admin inbox listing can omit objects after the first S3 page.** Personal `listFiles()` now paginates; `listInbox()` still needs continuation-token support.
 2. **Rapid route navigation can display stale content.** `script.js`'s async `router()` waits and fetches without a request sequence guard or abort controller. If an earlier route fetch resolves last, it can replace the newer route's DOM and metadata. Confirm with delayed responses, then guard stale navigations.
 3. **Route matching accepts an arbitrary leading path.** `getRouteKey()` considers only the last nonempty segment after dropping `index.html` segments. For example, `/anything/contact` is treated as contact. Match the whole normalized path if only declared routes should resolve.
-4. **Subproject documentation has drifted.** `portal/README.md` still describes `private/<identity-id>/`; implementation uses `users/<email>/`. `backend/README.md` omits the guest contact-inbox flow and suggests bucket contents may block destruction, whereas `force_destroy = true` is configured. These nested guides were left unchanged in this task; the root README now describes the code accurately.
+4. **Subproject documentation has drifted.** `portal/README.md` was corrected during the budget feature; implementation uses `users/<email>/`. `backend/README.md` omits the guest contact-inbox flow and suggests bucket contents may block destruction, whereas `force_destroy = true` is configured. These nested guides were left unchanged in this task; the root README now describes the code accurately.
 5. **Routing metadata has multiple sources.** Route definitions and descriptions are duplicated in `script.js` and `scripts/sync-route-pages.mjs`; the services-description mismatch was corrected in the September polish, but duplication remains. Shell synchronization alone cannot catch future semantic drift. Consider sharing route metadata.
 6. **Inbox retention needs clarification if a strict deletion deadline is intended.** The bucket is versioned and the inbox lifecycle rule has current-object expiration but no noncurrent-version expiration. Archiving/deleting and the 90-day rule should not be described as guaranteed removal of all historical content.
 
@@ -89,3 +89,40 @@ Validation:
 - No contact brief or other write request occurred during browser interaction checks. Non-GET/HEAD requests were blocked. Live AWS delivery and authenticated portal workflows were not tested.
 - Route metadata parity and Bulgarian metadata coverage checks passed. Temporary generation confirmed all ten route shells match the shell source. JavaScript syntax and diff whitespace checks passed.
 - The browser reports the pre-existing ignored `frame-ancestors` meta-CSP directive; response headers and live hosting configuration were outside this task. No performance score or comprehensive accessibility conformance claim is made.
+
+
+## Client portal budget — 2026-09-09
+
+User expanded scope to the client portal: keep uploads and add a phone-friendly
+personal income/expense tracker. Budget is now the first authenticated tab;
+Files and the admin inbox remain available. Default/custom categories, dated
+entries, notes, monthly/all-time totals, separate income/expense category pies,
+edit/delete and CSV export are implemented. EUR defaults; USD/GBP/BGN are separate
+ledgers views, never implicitly converted or added together.
+
+Storage: one version-1 JSON ledger at `users/<email>/.budget/ledger-v1.json`.
+Existing Cognito email principal tags and S3 IAM/CORS cover it; no infrastructure
+changes. Money uses integer cents. Each mutation reads fresh data and writes
+conditionally with ETag. Independent additions retry conflicts; stale same-entry
+edits/deletes fail visibly. Stable mutation revisions allow safe unchanged retries.
+Invalid/missing-permission reads are never treated as empty budgets. Sign-out
+clears the UI; repository adapters capture the initiating account. Refresh on tab
+selection/page visibility pulls changes from other devices. Failed writes retain
+input only while the page remains open; no offline/local financial persistence.
+
+Personal file listing now paginates and hides the internal `.budget/` prefix.
+Credential refresh obtains a fresh Cognito token and verifies the account.
+The Vite development configuration fixes global compatibility for Cognito and
+uses a relative public config URL. Production assets must be rebuilt with source.
+
+Validation: 13 Node tests passed for exact amounts, dates, currency separation,
+categories, ledger validation, conflicting writes, idempotency, read errors,
+S3 headers and CSV escaping. Browser fixture results are kept under ignored
+`output/playwright/`; real Cognito/S3 persistence and live deployment are not
+certified by local tests. No real financial records or production briefs were used.
+
+Browser checks passed with isolated fixtures: add income/expenses/custom Bulgarian
+category, edit, month/currency/all-time filters, failed-save input retention,
+Files navigation and sign-out clearing. Reviewed screenshots at 1440, 820, 390 and
+320 pixels; no document overflow. CSV download and confirmed deletion were also
+exercised. Build and diff whitespace checks passed. Screenshots contain test data.

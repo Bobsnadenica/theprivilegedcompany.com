@@ -1,6 +1,6 @@
 # ThePrivilegedCompany website
 
-The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Start a brief.” This repository also contains a client file portal, AWS infrastructure, and independent tools and experiments.
+The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Start a brief.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
 
 This guide was updated on **2026-09-08** for the public-site polish, based on commit `a5437d15` plus the local changes. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
@@ -29,7 +29,7 @@ The basic Python server serves existing route directories but does not reproduce
 | `views/` | Ten route fragments plus the not-found fragment; home is embedded in `index.html` |
 | `scripts/sync-route-pages.mjs` | Generates ten static route shells from `index.html` with route-specific head metadata |
 | `manifest/`, `contact/`, other route folders | Generated `index.html` files for direct static-host requests |
-| `portal/` | Separate Vite app and committed browser build for Cognito login, personal files and the admin inbox |
+| `portal/` | Separate Vite app and committed browser build for Cognito login, budget tracking, personal files and the admin inbox |
 | `backend/` | Terraform for the portal and public contact inbox: Cognito, IAM and S3 |
 | `backend/shorturl/` | Independent Terraform stack and Lambda for short links |
 | `dev/` | Tool hub and independent projects with their own runtimes/build conventions |
@@ -66,6 +66,8 @@ Features include a canvas background, animated text/cursor interactions, a servi
 The public form obtains temporary guest credentials from Cognito Identity and signs an S3 upload using WebCrypto/SigV4. It writes JSON to `inbox/new/` in the configured bucket. Successful submission does **not** send email. Failed delivery opens a `mailto:` fallback addressed to `contactus@theprivilegedcompany.com`.
 
 The portal authenticates through a Cognito User Pool, including first-login password changes, then obtains temporary credentials through an Identity Pool. Its AWS SDK is bundled locally. IAM scopes personal files to `users/<email>/`; inbox permissions are gated by the configured admin email principal tag. Admins read new briefs and archive them by copying to `inbox/done/` and deleting the original.
+
+Budget is the portal's default screen: income/expenses, custom categories, monthly or all-time totals, separate category pie charts, editing/deletion and CSV export. EUR, USD, GBP and BGN remain separate. The private ledger lives at `users/<email>/.budget/ledger-v1.json`, with conditional writes to protect concurrent device edits. Saving requires connectivity; failed saves retain the current form. See the [portal guide](portal/README.md) for storage behavior and validation limits.
 
 The Terraform defaults use `eu-west-1` and `theprivilegedcompany-bucket`. `portal/config.js` is generated from Terraform and contains public client identifiers. The public site's `inboxConfig` is separately hardcoded in `script.js`; keep the two aligned when infrastructure changes.
 
