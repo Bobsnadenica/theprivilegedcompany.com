@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260910b';
+import { languageMeta, translations } from './translations.js?v=20260910c';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260910b';
+const assetVersion = '20260910c';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -99,10 +99,11 @@ const hmacSha256 = async (key, data) => {
     return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, inboxEncoder.encode(data)));
 };
 
-const fetchGuestCredentials = async () => {
+const fetchGuestCredentials = async signal => {
     const call = async (target, payload) => {
         const response = await fetch(`https://cognito-identity.${inboxConfig.region}.amazonaws.com/`, {
             method: 'POST',
+            signal,
             headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': `AWSCognitoIdentityService.${target}` },
             body: JSON.stringify(payload)
         });
@@ -116,11 +117,12 @@ const fetchGuestCredentials = async () => {
 
 // Minimal SigV4 signer for a single S3 PUT (WebCrypto; no SDK — CSP is 'self').
 const putBriefInInbox = async brief => {
-    const creds = await fetchGuestCredentials();
+    const signal = AbortSignal.timeout(20000);
+    const creds = await fetchGuestCredentials(signal);
     const { region, bucket } = inboxConfig;
     const host = `${bucket}.s3.${region}.amazonaws.com`;
-    // Key charset is [A-Za-z0-9/T Z-]-only so the canonical URI needs no escaping.
-    const key = `inbox/new/${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 8)}.json`;
+    // Timestamp and UUID keep the object key URI-safe.
+    const key = `inbox/new/${new Date().toISOString().replace(/[:.]/g, '-')}-${crypto.randomUUID()}.json`;
     const body = JSON.stringify(brief, null, 2);
     const amzDate = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const dateStamp = amzDate.slice(0, 8);
@@ -148,6 +150,7 @@ const putBriefInInbox = async brief => {
 
     const response = await fetch(`https://${host}/${key}`, {
         method: 'PUT',
+        signal,
         headers: {
             'X-Amz-Content-Sha256': payloadHash,
             'X-Amz-Date': amzDate,
@@ -391,11 +394,9 @@ const initThemeSwitcher = () => {
  * Normalizes the path to match route keys
  */
 const getRouteKey = () => {
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(p => p !== '' && p !== 'index.html');
-    const lastPart = parts[parts.length - 1] || '';
-    if (!lastPart) return '';
-    return routes.hasOwnProperty(lastPart) ? lastPart : notFoundKey;
+    const path = window.location.pathname.replace(/\/index\.html$/, '/');
+    const key = path.replace(/^\//, '').replace(/\/$/, '');
+    return Object.hasOwn(routes, key) ? key : notFoundKey;
 };
 
 /**
@@ -431,7 +432,7 @@ const router = async () => {
         dynamicView.style.display = 'block';
         
         try {
-            const response = await fetch(`views/${route.view}?v=${assetVersion}`, { cache: 'no-store' });
+            const response = await fetch(`views/${route.view}?v=${assetVersion}`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
             if (!response.ok) throw new Error(`Status ${response.status}`);
             const html = await response.text();
             if (navigation !== navigationId) return;
@@ -439,7 +440,8 @@ const router = async () => {
         } catch (error) {
             if (navigation !== navigationId) return;
             console.error('Portal Error:', error);
-            dynamicView.innerHTML = `<div style="padding: 10rem; text-align: center;"><h2>Connection Interrupted</h2></div>`;
+            dynamicView.innerHTML = `<section class="route-error"><h1>Connection interrupted.</h1><p>We could not load this page. Check your connection and try again.</p><button class="btn-hud" id="route-retry" type="button">Try again</button></section>`;
+            document.getElementById('route-retry')?.addEventListener('click', router);
         }
     }
 
@@ -469,13 +471,15 @@ const initTabs = () => {
     const contents = document.querySelectorAll('.tab-content');
     if (!triggers.length) return;
 
-    triggers.forEach(trigger => {
+    triggers.forEach((trigger, index) => {
+        trigger.tabIndex = trigger.getAttribute('aria-selected') === 'true' ? 0 : -1;
         trigger.addEventListener('click', () => {
             const tab = trigger.dataset.tab;
             triggers.forEach(t => {
                 const isActive = t === trigger;
                 t.classList.toggle('active', isActive);
                 t.setAttribute('aria-selected', String(isActive));
+                t.tabIndex = isActive ? 0 : -1;
             });
             contents.forEach(content => {
                 content.hidden = content.id !== `tab-${tab}`;
@@ -483,6 +487,14 @@ const initTabs = () => {
 
             const target = document.getElementById(`tab-${tab}`);
             if (target) target.hidden = false;
+        });
+        trigger.addEventListener('keydown', event => {
+            const destinations = { ArrowRight: (index + 1) % triggers.length, ArrowLeft: (index - 1 + triggers.length) % triggers.length, Home: 0, End: triggers.length - 1 };
+            if (!Object.hasOwn(destinations, event.key)) return;
+            event.preventDefault();
+            const next = triggers[destinations[event.key]];
+            next.focus();
+            next.click();
         });
     });
 };
@@ -556,6 +568,7 @@ const initContactForm = () => {
     const subjectInput = document.getElementById('contact-email-subject');
     if (!form || !status) return;
 
+    const submitButton = form.querySelector('button[type="submit"]');
     const selectedService = getSelectedServiceName();
     if (selectedService && serviceContext && serviceValue && serviceInput) {
         serviceContext.hidden = false;
@@ -567,8 +580,10 @@ const initContactForm = () => {
         if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
     }
 
+    let sending = false;
     form.addEventListener('submit', async event => {
         event.preventDefault();
+        if (sending) return;
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -584,6 +599,18 @@ const initContactForm = () => {
         const timeline = String(data.get('timeline') || '').trim();
         const budget = String(data.get('budget') || '').trim();
         const details = String(data.get('details') || '').trim();
+
+        // Native required validation accepts whitespace. Check meaningful content too.
+        for (const field of ['name', 'email', 'phone', 'details']) {
+            const input = form.elements[field];
+            const value = String(data.get(field) || '').trim();
+            if ((input.required && !value) || (input.maxLength > 0 && value.length > input.maxLength)) {
+                status.textContent = t('Please complete the required fields and keep your message within the field limits.');
+                status.classList.add('is-visible');
+                input.focus();
+                return;
+            }
+        }
 
         const subjectText = serviceName
             ? `Inquiry about: ${serviceName} - ${name}`
@@ -602,7 +629,6 @@ const initContactForm = () => {
         ].join('\n');
         const subject = encodeURIComponent(subjectText);
         const body = encodeURIComponent(bodyText);
-        const submitButton = form.querySelector('button[type="submit"]');
 
         if (data.get('_honey')) {
             status.textContent = t('Brief received. We will get back to you soon.');
@@ -612,6 +638,7 @@ const initContactForm = () => {
 
         if (subjectInput) subjectInput.value = subjectText;
 
+        sending = true;
         status.textContent = t('Sending your brief securely...');
         status.classList.add('is-visible');
         if (submitButton) submitButton.disabled = true;
@@ -625,7 +652,7 @@ const initContactForm = () => {
                 serviceName,
                 timeline,
                 budget,
-                details: details.slice(0, 20000),
+                details,
                 language: currentLanguage,
                 page: window.location.pathname + window.location.search,
                 submittedAt: new Date().toISOString()
@@ -641,12 +668,14 @@ const initContactForm = () => {
             }
         } catch (error) {
             console.warn('Contact endpoint unavailable; falling back to email client.', error);
-            status.textContent = t('Automatic send was blocked. Opening your email client as a fallback.');
+            status.textContent = t('Delivery could not be confirmed. Opening an email draft; please send it from your email app, or use the email address above.');
             window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
         } finally {
+            sending = false;
             if (submitButton) submitButton.disabled = false;
         }
     });
+    if (submitButton) submitButton.disabled = false;
 };
 
 /**
@@ -1409,15 +1438,24 @@ class QuantumWeb {
         this.animate(0);
         document.addEventListener('visibilitychange', () => {
             this.isVisible = !document.hidden;
-            if (this.isVisible && !this.isReducedMotion) this.animate(performance.now());
+            cancelAnimationFrame(this.animationFrame);
+            if (this.isVisible) this.animate(performance.now());
         });
         document.addEventListener('themechange', () => {
             this.readTheme();
             if (this.isReducedMotion) this.animate(performance.now());
         });
+        window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => {
+            cancelAnimationFrame(this.animationFrame);
+            this.init();
+            this.animate(performance.now());
+        });
         window.addEventListener('resize', () => {
             clearTimeout(this.resizeTimer);
-            this.resizeTimer = setTimeout(() => this.init(), 150);
+            this.resizeTimer = setTimeout(() => {
+                this.init();
+                if (this.isReducedMotion) this.animate(performance.now());
+            }, 150);
         });
         window.addEventListener('pointermove', e => {
             this.mouse.vx = e.clientX - this.lastMouse.x;
@@ -1498,7 +1536,7 @@ class QuantumWeb {
     animate(timestamp = 0) {
         if (!this.isVisible) return;
         if (!this.isReducedMotion && timestamp - this.lastFrame < this.frameInterval) {
-            requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
+            this.animationFrame = requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
             return;
         }
 
@@ -1647,7 +1685,7 @@ class QuantumWeb {
         this.mouse.vx *= 0.85;
         this.mouse.vy *= 0.85;
         if (!this.isReducedMotion) {
-            requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
+            this.animationFrame = requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
         }
     }
 }
@@ -1675,10 +1713,12 @@ const initTelemetry = () => {
  * Event Interceptor
  */
 document.addEventListener('click', e => {
-    const link = e.target.closest('[data-link]');
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = e.target.closest('a[data-link]');
+    if (link && (link.hasAttribute('download') || (link.target && link.target !== '_self'))) return;
     if (link) {
         const url = new URL(link.href);
-        if (url.origin === window.location.origin) {
+        if (url.origin === window.location.origin && !url.hash) {
             e.preventDefault();
             history.pushState(null, null, link.href);
             router();
@@ -1696,7 +1736,7 @@ document.addEventListener('click', e => {
     } catch (_) {
         return;
     }
-    if (url.origin !== window.location.origin) {
+    if (['https:', 'http:'].includes(url.protocol) && url.origin !== window.location.origin) {
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
     }

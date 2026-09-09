@@ -4,6 +4,24 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-08** for the public-site polish, based on commit `a5437d15` plus the local changes. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## Security and QA follow-up (2026-09-10)
+
+The light theme now uses amber backgrounds and burnt-orange controls. The public
+site also has hashed inline-script CSP, safer form defaults, guarded and bounded
+contact submission, exact route matching, native modified-link behavior,
+keyboard service tabs, and corrected animation lifecycle handling.
+
+Run `node scripts/sync-route-pages.mjs` after editing inline scripts as well as
+shared shell markup: the generator refreshes CSP hashes on the root, 404 page,
+and ten route shells. Then run `node scripts/check-public-site.mjs`.
+
+The follow-up passed 88 browser layout checks across both languages and themes,
+and regression checks for navigation, form failures, CSP, motion, and 20 core
+palette contrast pairs. No live briefs were sent. See
+[security_best_practices_report.md](security_best_practices_report.md) for scope,
+evidence, and two open infrastructure findings: server-side inbox abuse controls
+and real HTTP security headers. Local fixes are unpublished.
+
 ## Run the public website locally
 
 The September 10 studio refresh adds a native SVG orbital hero, an illustrated
@@ -89,7 +107,7 @@ The main site uses vanilla JavaScript ES modules, CSS and the History API. Links
 
 Unknown paths use `views/not-found.html`. On GitHub Pages, `404.html` redirects through `/?/…`, and the shell restores the requested URL before routing. The generated route pages contain the shared home shell, not prerendered route content; JavaScript still loads the relevant fragment.
 
-The default design uses near-black backgrounds and orange accents; light mode uses warm ivory and copper. Fraunces is the display font and Manrope the body font, loaded from Google Fonts. Theme and language preferences use `tpc-theme` and `tpc-language` in localStorage. English is the language default; Bulgarian translations are keyed by normalized English copy, so copy edits may require translation updates.
+The default design uses near-black backgrounds and orange accents; light mode uses amber paper and burnt orange. Fraunces is the display font and Manrope the body font, loaded from Google Fonts. Theme and language preferences use `tpc-theme` and `tpc-language` in localStorage. English is the language default; Bulgarian translations are keyed by normalized English copy, so copy edits may require translation updates.
 
 Features include a canvas background, animated text/cursor interactions, a services-to-contact selection flow, architecture layer selection, and website diagnostics. Styles include keyboard focus indicators, a skip link, and reduced-motion handling. These are implementation features, not a claim of audited accessibility or performance.
 

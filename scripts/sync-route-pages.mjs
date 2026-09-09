@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
@@ -67,7 +68,26 @@ const replaceHeadMeta = (html, route, meta) => {
   return output;
 };
 
-const shell = await readFile(path.join(root, 'index.html'), 'utf8');
+// Keep inline boot scripts explicitly allowed, without allowing arbitrary inline JS.
+// A meta CSP only covers markup after it, and cannot enforce frame-ancestors.
+const hardenMetaPolicy = html => {
+  const hashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter(([, attributes]) => !/\bsrc\s*=/i.test(attributes))
+    .map(([, , code]) => `'sha256-${createHash('sha256').update(code).digest('base64')}'`);
+  const policyTag = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]*)">/);
+  if (!policyTag) throw new Error('Missing source CSP');
+  const policy = policyTag[1]
+    .replace(/script-src[^;]*/, `script-src 'self' ${hashes.join(' ')}`)
+    .replace(/frame-ancestors[^;]*;?\s*/, '');
+  return html
+    .replace(/\s*<meta http-equiv="Content-Security-Policy"[^>]*>/, '')
+    .replace(/\s*<meta http-equiv="X-Content-Type-Options"[^>]*>/, '')
+    .replace('<meta charset="UTF-8">', `<meta charset="UTF-8">\n    <meta http-equiv="Content-Security-Policy" content="${policy}">`);
+};
+
+const shell = hardenMetaPolicy(await readFile(path.join(root, 'index.html'), 'utf8'));
+await writeFile(path.join(root, 'index.html'), shell);
+await writeFile(path.join(root, '404.html'), hardenMetaPolicy(await readFile(path.join(root, '404.html'), 'utf8')));
 
 await Promise.all(Object.entries(routes).map(async ([route, meta]) => {
   const routeDir = path.join(root, route);

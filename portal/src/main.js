@@ -418,7 +418,7 @@ dropzone.addEventListener('keydown', event => {
 
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {
-  if ((budget.hasUnsaved() || timeto.hasUnsaved() || life.hasUnsaved()) && !confirm('This entry has not been saved. Sign out and discard it?')) return;
+  if ((budget.hasUnsaved() || timeto.hasUnsaved() || life.hasUnsaved() || bulgaria.hasUnsaved()) && !confirm('This entry has not been saved. Sign out and discard it?')) return;
   sessionEpoch++;
   authenticated = false;
   budget.stop();

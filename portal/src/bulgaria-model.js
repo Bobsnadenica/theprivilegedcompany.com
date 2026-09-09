@@ -1,4 +1,5 @@
 import {validDate} from './budget-model.js';
+import {CATALOGUE_IDS} from './data/bulgaria-ids.js';
 export const PLACES = [
  {id:'sofia',name:'Sofia',bg:'София',lon:23.3219,lat:42.6977},
  {id:'plovdiv',name:'Plovdiv',bg:'Пловдив',lon:24.7453,lat:42.1354},
@@ -13,5 +14,18 @@ export const PLACES = [
  {id:'kardzhali',name:'Kardzhali',bg:'Кърджали',lon:25.3739,lat:41.642},
  {id:'stara-zagora',name:'Stara Zagora',bg:'Стара Загора',lon:25.6345,lat:42.4258},
 ];
-export function validateVisit(e){if(!e||!PLACES.some(p=>p.id===e.id)||typeof e.revision!=='string'||!e.revision||e.revision.length>80||!validDate(e.date))throw new Error('Invalid check-in. Saved progress has not changed.');return e}
-export function validateVisits(data){if(!data||data.version!==1||!Array.isArray(data.entries))throw new Error('Cannot read your saved map.');const ids=new Set();for(const e of data.entries){validateVisit(e);if(ids.has(e.id))throw new Error('Duplicate check-in.');ids.add(e.id)}return data}
+export function validateVisit(e){if(!e||(!PLACES.some(p=>p.id===e.id)&&!CATALOGUE_IDS.has(e.id))||typeof e.revision!=='string'||!e.revision||e.revision.length>80||!validDate(e.date))throw new Error('Invalid check-in. Saved progress has not changed.');return e}
+export function validateVisits(data){if(!data||![1,2].includes(data.version)||!Array.isArray(data.entries))throw new Error('Cannot read your saved map.');const ids=new Set();for(const e of data.entries){validateVisit(e);if(ids.has(e.id))throw new Error('Duplicate check-in.');ids.add(e.id)}return data.entries.some(e=>CATALOGUE_IDS.has(e.id))?{...data,version:2}:data}
+export function validateCatalogue(data){
+ if(data?.version!==1||!Array.isArray(data.places)||data.places.length!==CATALOGUE_IDS.size)throw new Error('The place catalogue is incomplete. Please refresh.');
+ const ids=new Set();
+ for(const p of data.places){
+  if(!CATALOGUE_IDS.has(p.id)||ids.has(p.id)||!['name','bg','number','region','category','description'].every(key=>typeof p[key]==='string'&&p[key].trim())||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)||p.lat<41||p.lat>44.5||p.lon<22||p.lon>29||!p.source?.startsWith('https://www.btsbg.org/100nto/'))throw new Error('The place catalogue has invalid data. Please refresh.');
+  ids.add(p.id);
+ }
+ return data;
+}
+export function filterPlaces(places,{query='',region='',category='',state='all',visits=new Set()}={}){
+ const words=query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+ return places.filter(p=>(!region||p.region===region)&&(!category||p.category===category)&&(state==='all'||(state==='visited')===visits.has(p.id))&&words.every(word=>`${p.name} ${p.bg} ${p.number} ${p.region} ${p.regionBg} ${p.location} ${p.locationBg}`.toLocaleLowerCase().includes(word)));
+}

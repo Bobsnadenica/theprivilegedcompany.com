@@ -33,21 +33,21 @@
     --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-/* Light theme — warm ivory / copper */
+/* Light theme — amber paper / burnt orange */
 :root[data-theme="light"] {
     color-scheme: light;
-    --c-bg: #f3eadf;
-    --c-bg-rgb: 243, 234, 223;
-    --c-surface: #fffaf3;
-    --c-surface-rgb: 255, 250, 243;
-    --c-surface-strong: #eadbc9;
-    --c-fg: #24160b;
-    --c-muted: #704b2d;
-    --c-dim: #d7bea1;
-    --c-accent: #a7560d;
-    --c-accent-rgb: 167, 86, 13;
-    --c-accent-strong: #bd6717;
-    --c-accent-strong-rgb: 189, 103, 23;
+    --c-bg: #f4d2a6;
+    --c-bg-rgb: 244, 210, 166;
+    --c-surface: #ffe4bf;
+    --c-surface-rgb: 255, 228, 191;
+    --c-surface-strong: #edba7c;
+    --c-fg: #301a0c;
+    --c-muted: #69401f;
+    --c-dim: #c99a68;
+    --c-accent: #98420a;
+    --c-accent-rgb: 152, 66, 10;
+    --c-accent-strong: #873a08;
+    --c-accent-strong-rgb: 135, 58, 8;
     --c-on-accent: #ffffff;
 }
 
@@ -56,6 +56,8 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+html { scroll-padding-top: 9rem; }
 
 /* Keyboard focus: visible outline as a global fallback. The custom cursor hides
    the pointer, so keyboard users especially need a clear focus indicator.
@@ -1794,3 +1796,8 @@ body[data-route="contact"]::after { transform: translateX(-10%); }
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Resilient route fallback, including narrow screens. */
+.route-error { padding: clamp(8rem, 18vh, 12rem) var(--gap) 5rem; text-align: center; }
+.route-error h1 { font: 700 clamp(2rem, 7vw, 4.5rem)/1.1 var(--f-display); overflow-wrap: anywhere; }
+.route-error p { max-width: 38rem; margin: 1.5rem auto 2rem; color: var(--c-muted); }
