@@ -6,6 +6,31 @@ This guide was updated on **2026-09-08** for the public-site polish, based on co
 
 ## Run the public website locally
 
+The September 10 studio refresh adds a native SVG orbital hero, an illustrated
+three-step approach, quieter background composition, a compact header, visible
+showcase artwork, and editorial services/company layouts. Both languages and
+themes remain supported. No dependencies were added. Existing showcase artwork
+is reused; the atlas preview crops out outdated snapshot counts. New product
+screenshots and an approved portrait would be future content improvements.
+
+The router now ignores stale navigation responses and errors. Showcase links
+inside service cards keep their own keyboard action. Run the regression check:
+
+```sh
+node scripts/check-public-site.mjs
+```
+
+Local validation: 88 route/layout checks covered all 11 public routes in both
+languages, using light mode at 320/820 pixels and dark mode at 390/1440 pixels.
+No horizontal document overflow or duplicate visible page headings remained.
+Browser checks covered tabs, keyboard showcase navigation, service context,
+required fields, invalid email, Back/Forward, diagnostics, and the skip link.
+Screenshots were inspected during browser review. Reduced-motion rules were
+reviewed in source; OS-level motion emulation and live delivery were not tested.
+Core HTML/CSS/JS/translation assets grew by approximately 2.5 KB gzipped; this is
+an asset-size comparison, not a measured loading-speed score. No production
+briefs were submitted, and this refresh has not been published.
+
 From the repository root:
 
 ```sh

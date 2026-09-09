@@ -6,6 +6,14 @@ export const languageMeta = {
 export const translations = {
     bg: {
         text: {
+            "Independent engineering · 1+AI": "Независимо инженерство · 1+AI",
+            "Ideas. Systems. Working software.": "Идеи. Системи. Работещ софтуер.",
+            "Define the goal.": "Определяме целта.",
+            "Turn the idea into a clear technical plan.": "Превръщаме идеята в ясен технически план.",
+            "Build with purpose.": "Изграждаме с посока.",
+            "Shape the software around the problem.": "Създаваме софтуера според задачата.",
+            "Bring it to life.": "Вдъхваме живот.",
+            "Test, refine, and put the solution to work.": "Тестваме, подобряваме и пускаме решението в работа.",
             "Plain-language terms of engagement for working with ThePrivilegedCompany on IT and engineering projects.": "Условия за съвместна работа с ThePrivilegedCompany по IT и инженерни проекти, представени на разбираем език.",
             "App & website development, technical SEO, automation, AI tools, cloud audits, and tech training for businesses and individuals. Contact us for a clear plan.": "Разработка на приложения и уебсайтове, техническо SEO, автоматизация, AI инструменти, облачни одити и обучения за бизнеса и за вас. Свържете се с нас за ясен план.",
             "Architecture": "Архитектура",

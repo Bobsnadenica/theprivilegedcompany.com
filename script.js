@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260907a';
+import { languageMeta, translations } from './translations.js?v=20260910a';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260907a';
+const assetVersion = '20260910a';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -366,7 +366,7 @@ const getTheme = () => (document.documentElement.getAttribute('data-theme') === 
 const applyTheme = (theme, persist) => {
     document.documentElement.setAttribute('data-theme', theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'light' ? '#f3eadf' : '#030201');
+    if (meta) meta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--c-bg').trim());
     const scheme = document.querySelector('meta[name="color-scheme"]');
     if (scheme) scheme.setAttribute('content', theme === 'light' ? 'light' : 'dark');
     if (persist) {
@@ -401,7 +401,9 @@ const getRouteKey = () => {
 /**
  * SPA Router with Cinematic Transitions
  */
+let navigationId = 0;
 const router = async () => {
+    const navigation = ++navigationId;
     const { key, route } = getCurrentRoute();
     document.body.dataset.route = key || 'home';
     
@@ -410,6 +412,7 @@ const router = async () => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     transitionMask.classList.add('is-active');
     await new Promise(r => setTimeout(r, prefersReducedMotion ? 0 : 360));
+    if (navigation !== navigationId) return;
 
     // Update active state in nav
     document.querySelectorAll('#main-nav a').forEach(link => {
@@ -431,8 +434,10 @@ const router = async () => {
             const response = await fetch(`views/${route.view}?v=${assetVersion}`, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Status ${response.status}`);
             const html = await response.text();
+            if (navigation !== navigationId) return;
             dynamicView.innerHTML = html;
         } catch (error) {
+            if (navigation !== navigationId) return;
             console.error('Portal Error:', error);
             dynamicView.innerHTML = `<div style="padding: 10rem; text-align: center;"><h2>Connection Interrupted</h2></div>`;
         }
@@ -534,6 +539,7 @@ const initServiceCards = () => {
             openDestination();
         });
         card.addEventListener('keydown', event => {
+            if (event.target !== card) return;
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
             openDestination();
@@ -1362,8 +1368,8 @@ const initCursor = () => {
     }, { passive: true });
 
     const loop = () => {
-        followerX += (mouseX - followerX - 20) * 0.22;
-        followerY += (mouseY - followerY - 20) * 0.22;
+        followerX += (mouseX - followerX) * 0.22;
+        followerY += (mouseY - followerY) * 0.22;
         follower.style.transform = `translate3d(${followerX}px, ${followerY}px, 0)`;
         requestAnimationFrame(loop);
     };
@@ -1385,7 +1391,7 @@ const initMagnetic = () => {
             const rect = el.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-            el.style.transform = `translate3d(${x * 0.3}px, ${y * 0.3}px, 0)`;
+            el.style.transform = `translate3d(${x * 0.08}px, ${y * 0.08}px, 0)`;
         }, { passive: true });
         el.addEventListener('mouseleave', () => {
             el.style.transform = `translate3d(0, 0, 0)`;

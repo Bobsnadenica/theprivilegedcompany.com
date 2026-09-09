@@ -111,12 +111,15 @@
     .contact-assurances { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; text-align: left; }
     .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; font-weight: 400; line-height: 1.6; }
     .contact-assurances li::before { content: "\2713"; position: absolute; left: 0; top: 0; color: var(--c-accent); font-weight: 800; }
-    .contact-shell { margin: 0; padding: clamp(1.35rem, 3vw, 2.25rem); border: 1px solid rgba(var(--c-accent-rgb), 0.24); border-radius: var(--radius-surface); background: rgba(var(--c-surface-rgb), 0.72); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2); }
+    .contact-shell { margin: 0; padding: clamp(1.35rem, 3vw, 2.25rem); border: 1px solid rgba(var(--c-accent-rgb), 0.24); border-radius: var(--radius-surface); background: var(--c-surface); box-shadow: 0 24px 70px rgba(0, 0, 0, 0.2); }
     .contact-shell.reveal-mask { overflow: visible; }
     .contact-form-kicker { margin-bottom: 1.35rem; color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 700; }
     .contact-form { display: grid; gap: 1.25rem; text-align: left; }
     .contact-honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+    @media (min-width: 721px) {
+        .field-grid label > span { min-height: 2.8em; }
+    }
     .contact-service-context { border: 1px solid rgba(var(--c-accent-rgb), 0.3); border-radius: 8px; background: rgba(var(--c-accent-rgb), 0.06); padding: 1rem 1.1rem; }
     .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.35rem; }
     .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.1; }
@@ -152,10 +155,10 @@
     }
 
     @media (max-width: 720px) {
-        .contact-layout { gap: 2rem; }
+        .contact-layout { gap: 1.5rem; }
         .contact-view .display-huge { font-size: clamp(2.65rem, 13vw, 3.2rem); }
         #dynamic-view .contact-view .view-lead { margin-top: 1.1rem; font-size: 1rem; }
-        .contact-assurances { gap: 0.7rem; }
+        .contact-assurances { gap: 0.5rem; }
         .contact-assurances li { font-size: 0.9rem; line-height: 1.5; }
         .contact-shell { padding: 1rem; }
         .field-grid { grid-template-columns: 1fr; }

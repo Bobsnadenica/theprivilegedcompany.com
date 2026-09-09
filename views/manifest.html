@@ -1,4 +1,4 @@
-<section class="monolith-view">
+<section class="monolith-view services-view">
     <header class="view-header reveal-mask">
         <span class="label">What we do</span>
         <h1 class="display-huge" data-scramble>Services.</h1>
@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="service-grid">
-                        <article class="service-card service-card-with-preview">
+                        <article class="service-card service-card-with-preview service-card--featured">
                             <span>Data Products</span>
                             <h3>Licensed Market Intelligence</h3>
                             <p>Datasets and research to support market analysis, identify opportunities, and inform business decisions.</p>
@@ -220,22 +220,22 @@
 </section>
 
 <style>
-    .tabs-container { margin-top: 3.5rem; }
-    .tab-triggers { display: inline-flex; justify-content: center; gap: 0.35rem; margin-bottom: 4rem; padding: 0.35rem; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: 999px; background: rgba(var(--c-accent-rgb), 0.055); }
+    .tabs-container { margin-top: 1.5rem; }
+    .tab-triggers { display: inline-flex; justify-content: center; gap: 0.35rem; margin-bottom: 1.25rem; padding: 0.35rem; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: 999px; background: rgba(var(--c-accent-rgb), 0.055); }
     .tab-trigger { min-width: 9rem; min-height: 2.8rem; padding: 0.7rem 1.2rem; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--c-muted); cursor: pointer; font-family: var(--f-logic); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.25s, background 0.25s, border-color 0.25s, box-shadow 0.25s; }
     .tab-trigger:hover { color: var(--c-accent-strong); }
     .tab-trigger.active { border-color: var(--c-accent); background: var(--c-accent); color: var(--c-on-accent); box-shadow: 0 8px 24px rgba(var(--c-accent-rgb), 0.2); }
     .idx { font-family: var(--f-display); font-size: 1.5rem; color: var(--c-dim); font-weight: 700; }
     .manifest-list { display: grid; gap: clamp(4rem, 8vw, 6rem); }
-    .service-section { border-top: 1px solid var(--c-dim); padding-top: clamp(3rem, 6vw, 5rem); }
-    .section-intro { display: grid; grid-template-columns: auto minmax(0, 760px); justify-content: center; gap: 2rem; margin-bottom: 2rem; text-align: left; }
-    .section-intro h2 { font-family: var(--f-display); font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.15; margin-bottom: 1rem; color: var(--c-accent-strong); }
+    .service-section { border-top: 1px solid var(--c-dim); padding-top: 2rem; }
+    .section-intro { display: grid; grid-template-columns: auto minmax(0, 760px); justify-content: start; gap: 2rem; margin-bottom: 2rem; text-align: left; }
+    .section-intro h2 { font-family: var(--f-display); font-size: clamp(2rem, 3.5vw, 2.8rem); line-height: 1.15; margin-bottom: 1rem; color: var(--c-accent-strong); }
     .section-intro p { color: var(--c-muted); font-size: 1.08rem; font-weight: 400; line-height: 1.7; }
     .service-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-    .service-card { border: 1px solid rgba(var(--c-accent-rgb), 0.2); border-radius: var(--radius-surface); background: rgba(var(--c-surface-rgb), 0.88); padding: clamp(1.35rem, 2.5vw, 2rem); text-align: left; }
+    .service-card { border: 1px solid rgba(var(--c-accent-rgb), 0.2); border-radius: var(--radius-surface); background: rgba(var(--c-surface-rgb), 0.97); padding: clamp(1.35rem, 2.5vw, 2rem); text-align: left; }
     .service-card[role="link"] { cursor: pointer; position: relative; transition: border-color 0.25s, background 0.25s, transform 0.25s, box-shadow 0.25s; }
     .service-card[role="link"]:hover,
-    .service-card[role="link"]:focus-visible { border-color: rgba(var(--c-accent-strong-rgb), 0.72); background: rgba(var(--c-accent-rgb), 0.08); box-shadow: 0 18px 50px rgba(var(--c-accent-rgb), 0.08); transform: translateY(-3px); outline: 2px solid transparent; }
+    .service-card[role="link"]:focus-visible { border-color: rgba(var(--c-accent-strong-rgb), 0.72); background: var(--c-surface); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1); transform: translateY(-3px); outline: 2px solid transparent; }
     .service-card[role="link"]:focus-visible,
     .service-card-action:focus-visible,
     .tab-trigger:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
@@ -248,13 +248,14 @@
     .service-card-action { display: inline-flex; align-items: center; justify-content: center; min-height: var(--control-height); padding: 0.55rem 0.82rem; border: 1px solid rgba(var(--c-accent-rgb), 0.34); border-radius: 999px; color: var(--c-accent); background: rgba(var(--c-accent-rgb), 0.08); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; transition: background 0.25s, color 0.25s, border-color 0.25s; }
     .service-card-action:hover,
     .service-card-action:focus-visible { background: var(--c-accent); border-color: var(--c-accent); color: var(--c-on-accent); outline: 2px solid transparent; }
-    .service-preview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; max-height: 0; margin-top: 0; overflow: hidden; opacity: 0; padding: 0 0.5rem; border: 1px solid transparent; border-radius: 8px; background: var(--c-surface-strong); transform: translateY(-0.35rem); transition: max-height 0.32s var(--ease-out), opacity 0.25s, transform 0.25s, margin-top 0.25s, padding 0.25s, border-color 0.25s; pointer-events: none; }
+    .service-preview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--border-soft); border-radius: 8px; background: var(--c-surface-strong); pointer-events: none; }
     .service-preview-single { grid-template-columns: 1fr; }
-    .service-card-with-preview:hover .service-preview,
-    .service-card-with-preview:focus-visible .service-preview,
-    .service-card-with-preview:focus-within .service-preview { max-height: 128px; margin-top: 1rem; opacity: 1; padding: 0.5rem; border-color: rgba(var(--c-accent-rgb), 0.24); transform: translateY(0); }
-    .service-preview img { width: 100%; height: 96px; object-fit: cover; border: 1px solid rgba(var(--c-accent-rgb), 0.28); border-radius: 6px; background: rgba(var(--c-accent-rgb), 0.06); }
-    .service-preview-single img { object-fit: contain; background: rgba(var(--c-accent-rgb), 0.1); }
+    .service-preview img { display: block; width: 100%; height: 160px; object-fit: contain; }
+    .service-card--featured { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; column-gap: 3rem; }
+    /* Show the project artwork, excluding the old snapshot counts at its foot. */
+    .service-card--featured .service-preview { grid-column: 2; grid-row: 1 / 6; margin: 0; padding: 0; overflow: hidden; aspect-ratio: 2.8; align-self: center; }
+    .service-card--featured .service-preview img { height: 100%; min-height: 0; object-fit: cover; object-position: top; background: #fbf5e8; }
+    .service-card--featured .service-card-actions, .service-card--featured .service-card-cta { grid-column: 1; }
     .service-card--sensitive { grid-column: 1 / -1; margin-top: 1.75rem; border-color: rgba(var(--c-accent-rgb), 0.12); background: rgba(var(--c-accent-rgb), 0.02); }
     .service-card--sensitive span { color: var(--c-muted); }
     .manifest-footer { padding: 10rem 0; text-align: center; border-top: 1px solid var(--c-dim); }
@@ -277,7 +278,8 @@
         .service-card p { font-size: 1rem; line-height: 1.7; }
         .service-card-cta { margin-top: 1rem; }
         .service-card-action { width: 100%; }
-        .service-card-with-preview .service-preview { max-height: 128px; margin-top: 1rem; opacity: 1; padding: 0.5rem; border-color: rgba(var(--c-accent-rgb), 0.24); transform: none; }
+        .service-card--featured { display: block; }
+        .service-card--featured .service-preview { margin-top: 1rem; }
         .manifest-footer { padding: 5rem 0 6rem; }
     }
 </style>
