@@ -1,5 +1,5 @@
 import { createBudgetRepository } from './budget-repository.js';
-import { validateTimer, validateTimers, nextDue, daysLeft } from './timeto-model.js';
+import { validateTimer, validateTimers, nextDue, daysLeft, paymentProgress } from './timeto-model.js';
 import { localDate, money, parseAmount } from './budget-model.js';
 const friendlyDate = date => new Intl.DateTimeFormat(undefined, {day:'numeric',month:'long',year:'numeric'}).format(new Date(`${date}T12:00:00`));
 const relative = days => days === null ? 'No expiry' : days < 0 ? `${Math.abs(days)} days overdue` : days === 0 ? 'Due today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
@@ -21,17 +21,20 @@ export function createTimeToUI(makeStorage) {
     overview.append(upcoming);
     for(const [count,label,value,cls] of [[soon,'Due in the next 30 days','soon',''],[overdue,'Past their due date','overdue','timer-overdue']]){const button=node('button',`timer-stat ${cls}`);button.type='button';button.append(node('strong','',String(count)),node('span','',label),node('small','','View dates →'));button.onclick=()=>{$('timer-filter').value=value;$('timer-search').value='';render();$('timer-filter').focus()};overview.append(button)}
     const visible=ordered.filter(({entry:e,days})=>`${e.title} ${e.group} ${e.note}`.toLowerCase().includes(query)&&(filter==='all'||filter==='soon'&&days!==null&&days>=0&&days<=30||filter==='overdue'&&days!==null&&days<0||filter==='recurring'&&['monthly','yearly'].includes(e.recurrence))).map(item=>item.entry);
-    $('timer-count').textContent=`${visible.length} of ${entries.length} countdown${entries.length===1?'':'s'} · nearest dates first`;
+    $('timer-count').textContent=`${visible.length} of ${entries.length} countdown${entries.length===1?'':'s'} · grouped, nearest dates first`;
     $('timer-empty').hidden=visible.length>0;$('timer-empty').textContent=entries.length?'No dates in this view. Try All countdowns or clear your search.':'Your calendar starts here. Choose “Add a countdown” above.';
+    const groupOrder=new Map();for(const e of visible)if(!groupOrder.has(e.group))groupOrder.set(e.group,groupOrder.size);
+    visible.sort((a,b)=>groupOrder.get(a.group)-groupOrder.get(b.group));
     let lastSection='';
     for(const e of visible){
       const days=daysLeft(e), due=nextDue(e), card=node('article',`card timer-card ${days!==null&&days<0?'is-overdue':days!==null&&days<=7?'is-soon':''}`);
-      const section=days===null?'No expiry':days<0?'Needs your attention':days===0?'Today':days<=30?'Coming up · next 30 days':'Further ahead';
+      const section=e.group;
       if(section!==lastSection){root.append(node('h3','timer-section-title',section));lastSection=section;}
       const head=node('div','timer-card-head'), text=node('div','');text.append(node('span','eyebrow',e.group),node('h3','',e.title));
       const badge=node('strong',`timer-days ${days!==null&&days<0?'negative':days!==null&&days<=30?'expense':''}`,relative(days));head.append(text,badge);
       card.append(head,node('p','muted',due?`${friendlyDate(due)} · ${e.recurrence==='once'?'One-time':e.recurrence==='monthly'?'Repeats monthly':'Repeats yearly'}`:'Never expires'));
       if(e.amount!==null)card.append(node('p','timer-amount',money(e.amount,e.currency)));
+      const cycle=paymentProgress(e);if(cycle){const wrap=node('div','payment-progress'),label=node('p','',`${cycle.remaining} days until ${e.amount!==null?'payment':'next occurrence'} · ${cycle.remaining>cycle.cycleDays?'cycle not started':`${cycle.cycleDays}-day cycle`}`),bar=node('progress','');bar.max=100;bar.value=cycle.percent;bar.setAttribute('aria-label', `${e.title}: ${cycle.remaining} days remaining in the cycle`);wrap.append(label,bar);card.append(wrap)}
       if(e.note)card.append(node('p','timer-note',e.note));
       const actions=node('div','transaction-actions');
       const edit=node('button','btn-ghost timer-action','Edit');edit.type='button';edit.setAttribute('aria-label',`Edit ${e.title}`);edit.onclick=()=>{

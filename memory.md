@@ -196,3 +196,27 @@ storage and migration records unchanged. All 18 tests/build/whitespace checks pa
 Browser fixtures validated next-up ordering, filters, search, create and edit/cancel;
 reviewed screenshots at 320, 390, 820 and 1440px with no overflow. No production
 records modified and these visual changes were not published in this pass.
+
+## Personal map, life grid and mobile navigation — 2026-09-10
+
+Added Bulgaria scratch map with 12 fixed starter cities, manual check-ins and undo.
+Natural Earth public-domain outline is bundled locally; no map/network dependency
+or GPS access. Reveals are illustrative patches, with full reveal after all 12.
+Private `.bulgaria/ledger-v1.json` uses the existing validated conditional repository.
+
+Added Time of your life: per-account names/nicknames, entered age/date and adjustable
+planning age (default 80). One square/year, elapsed versus years to chosen horizon;
+explicitly a reflection tool, not a lifespan prediction. Age snapshots are manually
+updated. `.life/ledger-v1.json` is private and both new ledgers are hidden from Files.
+
+Budget/TimeTo/Bulgaria/Life are labeled icon buttons beside the notification bell;
+Files is the sole text tab. Mobile header puts 44+ px tools on their own row.
+TimeTo now groups by saved group with nearest-date ordering and recurring payment
+bars showing calendar days remaining. Bars do not track actual payment completion.
+
+Validation: 23 Node tests pass including persistent check-ins, simultaneous visits,
+undo, life boundaries/CRUD, and calendar payment progress. Browser fixtures exercised
+check-in, map reload/undo, people create/edit/delete/reload, two-account isolation,
+grouped payment bars and icon navigation. Screenshots at 1440/820/390/320 across all
+four tools showed no horizontal overflow. No real account records were changed in
+this pass; source and deployable portal artifacts are local and not pushed.

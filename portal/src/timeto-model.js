@@ -23,3 +23,12 @@ export function nextDue(entry, today=localDate()) {
   const current=dateInMonth(ty,m-1,d);return current>=today?current:dateInMonth(ty+1,m-1,d);
 }
 export function daysLeft(entry,today=localDate()) {const due=nextDue(entry,today);return due===null?null:Math.round((utc(due)-utc(today))/86400000)}
+
+// Fraction of days remaining in the recurring billing cycle. No payment status inferred.
+export function paymentProgress(entry,today=localDate()) {
+ if(!['monthly','yearly'].includes(entry.recurrence))return null;
+ const due=nextDue(entry,today),[year,month]=due.split('-').map(Number),[startYear,startMonth,day]=entry.date.split('-').map(Number);
+ const previous=entry.recurrence==='monthly'?dateInMonth(year,month-2,day):dateInMonth(year-1,startMonth-1,day);
+ const cycleDays=Math.round((utc(due)-utc(previous))/86400000),remaining=Math.max(0,Math.round((utc(due)-utc(today))/86400000));
+ return {remaining,cycleDays,percent:Math.max(0,Math.min(100,remaining/cycleDays*100))};
+}

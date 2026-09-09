@@ -32,8 +32,8 @@
       rel="stylesheet"
     />
 
-    <script type="module" crossorigin src="/portal/assets/index-D27qvmPv.js"></script>
-    <link rel="stylesheet" crossorigin href="/portal/assets/index-CoI_0_P4.css">
+    <script type="module" crossorigin src="/portal/assets/index-kAeXMQMK.js"></script>
+    <link rel="stylesheet" crossorigin href="/portal/assets/index-BDqA7Vdu.css">
   </head>
   <body>
     <main class="shell">
@@ -113,13 +113,11 @@
       <section id="workspace-view" hidden>
         <div class="workspace-head">
           <div><span class="eyebrow">Your personal space</span><h1>Client portal</h1><p class="muted" id="user-email"></p></div>
-          <button type="button" id="inbox-tab" class="btn-ghost notification-button" data-panel="inbox-view" aria-pressed="false" aria-label="Notifications" title="Notifications" hidden><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notification-badge" class="notification-dot" hidden></span></button>
-          <button id="logout-btn" type="button" class="btn-ghost">Sign out</button>
+          <nav class="workspace-tools" aria-label="Personal tools"><button type="button" class="btn-ghost tool-icon" data-panel="budget-panel" aria-pressed="true" aria-label="Budget" title="Budget"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z M4 9h16 M8 13h3 M15 13h2"/></svg><span class="tool-tip">Budget</span></button><button type="button" class="btn-ghost tool-icon" data-panel="timeto-panel" aria-pressed="false" aria-label="TimeTo" title="TimeTo"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v5l3 2"/></svg><span class="tool-tip">TimeTo</span></button><button type="button" class="btn-ghost tool-icon" data-panel="bulgaria-panel" aria-pressed="false" aria-label="Bulgaria" title="Bulgaria"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2z M9 3v16 M15 5v16"/></svg><span class="tool-tip">Bulgaria</span></button><button type="button" class="btn-ghost tool-icon" data-panel="life-panel" aria-pressed="false" aria-label="Time of your life" title="Time of your life"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21S2 14 2 8a5 5 0 0 1 10-2A5 5 0 0 1 22 8c0 6-10 13-10 13"/></svg><span class="tool-tip">Time of your life</span></button><button type="button" id="inbox-tab" class="btn-ghost notification-button" data-panel="inbox-view" aria-pressed="false" aria-label="Notifications" title="Notifications" hidden><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notification-badge" class="notification-dot" hidden></span></button>
+          </nav><button id="logout-btn" type="button" class="btn-ghost">Sign out</button>
         </div>
         <nav class="portal-nav" aria-label="Portal sections">
-          <button type="button" data-panel="budget-panel" aria-pressed="true">Budget</button>
           <button type="button" data-panel="files-view" aria-pressed="false">Files</button>
-          <button type="button" data-panel="timeto-panel" aria-pressed="false">TimeTo</button>
         </nav>
         <section id="budget-panel" aria-labelledby="budget-title">
           <div class="budget-heading">
@@ -206,6 +204,24 @@
           </details>
           <div class="timer-toolbar"><label for="timer-search">Find a countdown<input id="timer-search" type="text" placeholder="Search your dates…"></label><label for="timer-filter">Show<select id="timer-filter"><option value="all">All countdowns</option><option value="soon">Next 30 days</option><option value="overdue">Overdue</option><option value="recurring">Recurring</option></select></label></div>
           <p id="timer-count" class="muted"></p><p id="timer-empty" class="empty-state"></p><div id="timer-list" class="timer-list"></div>
+        </section>
+        <section id="bulgaria-panel" hidden aria-labelledby="bulgaria-title">
+          <div class="budget-heading"><div><span class="eyebrow">A little further from home</span><h2 id="bulgaria-title">Bulgaria, one place at a time.</h2><p class="muted">A map of where you’ve been. And a reason to keep exploring.</p></div><button id="bg-refresh" type="button" class="btn-ghost">Refresh</button></div>
+          <p id="bg-status" class="sync-status" role="status" aria-live="polite"></p>
+          <div class="scratch-layout"><div class="card scratch-card"><div class="scratch-heading"><span class="eyebrow">Your scratch map</span><strong id="bg-progress"></strong></div><progress id="bg-progress-bar" max="12" value="0" aria-label="Places visited"></progress>
+            <svg id="bg-map" viewBox="0 0 760 500" role="group" aria-label="Bulgaria scratch map. Select a place on the map or use the place selector."></svg>
+            <p class="field-hint">Silver is still to explore. Gold marks your visits. Check in to reveal a patch; all 12 starter places unlock the full map.</p>
+            <a class="map-credit" href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener">Map outline: Natural Earth</a>
+          </div><div class="card scratch-place"><label for="bg-place">Choose a place</label><select id="bg-place"></select><span class="eyebrow">Your next little adventure</span><h3 id="bg-place-name"></h3><p id="bg-place-bg" class="muted"></p><p id="bg-place-state"></p><button id="bg-checkin" class="btn-primary" type="button">I’ve been here — check in</button><button id="bg-undo" class="btn-ghost danger" type="button" hidden>Undo check-in</button><p class="field-hint">Your own travel journal. Check-ins are manual; no location access is needed.</p></div></div>
+          <h3 class="scratch-visited-title">Places you’ve uncovered</h3><div id="bg-visited" class="scratch-visited"></div>
+        </section>
+        <section id="life-panel" hidden aria-labelledby="life-title">
+          <div class="budget-heading"><div><span class="eyebrow">Make time for what matters</span><h2 id="life-title">Time of your life</h2><p class="muted">A little perspective, one year at a time.</p></div><button id="life-refresh" class="btn-ghost" type="button">Refresh</button></div>
+          <p class="life-explanation">Each square is one year. Filled squares show the age you enter; open squares lead to your chosen planning age. This is a reflection tool, not a lifespan prediction. Update ages as birthdays pass.</p>
+          <p id="life-status" class="sync-status" role="status" aria-live="polite"></p>
+          <details id="life-editor" class="timer-editor"><summary>Add a person <span aria-hidden="true">＋</span></summary><form id="life-form" class="card entry-card"><fieldset id="life-fields"><legend id="life-form-title">Add yourself or someone you love</legend><label for="life-name">Name or nickname</label><input id="life-name" type="text" maxlength="80" required placeholder="Me, Mum, Dad…"><label for="life-age">Current age in years</label><input id="life-age" type="number" inputmode="numeric" min="0" max="130" step="1" required><label for="life-horizon">Planning age</label><input id="life-horizon" type="number" inputmode="numeric" min="1" max="150" step="1" value="80" required><p class="field-hint">80 is just a starting point. Choose the horizon that feels useful to you.</p><button class="btn-primary" type="submit">Save person</button><button id="life-cancel" class="btn-ghost" type="button" hidden>Cancel edit</button></fieldset></form></details>
+          <div class="life-legend"><span><i class="life-square elapsed" aria-hidden="true"></i> Years elapsed</span><span><i class="life-square" aria-hidden="true"></i> Years to your planning age</span></div>
+          <p id="life-empty" class="empty-state">Add yourself or a family member to see your first grid.</p><div id="life-people"></div>
         </section>
         <section id="files-view" class="card wide" hidden>
         <div class="files-head">

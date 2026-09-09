@@ -143,3 +143,9 @@ with add/edit/delete per account. Notifications use the top-right bell. Budget
 categories can be deleted without deleting their transaction history; affected
 entries move to Other. The former public TimeTo tool and its dev-index link were
 removed after its owner data was migrated and verified in private account storage.
+
+Private portal tools now also include a Bulgaria scratch map (12 starter cities,
+manual check-ins and undo) and Time of your life (year-square grids for entered
+ages and adjustable planning horizons). Tools use icons beside notifications;
+Files remains a text tab. TimeTo groups schedules and shows recurring-cycle
+progress. See the portal README for storage and interpretation details.

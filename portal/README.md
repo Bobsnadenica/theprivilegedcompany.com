@@ -132,3 +132,30 @@ The list is grouped by urgency, with full calendar dates and relative labels.
 Search and All / Next 30 days / Overdue / Recurring filters affect the list;
 overview totals always describe the full account. Add/edit uses an expandable
 form so countdowns are visible first on phones. Existing storage is unchanged.
+
+## Bulgaria and Time of your life
+
+Personal tools are icon buttons beside notifications, with accessible names,
+focus states and tooltips. Files remains a text tab; icons wrap onto their own
+row on phones. Notification visibility still follows the existing IAM permissions.
+
+Bulgaria offers 12 starter city destinations. A manual check-in reveals an
+illustrative patch of the map; visiting all 12 reveals the entire outline. This
+is a travel journal, without GPS verification or location permissions. Undo covers
+the patch again. The simplified outline is Natural Earth public-domain data:
+https://www.naturalearthdata.com/about/terms-of-use/. City coordinates are
+approximate display markers, not navigation data or administrative boundaries.
+Progress uses `users/<email>/.bulgaria/ledger-v1.json`.
+
+Time of your life stores names/nicknames, entered ages, planning ages and the
+entry date in `users/<email>/.life/ledger-v1.json`. One square represents one year;
+filled squares represent the entered age. The default planning age of 80 is
+adjustable, not a lifespan forecast. Ages are entered snapshots and should be
+updated after birthdays. Ages beyond the planning horizon show zero remaining
+planning years without implying death. Add/edit/delete works per account.
+
+Both tools reuse validated conditional account storage and are hidden from Files.
+No personal records are seeded or shared between users. TimeTo groups items by
+their saved group, ordered by nearest due date, with remaining-day progress bars
+for monthly/yearly cycles. Bars count down to the next due date and are not proof
+of payment. Before a future cycle starts, that state is labeled explicitly.

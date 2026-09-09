@@ -1,4 +1,6 @@
 import './styles.css';
+import { createLifeUI } from './life.js';
+import { createBulgariaUI } from './bulgaria.js';
 import { createTimeToUI } from './timeto.js';
 import { createBudgetUI } from './budget.js';
 import { createBudgetRepository } from './budget-repository.js';
@@ -14,6 +16,8 @@ import {
   resetStorage,
   createBudgetStorage,
   createTimeToStorage,
+  createBulgariaStorage,
+  createLifeStorage,
   listFiles,
   uploadFile,
   downloadUrl,
@@ -38,15 +42,19 @@ let authenticated = false;
 const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()));
 
 const timeto = createTimeToUI(createTimeToStorage);
+const bulgaria = createBulgariaUI(createBulgariaStorage);
+const life = createLifeUI(createLifeStorage);
 
 function selectPanel(id) {
-  for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel']) $(panel).hidden = panel !== id;
+  for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel', 'bulgaria-panel', 'life-panel']) $(panel).hidden = panel !== id;
   document.querySelectorAll('[data-panel]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.panel === id)));
 }
 document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
   selectPanel(button.dataset.panel);
   if (button.dataset.panel === 'budget-panel') budget.refresh();
   if (button.dataset.panel === 'timeto-panel') timeto.refresh();
+  if (button.dataset.panel === 'bulgaria-panel') bulgaria.refresh();
+  if (button.dataset.panel === 'life-panel') life.refresh();
 }));
 
 function show(name) {
@@ -104,7 +112,7 @@ async function enterApp(session, email) {
   sessionEpoch++;
   show('workspace');
   selectPanel('budget-panel');
-  await Promise.all([budget.start(), timeto.start(), refreshList(), refreshInbox()]);
+  await Promise.all([budget.start(), timeto.start(), bulgaria.start(), life.start(), refreshList(), refreshInbox()]);
 }
 
 async function refreshList() {
@@ -407,11 +415,13 @@ dropzone.addEventListener('keydown', event => {
 
 // --- logout -----------------------------------------------------------------
 $('logout-btn').addEventListener('click', () => {
-  if ((budget.hasUnsaved() || timeto.hasUnsaved()) && !confirm('This entry has not been saved. Sign out and discard it?')) return;
+  if ((budget.hasUnsaved() || timeto.hasUnsaved() || life.hasUnsaved()) && !confirm('This entry has not been saved. Sign out and discard it?')) return;
   sessionEpoch++;
   authenticated = false;
   budget.stop();
   timeto.stop();
+  bulgaria.stop();
+  life.stop();
   resetStorage();
   signOut();
   $('inbox-tab').hidden = true;

@@ -19,3 +19,10 @@ test('countdowns validate and preserve private migration metadata through edits'
  assert.equal((await repo.load()).migration.sourceText,'private fixture');assert.equal(value.entries[0].title,'Updated');
  await repo.commit({id:'timer',expectedRevision:'two',entry:null});assert.equal(value.entries.length,0);
 });
+
+test('payment progress reports calendar days remaining, including due today',async()=>{
+ const {paymentProgress}=await import('../src/timeto-model.js');
+ assert.deepEqual(paymentProgress(timer(),'2026-02-14'),{remaining:14,cycleDays:28,percent:50});
+ assert.equal(paymentProgress(timer(),'2026-02-28').percent,0);
+ assert.equal(paymentProgress(timer({recurrence:'never'})),null);
+});

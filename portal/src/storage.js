@@ -85,7 +85,7 @@ export async function listFiles() {
     objects.push(...(out.Contents || []));
     token = out.IsTruncated ? out.NextContinuationToken : undefined;
   } while (token);
-  return objects.filter(o => o.Key !== userPrefix && !o.Key.startsWith(`${userPrefix}.budget/`) && !o.Key.startsWith(`${userPrefix}.timeto/`))
+  return objects.filter(o => o.Key !== userPrefix && !o.Key.startsWith(`${userPrefix}.budget/`) && !o.Key.startsWith(`${userPrefix}.timeto/`) && !o.Key.startsWith(`${userPrefix}.bulgaria/`) && !o.Key.startsWith(`${userPrefix}.life/`))
     .map(o => ({ key: o.Key, name: o.Key.slice(userPrefix.length), size: o.Size, lastModified: o.LastModified }))
     .sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
 }
@@ -177,4 +177,14 @@ export function createBudgetStorage() {
 export function createTimeToStorage() {
   if (!s3 || !userEmail) throw new Error('Please sign in again.');
   return budgetStorageAdapter(s3, cfg.bucket, `${prefix()}.timeto/ledger-v1.json`);
+}
+
+export function createBulgariaStorage() {
+  if (!s3 || !userEmail) throw new Error('Please sign in again.');
+  return budgetStorageAdapter(s3, cfg.bucket, `${prefix()}.bulgaria/ledger-v1.json`);
+}
+
+export function createLifeStorage() {
+  if (!s3 || !userEmail) throw new Error('Please sign in again.');
+  return budgetStorageAdapter(s3, cfg.bucket, `${prefix()}.life/ledger-v1.json`);
 }
