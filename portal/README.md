@@ -161,10 +161,10 @@ road distances or travel-time estimates. Google directions calculate routes afte
 the user opens Google Maps.
 
 Place cards include regional context, an official guide, visit-planning guidance,
-and 38 licensed Commons photos where a matched image and full attribution were
+and 37 licensed Commons photos where a matched image and full attribution were
 available. Photo/metadata provenance is bundled in `bulgaria-place-details.json`.
-Photos load on selection from Wikimedia; broken images disappear without blocking
-the card. Google photos/reviews and detailed satellite imagery open through normal
+Photos lazy-load in browsing cards and selected details from Wikimedia; missing or
+broken images show a stable fallback without blocking the card. Google photos/reviews and detailed satellite imagery open through normal
 Maps URLs. Google ratings/reviews are not scraped or embedded, and no paid API is
 configured. Embedded Places content would require a separate key/billing and review
 of Google's current EEA display, attribution and caching rules.
@@ -275,7 +275,7 @@ only account write performed for this upgrade; test check-ins use isolated ledge
 
 ## Personal travel journal and photo check-ins
 
-Bulgaria now has Map, Nearby and My visits views. On phones the explorer opens in
+Bulgaria now has Map, Places and My visits views. On phones the explorer opens in
 view, navigation is compact, recommendations swipe horizontally, and the place
 list uses twelve results per page. Search works in Bulgarian and English; filters
 are tucked into an expandable panel. The three recommendations are the closest
@@ -322,10 +322,33 @@ photo; no background cleanup guesses whether it is safe to delete. Bucket versio
 retention still applies. There is no new backend service, IAM change, public sharing,
 AI verification, or polling.
 
-Validation: 52 Node tests pass, including upload-before-ledger ordering, lost-response
+Validation: 53 Node tests pass, including upload-before-ledger ordering, lost-response
 retries, concurrent changes, account-scoped keys, legacy records and nearby ranking.
 Isolated browser checks cover camera/library controls, image downscaling, required
 photos, upload and ledger failures, retry, reload, account switching, undo/cleanup,
 Bulgarian search, pagination and phone/tablet/desktop layouts. Browser fixtures use
 synthetic images and block production AWS. No production photo or check-in was
 created; physical camera capture and device-specific HEIC support are not simulated.
+
+
+### Photo-led explorer interface
+
+Map and Places share category filters, a With photos toggle and the existing advanced
+region/visit/sort controls. The map includes a strip of unvisited places with photos,
+matching the active filters; these are inspiration, not a claim of proximity to the
+current map centre. Selecting a card focuses its map marker and opens place details.
+Without location, Places offers a few illustrated suggestions. With permission, it
+shows the three closest unvisited places using straight-line distance and the active category, region and photo filters. Location errors remain visible on phones.
+
+List cards show an image, official number, both names, region and visit state.
+Only reviewed Commons media with complete attribution and trusted HTTPS source links
+is rendered. Public photos lazy-load and keep their space if loading fails. Unsourced
+places show an explicit missing-preview state plus a Google Maps link in details.
+The catalogue remains 250 places; the With photos subset currently contains 37.
+No Google image API, key, billing, runtime scraping or private photo export was added.
+
+Phones retain search and Map/Places/My visits controls while scrolling, with horizontal
+category chips, swipeable discovery cards, a browse button on the map and an accessible
+native detail sheet. The existing photo-before-check-in save flow and account-scoped
+storage are unchanged. The local Figma reference contains public catalogue data only;
+its final layout refinement was blocked by the Starter-plan MCP call limit.

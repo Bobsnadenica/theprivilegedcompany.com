@@ -340,3 +340,26 @@ production build and syntax/whitespace checks pass.
   undo and cleanup, legacy conversion, Bulgarian search, pagination and 320/390/
   820/1440 layouts. Fixtures use synthetic photos; no production records or private
   photos were created. No IAM/backend infrastructure changes or deployment.
+
+
+## Photo-led explorer refresh — 2026-09-10
+
+- The visible navigation is Map / Places / My visits; `nearby` remains the internal
+  view value. Explicit geolocation still supplies the three closest unvisited places.
+  Without location, the Places view supplies a few illustrated suggestions.
+- Public photos now appear in paged list cards, recommendation cards and a small map
+  discovery strip. The strip follows active filters, not the current map viewport.
+  Shared category chips and a With photos toggle filter both markers and the list.
+- `explorer-photo.js` validates complete attribution and exact trusted HTTPS hosts,
+  renders lazy media with a stable fallback, and keeps photo credits outside card buttons.
+  The catalogue is unchanged; 37 sourced images remain after removing an ancient coin
+  which did not depict its archaeological site's appearance.
+- Sticky phone navigation/search, a floating map-to-list button, bigger headings,
+  clearer selected states and category marker colours improve browsing. Geolocation
+  denial/unavailability stays visible. Saved private photo handling is unchanged.
+- A public-data-only mobile reference was created in Figma. Its final layout tidy-up
+  is incomplete because the Starter-plan MCP call limit was reached. No private
+  account or visit data was sent to Figma; the temporary capture page is outside source.
+- 53 Node tests and the production build pass. Fixture browser QA covers the new media/filter states plus
+  saved-photo retries, reload, account isolation, undo, legacy history, Bulgarian
+  wrapping and phone/tablet/desktop layouts. No production test records or deployment.

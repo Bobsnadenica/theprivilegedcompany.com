@@ -54,13 +54,13 @@ links current capabilities. Native tiles end at zoom 14; zoom 15–16 enlarge th
 pixels. No live capture date or higher resolution is implied. Tiles use browser HTTP
 caching only, with no bulk downloading or offline tile pack.
 
-`bulgaria-place-details.json` adds 69 matched Wikidata records, 62 short descriptions and 38 Commons photos.
+`bulgaria-place-details.json` adds 69 matched Wikidata records, 62 short descriptions and 37 Commons photos.
 Sources were matched through the existing reviewed OSM feature's Wikidata tag,
 with entity coordinates required within 3 km of the catalogue point. Photo metadata
 comes from the entity's P18 file and its Commons file page. Each displayed photo
 includes its author, file page, license and license link. Wikidata text uses CC0;
-photos retain their individual CC BY/CC BY-SA licenses. Images remain remote and
-load only when their place is selected. Entries with missing/ambiguous metadata or
+photos retain their individual CC BY/CC BY-SA licenses. Images remain remote and lazy-load in visible list/discovery cards and selected details.
+A historic coin image was removed because it did not preview the archaeological site. Entries with missing/ambiguous metadata or
 unavailable sources were omitted; the official catalogue remains complete.
 
 For refreshing media, review the stored Wikidata and Commons source links, confirm

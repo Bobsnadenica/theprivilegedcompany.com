@@ -235,3 +235,10 @@ inside the account's existing private S3 space before the check-in is committed.
 My visits, mobile detail sheets and paged search shorten the phone workflow.
 Google photos open in Google Maps; an embedded Google photo service is not configured.
 See the [portal guide](portal/README.md) for storage, retry and validation details.
+
+
+The explorer's photo-led refresh adds illustrated discovery cards on the map,
+photo cards in Places, quick category filters and a With photos view. Mobile search
+and view switching remain available while scrolling. Photo credits and missing-image
+fallbacks are explicit; all 250 catalogue places remain available. Private visit
+photos and account storage retain the existing save/retry behaviour.

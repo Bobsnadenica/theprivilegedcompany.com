@@ -106,7 +106,7 @@ export function createExplorerMap(container, geography, onSelect, onState = () =
           markers.set(place.id,marker);
         }
         if (update) {
-          const icon = document.createElement('span'); icon.className = `landmark-pin ${visited?'visited':''} ${selectedPlace?'selected':''}`; icon.textContent = visited ? '✓' : symbols[place.category] || '◇'; icon.setAttribute('aria-hidden','true');
+          const icon = document.createElement('span'); icon.className = `landmark-pin ${visited?'visited':''} ${selectedPlace?'selected':''}`; icon.dataset.category=place.category; icon.textContent = visited ? '✓' : symbols[place.category] || '◇'; icon.setAttribute('aria-hidden','true');
           Object.assign(marker.options,{visited,selectedPlace,title:label});
           marker.setIcon(L.divIcon({html:icon,className:'landmark-marker',iconSize:[44,44],iconAnchor:[22,22]}));
           marker.getElement()?.setAttribute('aria-pressed',String(selectedPlace));
