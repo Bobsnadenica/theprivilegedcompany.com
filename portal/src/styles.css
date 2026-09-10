@@ -680,3 +680,62 @@ input[type='number'], input[type='search'] { background: var(--surface-2); borde
 
 .explorer-location-bar .btn-primary { margin:0; min-height:46px; }.explorer-location-bar > div { align-items:center; }.explorer-location-bar .btn-ghost { min-height:46px; }
 .visit-dot { background:#f4e5bd; border-color:#fff6dc; }.visit-dot.visited { background:#426c4b; border-color:#cbe2b5; }
+
+/* Personal travel journal: short phone paths, with a dedicated nearby view. */
+.explorer-navigation { display:flex; align-items:center; gap:16px; margin:10px 0 16px; }
+.explorer-view-switch { display:flex; gap:4px; padding:4px; border:1px solid #4a4639; border-radius:13px; background:#151711; flex-shrink:0; }
+.explorer-view-switch button { min-height:46px; padding:10px 18px; border:0; border-radius:9px; background:transparent; color:var(--muted); font:600 .78rem 'Manrope',sans-serif; cursor:pointer; white-space:nowrap; }
+.explorer-view-switch button[aria-pressed='true'] { background:#d6c298; color:#1d261b; }.explorer-view-switch button span { margin-left:4px; opacity:.75; }
+.explorer-search { flex:1; margin:0; }.explorer-search input { min-height:54px; }
+.explorer-location-bar { padding:0 0 18px; }.explorer-location-bar p { font-size:.7rem; }
+.explorer-recommendations { margin:8px 0 24px; }.recommend-heading { display:flex; gap:24px; justify-content:space-between; align-items:end; margin-bottom:16px; }.recommend-heading .eyebrow { font-size:.64rem; margin-bottom:7px; }.recommend-heading h3 { font:500 1.7rem 'Fraunces',serif; margin:0; }.recommend-heading p { max-width:300px; color:var(--muted); font-size:.74rem; line-height:1.7; margin:0; }
+#bg-recommend-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.recommend-place { display:flex; flex-direction:column; align-items:start; gap:10px; min-height:200px; padding:22px; border:1px solid #545c42; border-radius:16px; text-align:left; background:radial-gradient(ellipse at top right,#8c9d4320,transparent 80%),#151d15; color:var(--text); cursor:pointer; }
+.recommend-place:hover { border-color:var(--accent); background-color:#1c281b; }.recommend-kicker { font:500 .63rem 'Manrope',sans-serif; color:#d1c5a4; letter-spacing:.025em; }.recommend-place > strong { font:500 1.35rem/1.25 'Fraunces',serif; overflow-wrap:anywhere; }.recommend-distance { font:400 .72rem/1.5 'Manrope',sans-serif; color:#c2cbb6; }.recommend-action { margin-top:auto; font:600 .72rem 'Manrope',sans-serif; color:var(--accent); padding-top:7px; }
+#bulgaria-panel:not([data-explorer-view='map']) .explorer-map-column { display:none; }
+#bulgaria-panel:not([data-explorer-view='map']) .explorer-layout { display:block; }
+#bulgaria-panel:not([data-explorer-view='map']) .explorer-sidebar { grid-template-columns:minmax(0,1fr); }
+#bulgaria-panel:not([data-explorer-view='map']) .explorer-sidebar:has(#bg-detail:not([hidden])) { grid-template-columns:minmax(280px,1fr) minmax(0,1.5fr); }
+#bulgaria-panel:not([data-explorer-view='map']) .explorer-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); max-height:none; gap:0 16px; padding:0 16px 16px; }
+#bulgaria-panel[data-explorer-view='visited'] label:has(#bg-filter) { display:none; }
+#bg-filters { border-bottom:1px solid var(--border); }#bg-filters > summary { min-height:46px; padding:14px 20px; cursor:pointer; color:var(--muted); font-size:.74rem; }#bg-filters .explorer-filters { border:0; }
+.explorer-browser > summary #bg-list-title { margin:0; font-size:.85rem; font-weight:600; color:var(--text); }
+.place-photo-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 16px; }.place-photo-options button,.place-photo-options a { margin:0!important; padding:10px 7px; font-size:.75rem; min-height:46px; display:flex; align-items:center; justify-content:center; text-decoration:none; }
+#bg-place-actions { scroll-margin-top:80px; }#bg-place-actions h4 { margin:16px 0 0; font:500 1.25rem 'Fraunces',serif; }#bg-photo-editor .field-hint { margin:12px 0; font-size:.72rem; line-height:1.7; }
+.visit-photo-choices { display:grid; grid-template-columns:1fr 1fr; gap:8px; }.visit-photo-choices button { font-size:.75rem; }
+.visit-photo-preview,.saved-visit-photo { margin:16px 0; }.visit-photo-preview img,.saved-visit-photo img { display:block; width:100%; max-height:340px; object-fit:contain; background:#080b08; border:1px solid #4b513f; border-radius:12px; }.visit-photo-preview button { font-size:.72rem; margin-top:8px; }#bg-saved-photo-status { color:#c2d6b7; font-size:.7rem; }
+.place-checkin-row { margin-top:18px; }.place-checkin-row:has(#bg-checkin:not([hidden])) { grid-template-columns:1fr; }.place-checkin-row #bg-checkin { font-size:.8rem; min-height:50px; }
+#bg-photo-preview[hidden],#bg-saved-photo[hidden],#bg-photo-editor[hidden] { display:none; }
+@media(max-width:680px) {
+ body:has(#bulgaria-panel:not([hidden])) .workspace-head { margin:8px 0 12px; gap:6px; }
+ body:has(#bulgaria-panel:not([hidden])) .workspace-head > div:first-child .eyebrow,body:has(#bulgaria-panel:not([hidden])) .workspace-head > div:first-child h1 { display:none; }
+ body:has(#bulgaria-panel:not([hidden])) .workspace-head > div:first-child { flex-basis:calc(100% - 110px); }
+ body:has(#bulgaria-panel:not([hidden])) .workspace-tools { gap:8px; flex-basis:auto; order:3; }
+ body:has(#bulgaria-panel:not([hidden])) .portal-nav { margin:0 0 14px; padding:3px; min-width:90px; }
+ body:has(#bulgaria-panel:not([hidden])) .portal-nav button { padding:0 14px; min-height:44px; }
+ #bulgaria-panel > .budget-heading { margin-top:8px; align-items:center; }#bulgaria-panel > .budget-heading .eyebrow,#bulgaria-panel > .budget-heading p { display:none; }#bulgaria-title { font-size:1.7rem; }#bulgaria-panel > #bg-status { font-size:.67rem; min-height:0; margin:8px 0 10px; }
+ .explorer-navigation { flex-direction:column; gap:10px; margin:10px 0; }.explorer-view-switch { width:100%; }.explorer-view-switch button { flex:1; min-width:0; padding:10px 8px; font-size:.75rem; }.explorer-search { width:100%; }.explorer-search input { min-height:48px; }
+ .explorer-location-bar { gap:8px; padding-bottom:12px; }.explorer-location-bar p { margin:0; font-size:.65rem; }.explorer-location-bar #bg-browse { display:none; }
+ #bg-map { height:min(50dvh,420px); min-height:300px; }.explorer-map-heading { padding:12px; }.explorer-map-heading .eyebrow { display:none; }.explorer-map-heading strong { font-size:.95rem; }.explorer-map-toolbar { padding:8px; }#bg-map-hint { display:none; }.map-style-switch { flex:1; }.map-style-switch button { flex:1; padding:8px; }
+ #bulgaria-panel[data-explorer-view='map'] .explorer-sidebar { display:none; }
+ #bulgaria-panel:not([data-explorer-view='map']) .explorer-sidebar,#bulgaria-panel:not([data-explorer-view='map']) .explorer-sidebar:has(#bg-detail:not([hidden])) { grid-template-columns:1fr; }
+ #bulgaria-panel:not([data-explorer-view='map']) .explorer-results { display:block; padding:0 8px 8px; }
+ .recommend-heading { display:block; margin:12px 0; }.recommend-heading h3 { font-size:1.4rem; }.recommend-heading p { margin-top:7px; font-size:.7rem; max-width:none; }
+ #bg-recommend-list { grid-template-columns:1fr; gap:10px; }.recommend-place { min-height:0; padding:16px; gap:7px; }.recommend-place > strong { font-size:1.25rem; }.recommend-action { align-self:end; padding-top:0; }
+ #bg-place-dialog { max-height:94dvh; border-radius:18px 18px 0 0; }.place-photo-options { position:sticky; top:69px; z-index:1; margin:0 -22px 12px; padding:10px 20px; background:var(--surface); border-bottom:1px solid var(--border); }
+ #bg-place-dialog .place-detail-top { padding:8px 20px; min-height:68px; }.place-photo img { height:180px; }.explorer-detail h3 { font-size:1.6rem; margin-top:16px; }.explorer-detail .place-plan { margin-top:8px; }
+ #bg-place-actions { scroll-margin-top:145px; }#bg-place-actions .place-checkin-row:has(#bg-checkin:not([hidden])) { position:sticky; bottom:0; z-index:2; padding:12px 0 max(12px,env(safe-area-inset-bottom)); background:var(--surface); border-top:1px solid var(--border); }
+}
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.explorer-pagination { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid var(--border); }.explorer-pagination span { color:var(--muted); font-size:.7rem; text-align:center; }.explorer-pagination button { font-size:.73rem; min-height:44px; }
+.place-row-proof { display:block; color:#cadfbd; margin-top:4px; }
+#bulgaria-panel .legacy-visits { grid-column:1/-1; }
+@media(max-width:680px) {
+ #bg-recommend-list { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:10px; scrollbar-width:thin; scrollbar-color:#6d7257 transparent; }.recommend-place { flex:0 0 87%; min-width:0; min-height:180px; scroll-snap-align:start; }
+ .recommend-heading p { font-size:.68rem; }.explorer-pagination { padding:12px; gap:6px; }
+ body:has(#bulgaria-panel:not([hidden])) .brand { margin-bottom:12px; }body:has(#bulgaria-panel:not([hidden])) .brand-sub { display:none; }
+ .tool-icon:hover:not(:focus-visible) .tool-tip { visibility:hidden; }
+}
+#bg-place-dialog .explorer-detail { overflow:visible; }
+#bg-place-dialog .place-detail-top { z-index:4; }
+#bg-place-dialog .place-photo-options { z-index:3; }

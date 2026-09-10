@@ -311,3 +311,32 @@ Real-provider browser checks also passed: twelve satellite tiles returned HTTP 2
 a Commons photo rendered with attribution, and phone touch/rotation/Escape/logout
 worked. Satellite loading stays explicit until the current tiles finish. The portal
 production build and syntax/whitespace checks pass.
+
+
+## Personal travel journal — 2026-09-10
+
+- Added Map/Nearby/My visits modes, twelve-result paging, a compact mobile header
+  and explorer scroll target, swipeable nearest-unvisited recommendations, and
+  persistent close/photo actions in the phone detail sheet. Google photos are a
+  prominent external Maps link; inline Google photos still require separate API
+  configuration and billing. No Google content is scraped.
+- New check-ins require a user photo, with camera/library controls. No authenticity,
+  location or image-content verification. Older check-ins and city history remain;
+  adding a photo to an older landmark preserves its date and unknown metadata.
+- `visit-photo.js` decodes supported images up to 25 MB, emits a JPEG at most 1600
+  pixels per edge, strips original EXIF by re-encoding, and produces a SHA-256 receipt.
+  HEIC/HEIF depends on the browser decoder and has a clear failure message.
+- `visit-photo-storage.js` captures the existing authenticated account client and
+  prefix. Immutable private photo objects use conditional creation, with HEAD
+  verification after an already-created retry. No public or signed URL is persisted.
+  Authenticated no-store reads become temporary blob URLs, cleared on close/logout.
+- `visit-save.js` uploads before committing the ledger, preserving the same photo
+  and revision on failed or lost-response retries. Schema 3 protects photo references
+  from older clients; schemas 1/2 remain readable. Undo commits first, then checks
+  the latest ledger before photo deletion. Failed/uncertain saves never trigger
+  speculative photo deletion. Unreferenced objects may remain private after cancellation.
+- 52 Node tests pass. Isolated browser QA covers photo requirement, downscaling,
+  upload failure, ledger failure/retry, saved-photo reload, account isolation,
+  undo and cleanup, legacy conversion, Bulgarian search, pagination and 320/390/
+  820/1440 layouts. Fixtures use synthetic photos; no production records or private
+  photos were created. No IAM/backend infrastructure changes or deployment.

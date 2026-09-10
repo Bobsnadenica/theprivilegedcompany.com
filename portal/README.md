@@ -271,3 +271,61 @@ nearest sorting, media attribution, mobile sheets, location denial, satellite
 failure, marker retention at close zoom, and failed check-in retry. Browser fixtures
 block AWS and retain earlier city records. The private term migration above is the
 only account write performed for this upgrade; test check-ins use isolated ledgers.
+
+
+## Personal travel journal and photo check-ins
+
+Bulgaria now has Map, Nearby and My visits views. On phones the explorer opens in
+view, navigation is compact, recommendations swipe horizontally, and the place
+list uses twelve results per page. Search works in Bulgarian and English; filters
+are tucked into an expandable panel. The three recommendations are the closest
+unvisited catalogue places to the location the user explicitly shares. They update
+immediately after a check-in or undo. Distances are straight-line estimates, not
+travel times; no location or recommendation is written to the account.
+
+Every place card has a prominent Google photos link. It opens the named place in
+Google Maps, where the user can view its photos. Google photos are not embedded:
+that requires a separately configured Maps/Places API key, billing, and applicable
+Google content terms. Existing credited Commons photographs remain available.
+
+New check-ins require one photo. Take photo opens the device's camera-capable
+picker; Choose photo opens the library/file picker. No location, face, authenticity,
+or content verification is performed. The photo is the user's own personal record.
+Existing check-ins remain readable and can receive a photo without changing their
+original dates or other metadata. Earlier city check-ins remain separate history.
+
+The browser accepts JPEG, PNG, WebP and phone HEIC/HEIF when its decoder supports
+those formats, up to 25 MB. It saves a JPEG copy with a longest edge of 1600 pixels,
+removing original EXIF/GPS metadata through canvas encoding. Unsupported HEIC gets
+a clear JPEG/camera fallback message. The original file stays on the user's device.
+
+`visit-photo-storage.js` uses the same IAM-protected account scope as the ledgers,
+with immutable photo objects under the hidden Bulgaria folder. Photo references
+store a UUID, dimensions, MIME type, byte count and SHA-256 digest; they do not
+contain public or signed URLs. Reads use authenticated S3 requests with no-store
+and create short-lived in-memory blob URLs. Closing details or logging out revokes
+those URLs; late reads cannot populate another account. No private images enter
+CacheStorage, localStorage, the public catalogue, or the Files listing.
+
+The photo upload must complete before the ledger commit. Conditional object creation
+and a metadata check handle a lost upload response; the existing ETag/revision
+repository handles ledger conflicts and lost save responses. A failed save keeps
+the prepared photo and date in the current session for retry. Do not claim success
+until the ledger confirms it. Check-ins with photos use ledger schema 3; schemas
+1 and 2 remain readable. Older frontends reject schema 3 rather than dropping its
+photo fields, so users with an old open tab may need to reload after release.
+
+Undo first commits the ledger removal, then reads the current ledger again before
+deleting an unreferenced photo. Cleanup failure leaves a private object and an
+explicit status. A cancelled or uncertain save may leave an unreferenced private
+photo; no background cleanup guesses whether it is safe to delete. Bucket version
+retention still applies. There is no new backend service, IAM change, public sharing,
+AI verification, or polling.
+
+Validation: 52 Node tests pass, including upload-before-ledger ordering, lost-response
+retries, concurrent changes, account-scoped keys, legacy records and nearby ranking.
+Isolated browser checks cover camera/library controls, image downscaling, required
+photos, upload and ledger failures, retry, reload, account switching, undo/cleanup,
+Bulgarian search, pagination and phone/tablet/desktop layouts. Browser fixtures use
+synthetic images and block production AWS. No production photo or check-in was
+created; physical camera capture and device-specific HEIC support are not simulated.

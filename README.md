@@ -226,3 +226,12 @@ and verified by reading it back after checking the published frontend supports i
 IDs and expiry dates are unchanged. The new map assets have not been deployed;
 browser QA uses isolated records. See the [portal guide](portal/README.md) for validation,
 data sources, caching and migration instructions.
+
+
+The Bulgaria explorer also includes Nearby recommendations and a private photo
+travel journal. New check-ins require a camera/library photo; earlier visits can
+receive one without losing their dates. Photos are resized on the device and saved
+inside the account's existing private S3 space before the check-in is committed.
+My visits, mobile detail sheets and paged search shorten the phone workflow.
+Google photos open in Google Maps; an embedded Google photo service is not configured.
+See the [portal guide](portal/README.md) for storage, retry and validation details.

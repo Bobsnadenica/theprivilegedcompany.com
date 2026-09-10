@@ -34,3 +34,8 @@ export function googleSatelliteUrl(place) {
   if (!validLocation(place)) return '';
   return `https://www.google.com/maps/@?api=1&map_action=map&center=${encodeURIComponent(`${place.lat},${place.lon}`)}&zoom=18&basemap=satellite`;
 }
+
+export function recommendPlaces(places,visits,location,limit=3) {
+  if (!validLocation(location)) return [];
+  return sortPlaces(places.filter(place=>!visits.has(place.id)),'nearest',location).slice(0,Math.max(0,Math.min(10,limit)));
+}

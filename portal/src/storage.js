@@ -1,3 +1,4 @@
+import { visitPhotoStorageAdapter } from './visit-photo-storage.js';
 import { budgetStorageAdapter } from './budget-storage.js';
 import { getSession, idToken } from './cognito.js';
 // Turns a Cognito login token into temporary AWS credentials and uses them to
@@ -187,4 +188,9 @@ export function createBulgariaStorage() {
 export function createLifeStorage() {
   if (!s3 || !userEmail) throw new Error('Please sign in again.');
   return budgetStorageAdapter(s3, cfg.bucket, `${prefix()}.life/ledger-v1.json`);
+}
+
+export function createVisitPhotoStorage() {
+  if (!s3 || !userEmail) throw new Error('Please sign in again.');
+  return visitPhotoStorageAdapter(s3,cfg.bucket,prefix());
 }

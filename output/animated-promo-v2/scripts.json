@@ -1,0 +1,20 @@
+{
+  "en": {
+    "voice": "Karen",
+    "rate": 142,
+    "lines": [
+      "Every great idea starts with a little imagination.",
+      "At The Privileged Company, we build websites, apps, and smart automation.",
+      "Let’s bring your idea to life. Together."
+    ]
+  },
+  "bg": {
+    "voice": "Daria",
+    "rate": 146,
+    "lines": [
+      "Всяка голяма идея започва с малко въображение.",
+      "В Привилиджд Къмпани създаваме уебсайтове, приложения и умни автоматизации.",
+      "Нека превърнем твоята идея в реалност. Заедно."
+    ]
+  }
+}

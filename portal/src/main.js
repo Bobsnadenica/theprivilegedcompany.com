@@ -17,6 +17,7 @@ import {
   createBudgetStorage,
   createTimeToStorage,
   createBulgariaStorage,
+  createVisitPhotoStorage,
   createLifeStorage,
   listFiles,
   uploadFile,
@@ -42,7 +43,7 @@ let authenticated = false;
 const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()));
 
 const timeto = createTimeToUI(createTimeToStorage);
-const bulgaria = createBulgariaUI(createBulgariaStorage);
+const bulgaria = createBulgariaUI(createBulgariaStorage,createVisitPhotoStorage);
 const life = createLifeUI(createLifeStorage);
 const trackers = { 'budget-panel': budget, 'timeto-panel': timeto, 'bulgaria-panel': bulgaria, 'life-panel': life };
 const startedTrackers = new Set();
@@ -53,6 +54,7 @@ function selectPanel(id) {
 }
 document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
   selectPanel(button.dataset.panel);
+  if(button.dataset.panel==='bulgaria-panel'&&matchMedia('(max-width:680px)').matches)requestAnimationFrame(()=>$('bulgaria-panel').scrollIntoView({block:'start',behavior:'instant'}));
   const tracker = trackers[button.dataset.panel];
   if (!authenticated || !tracker) return;
   if (startedTrackers.has(tracker)) tracker.refresh();

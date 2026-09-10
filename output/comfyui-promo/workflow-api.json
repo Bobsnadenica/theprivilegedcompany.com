@@ -1,0 +1,156 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "ltxv-2b-0.9.8-distilled.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "t5xxl_fp8_e4m3fn.safetensors",
+      "type": "ltxv",
+      "device": "cpu"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "text": "The camera holds a steady medium portrait shot of a beautiful adult brunette woman in an elegant black sleeveless evening dress. She looks directly into the camera with a playful confident smile, gently tilts her head, naturally blinks, and slowly shifts her shoulders. Her long wavy brown hair moves subtly. Her hands stay relaxed at her sides. Warm soft cinematic lighting illuminates her natural face, with copper light accents against a dark charcoal modern studio. Sophisticated fashion advertisement, natural realistic skin and consistent facial features. Smooth subtle human movement throughout a single continuous shot. She is silent with a relaxed closed-mouth smile. No camera cuts, no camera shake, no graphics, no lettering."
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "2",
+        0
+      ],
+      "text": "blurry, distorted face, deformed hands, extra fingers, extra limbs, flicker, jitter, text, watermark, nudity"
+    }
+  },
+  "5": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "4",
+        0
+      ],
+      "frame_rate": 24
+    }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "tpc-promo-reference.png"
+    }
+  },
+  "7": {
+    "class_type": "LTXVImgToVideo",
+    "inputs": {
+      "positive": [
+        "5",
+        0
+      ],
+      "negative": [
+        "5",
+        1
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "image": [
+        "6",
+        0
+      ],
+      "width": 384,
+      "height": 672,
+      "length": 97,
+      "batch_size": 1,
+      "strength": 1.0
+    }
+  },
+  "8": {
+    "class_type": "ManualSigmas",
+    "inputs": {
+      "sigmas": "1.0, 0.9937, 0.9875, 0.9812, 0.9750, 0.9094, 0.7250, 0.4219, 0.0"
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    }
+  },
+  "10": {
+    "class_type": "SamplerCustom",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "add_noise": true,
+      "noise_seed": 426103,
+      "cfg": 1.0,
+      "positive": [
+        "7",
+        0
+      ],
+      "negative": [
+        "7",
+        1
+      ],
+      "sampler": [
+        "9",
+        0
+      ],
+      "sigmas": [
+        "8",
+        0
+      ],
+      "latent_image": [
+        "7",
+        2
+      ]
+    }
+  },
+  "11": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "tile_size": 256,
+      "overlap": 64,
+      "temporal_size": 32,
+      "temporal_overlap": 8
+    }
+  },
+  "12": {
+    "class_type": "SaveWEBM",
+    "inputs": {
+      "images": [
+        "11",
+        0
+      ],
+      "filename_prefix": "TPC/presenter-local",
+      "codec": "vp9",
+      "fps": 24,
+      "crf": 18
+    }
+  }
+}

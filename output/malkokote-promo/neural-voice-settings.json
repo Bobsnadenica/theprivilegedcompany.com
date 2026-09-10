@@ -1,0 +1,16 @@
+{
+  "service": "Microsoft Edge online text-to-speech",
+  "voice": "bg-BG-KalinaNeural",
+  "client": "edge-tts 7.2.8",
+  "rate": "-8%",
+  "pitch": "-2Hz",
+  "speech_target_lufs": -18,
+  "phrase_starts_seconds": [
+    0.3,
+    5.2,
+    11.2
+  ],
+  "script": "narration.json",
+  "original_video_preserved": true,
+  "duration_seconds": 18
+}
