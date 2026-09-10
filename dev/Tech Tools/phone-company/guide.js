@@ -1,140 +1,292 @@
 (() => {
   'use strict';
 
-  const sources = {
-    sip: ['SIP protocol reference', 'https://www.rfc-editor.org/rfc/rfc3261'],
-    media: ['RTP / RTCP reference', 'https://www.rfc-editor.org/rfc/rfc3550'],
-    queues: ['RingCX queue configuration', 'https://developers.ringcentral.com/engage/voice/guide/routing/queues/queues'],
-    agents: ['RingCX agent configuration', 'https://developers.ringcentral.com/engage/voice/guide/users/agents/agents'],
-    identity: ['RingCX authentication variants', 'https://developers.ringcentral.com/engage/voice/guide/authentication'],
-    userLogin: ['RingCentral app sign-in and SSO guide', 'https://assets.ringcentral.com/us/guide/RingCentral_App_Getting_Started_Guide.pdf'],
-    exchange: ['Linked RingCentral / RingCX API authentication', 'https://developers.ringcentral.com/engage/voice/guide/authentication/auth-ringcentral'],
-    phone: ['RingCentral WebPhone implementation example', 'https://github.com/ringcentral/ringcentral-web-phone'],
-    ivr: ['Engage Voice IVR overview', 'https://netstorage.ringcentral.com/datasheets/engage_voice_ivr.pdf'],
-    outbound: ['RingCX outbound dialing modes', 'https://www.ringcentral.com/ringcx/outbound.html']
-  };
-
-  // These are functional teaching steps, not an inventory of vendor services.
-  function step(name, description, example, proof, failure, inspect, source) {
-    return { name, description, example, proof, failure, inspect, source };
-  }
-
+  // Functional teaching examples. Research is recorded in RESEARCH.md.
   const flows = {
-    inbound: {
-      scope: 'Contact-center example', title: 'A customer calls support',
-      description: 'The caller reaches your number, hears a menu, joins a queue and speaks with an eligible agent. Direct extension calls can skip the menu and queue.',
-      steps: [
-        step('Caller', 'A customer dials the business number from a phone. This does not require a RingCentral user account.', 'A customer calls the support number on an invoice.', 'A dated call attempt with the correct destination number.', 'The customer dialed the wrong number, or the originating network could not start the call.', 'Confirm the dialed number and timezone. If no call reaches your observed edge, request originating-carrier evidence.', 'sip'),
-        step('Carrier', 'The public telephone network delivers the call toward the provider serving the business number.', 'The customer’s mobile carrier routes the support number to the voice provider.', 'An incoming call leg reaches an observed provider boundary.', 'Number routing, a porting issue or an upstream carrier failure can stop delivery.', 'In Hoof, look for the ingress INVITE if captured. Check the actual destination and first responding hop. Compare another origin or destination.', 'sip'),
-        step('Voice entry', 'The voice service associates the called number with the configured destination. A network edge may include an SBC; its exact placement is deployment-specific.', 'The business number points to the support IVR during opening hours.', 'The intended number mapping and destination are selected.', 'Wrong number mapping, closed-hours handling or a routing rejection.', 'Compare configured number and schedule with routing logs in Kibana. In Hoof, find the first divergent hop or final response.', 'queues'),
-        step('IVR / VRU', 'The caller hears prompts and selects an option. The flow uses that input to choose the next destination.', '“Press 1 for support” sends this caller to the Support queue.', 'The prompt plays, the expected digit is collected and the intended branch runs.', 'Missing audio prompt, unrecognized digits, a bad branch or a failed backend lookup.', 'In Kibana, inspect the IVR step, input and any lookup result. In Hoof, inspect the IVR leg and available media or digit events. Check the configured DTMF method.', 'ivr'),
-        step('Queue / ACD', 'The queue waits for an agent who meets its routing rules. Queue access and availability both matter.', 'An available agent with access to Support receives the offer.', 'A queue event records an offer to an eligible agent.', 'Inactive queue, no eligible agents, schedule mismatch or an overflow/timeout rule.', 'In Kibana, follow queue entry, eligibility and offer events if logged. Check current configuration and agent state at the incident time. SIP alone does not explain every routing decision.', 'queues'),
-        step('Agent & audio', 'The agent accepts through the configured voice endpoint. The customer and agent legs are connected; media must work in both directions.', 'The agent greets the customer and both can hear the conversation.', 'Agent connection plus working media in each direction, not merely an IVR answer.', 'An unreachable agent endpoint, missed offer, wrong audio device or media-path failure.', 'In Hoof, inspect both relevant legs, answer/ACK timing and media reports. In Kibana, match the offer to the agent session. Check headset and microphone permissions.', 'media')
-      ]
-    },
-    outbound: {
-      scope: 'Manual outbound example', title: 'An agent calls a customer',
-      description: 'The agent initiates this example. Automated campaign modes can start calls and allocate agents differently. Use your product’s dialing-mode documentation.',
-      steps: [
-        step('Agent dials', 'A signed-in agent chooses the destination and starts a manual outbound call.', 'The agent calls a customer back about an open support ticket.', 'A call-start action is recorded for the correct agent and destination.', 'The browser or app never sends the action, or the agent session has expired.', 'In Kibana, search the agent and request time. Inspect the browser network error and session. No action reaching the service means SIP may not exist yet.', 'outbound'),
-        step('Policy checks', 'The platform evaluates permissions and the applicable outbound configuration before attempting the call.', 'The agent has outbound access and uses an allowed caller ID.', 'The request is accepted with the expected agent, number and caller identity.', 'Missing outbound access, invalid number, disallowed caller ID or a campaign restriction where applicable.', 'Read the application response in Kibana and inspect the relevant configuration. Treat a deliberate policy block as a policy result, not automatically a carrier outage.', 'agents'),
-        step('Voice service', 'The voice service creates the outbound leg. The agent voice connection may already exist or need establishing, depending on the product and mode.', 'The service starts a leg to the customer while maintaining the agent’s connection.', 'A correlated outbound attempt with an expected next hop.', 'Agent voice connection failure, setup error or route-selection failure.', 'Map the application interaction to each SIP Call-ID. Inspect agent and outbound legs separately in Hoof; inspect call-start errors in Kibana.', 'sip'),
-        step('Carrier route', 'The call traverses the selected external route toward the customer’s telephone network.', 'The voice provider sends the call toward the customer’s mobile carrier.', 'Downstream progress or a meaningful final response on the chosen route.', 'Timeout, carrier rejection or a destination-specific routing failure.', 'Find the emitting hop and response in Hoof. Compare the Request-URI, number format and a successful call over the same route. Preserve response details.', 'sip'),
-        step('Customer answers', 'The destination alerts and then answers, or returns a busy, unavailable or other outcome.', 'The customer’s phone rings and the customer picks up.', 'The destination leg accepts the INVITE and the caller side acknowledges it.', 'Busy, no answer, a cancellation or destination-side rejection.', 'Read the sequence rather than one code: 180 is alerting, not an answer. A 487 may follow a normal CANCEL. Compare timers with the observed behavior.', 'sip'),
-        step('Audio & end', 'Media carries the conversation. On hangup, signaling ends the session and the application records its outcome.', 'Both parties hear each other, then the agent records the call disposition.', 'Bidirectional media and a teardown consistent with the actual hangup.', 'One-way sound, packet loss, unexpected disconnect or a missing application outcome.', 'Use Hoof for media direction, reports and who sent BYE. Use Kibana for session changes and outcome events. A clean SIP ending does not prove audio quality was good.', 'media')
-      ]
-    },
-    user: {
-      scope: 'Employee app login · conceptual', title: 'A user signs in to the phone app',
-      description: 'Application authentication and phone readiness are separate checks. The WebPhone example below is documented for RingCentral’s WebRTC library; other clients can connect differently.',
-      steps: [
-        step('Open app', 'The employee opens the correct application and reaches its sign-in service.', 'A user opens the company’s approved phone app.', 'The app loads and can reach the configured sign-in destination.', 'DNS, proxy, TLS or application-loading failure before authentication.', 'Inspect the browser network panel or app diagnostics. Kibana only helps if the failed request reached a service whose logs you collect. A SIP search is premature.', 'phone'),
-        step('Verify identity', 'The configured login method checks identity. A federated deployment can redirect the user to its identity provider for SSO and MFA.', 'The employee completes the company sign-in challenge.', 'The identity service records successful authentication for the intended user.', 'Invalid credentials, incomplete MFA, a disabled identity or a failed SSO exchange.', 'Inspect identity events and application response details. Establish the actual login method first. Do not assume every tenant uses the same identity provider.', 'userLogin'),
-        step('Create session', 'The application establishes its authorized session after sign-in. Authentication success must reach the intended application.', 'The user returns from sign-in and the app opens the account.', 'The app accepts the session and subsequent authorized requests succeed.', 'Expired or rejected session, redirect mismatch or client session-storage problems.', 'Correlate the sign-in result with the application callback and subsequent API requests. Read the response body; do not paste tokens into an investigation ticket.', 'userLogin'),
-        step('Load access', 'The app loads the user’s account and enabled capabilities. Opening the app does not guarantee voice entitlement.', 'The employee sees the intended extension and phone features.', 'The expected account, extension and voice access are present.', 'Wrong account, unavailable extension or missing voice access.', 'Compare user configuration with account-loading logs and API responses. A permission error is different from a failed password check.', 'phone'),
-        step('Connect phone', 'The phone endpoint establishes its voice connection. RingCentral’s WebPhone library uses WebSocket/SIP registration as a separate operation.', 'The WebPhone endpoint registers successfully after the app is authorized.', 'The endpoint reports readiness; for the SIP example, the relevant registration succeeds.', 'WebSocket reachability, registration credentials, renewal or browser permission problems.', 'Inspect endpoint diagnostics and connection errors. Use Hoof only where registration traffic is collected. One 401 challenge followed by a successful retry can be normal.', 'phone'),
-        step('Verify readiness', 'Confirm the intended endpoint can place or receive an approved test call and use the selected audio devices.', 'The app is open, the correct headset is selected and a test call works.', 'A successful call with working audio in each direction.', 'DND/routing settings, an offline endpoint, blocked microphone or wrong playback device.', 'Check app state, endpoint and audio permissions first. Then follow the appropriate inbound or outbound call flow. “Logged in” is not a complete voice-health check.', 'media')
-      ]
-    },
-    agent: {
-      scope: 'RingCX / Engage Voice · conditional flow', title: 'A contact-center agent becomes available',
-      description: 'A valid user identity, an authorized agent session and a working voice endpoint must align. This is a functional checklist; screen order and login method vary by deployment.',
-      steps: [
-        step('Authenticate', 'The agent uses the login method provisioned for the account. Current linked RingCentral, direct Engage and legacy authentication are distinct variants.', 'An agent opens the correct RingCX or Engage login for their organization.', 'The configured authentication flow succeeds for that identity.', 'Wrong portal, wrong login method, failed MFA or rejected identity.', 'In Kibana, match the login attempt to the correct tenant and product. Check identity events and the first failing HTTP request. SIP is not the first tool for this step.', 'identity'),
-        step('Link access', 'For linked RingCentral API integrations, a RingCentral token is exchanged for a RingCX token. This is a documented API flow, not a claim about every UI login.', 'A linked integration uses its RingCX token when calling RingCX Voice APIs.', 'The account link and required token exchange succeed where that flow applies.', 'Account not linked, wrong token type or rejected/expired token.', 'For an integration, inspect the exchange response and target API. Do not apply this flow to direct Engage or legacy credentials. Token contents must stay out of shared logs.', 'exchange'),
-        step('Agent access', 'The product resolves the agent and the permissions needed for voice work.', 'The account contains this agent with inbound or outbound access as required.', 'The intended agent configuration loads with the expected permissions.', 'Wrong agent/account mapping, missing permission or disabled softphone access.', 'Compare the user identity, agent identifier, account and configuration. Use the actual logged fields. Do not assume an employee user ID equals an agent ID.', 'agents'),
-        step('Agent session', 'The agent interface establishes a working session and its initial state. Queue or campaign access depends on the configured workflow.', 'The agent session starts, but the initial state may not make the agent eligible for calls.', 'A session/login event and the expected current state are recorded.', 'Session creation or refresh failure, stale state or disconnected client.', 'Inspect login/session events and subsequent state changes in Kibana. Compare the UI with the server’s recorded state and timestamp.', 'agents'),
-        step('Voice endpoint', 'The agent connects through the configured softphone or phone destination. Some workflows use an offhook or agent leg separate from each customer leg.', 'The agent uses the approved softphone, or answers the configured phone connection.', 'The intended voice endpoint is connected and usable for this session.', 'Wrong destination, failed offhook/agent-leg setup, WebRTC network failure or unavailable microphone.', 'Inspect endpoint status and the agent leg in Hoof where captured. Check device and browser diagnostics. Use product-specific connection instructions.', 'agents'),
-        step('Available', 'The agent must be eligible for the target queue and in the appropriate available state. Sign-in alone does not make the queue offer a call.', 'An available agent with Support access receives a Support call.', 'A logged queue offer matches an eligible agent with a working voice endpoint.', 'Unavailable/after-call state, wrong queue access, priority/skills mismatch or a missed offer.', 'Inspect queue settings, agent state at the time and offer events in Kibana. If the offer exists but voice fails, investigate the agent leg in Hoof.', 'queues')
-      ]
-    }
-  };
+  "inbound": {
+    "scope": "Contact-center example",
+    "title": "A customer calls support",
+    "description": "Number, menu, queue, agent, audio. Direct employee calls can skip the menu and queue.",
+    "steps": [
+      {
+        "name": "Business number",
+        "description": "The caller’s carrier delivers the call. The voice platform finds the destination assigned to the business number.",
+        "example": "The support number points to the support menu.",
+        "proof": "The incoming call reaches the expected destination.",
+        "failure": "Wrong number mapping, closed-hours route or carrier failure.",
+        "inspect": "Hoof: find the incoming call. Kibana: check the selected number route and schedule."
+      },
+      {
+        "name": "Menu / VRU",
+        "description": "The menu plays a prompt and uses the caller’s choice to choose a destination.",
+        "example": "Pressing 1 selects Support.",
+        "proof": "The platform receives the digit and runs the correct branch.",
+        "failure": "Missing prompt, unrecognized digit or failed lookup.",
+        "inspect": "Kibana: inspect the menu step and collected input. Hoof: inspect the menu leg and captured digit events."
+      },
+      {
+        "name": "Queue",
+        "description": "The queue waits for an eligible agent. Being logged in is not enough.",
+        "example": "Support offers the call to an available agent with queue access.",
+        "proof": "An offer is recorded for an eligible agent.",
+        "failure": "No eligible agent, inactive queue or wrong schedule.",
+        "inspect": "Kibana: check queue entry, agent state and the offer. Compare with the queue configuration."
+      },
+      {
+        "name": "Agent connection",
+        "description": "The platform connects the customer to the agent. In persistent mode, the offhook agent leg is already open.",
+        "example": "The agent’s standing connection is joined to this customer.",
+        "proof": "The customer reaches the intended agent.",
+        "failure": "Disconnected agent leg, wrong phone destination or missed offer.",
+        "inspect": "Hoof: inspect the agent leg. Kibana: match the offer to the correct agent session."
+      },
+      {
+        "name": "Conversation",
+        "description": "Audio must travel in both directions. Call setup and audio are separate checks.",
+        "example": "The customer and agent hear each other.",
+        "proof": "Both sides can speak and listen.",
+        "failure": "Wrong audio device, one-way media or poor network quality.",
+        "inspect": "Check headset and mute first. In Hoof, compare media in each direction; check session changes in Kibana."
+      }
+    ]
+  },
+  "outbound": {
+    "scope": "Manual outbound example",
+    "title": "An agent calls a customer",
+    "description": "This example starts with an agent clicking Dial. Automated campaigns can start calls differently.",
+    "steps": [
+      {
+        "name": "Agent dials",
+        "description": "The agent chooses a customer number and starts the call.",
+        "example": "The agent returns a support call.",
+        "proof": "The app sends a call request for the intended number.",
+        "failure": "Expired session or an app error before the request is sent.",
+        "inspect": "Kibana: find the call request. If absent, check the app’s network errors and your log coverage."
+      },
+      {
+        "name": "Permission check",
+        "description": "The platform checks outbound access and the applicable calling rules.",
+        "example": "The agent uses an allowed caller ID.",
+        "proof": "The request is accepted.",
+        "failure": "Missing access, invalid number or a dialing restriction.",
+        "inspect": "Kibana: read the application response. Check the agent’s access, number format and caller ID."
+      },
+      {
+        "name": "External route",
+        "description": "The platform creates a customer call leg and sends it through a carrier.",
+        "example": "The customer’s mobile network receives the call attempt.",
+        "proof": "The selected route returns call progress.",
+        "failure": "Rejected request, route failure or timeout.",
+        "inspect": "Hoof: follow the INVITE. Record the first rejection, its sender and the destination."
+      },
+      {
+        "name": "Customer answers",
+        "description": "The customer answers and the platform joins the customer and agent connections.",
+        "example": "The customer picks up; the agent begins speaking.",
+        "proof": "The correct leg is answered and acknowledged.",
+        "failure": "Busy, no answer or a failed agent connection.",
+        "inspect": "Hoof: distinguish ringing from answer. Check both the customer leg and agent leg."
+      },
+      {
+        "name": "End & wrap-up",
+        "description": "The customer leg ends. In persistent mode, the agent line can remain open while the agent finishes notes.",
+        "example": "The agent selects a call result before becoming available again.",
+        "proof": "The customer call ends and the agent’s state is appropriate.",
+        "failure": "Unexpected hangup, unfinished wrap-up or a stale state.",
+        "inspect": "Hoof: find who ended each leg. Kibana: check wrap-up and state changes. A remaining offhook leg can be normal."
+      }
+    ]
+  },
+  "user": {
+    "scope": "Employee phone app",
+    "title": "A user logs in",
+    "description": "App access comes first. A working phone connection comes next.",
+    "steps": [
+      {
+        "name": "Sign in",
+        "description": "The employee signs in using the method enabled for the account. Company SSO may also require MFA.",
+        "example": "The user completes the company sign-in screen.",
+        "proof": "Identity verification succeeds.",
+        "failure": "Wrong account, disabled user or failed sign-in challenge.",
+        "inspect": "Check identity and application events in Kibana. If the page does not load, check DNS, network and browser errors."
+      },
+      {
+        "name": "Open session",
+        "description": "The app opens the user’s account and enabled features.",
+        "example": "The expected account and extension appear.",
+        "proof": "Authorized app requests succeed for the right user.",
+        "failure": "Rejected session, wrong account or missing phone access.",
+        "inspect": "Kibana: follow the sign-in result to the next app request. Read its error, not just its status code."
+      },
+      {
+        "name": "Connect phone",
+        "description": "The phone endpoint connects to the voice service. A SIP endpoint registers where it can be reached.",
+        "example": "The WebPhone reports successful registration.",
+        "proof": "The intended endpoint is ready.",
+        "failure": "Failed connection, rejected registration or missed renewal.",
+        "inspect": "Check app diagnostics. Use Hoof for registration if captured. One 401 followed by a successful retry can be normal."
+      },
+      {
+        "name": "Check audio",
+        "description": "Use an approved test call to verify the device and sound.",
+        "example": "The selected headset works in both directions.",
+        "proof": "The user can place or receive a call and hear it.",
+        "failure": "Do Not Disturb, wrong headset or blocked microphone.",
+        "inspect": "Check device settings first. Then follow the inbound or outbound flow to find the first failed step."
+      }
+    ]
+  },
+  "agent": {
+    "scope": "RingCX / Engage Voice example",
+    "title": "An agent gets ready for calls",
+    "description": "Login, offhook and availability are different states. Follow the connection mode configured for the agent.",
+    "steps": [
+      {
+        "name": "Sign in",
+        "description": "The agent opens the correct portal and signs in.",
+        "example": "The agent completes company SSO or the configured direct login.",
+        "proof": "The product accepts the identity.",
+        "failure": "Wrong portal, wrong login method or failed authentication.",
+        "inspect": "Kibana: identify the first failed login request. Check the identity result and account."
+      },
+      {
+        "name": "Agent access",
+        "description": "The platform loads the agent’s account, phone settings and permitted queues or campaigns.",
+        "example": "The agent has inbound access to Support.",
+        "proof": "The correct agent and permissions are loaded.",
+        "failure": "Wrong agent mapping or missing access.",
+        "inspect": "Compare the user, agent and account IDs. Check phone destination and queue permissions."
+      },
+      {
+        "name": "Agent session",
+        "description": "The agent interface starts a session and reports a state.",
+        "example": "The agent is signed in but still unavailable.",
+        "proof": "A current session and state are recorded.",
+        "failure": "Session failure, disconnected client or stale state.",
+        "inspect": "Kibana: inspect session and state events. Compare the server record with the screen and collection time."
+      },
+      {
+        "name": "Offhook",
+        "description": "In persistent mode, the agent opens a voice connection to the platform. It can stay open between customer calls.",
+        "example": "The agent answers the connection on the configured phone. No customer is on the line yet.",
+        "proof": "The intended agent leg connects. Audio still needs a separate check.",
+        "failure": "Wrong destination, no answer, failed softphone connection or a dropped agent leg.",
+        "inspect": "Kibana: find the offhook attempt and result. Hoof: inspect the agent leg, including a wider time range than the customer call."
+      },
+      {
+        "name": "Available",
+        "description": "The agent selects the appropriate available state and must also be eligible for the target queue.",
+        "example": "An offhook, available Support agent receives a Support offer.",
+        "proof": "A waiting call is offered to an eligible agent.",
+        "failure": "Unavailable state, unfinished wrap-up or no queue access.",
+        "inspect": "Kibana: check state, queue eligibility and offers. Offhook alone does not make an agent available."
+      }
+    ]
+  }
+};
 
   const incidents = {
-    login: {
-      area: 'Identity / application', title: 'User cannot sign in', flow: 'user', index: 1,
-      boundary: 'Find the first failed request: app loading, identity verification or application session creation.',
-      kibana: 'Match user, tenant and timestamp. Inspect identity results, HTTP status and the response body. If sign-in succeeds, follow the callback and next API request.',
-      sip3: 'Usually not the starting point. An application login can fail before any SIP endpoint exists. A SIP authentication challenge is a different event.',
-      check: 'Confirm the portal, login method, account status and client clock. A browser or upstream identity failure might not be present in your application logs.'
-    },
-    agent: {
-      area: 'Agent state / routing', title: 'Signed in, but no calls arrive', flow: 'agent', index: 5,
-      boundary: 'Separate an absent call offer from an offer that could not connect to the agent.',
-      kibana: 'Inspect state at the incident time, queue access, inbound permission, routing eligibility, offers and timeouts. Compare the client display with server events.',
-      sip3: 'If an offer was made, find the agent leg and its setup outcome. Check the configured voice destination and whether the endpoint answered.',
-      check: 'Verify a waiting call actually targeted this queue. No queue eligibility means endpoint registration alone will not fix the issue.'
-    },
-    entry: {
-      area: 'Carrier / number routing', title: 'The caller never reaches the menu', flow: 'inbound', index: 2,
-      boundary: 'Establish whether the call reached your observed ingress before investigating the IVR.',
-      kibana: 'Search the time, destination and interaction mapping. Inspect number assignment, opening-hours route and any rejected or alternate destination.',
-      sip3: 'Look for the ingress INVITE and follow the called number through observed hops. Record the first rejection or missing response, not just the final displayed status.',
-      check: 'If ingress is absent, check capture coverage and retention before concluding the carrier failed. Compare a successful call to the same number.'
-    },
-    ivr: {
-      area: 'VRU / IVR interaction', title: 'The menu plays; the selection fails', flow: 'inbound', index: 3,
-      boundary: 'The call reached the IVR. Determine whether input was missing, the wrong branch ran or a dependent lookup failed.',
-      kibana: 'Inspect IVR step, collected input, selected branch, backend response and timeout. Match the published flow version and schedule.',
-      sip3: 'Inspect the IVR leg and negotiated digit transport. Review digit events or media only if those are captured; a SIP ladder alone may not show keypad input.',
-      check: 'Reproduce the same menu choice. Separate a missing DTMF event from a correctly received digit with incorrect routing logic.'
-    },
-    outbound: {
-      area: 'Outbound policy / signaling', title: 'The call fails before ringing', flow: 'outbound', index: 3,
-      boundary: 'First determine whether the application accepted the attempt and produced an outbound leg.',
-      kibana: 'Inspect outbound permission, destination format, caller ID, applicable dialing restrictions and the call-start response.',
-      sip3: 'Follow the INVITE to the last observed hop. Capture the exact final response, response origin, Request-URI and timings. Check for authenticated retries before treating 401/407 as a failure.',
-      check: 'Compare other destinations and routes. A 403 is a refusal to investigate, not sufficient proof of a specific permission or carrier problem.'
-    },
-    audio: {
-      area: 'Endpoint / media path', title: 'The call connects; one direction is silent', flow: 'inbound', index: 5,
-      boundary: 'Name the missing direction, then inspect media separately from call setup.',
-      kibana: 'Match the interaction and agent session. Inspect media setup, device changes, connection changes and app errors at the same timestamp.',
-      sip3: 'Confirm both relevant call legs. Compare each media direction, SDP addresses and available RTP/RTCP reports. Identify where the expected stream stops being observable.',
-      check: 'Check microphone, mute, speaker and headset. Missing packets at one sensor can mean missing capture. Do not conclude “firewall” from silence alone.'
-    },
-    quality: {
-      area: 'Media quality / endpoint', title: 'Speech is choppy or delayed', flow: 'outbound', index: 5,
-      boundary: 'Find which direction and time interval degrade. Averages can hide a short interruption.',
-      kibana: 'Correlate client reconnects, endpoint errors and application timing. Compare affected users, sites, devices and recent changes.',
-      sip3: 'Inspect available loss, jitter and quality reports over the affected interval, per leg and direction. Compare with a successful call and the same codec.',
-      check: 'Check local Wi-Fi, congestion, headset and device load. A low MOS score identifies poor estimated quality; it does not identify the failing network segment by itself.'
-    },
-    drop: {
-      area: 'Session / teardown', title: 'A connected call ends unexpectedly', flow: 'outbound', index: 5,
-      boundary: 'Distinguish an explicit hangup from lost connectivity or a timeout.',
-      kibana: 'Inspect the session timeline for logout, client disconnection, transfer, timeout or application error. Match any recent network change.',
-      sip3: 'Find BYE, its sender and preceding events. If teardown is missing, inspect retransmissions, capture gaps and timing. Check the relevant leg; another leg may continue.',
-      check: 'Use the observed sequence before suggesting a timer or network cause. Similar call duration across failures is a clue to compare, not proof of one fixed timeout.'
-    },
-    missing: {
-      area: 'Observability coverage', title: 'No matching call appears in Hoof', flow: 'inbound', index: 1,
-      boundary: 'First establish whether you are searching the right captured data.',
-      kibana: 'Find a known application event and its timestamp, tenant, region and identifier mapping. Confirm whether a SIP leg was created at all.',
-      sip3: 'Check timezone, absolute time window, search attributes, retention, permissions, sensor health and capture location. Try an expected endpoint or another leg identifier.',
-      check: 'Hoof shows supplied telemetry. No result can mean no capture, a different Call-ID, ingestion delay or inaccessible data; it does not prove no call happened.'
-    }
-  };
+  "offhook": {
+    "area": "Agent voice connection",
+    "title": "The agent cannot connect offhook",
+    "flow": "agent",
+    "index": 3,
+    "boundary": "The app is open, but the agent’s standing voice connection does not start.",
+    "kibana": "Find the offhook request and result. Check agent session, phone destination and connection mode.",
+    "sip3": "Find the agent leg. Did it ring, answer or return a rejection? Check softphone connection errors if no leg appears.",
+    "check": "An app login does not prove a voice connection. In per-call mode, a standing offhook connection may not be expected."
+  },
+  "login": {
+    "area": "Identity / app",
+    "title": "The user cannot sign in",
+    "flow": "user",
+    "index": 0,
+    "boundary": "Find whether the failure happens before sign-in, during identity verification or after it.",
+    "kibana": "Check the identity result and first failed app request. Read the response details.",
+    "sip3": "Usually start elsewhere. There may be no SIP traffic before the app opens.",
+    "check": "Do not treat an HTTP login error as a SIP registration problem."
+  },
+  "agent": {
+    "area": "Availability / queue",
+    "title": "Offhook, but no customer calls arrive",
+    "flow": "agent",
+    "index": 4,
+    "boundary": "The phone connection is up. Now check whether the queue is offering calls.",
+    "kibana": "Check available state, unfinished wrap-up, queue access, schedule and call offers.",
+    "sip3": "If an offer exists, inspect its delivery on the agent leg. If there is no offer, start with routing.",
+    "check": "Offhook does not mean available. A connected agent can still be on break or doing after-call work."
+  },
+  "entry": {
+    "area": "Number / carrier",
+    "title": "The caller never reaches the menu",
+    "flow": "inbound",
+    "index": 0,
+    "boundary": "First confirm whether the call reaches the observed platform entry.",
+    "kibana": "Check the number’s destination, schedule and any routing error.",
+    "sip3": "Find the incoming INVITE and first rejection or missing response. Compare a working call.",
+    "check": "No trace is not proof of carrier failure. Check capture coverage and the time range first."
+  },
+  "ivr": {
+    "area": "Menu / input",
+    "title": "The menu plays, but the choice fails",
+    "flow": "inbound",
+    "index": 1,
+    "boundary": "Separate a missing keypad digit from a bad routing decision.",
+    "kibana": "Find the collected input, chosen branch and any failed backend lookup.",
+    "sip3": "Inspect the IVR leg and digit events where captured. Not every capture contains keypad events.",
+    "check": "A prompt playing does not prove the platform received the caller’s digit."
+  },
+  "outbound": {
+    "area": "Calling policy / route",
+    "title": "The outbound call never rings",
+    "flow": "outbound",
+    "index": 2,
+    "boundary": "Confirm that the app accepted the request and created a customer leg.",
+    "kibana": "Check outbound access, number format, caller ID and the call-start error.",
+    "sip3": "Follow the INVITE. Record the rejection, emitting hop and timing.",
+    "check": "A 403 says the request was refused. It does not identify the cause by itself."
+  },
+  "audio": {
+    "area": "Audio / endpoint",
+    "title": "One person cannot hear the other",
+    "flow": "inbound",
+    "index": 4,
+    "boundary": "Name the missing direction: customer-to-agent or agent-to-customer.",
+    "kibana": "Check session changes, device errors and reconnections at that time.",
+    "sip3": "Compare both call legs and media directions. Find where expected audio packets stop being observed.",
+    "check": "Silence alone does not prove a firewall fault. Check microphone, speaker, headset and mute."
+  },
+  "quality": {
+    "area": "Media quality",
+    "title": "Speech is choppy or delayed",
+    "flow": "inbound",
+    "index": 4,
+    "boundary": "Find the affected direction and exact interval.",
+    "kibana": "Look for client reconnects and device errors. Compare users and sites.",
+    "sip3": "Inspect available packet loss, jitter and quality reports. Compare a successful call.",
+    "check": "A low quality score is not a diagnosis. Check Wi-Fi, congestion, device load and headset."
+  },
+  "drop": {
+    "area": "Call ending / connection",
+    "title": "A call ends unexpectedly",
+    "flow": "outbound",
+    "index": 4,
+    "boundary": "Check which leg ended: customer, agent or both.",
+    "kibana": "Inspect logout, session loss, state changes and application errors.",
+    "sip3": "Find BYE and its sender, or a timeout. Check the events immediately before it.",
+    "check": "A customer hangup with the persistent agent leg still connected can be normal."
+  },
+  "missing": {
+    "area": "Search / capture",
+    "title": "The call is missing from Hoof",
+    "flow": "inbound",
+    "index": 0,
+    "boundary": "Check the search before deciding the call never happened.",
+    "kibana": "Find the interaction time and mapping to SIP Call-IDs. Confirm that a call leg was created.",
+    "sip3": "Check timezone, filters, retention, sensor health and capture location. An offhook leg may have started much earlier.",
+    "check": "An application interaction ID is not automatically a SIP Call-ID."
+  }
+};
 
   let activeFlow = 'inbound';
   let activeStep = 0;
@@ -155,11 +307,6 @@
     text('step-failure', selected.failure);
     text('step-inspect', selected.inspect);
     text('step-counter', `${activeStep + 1} of ${flow.steps.length} · ${selected.name}`);
-    const [label, href] = sources[selected.source];
-    const link = document.createElement('a');
-    link.textContent = label;
-    link.href = href;
-    byId('step-reference').replaceChildren(link);
     byId('previous-step').disabled = activeStep === 0;
     byId('next-step').disabled = activeStep === flow.steps.length - 1;
   }
@@ -174,6 +321,7 @@
     text('flow-scope', flow.scope);
     text('flow-title', flow.title);
     text('flow-description', flow.description);
+    byId('flow-steps').style.setProperty('--flow-count', flow.steps.length);
     const items = flow.steps.map((item, position) => {
       const li = document.createElement('li');
       const button = document.createElement('button');
@@ -217,6 +365,34 @@
     byId('flow-steps').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
     byId('explorer').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   });
+
+  const offhookStages = [
+    { line: false, customer: false, state: 'Unavailable', story: 'The agent signs in. The application session works, but the agent voice connection has not started.' },
+    { line: true, customer: false, state: 'Unavailable', story: 'The agent connects to the platform. With a phone destination, the agent answers that connection. No customer has joined.' },
+    { line: true, customer: false, state: 'Available', story: 'The agent is connected and available. The queue can offer a call when its access and routing rules also match.' },
+    { line: true, customer: true, state: 'On a call', story: 'A customer leg joins the agent leg through the platform. Both connections carry this conversation.' },
+    { line: true, customer: false, state: 'Wrap-up', story: 'The customer leg ends. The persistent agent leg stays open. The agent finishes after-call work before becoming available again.' },
+    { line: false, customer: false, state: 'Unavailable', story: 'In this example, the agent becomes unavailable and disconnects offhook. The app session remains signed in.' }
+  ];
+  function renderOffhook(index) {
+    const stage = offhookStages[index];
+    byId('offhook-controls').querySelectorAll('button').forEach((button, position) => {
+      button.setAttribute('aria-pressed', String(position === index));
+    });
+    byId('agent-link').classList.toggle('connected', stage.line);
+    byId('customer-link').classList.toggle('connected', stage.customer);
+    text('agent-link-label', stage.line ? 'Agent leg connected' : 'Agent leg disconnected');
+    text('customer-link-label', stage.customer ? 'Customer leg connected' : 'No customer leg');
+    text('offhook-line', stage.line ? 'Connected' : 'Disconnected');
+    text('offhook-state', stage.state);
+    text('offhook-story', stage.story);
+  }
+  byId('offhook-controls').addEventListener('click', event => {
+    const button = event.target.closest('button[data-stage]');
+    if (button) renderOffhook(Number(button.dataset.stage));
+  });
+  renderOffhook(1);
+
   renderFlow(activeFlow);
   renderIncident();
 })();
