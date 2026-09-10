@@ -1,0 +1,663 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-09-10",
+  "notes": "Wikidata entities linked from reviewed OSM features; coordinates within 3 km of catalogue pins. Photographs use the entity image with Commons attribution and license. Wikidata text is CC0. No live scraping.",
+  "places": {
+    "bts-452": {
+      "source": "https://www.wikidata.org/wiki/Q1140684",
+      "summary": "highest point of Pirin mountain",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Vihren%2C_Pirin_National_Park_01.JPG/960px-Vihren%2C_Pirin_National_Park_01.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Vihren%2C_Pirin_National_Park_01.JPG",
+        "author": "Спасимир",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Vihren Peak — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-455": {
+      "source": "https://www.wikidata.org/wiki/Q6431557",
+      "summary": "a large Bulgarian National Revival house in Melnik"
+    },
+    "bts-794": {
+      "source": "https://www.wikidata.org/wiki/Q1607763",
+      "summary": "ancient city, archaeological site in southwestern Bulgaria",
+      "photo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Heraclea_Sintica_%28Herakleia_Sintike%29_bronze_coin%3B_struck_c._101-138_AD.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Heraclea_Sintica_%28Herakleia_Sintike%29_bronze_coin%3B_struck_c._101-138_AD.jpg",
+        "author": "CNG - Classical Numismatic Group",
+        "license": "CC BY-SA 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+        "alt": "Heraclea Sintica — photograph from Wikimedia Commons",
+        "width": 500,
+        "height": 263
+      }
+    },
+    "bts-459": {
+      "source": "https://www.wikidata.org/wiki/Q12292238",
+      "summary": "museum in Blagoevgrad"
+    },
+    "bts-462": {
+      "source": "https://www.wikidata.org/wiki/Q6033147",
+      "summary": "museum in Sandanski, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Bazilikasandanski.JPG/960px-Bazilikasandanski.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Bazilikasandanski.JPG",
+        "author": "Kmrakmra",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Sandanski Archaeological Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 545
+      }
+    },
+    "bts-463": {
+      "source": "https://www.wikidata.org/wiki/Q20497448",
+      "summary": "museum in Gotse Delchev",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Historical_Museum_town_of_Gotse_Delchev.jpg/960px-Historical_Museum_town_of_Gotse_Delchev.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Historical_Museum_town_of_Gotse_Delchev.jpg",
+        "author": "Кочев",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Gotse Delchev History Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-464": {
+      "source": "https://www.wikidata.org/wiki/Q637004",
+      "summary": "archaeological museum",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Nessebar_PD_2011_03.JPG/960px-Nessebar_PD_2011_03.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Nessebar_PD_2011_03.JPG",
+        "author": "Bin im Garten",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Nessebar Archaeological Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-940": {
+      "source": "https://www.wikidata.org/wiki/Q28843070",
+      "summary": "protected area in Bulgaria"
+    },
+    "bts-470": {
+      "source": "https://www.wikidata.org/wiki/Q134571155",
+      "summary": ""
+    },
+    "bts-473": {
+      "source": "https://www.wikidata.org/wiki/Q637089",
+      "summary": "archaeological museum"
+    },
+    "bts-474": {
+      "source": "https://www.wikidata.org/wiki/Q12275596",
+      "summary": "museum in Varna, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Naval_Museum%2C_Varna_2017_24.jpg/500px-Naval_Museum%2C_Varna_2017_24.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Naval_Museum%2C_Varna_2017_24.jpg",
+        "author": "Спасимир (Spasimir Pilev)",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Naval Museum — photograph from Wikimedia Commons",
+        "width": 450,
+        "height": 600
+      }
+    },
+    "bts-868": {
+      "source": "https://www.wikidata.org/wiki/Q1767605",
+      "summary": "Monastery in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Aladzha_Monastery-01.JPG/960px-Aladzha_Monastery-01.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Aladzha_Monastery-01.JPG",
+        "author": "www.vacacionesbulgaria.com",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Aladzha Monastery — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-869": {
+      "source": "https://www.wikidata.org/wiki/Q1058559",
+      "summary": "Park Museum „Vladislav Varnenchik“ in Varna, Bulgaria"
+    },
+    "bts-873": {
+      "source": "https://www.wikidata.org/wiki/Q12292389",
+      "summary": "varna's archeological site, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/51/%D0%90%D0%BD%D1%82%D0%B8%D1%87%D0%BD%D0%B0_%D1%81%D0%B3%D1%80%D0%B0%D0%B4%D0%B0_%D0%A0%D0%B8%D0%BC%D1%81%D0%BA%D0%B8_%D1%82%D0%B5%D1%80%D0%BC%D0%B8_%28%D0%92%D0%B0%D1%80%D0%BD%D0%B0%29_1.jpg/960px-%D0%90%D0%BD%D1%82%D0%B8%D1%87%D0%BD%D0%B0_%D1%81%D0%B3%D1%80%D0%B0%D0%B4%D0%B0_%D0%A0%D0%B8%D0%BC%D1%81%D0%BA%D0%B8_%D1%82%D0%B5%D1%80%D0%BC%D0%B8_%28%D0%92%D0%B0%D1%80%D0%BD%D0%B0%29_1.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:%D0%90%D0%BD%D1%82%D0%B8%D1%87%D0%BD%D0%B0_%D1%81%D0%B3%D1%80%D0%B0%D0%B4%D0%B0_%D0%A0%D0%B8%D0%BC%D1%81%D0%BA%D0%B8_%D1%82%D0%B5%D1%80%D0%BC%D0%B8_%28%D0%92%D0%B0%D1%80%D0%BD%D0%B0%29_1.jpg",
+        "author": "Dina Rogatnykh",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Roman Baths of Varna — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-475": {
+      "source": "https://www.wikidata.org/wiki/Q6940953",
+      "summary": "museum in Devnya",
+      "photo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/51/Devnya-mosaics-museum-inside-2.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Devnya-mosaics-museum-inside-2.jpg",
+        "author": "Vassia Atanassova - Spiritia",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Museum of Mosaics — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-476": {
+      "source": "https://www.wikidata.org/wiki/Q512147",
+      "summary": "medieval stronghold in northern Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/Tsarevets-Panorama.jpg/960px-Tsarevets-Panorama.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Tsarevets-Panorama.jpg",
+        "author": "www.vacacionesbulgaria.com",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Tsarevets Fortress — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 228
+      }
+    },
+    "bts-867": {
+      "source": "https://www.wikidata.org/wiki/Q1987323",
+      "summary": "ancient Roman city in Bulgaria"
+    },
+    "bts-480": {
+      "source": "https://www.wikidata.org/wiki/Q25478397",
+      "summary": "museum in Elena"
+    },
+    "bts-481": {
+      "source": "https://www.wikidata.org/wiki/Q12277685",
+      "summary": "the first grade school in Bulgaria"
+    },
+    "bts-482": {
+      "source": "https://www.wikidata.org/wiki/Q12292246",
+      "summary": "museum in Smolyan, Bulgaria"
+    },
+    "bts-484": {
+      "source": "https://www.wikidata.org/wiki/Q140532704",
+      "summary": "Church in Momchilovtsi, Bulgaria"
+    },
+    "bts-485": {
+      "source": "https://www.wikidata.org/wiki/Q2475430",
+      "summary": "cave in Rhodope Mountains",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Uhlovitsa1.jpg/960px-Uhlovitsa1.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Uhlovitsa1.jpg",
+        "author": "Kiril Kapustin",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "alt": "Uhlovitsa Cave — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 587
+      }
+    },
+    "bts-487": {
+      "source": "https://www.wikidata.org/wiki/Q1548833",
+      "summary": "highest peak in the Rhodope Mountains"
+    },
+    "bts-492": {
+      "source": "https://www.wikidata.org/wiki/Q12299303",
+      "summary": "cave-museum in Rhodope Mountains"
+    },
+    "bts-493": {
+      "source": "https://www.wikidata.org/wiki/Q3110994",
+      "summary": "gorge in Rhodope Mountains, Bulgaria",
+      "photo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/45/Trigrad_gorge.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Trigrad_gorge.jpg",
+        "author": "Evgeni Dinev from Burgas, Bulgaria",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "alt": "Trigrad Gorge — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-494": {
+      "source": "https://www.wikidata.org/wiki/Q12299619",
+      "summary": "cave in Rhodope Mountains, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Vhod_Iagodinska.jpeg/960px-Vhod_Iagodinska.jpeg",
+        "page": "https://commons.wikimedia.org/wiki/File:Vhod_Iagodinska.jpeg",
+        "author": "Gogotoooo",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Yagodina Cave — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-486": {
+      "source": "https://www.wikidata.org/wiki/Q12294108",
+      "summary": "peak in Rhodope Mountains",
+      "photo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/Pam1.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Pam1.JPG",
+        "author": "Ky4eee",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Snezhanka Peak — photograph from Wikimedia Commons",
+        "width": 400,
+        "height": 397
+      }
+    },
+    "bts-489": {
+      "source": "https://www.wikidata.org/wiki/Q61412856",
+      "summary": "Open air museum in Bulgaria"
+    },
+    "bts-496": {
+      "source": "https://www.wikidata.org/wiki/Q31192747",
+      "summary": "museum in Vidin, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/Vidin-Konak-Museum1.JPG/500px-Vidin-Konak-Museum1.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Vidin-Konak-Museum1.JPG",
+        "author": "Petar Iankov",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "alt": "Vidin History Museum — photograph from Wikimedia Commons",
+        "width": 450,
+        "height": 600
+      }
+    },
+    "bts-497": {
+      "source": "https://www.wikidata.org/wiki/Q59893",
+      "summary": "medieval castle in Vidin, Bulgaria"
+    },
+    "bts-498": {
+      "source": "https://www.wikidata.org/wiki/Q1884722",
+      "summary": "cave in Bulgaria"
+    },
+    "bts-499": {
+      "source": "https://www.wikidata.org/wiki/Q25478950",
+      "summary": "",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Belogradchik-lapidarium-2.jpg/960px-Belogradchik-lapidarium-2.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Belogradchik-lapidarium-2.jpg",
+        "author": "Vassia Atanassova - Spiritia",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Belogradchik History Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-500": {
+      "source": "https://www.wikidata.org/wiki/Q2915222",
+      "summary": "castle in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/Belogradchik_fortress_2009.jpg/960px-Belogradchik_fortress_2009.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Belogradchik_fortress_2009.jpg",
+        "author": "Klearchos Kapoutsis",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "alt": "Belogradchik Rocks and Fortress — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-501": {
+      "source": "https://www.wikidata.org/wiki/Q1517071",
+      "summary": "cave in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8a/LedenikaCave.jpg/960px-LedenikaCave.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:LedenikaCave.jpg",
+        "author": "Martin Marinov",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Ledenika Cave — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-502": {
+      "source": "https://www.wikidata.org/wiki/Q12292239",
+      "summary": "",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Regional_Historical_Museum_Vratsa.JPG/960px-Regional_Historical_Museum_Vratsa.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Regional_Historical_Museum_Vratsa.JPG",
+        "author": "Dust 1",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Vratsa Regional History Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-503": {
+      "source": "https://www.wikidata.org/wiki/Q20500516",
+      "summary": "Fortress in Mezdra, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Chateau_Kaleto_02687.JPG/960px-Chateau_Kaleto_02687.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Chateau_Kaleto_02687.JPG",
+        "author": "G.Garitan",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Mezdra Kaleto Archaeological Complex — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 532
+      }
+    },
+    "bts-572": {
+      "source": "https://www.wikidata.org/wiki/Q894703",
+      "summary": "peak in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/38/Botev-peak-Mincov.jpg/960px-Botev-peak-Mincov.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Botev-peak-Mincov.jpg",
+        "author": "Original uploader was Ivelin Mincov at bg.wikipedia",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "alt": "Botev Peak — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-587": {
+      "source": "https://www.wikidata.org/wiki/Q503387",
+      "summary": "UNESCO World Heritage Site in Ruse Province, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Ivanovski_skalni_tsarkvi_20110714-05.JPG/960px-Ivanovski_skalni_tsarkvi_20110714-05.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:Ivanovski_skalni_tsarkvi_20110714-05.JPG",
+        "author": "Hans A. Rosbach",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Rock-Hewn Churches of Ivanovo — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-621": {
+      "source": "https://www.wikidata.org/wiki/Q849657",
+      "summary": "the fourth highest mountain summit in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/%D0%92%D0%B8%D1%82%D0%BE%D1%88%D0%B0_-_%D0%A7%D0%B5%D1%80%D0%BD%D0%B8_%D0%B2%D1%80%D1%8A%D1%85.JPG/960px-%D0%92%D0%B8%D1%82%D0%BE%D1%88%D0%B0_-_%D0%A7%D0%B5%D1%80%D0%BD%D0%B8_%D0%B2%D1%80%D1%8A%D1%85.JPG",
+        "page": "https://commons.wikimedia.org/wiki/File:%D0%92%D0%B8%D1%82%D0%BE%D1%88%D0%B0_-_%D0%A7%D0%B5%D1%80%D0%BD%D0%B8_%D0%B2%D1%80%D1%8A%D1%85.JPG",
+        "author": "Tanasy",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Cherni Vrah Peak — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-627": {
+      "source": "https://www.wikidata.org/wiki/Q209341",
+      "summary": "highest mountain of the Balkans in Bulgaria"
+    },
+    "bts-764": {
+      "source": "https://www.wikidata.org/wiki/Q12284801",
+      "summary": "cave in Bulgaria"
+    },
+    "bts-943": {
+      "source": "https://www.wikidata.org/wiki/Q101059315",
+      "summary": "House-Museum in Bailovo"
+    },
+    "bts-1165": {
+      "source": "https://www.wikidata.org/wiki/Q140420933",
+      "summary": ""
+    },
+    "bts-1473": {
+      "source": "https://www.wikidata.org/wiki/Q5267232",
+      "summary": "cave in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/Devil%27s_Throat_Cave_40.jpg/960px-Devil%27s_Throat_Cave_40.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Devil%27s_Throat_Cave_40.jpg",
+        "author": "Vislupus",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Devil's Throat Cave — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-1527": {
+      "source": "https://www.wikidata.org/wiki/Q61411538",
+      "summary": "museum in Bulgaria"
+    },
+    "bts-1528": {
+      "source": "https://www.wikidata.org/wiki/Q12298148",
+      "summary": "settlement formation in Sevlievo, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/%D0%A5%D1%80%D0%B0%D0%BC_%D0%B2_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D0%BE%D0%B2%D0%B5%D0%BA%D0%BE%D0%B2%D0%B5%D0%BD_%D0%B3%D1%80%D0%B0%D0%B4_%D0%A5%D0%BE%D1%82%D0%B0%D0%BB%D0%B8%D1%87_%D0%A1%D0%B5%D0%B2%D0%BB%D0%B8%D0%B5%D0%B2%D0%BE.jpg/960px-%D0%A5%D1%80%D0%B0%D0%BC_%D0%B2_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D0%BE%D0%B2%D0%B5%D0%BA%D0%BE%D0%B2%D0%B5%D0%BD_%D0%B3%D1%80%D0%B0%D0%B4_%D0%A5%D0%BE%D1%82%D0%B0%D0%BB%D0%B8%D1%87_%D0%A1%D0%B5%D0%B2%D0%BB%D0%B8%D0%B5%D0%B2%D0%BE.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:%D0%A5%D1%80%D0%B0%D0%BC_%D0%B2_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D0%BE%D0%B2%D0%B5%D0%BA%D0%BE%D0%B2%D0%B5%D0%BD_%D0%B3%D1%80%D0%B0%D0%B4_%D0%A5%D0%BE%D1%82%D0%B0%D0%BB%D0%B8%D1%87_%D0%A1%D0%B5%D0%B2%D0%BB%D0%B8%D0%B5%D0%B2%D0%BE.jpg",
+        "author": "Borislavlm87",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Hotalich Fortress — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 450
+      }
+    },
+    "bts-1529": {
+      "source": "https://www.wikidata.org/wiki/Q105491264",
+      "summary": "museum in Strelcha",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/History_Museum_in_Strelcha%2C_Bulgaria.jpg/960px-History_Museum_in_Strelcha%2C_Bulgaria.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:History_Museum_in_Strelcha%2C_Bulgaria.jpg",
+        "author": "Spasimir Pilev",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Strelcha History Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 599
+      }
+    },
+    "bts-1530": {
+      "source": "https://www.wikidata.org/wiki/Q20500169",
+      "summary": "Early Christian temple, located in Plovdiv, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Bazilika_golyama2.jpg/960px-Bazilika_golyama2.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Bazilika_golyama2.jpg",
+        "author": "Realsteel007",
+        "license": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "alt": "Bishop's Basilica of Philippopolis — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 531
+      }
+    },
+    "bts-1531": {
+      "source": "https://www.wikidata.org/wiki/Q140450205",
+      "summary": "Late Antiquity Building in Philippopolis, Bulgaria"
+    },
+    "bts-1532": {
+      "source": "https://www.wikidata.org/wiki/Q942127",
+      "summary": "Sephardic Jewish congregation and synagogue in Sofia",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Sofia_Synagogue_11c.jpg/960px-Sofia_Synagogue_11c.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Sofia_Synagogue_11c.jpg",
+        "author": "Plamen Agov (Пламен Агов)",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Sofia Synagogue — photograph from Wikimedia Commons",
+        "width": 794,
+        "height": 599
+      }
+    },
+    "bts-1533": {
+      "source": "https://www.wikidata.org/wiki/Q64630070",
+      "summary": "Roman fort and customs station"
+    },
+    "bts-1535": {
+      "source": "https://www.wikidata.org/wiki/Q61412863",
+      "summary": "museum in Popovo"
+    },
+    "bts-1536": {
+      "source": "https://www.wikidata.org/wiki/Q799313",
+      "summary": "Astronomical Observatory in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fa/Rozhen_dome.jpg/960px-Rozhen_dome.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Rozhen_dome.jpg",
+        "author": "Daniel",
+        "license": "CC BY-SA 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "alt": "Rozhen National Astronomical Observatory — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-1537": {
+      "source": "https://www.wikidata.org/wiki/Q105098330",
+      "summary": "the only cave museum in Southeast Europe",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%BD%D0%B0_%D1%80%D0%BE%D0%B4%D0%BE%D0%BF%D1%81%D0%BA%D0%B8%D1%8F_%D0%BA%D0%B0%D1%80%D1%81%D1%82_%282882229073%29.jpg/960px-%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%BD%D0%B0_%D1%80%D0%BE%D0%B4%D0%BE%D0%BF%D1%81%D0%BA%D0%B8%D1%8F_%D0%BA%D0%B0%D1%80%D1%81%D1%82_%282882229073%29.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%BD%D0%B0_%D1%80%D0%BE%D0%B4%D0%BE%D0%BF%D1%81%D0%BA%D0%B8%D1%8F_%D0%BA%D0%B0%D1%80%D1%81%D1%82_%282882229073%29.jpg",
+        "author": "Михал Орела",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "alt": "Rhodope Karst Museum — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-1548": {
+      "source": "https://www.wikidata.org/wiki/Q19810343",
+      "summary": "museum in Plovdiv, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Casa_Hindliyan_-_01_%285641181670%29.jpg/960px-Casa_Hindliyan_-_01_%285641181670%29.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Casa_Hindliyan_-_01_%285641181670%29.jpg",
+        "author": "Ramón from Llanera, España",
+        "license": "CC BY-SA 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+        "alt": "Hindliyan House — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-1549": {
+      "source": "https://www.wikidata.org/wiki/Q16744679",
+      "summary": "Basilica in Plovdiv, Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Small_basilica.jpg/960px-Small_basilica.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Small_basilica.jpg",
+        "author": "Realsteel007",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Small Early Christian Basilica — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-1629": {
+      "source": "https://www.wikidata.org/wiki/Q28090756",
+      "summary": ""
+    },
+    "bts-1630": {
+      "source": "https://www.wikidata.org/wiki/Q140421017",
+      "summary": ""
+    },
+    "bts-1641": {
+      "source": "https://www.wikidata.org/wiki/Q20498960",
+      "summary": "archaeological site in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/Sofia_-_Skeleton_from_the_Durankulak_Necropolis.jpg/960px-Sofia_-_Skeleton_from_the_Durankulak_Necropolis.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Sofia_-_Skeleton_from_the_Durankulak_Necropolis.jpg",
+        "author": "Ann Wuyts",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+        "alt": "Durankulak–Hamangia Archaeological Complex — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 533
+      }
+    },
+    "bts-1643": {
+      "source": "https://www.wikidata.org/wiki/Q12271186",
+      "summary": "the largest preserved feudal ensemble in the Rhodope Mountains",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Mogilitsa_IFB_3.jpg/960px-Mogilitsa_IFB_3.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Mogilitsa_IFB_3.jpg",
+        "author": "Ралица Вълчева (Ralitsa Valcheva)",
+        "license": "CC BY 2.5",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+        "alt": "Agushevi Konatsi — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 536
+      }
+    },
+    "bts-1644": {
+      "source": "https://www.wikidata.org/wiki/Q25342391",
+      "summary": ""
+    },
+    "bts-1701": {
+      "source": "https://www.wikidata.org/wiki/Q7205170",
+      "summary": "ancient Roman stadium",
+      "photo": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/83/Stadio_romano.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Stadio_romano.jpg",
+        "author": "Kmrakmra",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "alt": "Roman Stadium of Plovdiv — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-1822": {
+      "source": "https://www.wikidata.org/wiki/Q12280313",
+      "summary": "cave in Bulgaria"
+    },
+    "bts-1832": {
+      "source": "https://www.wikidata.org/wiki/Q2458142",
+      "summary": "bridge in Bulgaria",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/Devil%27s_Bridge_Ardino_2009_%281%29.jpg/960px-Devil%27s_Bridge_Ardino_2009_%281%29.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Devil%27s_Bridge_Ardino_2009_%281%29.jpg",
+        "author": "Marie Čcheidzeová",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Devil's Bridge — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-558": {
+      "source": "https://www.wikidata.org/wiki/Q25486595",
+      "summary": "museum in Bratsigovo"
+    },
+    "bts-583": {
+      "source": "https://www.wikidata.org/wiki/Q12293032",
+      "summary": "archaeological site in Bulgaria"
+    },
+    "bts-585": {
+      "source": "https://www.wikidata.org/wiki/Q7131762",
+      "summary": "Bulgarian national monument and an ossuary",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/20140625_Rousse_100.jpg/960px-20140625_Rousse_100.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:20140625_Rousse_100.jpg",
+        "author": "Mark Ahsmann",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Pantheon of National Revival Heroes — photograph from Wikimedia Commons",
+        "width": 800,
+        "height": 600
+      }
+    },
+    "bts-649": {
+      "source": "https://www.wikidata.org/wiki/Q12062015",
+      "summary": "the tallest statue of the Virgin Mary with the Infant Jesus in the world",
+      "photo": {
+        "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/%D0%9C%D0%BE%D0%BD%D1%83%D0%BC%D0%B5%D0%BD%D1%82_%D0%BD%D0%B0_%D0%A1%D0%B2%D0%B5%D1%82%D0%B0_%D0%91%D0%BE%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B8%D1%86%D0%B0.jpg/500px-%D0%9C%D0%BE%D0%BD%D1%83%D0%BC%D0%B5%D0%BD%D1%82_%D0%BD%D0%B0_%D0%A1%D0%B2%D0%B5%D1%82%D0%B0_%D0%91%D0%BE%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B8%D1%86%D0%B0.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:%D0%9C%D0%BE%D0%BD%D1%83%D0%BC%D0%B5%D0%BD%D1%82_%D0%BD%D0%B0_%D0%A1%D0%B2%D0%B5%D1%82%D0%B0_%D0%91%D0%BE%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%B8%D1%86%D0%B0.jpg",
+        "author": "Dessi star",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "alt": "Monument of the Holy Mother of God — photograph from Wikimedia Commons",
+        "width": 450,
+        "height": 600
+      }
+    },
+    "bts-665": {
+      "source": "https://www.wikidata.org/wiki/Q48354040",
+      "summary": "Museum in Yambol"
+    }
+  }
+}

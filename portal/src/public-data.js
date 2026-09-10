@@ -1,4 +1,4 @@
-// Only bundled, public geography/catalogue responses enter CacheStorage.
+// Only bundled, public geography/catalogue/place-detail responses enter CacheStorage.
 // Private account ledgers continue to use no-store and repository memory caches.
 export async function loadPublicJson(url, cacheName, validate, { storage = globalThis.caches, fetcher = globalThis.fetch } = {}) {
   let cache;

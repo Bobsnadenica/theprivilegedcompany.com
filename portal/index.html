@@ -32,8 +32,8 @@
       rel="stylesheet"
     />
 
-    <script type="module" crossorigin src="/portal/assets/index-Ctpe5Wje.js"></script>
-    <link rel="stylesheet" crossorigin href="/portal/assets/index-CfYQ_QV6.css">
+    <script type="module" crossorigin src="/portal/assets/index-BiKC6C0l.js"></script>
+    <link rel="stylesheet" crossorigin href="/portal/assets/index-BiVyAdYM.css">
   </head>
   <body>
     <main class="shell">
@@ -208,30 +208,38 @@
           <p id="timer-count" class="muted"></p><p id="timer-empty" class="empty-state"></p><div id="timer-list" class="timer-list"></div>
         </section>
         <section id="bulgaria-panel" hidden aria-labelledby="bulgaria-title">
-          <div class="budget-heading"><div><span class="eyebrow">A country worth getting to know</span><h2 id="bulgaria-title">Bulgaria, one discovery at a time.</h2><p class="muted">Find somewhere new. Keep the places you’ve been.</p></div><button id="bg-refresh" type="button" class="btn-ghost">Refresh</button></div>
+          <div class="budget-heading"><div><span class="eyebrow">Your next adventure</span><h2 id="bulgaria-title">Explore Bulgaria.</h2><p class="muted">Find a place worth the trip. Make it part of your story.</p></div><button id="bg-refresh" type="button" class="btn-ghost">Refresh</button></div>
           <p id="bg-status" class="sync-status" role="status" aria-live="polite"></p>
+          <div class="explorer-location-bar"><div><button id="bg-locate" type="button" class="btn-primary"><span aria-hidden="true">◎</span> Near me</button><button id="bg-clear-location" type="button" class="btn-ghost" hidden>Clear location</button></div><p id="bg-location-status" role="status">See how far away places are. Location is used only when you ask.</p><button id="bg-browse" type="button" class="btn-ghost">Find a place ↓</button></div>
           <div class="explorer-layout">
             <div class="explorer-map-column">
               <div class="card explorer-map-card">
                 <div class="explorer-map-heading"><div><span class="eyebrow">Your Bulgaria</span><strong id="bg-progress">Loading places…</strong></div><button id="bg-reset" class="btn-ghost" type="button">Reset view</button></div>
                 <progress id="bg-progress-bar" max="1" value="0" aria-label="Places visited"></progress>
+                <div class="explorer-map-toolbar"><div class="map-style-switch" role="group" aria-label="Map style"><button type="button" data-map-style="auto" aria-pressed="true">Auto</button><button type="button" data-map-style="overview" aria-pressed="false">Map</button><button type="button" data-map-style="satellite" aria-pressed="false">Satellite</button></div><span id="bg-map-hint">Zoom in for satellite imagery</span></div>
                 <div id="bg-map" aria-label="Interactive Bulgaria map. Use the place list as a keyboard alternative."></div>
-                <div class="explorer-map-footer"><span><i class="visit-dot" aria-hidden="true"></i> Still to explore</span><span><i class="visit-dot visited" aria-hidden="true"></i> Visited</span><a href="https://www.btsbg.org/node/338" target="_blank" rel="noopener">100 National Tourist Sites ↗</a></div>
+                <p id="bg-imagery-status" class="imagery-status" role="status" hidden></p><div class="explorer-map-footer"><span><i class="visit-dot" aria-hidden="true"></i> Still to explore</span><span><i class="visit-dot visited" aria-hidden="true"></i> Visited</span><a href="https://www.btsbg.org/node/338" target="_blank" rel="noopener">100 National Tourist Sites ↗</a></div>
               </div>
               <details id="bg-legacy" class="legacy-visits" hidden><summary>Earlier city check-ins</summary><p class="field-hint">Your previous city visits stay here. Mark individual landmarks separately as you explore.</p><ul id="bg-legacy-list"></ul></details>
             </div>
             <aside class="explorer-sidebar" aria-label="Explore places">
-              <details id="bg-detail" class="card explorer-detail" aria-labelledby="bg-place-name" hidden>
-                <summary><span id="bg-place-number" class="eyebrow">Your next discovery</span><h3 id="bg-place-name" tabindex="-1">Place details</h3></summary><p id="bg-place-bg" lang="bg" class="muted"></p><p id="bg-description"></p>
-                <div id="bg-place-actions" hidden><p id="bg-place-state"></p><label for="bg-visit-date">Visit date</label><input id="bg-visit-date" type="date" min="1900-01-01" required><button id="bg-checkin" class="btn-primary" type="button">Mark as visited</button><button id="bg-undo" class="btn-ghost danger" type="button" hidden>Undo check-in</button><div class="place-links"><a id="bg-directions" target="_blank" rel="noopener">Directions ↗</a><a id="bg-source" target="_blank" rel="noopener">About this place ↗</a></div></div>
-              </details>
+              <div id="bg-detail-home"><section id="bg-detail" class="card explorer-detail" aria-labelledby="bg-place-name" hidden>
+                <div class="place-detail-top"><span id="bg-place-number" class="eyebrow">Your next discovery</span><button id="bg-close-detail" type="button" class="btn-ghost" aria-label="Close place details">×</button></div>
+                <figure id="bg-photo" class="place-photo" hidden><a id="bg-photo-link" target="_blank" rel="noopener"><img id="bg-photo-image" alt="" loading="lazy" referrerpolicy="no-referrer"></a><figcaption id="bg-photo-credit"></figcaption></figure>
+                <h3 id="bg-place-name" tabindex="-1">Place details</h3><p id="bg-place-bg" lang="bg" class="muted"></p>
+                <div class="place-facts"><span id="bg-place-region"></span><span id="bg-distance" hidden></span></div><p id="bg-description"></p><p id="bg-place-summary" hidden></p>
+                <div class="place-primary-links"><a id="bg-directions" class="btn-primary" target="_blank" rel="noopener">Get directions ↗</a><button id="bg-zoom-place" class="btn-ghost" type="button">Explore on map</button></div>
+                <div class="place-plan"><strong>Plan your visit</strong><p id="bg-visit-tip"></p><div class="place-links"><a id="bg-source" target="_blank" rel="noopener">Official guide ↗</a><a id="bg-google" target="_blank" rel="noopener">Google photos &amp; reviews ↗</a><a id="bg-google-satellite" target="_blank" rel="noopener">Detailed satellite on Google ↗</a></div></div>
+                <div id="bg-place-actions" hidden><p id="bg-place-state"></p><div class="place-checkin-row"><label for="bg-visit-date">Visit date<input id="bg-visit-date" type="date" min="1900-01-01" required></label><button id="bg-checkin" class="btn-primary" type="button">Mark as visited</button><button id="bg-undo" class="btn-ghost danger" type="button" hidden>Undo check-in</button></div><p class="field-hint">Your visit is private and saved to your account.</p><p id="bg-detail-status" role="status"></p></div>
+              </section></div>
               <details id="bg-browser" class="card explorer-browser" open><summary>Find a place <span id="bg-result-count"></span></summary>
-                <div class="explorer-filters"><label for="bg-search">Search places<input id="bg-search" type="search" placeholder="Name, town, or official number…"></label><div class="explorer-filter-row"><label for="bg-region">Region<select id="bg-region"><option value="">All regions</option></select></label><label for="bg-category">Type<select id="bg-category"><option value="">All types</option></select></label></div><label for="bg-filter">Visits<select id="bg-filter"><option value="all">All places</option><option value="unvisited">Still to explore</option><option value="visited">Visited</option></select></label></div>
+                <div class="explorer-filters"><label for="bg-search">Search places<input id="bg-search" type="search" placeholder="Name, town, or official number…"></label><div class="explorer-filter-row"><label for="bg-region">Region<select id="bg-region"><option value="">All regions</option></select></label><label for="bg-category">Type<select id="bg-category"><option value="">All types</option></select></label></div><div class="explorer-filter-row"><label for="bg-filter">Visits<select id="bg-filter"><option value="all">All places</option><option value="unvisited">Still to explore</option><option value="visited">Visited</option></select></label><label for="bg-sort">Sort by<select id="bg-sort"><option value="catalogue">Official number</option><option value="nearest" disabled>Nearest first</option></select></label></div><button id="bg-clear-filters" type="button" class="btn-ghost">Clear filters</button></div>
                 <p id="bg-no-results" class="empty-state" hidden>No places match. Try another name or clear your filters.</p><ul id="bg-results" class="explorer-results"></ul>
               </details>
             </aside>
           </div>
         </section>
+        <dialog id="bg-place-dialog" aria-labelledby="bg-place-name"></dialog>
         <section id="life-panel" hidden aria-labelledby="life-title">
           <div class="budget-heading"><div><span class="eyebrow">Make time for what matters</span><h2 id="life-title">Time of your life</h2><p class="muted">A lifetime, a project, a summer. Give your time a shape.</p></div><button id="life-refresh" class="btn-ghost" type="button">Refresh</button></div>
           <p class="life-explanation">Choose two dates. See what’s passed, where you are now, and what’s still ahead — one day, month, or year at a time.</p>

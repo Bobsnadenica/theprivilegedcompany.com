@@ -142,12 +142,32 @@ focus states and tooltips. Files remains a text tab; icons wrap onto their own
 row on phones. Notification visibility still follows the existing IAM permissions.
 
 Bulgaria uses bundled Leaflet and MarkerCluster with self-hosted Natural Earth
-regional boundaries, rivers, neighbouring land and city labels. No external map
-tiles, geolocation permission, paid provider or runtime scraping is used. Desktop
-has a searchable sidebar; phone layouts have expandable place search and details.
+regional boundaries, rivers, neighbouring land and city labels. Auto mode switches
+to ESA WorldCover 2021 Sentinel-2 imagery at zoom 9; Map and Satellite offer manual
+control. The public Terrascope WMTS needs no key or subscription. Imagery is a
+historical 10 m landscape composite, not live or building-level photography.
+Its attribution stays on the map; failed tile requests return to the regional map.
+There is no tile prefetch, polling, or tile CacheStorage. Desktop has a searchable
+sidebar; phones open place details in a native modal sheet with Escape/close support.
 Filters combine names in Bulgarian/English, official numbers, region, category
 and visit status. Selecting a list result selects its marker. Visited markers gain
 colour and a check mark. Check-ins have a visit date and support undo.
+
+Near me requests a single browser location only after a click, then sorts by
+straight-line distance. Accuracy is displayed. Coordinates stay in memory, can be
+cleared, and are discarded on logout; no location enters the account ledger or
+analytics. Location denial/timeouts leave the catalogue usable. Distances are not
+road distances or travel-time estimates. Google directions calculate routes after
+the user opens Google Maps.
+
+Place cards include regional context, an official guide, visit-planning guidance,
+and 38 licensed Commons photos where a matched image and full attribution were
+available. Photo/metadata provenance is bundled in `bulgaria-place-details.json`.
+Photos load on selection from Wikimedia; broken images disappear without blocking
+the card. Google photos/reviews and detailed satellite imagery open through normal
+Maps URLs. Google ratings/reviews are not scraped or embedded, and no paid API is
+configured. Embedded Places content would require a separate key/billing and review
+of Google's current EEA display, attribution and caching rules.
 
 The reviewed catalogue contains 250 places covering all 252 listings in the
 [official BTS programme](https://www.btsbg.org/node/338) as reviewed on September 10,
@@ -208,9 +228,11 @@ domains keep their stored term or receive one year. It preserves expiry dates,
 IDs, other records and metadata. Only changed domain records receive new revisions
 for conflict detection. Repeating preparation on already migrated data is stable.
 
-The owner's requested term migration was prepared and checked against a read-only
-account snapshot; no migration upload was performed. Keep its files private.
-Publish the upgraded frontend before applying a schema-2 ledger, because older
+The requested private term migration was applied on September 10 after verifying
+the published frontend supports schema 2. The latest ledger was fetched, migrated,
+conditionally saved using its current ETag, and read back with exact equality. IDs
+and expiry dates were preserved. Backups and write receipts stay outside Git.
+For future migrations, publish the upgraded frontend before applying a schema-2 ledger, because older
 frontends reject it. Apply with the source ETag using `If-Match`. If the account
 has changed, fetch the latest ledger and prepare again; never remove the condition.
 Verify the saved object by reading it back after upload.
@@ -226,13 +248,13 @@ and display state; in-flight responses cannot populate another account. Failed
 writes retain input and never populate the cache with an unconfirmed mutation.
 There is no network polling or private data in CacheStorage/localStorage.
 
-The versioned public catalogue and geography have content-hashed build URLs.
+The versioned public catalogue, geography and place details have content-hashed build URLs.
 CacheStorage retains only their current public versions and falls back to normal
 browser caching if unavailable or full. Leaflet loads only when opening Bulgaria.
 Files and the admin inbox keep their existing storage behaviour. No backend service
 or new infrastructure is required.
 
-Local validation on September 10, 2026: 40 model/repository/data tests cover calendars,
+Local validation on September 10, 2026: 44 model/repository/data tests cover calendars,
 domain migration, catalogue completeness and coordinate outliers, filters, legacy
 records, conflicts, cache expiry, account isolation and failed writes. Isolated
 browser fixtures cover Files defaults, lazy reads, domain editing, stale edits,
@@ -242,3 +264,10 @@ Bulgarian labels, keyboard operation and reduced motion. Reopening trackers insi
 the cache window made no additional reads; catalogue/geography each fetched once
 across account switches and reloads. Browser tests blocked AWS and used no production
 records. These local checks do not certify deployed Cognito/S3 write permissions.
+
+
+Map upgrade validation also covers distance calculations, malformed coordinates,
+nearest sorting, media attribution, mobile sheets, location denial, satellite
+failure, marker retention at close zoom, and failed check-in retry. Browser fixtures
+block AWS and retain earlier city records. The private term migration above is the
+only account write performed for this upgrade; test check-ins use isolated ledgers.

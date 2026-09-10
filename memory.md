@@ -278,3 +278,36 @@ CacheStorage namespaces were present. Screenshots at 320, 390, 820 and 1440 pixe
 were checked with Bulgarian labels and reduced motion. Browser artifacts are ignored
 under `output/playwright/`. Real Cognito-user writes remain a post-release check;
 no production test records or deployment were performed.
+
+
+## Bulgaria satellite and nearby upgrade — 2026-09-10
+
+- Added Auto/Map/Satellite controls. Auto switches at zoom 9; public ESA WorldCover
+  2021 true-colour tiles provide 10 m landscape imagery through Terrascope. Attribution,
+  resolution/year labels, timeout/error fallback, scale and detailed Google satellite
+  links are included. No paid provider key, bulk tile downloads or runtime scraping.
+- Near me is an explicit one-shot browser location request. Straight-line distances,
+  nearest sorting and accuracy are shown. Coordinates are only in memory; clear and
+  logout discard them, and late callbacks cannot repopulate a signed-out account.
+- Place details have descriptions, regional context, visit guidance, directions,
+  official sources, and Google photos/reviews links. A third versioned public asset
+  contains 69 matched Wikidata records, 62 short descriptions and 38 Commons photos with author/license links.
+  Selected-place photos are remote; unavailable photos do not block check-ins.
+- Phones use a native modal detail sheet; desktop keeps an inline sidebar. Close,
+  Escape, map focus, filtering and visit-date retention work together. Fixed a
+  MarkerCluster defect caused by fractional minimum zoom: root-level pins now remain
+  visible when zooming. Keep the map's minimum zoom an integer.
+- The previously prepared private domain-term migration is now applied. Verified
+  schema-2 support in the published portal, fetched the current ledger, prepared
+  terms again, saved conditionally with its fresh ETag and compared a read-back.
+  All 23 record IDs and expiry dates were preserved. Backups/receipts remain private
+  outside Git. No production test check-ins or new frontend deployment.
+- 44 Node tests cover existing storage/calendar behaviour plus distance, sorting,
+  Google URL construction and photo provenance. Browser fixtures cover 320/390/820/
+  1440 layouts, nearby permission/error handling, satellite fallback, marker retention,
+  check-in failure/retry/undo, legacy history and private request isolation.
+
+Real-provider browser checks also passed: twelve satellite tiles returned HTTP 200,
+a Commons photo rendered with attribution, and phone touch/rotation/Escape/logout
+worked. Satellite loading stays explicit until the current tiles finish. The portal
+production build and syntax/whitespace checks pass.

@@ -210,8 +210,10 @@ removed after its owner data was migrated and verified in private account storag
 
 The September 10 portal upgrade adds a zoomable Bulgaria explorer with 250
 reviewed places covering 252 programme listings, including duplicate references.
-Leaflet, regional geography and the catalogue are self-hosted; there are no map
-tile requests. Search, region/type/visit filters and dated check-ins work alongside
+Leaflet, regional geography and the catalogue are self-hosted. Zooming can load
+free ESA satellite landscape tiles. Place cards add licensed photos, nearby
+straight-line distances, official guides and Google Maps links. Location is opt-in
+and stays in memory. Search, region/type/visit filters and dated check-ins work alongside
 preserved city history. Time of your life accepts a title and inclusive date range,
 with saved day/month/year views and bounded calendar grids. Older age snapshots
 remain visible until the user supplies exact dates.
@@ -219,7 +221,8 @@ remain visible until the user supplies exact dates.
 TimeTo now shows domain registration timelines as well as recurring-payment bars.
 Terms are editable; expired domains stay overdue. Trackers load on first use and
 keep private reads in account-scoped memory for 60 seconds. Writes always recheck
-S3 and its ETag. The private domain-term migration is prepared outside this repository
-and must be applied after publishing the upgraded portal. No deployment or production
-test writes were performed. See the [portal guide](portal/README.md) for validation,
+S3 and its ETag. The private domain-term migration was applied with a fresh ETag
+and verified by reading it back after checking the published frontend supports it.
+IDs and expiry dates are unchanged. The new map assets have not been deployed;
+browser QA uses isolated records. See the [portal guide](portal/README.md) for validation,
 data sources, caching and migration instructions.
