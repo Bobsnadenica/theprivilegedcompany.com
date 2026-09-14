@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "methodology_version": "trend-momentum-macd-v2",
-  "generated_at": "2026-09-13T00:03:40+00:00",
-  "latest_price_date": "2026-09-13",
+  "generated_at": "2026-09-14T00:16:42+00:00",
+  "latest_price_date": "2026-09-14",
   "source": "Yahoo Finance via yfinance",
   "universe_selection": "dynamic_market_cap",
   "universe_note": "Bitcoin, Ethereum, and the 20 largest eligible NYSE listings by current screener market capitalization.",
@@ -11,7 +11,7 @@
     "asset_count": 22,
     "expected_asset_count": 22,
     "minimum_history_points": 501,
-    "maximum_price_age_days": 2,
+    "maximum_price_age_days": 3,
     "missing_assets": []
   },
   "assets": [
@@ -25,31 +25,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 77273.0625,
-      "change": 99.2656,
-      "change_pct": 0.1286,
-      "price_as_of": "2026-09-13",
+      "price": 76868.1406,
+      "change": -402.3281,
+      "change_pct": -0.5207,
+      "price_as_of": "2026-09-14",
       "price_age_days": 0,
       "history_points": 730,
       "metrics": {
-        "rsi14": 55.1079,
-        "sma20": 78587.8695,
-        "sma50": 70908.999,
-        "sma200": 70091.1471,
-        "return_5d": -2.3292,
-        "return_1m": 0.246,
-        "return_1y": -14.7126,
-        "volatility_20d": 27.0431,
-        "distance_sma200": 10.2465,
-        "distance_year_high": -20.279,
+        "rsi14": 53.4483,
+        "sma20": 78482.9227,
+        "sma50": 71160.0737,
+        "sma200": 70135.6742,
+        "return_5d": -2.0021,
+        "return_1m": -1.1409,
+        "return_1y": -15.9116,
+        "volatility_20d": 26.47,
+        "distance_sma200": 9.5992,
+        "distance_year_high": -20.6967,
         "max_drawdown_1y": -39.586,
-        "macd_line": 1810.0288,
-        "macd_signal": 2570.2425,
-        "macd_histogram": -760.2137,
-        "macd_histogram_pct": -0.9838,
-        "bollinger_upper": 80994.1345,
-        "bollinger_lower": 76181.6045,
-        "bollinger_percent_b": 22.6795
+        "macd_line": 1592.7526,
+        "macd_signal": 2374.7114,
+        "macd_histogram": -781.9589,
+        "macd_histogram_pct": -1.0173,
+        "bollinger_upper": 80995.0029,
+        "bollinger_lower": 75970.8424,
+        "bollinger_percent_b": 17.8597
       },
       "indicators": {
         "trend_regime": "BULLISH",
@@ -60,11 +60,11 @@
       "signals": {
         "one_day": {
           "label": "SELL",
-          "score": -3,
+          "score": -4,
           "max_score": 5,
-          "alignment": -0.6,
-          "strength": 77,
-          "summary": "price is below its 20-day average; five-session momentum is -2.3%."
+          "alignment": -0.8,
+          "strength": 86,
+          "summary": "price is below its 20-day average; five-session momentum is -2.0%."
         },
         "one_month": {
           "label": "BUY",
@@ -94,31 +94,31 @@
       "sector": "Digital asset",
       "market_cap": null,
       "currency": "USD",
-      "price": 2525.4199,
-      "change": 10.686,
-      "change_pct": 0.4249,
-      "price_as_of": "2026-09-13",
+      "price": 2484.9399,
+      "change": -41.0046,
+      "change_pct": -1.6233,
+      "price_as_of": "2026-09-14",
       "price_age_days": 0,
       "history_points": 730,
       "metrics": {
-        "rsi14": 63.8516,
-        "sma20": 2470.7718,
-        "sma50": 2173.9533,
-        "sma200": 2055.6917,
-        "return_5d": 1.3835,
-        "return_1m": 4.1732,
-        "return_1y": -19.2103,
-        "volatility_20d": 30.3145,
-        "distance_sma200": 22.8501,
-        "distance_year_high": -24.7205,
+        "rsi14": 59.3355,
+        "sma20": 2470.9534,
+        "sma50": 2186.1981,
+        "sma200": 2057.8459,
+        "return_5d": -0.0001,
+        "return_1m": 0.8574,
+        "return_1y": -20.8797,
+        "volatility_20d": 30.8311,
+        "distance_sma200": 20.7544,
+        "distance_year_high": -25.9271,
         "max_drawdown_1y": -53.3548,
-        "macd_line": 88.0701,
-        "macd_signal": 104.1242,
-        "macd_histogram": -16.0541,
-        "macd_histogram_pct": -0.6357,
-        "bollinger_upper": 2544.0814,
-        "bollinger_lower": 2397.4621,
-        "bollinger_percent_b": 87.2722
+        "macd_line": 82.5842,
+        "macd_signal": 99.8229,
+        "macd_histogram": -17.2387,
+        "macd_histogram_pct": -0.6937,
+        "bollinger_upper": 2544.4475,
+        "bollinger_lower": 2397.4593,
+        "bollinger_percent_b": 59.5154
       },
       "indicators": {
         "trend_regime": "BULLISH",
@@ -129,26 +129,26 @@
       "signals": {
         "one_day": {
           "label": "BUY",
-          "score": 3,
+          "score": 2,
           "max_score": 5,
-          "alignment": 0.6,
-          "strength": 77,
-          "summary": "price is above its 20-day average; five-session momentum is +1.4%."
+          "alignment": 0.4,
+          "strength": 68,
+          "summary": "price is above its 20-day average; RSI 59.3 confirms positive momentum."
         },
         "one_month": {
-          "label": "BUY",
-          "score": 3,
-          "max_score": 5,
-          "alignment": 0.6,
-          "strength": 77,
-          "summary": "price is above its 50-day average; the 20-day trend leads the 50-day trend."
-        },
-        "one_year": {
           "label": "BUY",
           "score": 2,
           "max_score": 5,
           "alignment": 0.4,
           "strength": 68,
+          "summary": "price is above its 50-day average; the 20-day trend leads the 50-day trend."
+        },
+        "one_year": {
+          "label": "HOLD",
+          "score": 1,
+          "max_score": 5,
+          "alignment": 0.2,
+          "strength": 59,
           "summary": "price is above its 200-day average; the 50-day trend leads the 200-day trend."
         }
       }
@@ -167,7 +167,7 @@
       "change": 5.21,
       "change_pct": 1.2172,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 56.8907,
@@ -236,7 +236,7 @@
       "change": 3.37,
       "change_pct": 0.6647,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 57.4685,
@@ -305,7 +305,7 @@
       "change": -7.3,
       "change_pct": -0.65,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 35.4974,
@@ -374,7 +374,7 @@
       "change": 2.67,
       "change_pct": 0.7552,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 51.8985,
@@ -443,7 +443,7 @@
       "change": 3.24,
       "change_pct": 0.8823,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 50.664,
@@ -512,7 +512,7 @@
       "change": 0.76,
       "change_pct": 0.46,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 61.9593,
@@ -581,7 +581,7 @@
       "change": -0.77,
       "change_pct": -0.2891,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 49.2057,
@@ -650,7 +650,7 @@
       "change": 3.82,
       "change_pct": 0.6757,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 47.0343,
@@ -719,7 +719,7 @@
       "change": 2.12,
       "change_pct": 0.8314,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 52.0572,
@@ -788,7 +788,7 @@
       "change": 0.13,
       "change_pct": 0.2078,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 54.9477,
@@ -857,7 +857,7 @@
       "change": -2.66,
       "change_pct": -1.7392,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 51.0647,
@@ -926,7 +926,7 @@
       "change": 1.3,
       "change_pct": 0.611,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 69.5194,
@@ -995,7 +995,7 @@
       "change": 0.46,
       "change_pct": 0.5237,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 51.5205,
@@ -1064,7 +1064,7 @@
       "change": 13.57,
       "change_pct": 1.6857,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 47.6862,
@@ -1133,7 +1133,7 @@
       "change": 60.67,
       "change_pct": 11.9754,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 66.5747,
@@ -1202,7 +1202,7 @@
       "change": 1.6,
       "change_pct": 1.5429,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 55.8379,
@@ -1271,7 +1271,7 @@
       "change": -0.78,
       "change_pct": -0.539,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 50.4107,
@@ -1340,7 +1340,7 @@
       "change": -9.19,
       "change_pct": -2.3668,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 35.4787,
@@ -1409,7 +1409,7 @@
       "change": 2.3,
       "change_pct": 1.6087,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 50.1425,
@@ -1478,7 +1478,7 @@
       "change": 1.72,
       "change_pct": 0.8088,
       "price_as_of": "2026-09-11",
-      "price_age_days": 2,
+      "price_age_days": 3,
       "history_points": 501,
       "metrics": {
         "rsi14": 49.5998,
