@@ -97,6 +97,7 @@
                 </div>
             </div>
             <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
+            <a id="contact-email-fallback" class="contact-email-fallback btn-hud" href="mailto:contactus@theprivilegedcompany.com" hidden>Open email draft</a>
         </form>
         </div>
     </div>
@@ -144,6 +145,8 @@
     .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: right; }
     .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
     .contact-email:hover { color: var(--c-accent); }
+    .contact-email-fallback:not([hidden]) { display: flex; justify-content: center; margin-top: 0.75rem; }
+    .contact-email-fallback[hidden] { display: none; }
     .contact-form-status { min-height: 1.5rem; color: var(--c-accent-strong); font-size: 0.85rem; text-align: center; opacity: 0; transition: opacity 0.25s; }
     .contact-form-status.is-visible { opacity: 1; }
 

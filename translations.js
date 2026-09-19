@@ -44,6 +44,7 @@ export const translations = {
             "Selected service": "Избрана услуга",
             "FAQ": "Въпроси и отговори",
             "Privacy": "Поверителност",
+            "Open email draft": "Отворете чернова за имейл",
             "Email us": "Пишете ни",
             "View showcase": "Вижте проекта",
             "Who we are": "Кои сме ние",

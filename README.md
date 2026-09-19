@@ -2,7 +2,22 @@
 
 The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Discuss your project.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
 
-This guide was updated on **2026-09-08** for the public-site polish, based on commit `a5437d15` plus the local changes. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+This guide was updated on **2026-09-20** for the public-site release review. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+
+## Release review (2026-09-20)
+
+The studio layout, responsive particle background, orange light theme, and bilingual
+language selector are retained. Service cards now use native links with separate
+showcase actions. Navigation announces the current page, moves keyboard focus to
+the new heading, and skips the transition delay on the initial home load. The skip
+link stays on the current page and preserves an unsent contact draft. Failed contact
+delivery offers an explicit button to reopen the prepared email draft.
+
+The release uses asset version `20260920a`. Regression and syntax checks pass, as do
+88 browser route/language/layout checks at 320, 390, 820, and 1440 pixels. All six
+showcase URLs responded successfully. No real contact brief was submitted. The Terms
+draft still needs the owner's jurisdiction and legal review; the two infrastructure
+findings below remain open. These checks are not a full security or delivery certification.
 
 ## Security and QA follow-up (2026-09-10)
 
@@ -20,7 +35,7 @@ and regression checks for navigation, form failures, CSP, motion, and 20 core
 palette contrast pairs. No live briefs were sent. See
 [security_best_practices_report.md](security_best_practices_report.md) for scope,
 evidence, and two open infrastructure findings: server-side inbox abuse controls
-and real HTTP security headers. Local fixes are unpublished.
+and real HTTP security headers.
 
 ## English and Bulgarian copy
 
@@ -61,7 +76,7 @@ Screenshots were inspected during browser review. Reduced-motion rules were
 reviewed in source; OS-level motion emulation and live delivery were not tested.
 Core HTML/CSS/JS/translation assets grew by approximately 2.5 KB gzipped; this is
 an asset-size comparison, not a measured loading-speed score. No production
-briefs were submitted, and this refresh has not been published.
+briefs were submitted during that validation.
 
 The follow-up restores a stronger particle field and click ripples while retaining
 the studio layout. Cursor coordinates update directly on pointer events, without
@@ -154,7 +169,7 @@ Vite uses `portal/src/` as its root and emits `portal/index.html` and `portal/as
 
 ## Hosting and change workflow
 
-The repository is organized for GitHub Pages at `www.theprivilegedcompany.com`, with `CNAME` and `.nojekyll`. Actual Pages settings and current production deployment were not inspected during this review. `_headers` and `_redirects` are configurations for compatible alternative hosts; they do not configure GitHub Pages response headers.
+The repository publishes through GitHub Pages at `www.theprivilegedcompany.com`, with `CNAME` and `.nojekyll`. On 2026-09-20 the Pages API confirmed legacy branch publishing from `main` at `/`. `_headers` and `_redirects` are configurations for compatible alternative hosts; they do not configure GitHub Pages response headers. After a release push, wait for the Pages workflow for that commit, then compare changed live assets with the tested local files and inspect the published UI.
 
 After changing the shared shell or generator metadata:
 
@@ -170,11 +185,11 @@ For public-site changes, check direct route loading, navigation and Back/Forward
 
 ## Public-site polish (September 2026)
 
-The current structure, service catalog, showcase links, fonts, themes, canvas, cursor, and diagnostics are retained. English and Bulgarian copy now uses clearer descriptions of the work, and Privacy/FAQ copy matches the S3 inbox implementation. All public route titles and descriptions have Bulgarian translations; the existing English-only Terms body remains unchanged.
+The current structure, service catalog, showcase links, fonts, themes, canvas, cursor, and diagnostics are retained. English and Bulgarian copy now uses clearer descriptions of the work, and Privacy/FAQ copy matches the S3 inbox implementation. All public route titles, descriptions, and the Terms draft have Bulgarian translations. Translation does not resolve the draft's missing legal details.
 
-Visual refinements cover type scale, line lengths, muted-text contrast, shared surface/control tokens, service cards, focus states, form labels, and mobile spacing. Architecture cards support Enter/Space and expose their selection with `aria-pressed`. Text scrambling respects reduced-motion preferences. The public asset version is `20260907a`.
+Visual refinements cover type scale, line lengths, muted-text contrast, shared surface/control tokens, service cards, focus states, form labels, and mobile spacing. Architecture cards support Enter/Space and expose their selection with `aria-pressed`. Text scrambling respects reduced-motion preferences.
 
-Local browser checks and before/after screenshots are recorded in the ignored `output/playwright/` directory. The project memory records validation and outstanding content questions. These changes have not been deployed.
+Earlier local browser checks and before/after screenshots are recorded in the ignored `output/playwright/` directory. The project memory records validation and outstanding content questions.
 
 ## Independent projects
 

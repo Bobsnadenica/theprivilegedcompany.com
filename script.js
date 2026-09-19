@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260910d';
+import { languageMeta, translations } from './translations.js?v=20260920a';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260910d';
+const assetVersion = '20260920a';
 
 // --- Brief inbox delivery ----------------------------------------------------
 // The contact form does NOT email anyone. It drops the brief as a JSON object
@@ -408,17 +408,17 @@ const router = async () => {
     // Start Transition Mask. Skip the wait entirely for reduced-motion users, and
     // otherwise wait only long enough for the mask to cover (CSS clip-path is 0.35s).
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    transitionMask.classList.add('is-active');
-    await new Promise(r => setTimeout(r, prefersReducedMotion ? 0 : 360));
+    const needsTransition = navigation > 1 || key !== '';
+    if (needsTransition) transitionMask.classList.add('is-active');
+    await new Promise(r => setTimeout(r, prefersReducedMotion || !needsTransition ? 0 : 360));
     if (navigation !== navigationId) return;
 
     // Update active state in nav
     document.querySelectorAll('#main-nav a').forEach(link => {
-        link.classList.remove('active');
-        const href = link.getAttribute('href');
-        if ((key === '' && (href === './' || href === '/' || href === 'index.html')) || (key !== '' && href.includes(key))) {
-            link.classList.add('active');
-        }
+        const active = new URL(link.href, window.location.origin).pathname === (key ? `/${key}` : '/');
+        link.classList.toggle('active', active);
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
     });
 
     if (key === '') {
@@ -458,6 +458,14 @@ const router = async () => {
     initTabs();
     initServiceCards();
     initContactForm();
+    // Announce SPA navigation and keep the next Tab press in the new content.
+    if (navigation > 1) {
+        const heading = (key === '' ? hubView : dynamicView).querySelector?.('h1');
+        if (heading) {
+            heading.setAttribute('tabindex', '-1');
+            heading.focus({ preventScroll: true });
+        }
+    }
 };
 
 /**
@@ -498,61 +506,23 @@ const initTabs = () => {
 
 const initServiceCards = () => {
     document.querySelectorAll('.service-card').forEach(card => {
-        const heading = card.querySelector('h3');
-        const serviceName = getSourceText(heading);
+        const serviceName = card.dataset.serviceName || getSourceText(card.querySelector('h3'));
         if (!serviceRequestTypes[serviceName]) return;
-
-        const destination = serviceDestinations[serviceName];
         card.dataset.serviceName = serviceName;
-        card.setAttribute('role', 'link');
-        card.setAttribute('tabindex', '0');
-        if (destination) card.dataset.i18nAriaLabel = destination.label;
-        card.setAttribute('aria-label', destination
-            ? t(destination.label)
-            : (currentLanguage === 'bg'
-                ? `Запитване за: ${t(serviceName)}`
-                : `Ask about: ${serviceName}`)
-        );
-
+        const destination = serviceDestinations[serviceName];
         let cta = card.querySelector('.service-card-cta');
         if (!cta) {
-            cta = document.createElement('small');
+            cta = document.createElement('a');
             cta.className = 'service-card-cta';
             card.append(cta);
         }
+        cta.href = destination?.href || `/contact?service=${encodeURIComponent(serviceName)}`;
+        cta.toggleAttribute('data-link', !destination);
         cta.dataset.i18nSource = destination ? destination.label : 'Discuss your project';
         cta.textContent = t(cta.dataset.i18nSource);
-
-        if (card.dataset.serviceBound) return;
-        card.dataset.serviceBound = 'true';
-
-        const openDestination = () => {
-            if (destination?.type === 'internal') {
-                window.location.href = new URL(destination.href, window.location.origin).href;
-                return;
-            }
-
-            if (destination?.type === 'external') {
-                window.location.href = destination.href;
-                return;
-            }
-
-            const target = new URL('contact', window.location.origin);
-            target.searchParams.set('service', serviceName);
-            history.pushState(null, null, `${target.pathname}${target.search}`);
-            router();
-        };
-
-        card.addEventListener('click', event => {
-            if (event.target.closest('a, button, input, select, textarea')) return;
-            openDestination();
-        });
-        card.addEventListener('keydown', event => {
-            if (event.target !== card) return;
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-            event.preventDefault();
-            openDestination();
-        });
+        cta.setAttribute('aria-label', destination ? t(destination.label) : (currentLanguage === 'bg'
+            ? `Запитване за: ${t(serviceName)}`
+            : `Ask about: ${serviceName}`));
     });
 };
 
@@ -563,6 +533,7 @@ const initContactForm = () => {
     const serviceValue = document.getElementById('contact-service-value');
     const serviceInput = document.getElementById('contact-service-name');
     const subjectInput = document.getElementById('contact-email-subject');
+    const emailFallback = document.getElementById('contact-email-fallback');
     if (!form || !status) return;
 
     const submitButton = form.querySelector('button[type="submit"]');
@@ -636,6 +607,7 @@ const initContactForm = () => {
         if (subjectInput) subjectInput.value = subjectText;
 
         sending = true;
+        if (emailFallback) emailFallback.hidden = true;
         status.textContent = t('Sending your inquiry securely...');
         status.classList.add('is-visible');
         if (submitButton) submitButton.disabled = true;
@@ -666,7 +638,12 @@ const initContactForm = () => {
         } catch (error) {
             console.warn('Contact endpoint unavailable; falling back to email client.', error);
             status.textContent = t('Delivery could not be confirmed. Opening an email draft; please send it from your email app, or use the email address above.');
-            window.location.href = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
+            const mailto = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
+            if (emailFallback) {
+                emailFallback.href = mailto;
+                emailFallback.hidden = false;
+            }
+            window.location.href = mailto;
         } finally {
             sending = false;
             if (submitButton) submitButton.disabled = false;
@@ -1750,6 +1727,13 @@ document.addEventListener('click', e => {
 window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', () => {
+    // The shared <base> makes bare hashes point home; skip content locally instead.
+    document.querySelector('.skip-link')?.addEventListener('click', event => {
+        event.preventDefault();
+        const main = document.getElementById('app-root');
+        main.focus({ preventScroll: true });
+        main.scrollIntoView();
+    });
     new QuantumWeb('bg-canvas');
     initCursor();
     initThemeSwitcher();

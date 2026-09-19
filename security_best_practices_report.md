@@ -1,10 +1,19 @@
 # Public website security and QA review
 
-Reviewed 2026-09-10. Scope: the main public SPA, its generated route shells, contact delivery code, and the associated Terraform trust boundary. These fixes are local and unpublished. Portal authentication, independent `/dev/` applications, and deployed AWS policies were not comprehensively audited.
+Reviewed 2026-09-10; public-site release follow-up on 2026-09-20. Scope: the main public SPA, its generated route shells, contact delivery code, and the associated Terraform trust boundary. Portal authentication, independent `/dev/` applications, and deployed AWS policies were not comprehensively audited.
 
 ## Result
 
-Local security and usability fixes are complete and regression checks pass. Two infrastructure findings remain open. This is a focused source/browser review, not a penetration-test certification or an end-to-end delivery verification.
+Frontend security and usability fixes pass regression checks. Two infrastructure findings remain open. This is a focused source/browser review, not a penetration-test certification or an end-to-end delivery verification.
+
+## Release follow-up — 2026-09-20
+
+- Rechecked all 11 public routes in English/Bulgarian: light at 320/820 px and dark at 390/1440 px, for 88 layout checks. No horizontal document overflow, duplicate visible H1s, or broken visible images were found. Browser console error output was empty. All six showcase destinations returned HTTP 200 after redirects.
+- Replaced scripted service-card navigation with 20 native links. Contact context, translated accessible names, separate showcase links, keyboard tabs, and heading focus were checked. The initial home load no longer waits for the page-transition mask.
+- Fixed the skip link so it focuses the current page instead of following the shared base URL home and discarding an unsent contact draft. Added an explicit email-draft link after delivery failure. Regression tests cover native service links and the recovery link; delivery tests use mocks.
+- Regenerated route shells with asset version `20260920a`; regression, syntax, CSP hash, and whitespace checks pass. GitHub Pages settings were read and confirm `main` at `/`.
+- Rechecked the live response: SEC-02 remains open. SEC-01 still requires coordinated AWS changes; no infrastructure was deployed or abuse-tested. No real briefs were sent. Native mail-app behavior and end-to-end inbox delivery remain unverified.
+- The Terms page still contains jurisdiction placeholders and a legal-review note. They were not filled with assumed facts. This frontend release does not approve those legal terms or substantiate every marketing/privacy claim.
 
 ## Security findings
 
@@ -60,7 +69,7 @@ Opening the raw fragment or losing its JavaScript handler could otherwise submit
 | QA-08 | Keep validation focus below the fixed header; improve placeholder contrast. | [styles.css:60](styles.css#L60), [views/contact.html:134](views/contact.html#L134) |
 | QA-09 | Replace the pale light theme with amber backgrounds, peach surfaces, and burnt-orange controls. Core foreground and button color pairs meet 4.5:1 contrast. | [styles.css:36](styles.css#L36) |
 
-## Validation and limits
+## Original validation and limits — 2026-09-10
 
 - `node scripts/check-public-site.mjs`: passed. Exercises actual production handlers with mocked browser/network dependencies: routing races, offline fallback, link modifiers, form validation, duplicate sends, success/failure, shared timeout signal, signed-upload request shape, UUID keys, CSP hashes, cursor and animation lifecycle. Also checks privacy defaults and 20 palette contrast pairs. This does not validate AWS acceptance of signatures or permissions.
 - Syntax checks for `script.js`, `translations.js`, and the route generator: passed.
@@ -70,4 +79,4 @@ Opening the raw fragment or losing its JavaScript handler could otherwise submit
 - Trusted local route fragments supply HTML; the selected-service query uses an allowlist and text rendering. A targeted check of portal inbox rendering found `textContent` for brief fields; this was not a full portal audit.
 - No real contact submissions, credential changes, AWS applies, deployments, commits, or pushes were performed. Mail-app launch behavior, long `mailto:` body compatibility, deployed inbox permissions/delivery, and other browser engines remain unverified. Palette contrast checks do not constitute a full WCAG audit.
 
-Before release, resolve SEC-01/SEC-02, publish the complete regenerated shells and matching assets together, and verify real headers and an explicitly approved end-to-end brief delivery.
+To close this review fully, resolve SEC-01/SEC-02 and confirm the legal details and end-to-end brief delivery. Publish regenerated shells and matching assets together; verify the exact Pages commit, live asset bytes, and visible UI after the authorized push. A frontend deployment alone does not close the remaining findings.

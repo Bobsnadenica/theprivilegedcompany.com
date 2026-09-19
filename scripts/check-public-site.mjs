@@ -193,15 +193,16 @@ const formHarness = () => {
         querySelector: () => button, reset() { resets++; }
     };
     const status = { textContent: '', classList: { add() {} } };
+    const fallback = { href: '', hidden: true };
     const location = { pathname: '/contact', search: '', href: '' };
     vm.runInNewContext(formSource + '; initContactForm();', {
-        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status }[id] || null) },
+        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-email-fallback': fallback }[id] || null) },
         getSelectedServiceName: () => '', FormData: class { get(key) { return data.get(key); } },
         t: text => text, currentLanguage: 'en', window: { location }, console: { warn() {} },
         putBriefInInbox: () => { deliveries++; return new Promise((resolve, reject) => { finish = resolve; fail = reject; }); }
     });
     assert.equal(button.disabled, false, 'Enable submission only after binding the handler');
-    return { data, status, button, location, submit: () => handler({ preventDefault() {} }), resolve: () => finish(), reject: () => fail(new Error('timeout')), get deliveries() { return deliveries; }, get resets() { return resets; }, get focused() { return focused; } };
+    return { data, status, button, location, fallback, submit: () => handler({ preventDefault() {} }), resolve: () => finish(), reject: () => fail(new Error('timeout')), get deliveries() { return deliveries; }, get resets() { return resets; }, get focused() { return focused; } };
 };
 const invalid = formHarness();
 invalid.data.set('name', '   '); await invalid.submit();
@@ -218,6 +219,8 @@ assert.match(success.status.textContent, /^Inquiry sent/);
 const failure = formHarness();
 const failedSend = failure.submit(); failure.reject(); await failedSend;
 assert.equal(failure.resets, 0); assert.equal(failure.button.disabled, false);
+assert.equal(failure.fallback.hidden, false);
+assert.equal(failure.fallback.href, failure.location.href);
 assert.match(failure.location.href, /^mailto:contactus@theprivilegedcompany\.com\?subject=/);
 assert.match(failure.status.textContent, /please send it from your email app/);
 const honeypot = formHarness(); honeypot.data.set('_honey', 'spam'); await honeypot.submit(); assert.equal(honeypot.deliveries, 0);
@@ -332,3 +335,36 @@ assert.equal(heading.textContent, 'Изграждаме всичко');
 assert.equal(heading.scrambling, false);
 assert.ok(cleared);
 console.log('Language animation check passed: source survives switching languages mid-animation.');
+
+// Service cards expose real, encoded links without nested interactive wrappers.
+const serviceCards = ['Licensed Market Intelligence', 'Learn Any Tech Topic'].map(name => ({
+    dataset: {}, querySelector: selector => selector === 'h3' ? { textContent: name } : null,
+    append(anchor) { this.anchor = anchor; }
+}));
+vm.runInNewContext(source.slice(source.indexOf('const initServiceCards ='), source.indexOf('const initContactForm =')) + '; initServiceCards();', {
+    document: { querySelectorAll: () => serviceCards, createElement: tag => ({ tag, dataset: {}, attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, toggleAttribute(key, enabled) { if (enabled) this.attributes[key] = ''; else delete this.attributes[key]; } }) },
+    getSourceText: node => node.textContent, t: text => text, currentLanguage: 'en',
+    serviceRequestTypes: { 'Licensed Market Intelligence': 'Data', 'Learn Any Tech Topic': 'Training' },
+    serviceDestinations: { 'Learn Any Tech Topic': { href: 'dev/Tech%20Tools/index.html', label: 'Open Tool Suite' } }
+});
+assert.equal(serviceCards[0].anchor.tag, 'a');
+assert.equal(serviceCards[0].anchor.href, '/contact?service=Licensed%20Market%20Intelligence');
+assert.ok(Object.hasOwn(serviceCards[0].anchor.attributes, 'data-link'));
+assert.equal(serviceCards[1].anchor.href, 'dev/Tech%20Tools/index.html');
+assert.ok(!Object.hasOwn(serviceCards[1].anchor.attributes, 'data-link'));
+console.log('Release checks passed: native service links and actionable email fallback.');
+
+// A skip link must focus locally, never follow <base href="/"> and lose a draft.
+let skip;
+const skipEffects = [];
+vm.runInNewContext(source.slice(source.indexOf("    document.querySelector('.skip-link')"), source.indexOf("    new QuantumWeb('bg-canvas')")), {
+    document: {
+        querySelector: () => ({ addEventListener: (_, handler) => { skip = handler; } }),
+        getElementById: id => { assert.equal(id, 'app-root'); return {
+            focus: () => skipEffects.push('focus'), scrollIntoView: () => skipEffects.push('scroll')
+        }; }
+    }
+});
+skip({ preventDefault: () => skipEffects.push('prevent navigation') });
+assert.deepEqual(skipEffects, ['prevent navigation', 'focus', 'scroll']);
+console.log('Skip-link check passed: focus content without navigating away.');
