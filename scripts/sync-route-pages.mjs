@@ -33,7 +33,7 @@ const routes = {
   },
   privacy: {
     title: 'ThePrivilegedCompany | Privacy',
-    description: 'How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.'
+    description: 'How ThePrivilegedCompany handles email enquiries and information shared during an engagement.'
   },
   terms: {
     title: 'ThePrivilegedCompany | Terms',

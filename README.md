@@ -2,7 +2,38 @@
 
 The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Discuss your project.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
 
-This guide was updated on **2026-09-20** for the public-site release review. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+
+## Enquiries and social landing pages (2026-09-27)
+
+The owner chose a free email-client flow. The contact form now prepares a draft to
+`contactus@theprivilegedcompany.com`; the visitor must review it and press Send.
+It no longer uploads public enquiries to AWS. Entered details remain on the page,
+with a complete copyable draft for long messages or an unavailable email app.
+No automatic email service, subscription, paid plan, or mail DNS change was added.
+
+The homepage now leads into websites, apps, and automation, with two public examples
+clearly labelled as our own products/tools. Both languages retain the existing
+studio design, particle effects, and warm light theme. The Facebook footer follows
+the selected language; both official pages appear in Organization `sameAs`.
+
+`?lang=en` and `?lang=bg` override a saved preference. Without that parameter, the
+saved choice still applies. Supported Facebook labels (`facebook`, `organic_social`,
+`company_launch_en`/`company_launch_bg`, and optional `page_button`/`introduction_post`)
+stay in memory through SPA navigation and appear in the prepared email. Full reloads
+recapture only the current URL's labels. Arbitrary query data and advertising click
+IDs are omitted. Opening a draft is not a sent or received enquiry, and there is no
+conversion tracking.
+
+Asset version `20260927a`. Regression, syntax, CSP, and whitespace checks pass.
+Browser layout QA covers 88 route/language/viewport combinations with no horizontal
+overflow, duplicate visible H1s, broken loaded images, or console errors. Native
+mail-app delivery requires the visitor's configured client and explicit Send action.
+
+Cloudflare's existing apex redirect now covers both HTTP and HTTPS and preserves
+page paths/query strings. Eight production URL checks reached the expected HTTPS
+`www` URL with HTTP 200. GitHub Pages and email DNS were unchanged. Mail MX records
+currently point to iCloud; no claim is made about downstream mailbox forwarding.
 
 ## Release review (2026-09-20)
 
@@ -142,13 +173,16 @@ Features include a canvas background, animated text/cursor interactions, a servi
 
 ## Contact briefs and client portal
 
-The public form obtains temporary guest credentials from Cognito Identity and signs an S3 upload using WebCrypto/SigV4. It writes JSON to `inbox/new/` in the configured bucket. Successful submission does **not** send email. Failed delivery opens a `mailto:` fallback addressed to `contactus@theprivilegedcompany.com`.
+The public form prepares a `mailto:` draft addressed to `contactus@theprivilegedcompany.com`.
+The visitor sends it from their email app. There are no public form network submissions,
+and the private portal is not involved in new enquiries. Legacy inbox data and AWS
+permissions remain in place; this release did not mutate that infrastructure.
 
 The portal authenticates through a Cognito User Pool, including first-login password changes, then obtains temporary credentials through an Identity Pool. Its AWS SDK is bundled locally. IAM scopes personal files to `users/<email>/`; inbox permissions are gated by the configured admin email principal tag. Admins read new briefs and archive them by copying to `inbox/done/` and deleting the original.
 
 Files is the portal's default screen after login and session restoration. Budget opens from its header icon: income/expenses, custom categories, monthly or all-time totals, separate category pie charts, editing/deletion and CSV export. EUR, USD, GBP and BGN remain separate. The private ledger lives at `users/<email>/.budget/ledger-v1.json`, with conditional writes to protect concurrent device edits. Saving requires connectivity; failed saves retain the current form. See the [portal guide](portal/README.md) for storage behavior and validation limits.
 
-The Terraform defaults use `eu-west-1` and `theprivilegedcompany-bucket`. `portal/config.js` is generated from Terraform and contains public client identifiers. The public site's `inboxConfig` is separately hardcoded in `script.js`; keep the two aligned when infrastructure changes.
+The Terraform defaults use `eu-west-1` and `theprivilegedcompany-bucket`. `portal/config.js` is generated from Terraform and contains public client identifiers. Public contact code no longer includes Cognito credentials or S3 upload logic.
 
 For portal work:
 

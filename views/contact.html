@@ -90,14 +90,23 @@
             </label>
 
             <div class="contact-actions">
-                <button class="btn-hud contact-submit" type="submit" disabled>Send inquiry</button>
+                <button class="btn-hud contact-submit" type="submit" disabled>Open email draft</button>
                 <div class="contact-secondary">
-                    <span>We reply by email with scope and next steps.</span>
+                    <span>This opens your email app. Review the draft and press Send.</span>
                     <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
                 </div>
             </div>
             <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
-            <a id="contact-email-fallback" class="contact-email-fallback btn-hud" href="mailto:contactus@theprivilegedcompany.com" hidden>Open email draft</a>
+            <div id="contact-draft-tools" hidden>
+                <label>
+                    <span>Prepared enquiry</span>
+                    <textarea id="contact-draft-text" rows="6" readonly></textarea>
+                </label>
+                <div class="contact-actions">
+                    <button id="contact-copy" class="btn-hud" type="button">Copy enquiry</button>
+                    <a id="contact-email-draft" class="btn-hud" href="mailto:contactus@theprivilegedcompany.com">Open email app</a>
+                </div>
+            </div>
         </form>
         </div>
     </div>

@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260920a';
+import { languageMeta, translations } from './translations.js?v=20260927a';
 
 const routes = {
     '': {
@@ -44,7 +44,7 @@ const routes = {
     'privacy': {
         title: 'Privacy',
         view: 'privacy.html',
-        description: 'How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.'
+        description: 'How ThePrivilegedCompany handles email enquiries and information shared during an engagement.'
     },
     'terms': {
         title: 'Terms',
@@ -76,92 +76,22 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260920a';
+const assetVersion = '20260927a';
 
-// --- Brief inbox delivery ----------------------------------------------------
-// The contact form does NOT email anyone. It drops the brief as a JSON object
-// into s3://<bucket>/inbox/new/ using write-only guest credentials from the
-// Cognito Identity Pool (see backend/iam.tf: guests can PutObject to inbox/new/*
-// and nothing else). The portal surfaces these to the admin as notifications.
-const inboxConfig = {
-    region: 'eu-west-1',
-    identityPoolId: 'eu-west-1:4d3e6ee9-98f5-49ba-85c4-8eb2d0b05c21',
-    bucket: 'theprivilegedcompany-bucket'
+const getCampaignAttribution = search => {
+    const params = new URLSearchParams(search);
+    if (['utm_source', 'utm_medium', 'utm_campaign'].some(key => params.getAll(key).length !== 1)) return null;
+    if (params.get('utm_source') !== 'facebook' || params.get('utm_medium') !== 'organic_social') return null;
+    const campaign = params.get('utm_campaign');
+    if (!['company_launch_en', 'company_launch_bg'].includes(campaign)) return null;
+    const content = params.get('utm_content');
+    const supportedContent = params.getAll('utm_content').length === 1 && ['page_button', 'introduction_post'].includes(content);
+    return { source: 'facebook', medium: 'organic_social', campaign, ...(supportedContent ? { content } : {}) };
 };
+// ponytail: memory only for this SPA visit; full reloads reset attribution.
+// Explicit campaign labels avoid storing arbitrary URLs, identifiers or click IDs.
+const campaignAttribution = getCampaignAttribution(window.location.search);
 
-const inboxEncoder = new TextEncoder();
-const sha256Hex = async data => {
-    const buf = await crypto.subtle.digest('SHA-256', typeof data === 'string' ? inboxEncoder.encode(data) : data);
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-};
-const hmacSha256 = async (key, data) => {
-    const cryptoKey = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, inboxEncoder.encode(data)));
-};
-
-const fetchGuestCredentials = async signal => {
-    const call = async (target, payload) => {
-        const response = await fetch(`https://cognito-identity.${inboxConfig.region}.amazonaws.com/`, {
-            method: 'POST',
-            signal,
-            headers: { 'Content-Type': 'application/x-amz-json-1.1', 'X-Amz-Target': `AWSCognitoIdentityService.${target}` },
-            body: JSON.stringify(payload)
-        });
-        if (!response.ok) throw new Error(`${target} returned ${response.status}`);
-        return response.json();
-    };
-    const { IdentityId } = await call('GetId', { IdentityPoolId: inboxConfig.identityPoolId });
-    const { Credentials } = await call('GetCredentialsForIdentity', { IdentityId });
-    return Credentials;
-};
-
-// Minimal SigV4 signer for a single S3 PUT (WebCrypto; no SDK — CSP is 'self').
-const putBriefInInbox = async brief => {
-    const signal = AbortSignal.timeout(20000);
-    const creds = await fetchGuestCredentials(signal);
-    const { region, bucket } = inboxConfig;
-    const host = `${bucket}.s3.${region}.amazonaws.com`;
-    // Timestamp and UUID keep the object key URI-safe.
-    const key = `inbox/new/${new Date().toISOString().replace(/[:.]/g, '-')}-${crypto.randomUUID()}.json`;
-    const body = JSON.stringify(brief, null, 2);
-    const amzDate = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-    const dateStamp = amzDate.slice(0, 8);
-    const payloadHash = await sha256Hex(body);
-    const headers = {
-        host,
-        'x-amz-content-sha256': payloadHash,
-        'x-amz-date': amzDate,
-        'x-amz-security-token': creds.SessionToken
-    };
-    const signedHeaderNames = Object.keys(headers).sort();
-    const canonicalRequest = [
-        'PUT',
-        `/${key}`,
-        '',
-        signedHeaderNames.map(name => `${name}:${headers[name]}\n`).join(''),
-        signedHeaderNames.join(';'),
-        payloadHash
-    ].join('\n');
-    const scope = `${dateStamp}/${region}/s3/aws4_request`;
-    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await sha256Hex(canonicalRequest)].join('\n');
-    let signingKey = await hmacSha256(inboxEncoder.encode(`AWS4${creds.SecretKey}`), dateStamp);
-    for (const part of [region, 's3', 'aws4_request']) signingKey = await hmacSha256(signingKey, part);
-    const signature = [...await hmacSha256(signingKey, stringToSign)].map(b => b.toString(16).padStart(2, '0')).join('');
-
-    const response = await fetch(`https://${host}/${key}`, {
-        method: 'PUT',
-        signal,
-        headers: {
-            'X-Amz-Content-Sha256': payloadHash,
-            'X-Amz-Date': amzDate,
-            'X-Amz-Security-Token': creds.SessionToken,
-            Authorization: `AWS4-HMAC-SHA256 Credential=${creds.AccessKeyId}/${scope}, SignedHeaders=${signedHeaderNames.join(';')}, Signature=${signature}`
-        },
-        body
-    });
-    if (!response.ok) throw new Error(`Inbox delivery returned ${response.status}`);
-    return key;
-};
 const serviceRequestTypes = {
     'Licensed Market Intelligence': 'Company data or market intelligence',
     'Technical Audits': 'Systems / process audit',
@@ -196,6 +126,8 @@ const serviceDestinations = {
 const knownServiceNames = Object.keys(serviceRequestTypes);
 const supportedLanguages = Object.keys(languageMeta);
 let currentLanguage = (() => {
+    const requested = new URLSearchParams(window.location.search).get('lang');
+    if (supportedLanguages.includes(requested)) return requested;
     try {
         const stored = localStorage.getItem('tpc-language');
         return supportedLanguages.includes(stored) ? stored : 'en';
@@ -284,6 +216,11 @@ const applyTranslations = (root = document) => {
     if (select) {
         select.value = currentLanguage;
     }
+    document.querySelectorAll('[data-facebook-link]').forEach(link => {
+        link.href = currentLanguage === 'bg'
+            ? 'https://www.facebook.com/profile.php?id=61594916066192'
+            : 'https://www.facebook.com/profile.php?id=61594741023963';
+    });
 
     const sourceElements = [
         ...(root.nodeType === Node.ELEMENT_NODE && root.matches?.('[data-i18n-source]') ? [root] : []),
@@ -329,8 +266,8 @@ const applyTranslations = (root = document) => {
         node.nodeValue = `${leading}${translated}${trailing}`;
     });
 
-    root.querySelectorAll?.('[placeholder], [aria-label], [title]').forEach(element => {
-        ['placeholder', 'aria-label', 'title'].forEach(attr => {
+    root.querySelectorAll?.('[placeholder], [aria-label], [title], [alt]').forEach(element => {
+        ['placeholder', 'aria-label', 'title', 'alt'].forEach(attr => {
             if (!element.hasAttribute(attr)) return;
             const dataKey = `i18n${attr.replace(/-([a-z])/g, (_, char) => char.toUpperCase())}`;
             if (!element.dataset[dataKey]) element.dataset[dataKey] = element.getAttribute(attr);
@@ -342,6 +279,11 @@ const applyTranslations = (root = document) => {
 const setLanguage = lang => {
     if (!supportedLanguages.includes(lang)) return;
     currentLanguage = lang;
+    const pageUrl = new URL(window.location.href);
+    if (pageUrl.searchParams.has('lang')) {
+        pageUrl.searchParams.set('lang', lang);
+        history.replaceState(null, '', pageUrl);
+    }
     try {
         localStorage.setItem('tpc-language', lang);
     } catch {
@@ -532,8 +474,10 @@ const initContactForm = () => {
     const serviceContext = document.getElementById('contact-service-context');
     const serviceValue = document.getElementById('contact-service-value');
     const serviceInput = document.getElementById('contact-service-name');
-    const subjectInput = document.getElementById('contact-email-subject');
-    const emailFallback = document.getElementById('contact-email-fallback');
+    const draftTools = document.getElementById('contact-draft-tools');
+    const draftText = document.getElementById('contact-draft-text');
+    const draftLink = document.getElementById('contact-email-draft');
+    const copyButton = document.getElementById('contact-copy');
     if (!form || !status) return;
 
     const submitButton = form.querySelector('button[type="submit"]');
@@ -548,10 +492,8 @@ const initContactForm = () => {
         if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
     }
 
-    let sending = false;
-    form.addEventListener('submit', async event => {
+    form.addEventListener('submit', event => {
         event.preventDefault();
-        if (sending) return;
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -580,73 +522,45 @@ const initContactForm = () => {
             }
         }
 
-        const subjectText = serviceName
-            ? `Inquiry about: ${serviceName} - ${name}`
-            : `Website inquiry from ${name}`;
+        if (data.get('_honey')) return;
+
+        const subjectText = (serviceName
+            ? `${t('Inquiry about')}: ${t(serviceName)} - ${name}`
+            : `${t('Website inquiry from')} ${name}`).replace(/[\r\n]/g, ' ');
         const bodyText = [
-            `Name: ${name}`,
-            `Email: ${email}`,
-            `Phone: ${phone}`,
-            `Service: ${serviceName || 'Not specified'}`,
-            `Looking for: ${requestType || 'Not specified'}`,
-            `Timeline: ${timeline || 'Not specified'}`,
-            `Budget: ${budget || 'Not specified'}`,
+            `${t('Name:')} ${name}`,
+            `${t('Email:')} ${email}`,
+            `${t('Phone:')} ${phone || t('Not specified')}`,
+            `${t('Service:')} ${t(serviceName || 'Not specified')}`,
+            `${t('Looking for:')} ${t(requestType || 'Not specified')}`,
+            `${t('Timeline:')} ${t(timeline || 'Not specified')}`,
+            `${t('Budget:')} ${t(budget || 'Not specified')}`,
+            ...(campaignAttribution ? [`Campaign: ${[campaignAttribution.source, campaignAttribution.medium, campaignAttribution.campaign, campaignAttribution.content].filter(Boolean).join(' / ')}`] : []),
             '',
-            'Details:',
+            t('Details:'),
             details
         ].join('\n');
-        const subject = encodeURIComponent(subjectText);
-        const body = encodeURIComponent(bodyText);
-
-        if (data.get('_honey')) {
-            status.textContent = t('Inquiry received. We will get back to you soon.');
-            status.classList.add('is-visible');
-            return;
-        }
-
-        if (subjectInput) subjectInput.value = subjectText;
-
-        sending = true;
-        if (emailFallback) emailFallback.hidden = true;
-        status.textContent = t('Sending your inquiry securely...');
+        const subjectLink = `mailto:contactus@theprivilegedcompany.com?subject=${encodeURIComponent(subjectText)}`;
+        const mailto = `${subjectLink}&body=${encodeURIComponent(bodyText)}`;
+        // Mail apps have different URL limits. Long enquiries stay available to copy in full.
+        const fitsEmailLink = mailto.length <= 1800;
+        draftText.value = `${subjectText}\n\n${bodyText}`;
+        draftLink.href = fitsEmailLink ? mailto : subjectLink;
+        draftTools.hidden = false;
+        status.textContent = t(fitsEmailLink
+            ? 'Continue in your email app and press Send. If no draft opens, copy your enquiry below and email us directly.'
+            : 'Your enquiry is too long for an email link. Copy it below, open your email app, and paste it before sending.');
         status.classList.add('is-visible');
-        if (submitButton) submitButton.disabled = true;
-
+        if (fitsEmailLink) window.location.href = mailto;
+    });
+    copyButton.addEventListener('click', async () => {
         try {
-            await putBriefInInbox({
-                name,
-                email,
-                phone,
-                requestType,
-                serviceName,
-                timeline,
-                budget,
-                details,
-                language: currentLanguage,
-                page: window.location.pathname + window.location.search,
-                submittedAt: new Date().toISOString()
-            });
-
-            status.textContent = t('Inquiry sent. We will get back to you soon.');
-            form.reset();
-
-            if (selectedService && serviceInput) {
-                serviceInput.value = selectedService;
-                const requestTypeForService = serviceRequestTypes[selectedService];
-                if (requestTypeForService && form.elements.requestType) form.elements.requestType.value = requestTypeForService;
-            }
-        } catch (error) {
-            console.warn('Contact endpoint unavailable; falling back to email client.', error);
-            status.textContent = t('Delivery could not be confirmed. Opening an email draft; please send it from your email app, or use the email address above.');
-            const mailto = `mailto:contactus@theprivilegedcompany.com?subject=${subject}&body=${body}`;
-            if (emailFallback) {
-                emailFallback.href = mailto;
-                emailFallback.hidden = false;
-            }
-            window.location.href = mailto;
-        } finally {
-            sending = false;
-            if (submitButton) submitButton.disabled = false;
+            await navigator.clipboard.writeText(draftText.value);
+            status.textContent = t('Enquiry copied. Paste it into your email app and press Send.');
+        } catch {
+            draftText.focus();
+            draftText.select();
+            status.textContent = t('Select and copy the prepared enquiry below, then paste it into your email app.');
         }
     });
     if (submitButton) submitButton.disabled = false;

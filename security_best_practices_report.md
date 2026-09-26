@@ -6,6 +6,26 @@ Reviewed 2026-09-10; public-site release follow-up on 2026-09-20. Scope: the mai
 
 Frontend security and usability fixes pass regression checks. Two infrastructure findings remain open. This is a focused source/browser review, not a penetration-test certification or an end-to-end delivery verification.
 
+## Contact-flow update — 2026-09-27
+
+At the owner's explicit request, public enquiries now use a prepared email draft.
+The visitor sends it from their own mail app. All public Cognito/SigV4/S3 upload
+code and its external CSP connection allowances were removed. Form input stays
+available; oversized email links use a full copyable draft. Opening a mail client
+never displays an "enquiry sent" confirmation. Privacy and FAQ copy match this flow
+in English and Bulgarian. No automatic email service or paid plan was configured.
+
+SEC-01 remains a legacy-infrastructure finding: removing browser code does not
+revoke the existing guest IAM permissions. AWS was inspected read-only; no policies
+or resources changed. Retirement of that unused guest-write path requires its own
+dependency check. SEC-02 and the Terms draft placeholders remain open.
+
+Regression checks now cover mailto recipient/encoding, preserved input, long
+Bulgarian messages, clipboard fallback, and allowlisted campaign labels. The final
+browser layout pass covers 88 combinations with no overflow or console errors.
+No enquiry email was sent by the agent. Historical delivery-test descriptions below
+refer to the previous S3 form and do not describe the current contact behavior.
+
 ## Release follow-up — 2026-09-20
 
 - Rechecked all 11 public routes in English/Bulgarian: light at 320/820 px and dark at 390/1440 px, for 88 layout checks. No horizontal document overflow, duplicate visible H1s, or broken visible images were found. Browser console error output was empty. All six showcase destinations returned HTTP 200 after redirects.
@@ -19,7 +39,7 @@ Frontend security and usability fixes pass regression checks. Two infrastructure
 
 ### SEC-01 · Medium · Open: anonymous inbox uploads lack server-enforced abuse controls
 
-**Evidence:** [backend/iam.tf:144](backend/iam.tf#L144) grants guest `s3:PutObject` on `inbox/new/*`; [script.js:101](script.js#L101) obtains guest credentials directly. The repository contains no server-side size, schema, or submission-rate enforcement for this path.
+**Evidence:** [backend/iam.tf:144](backend/iam.tf#L144) grants guest `s3:PutObject` on `inbox/new/*`. The previous public script obtained guest credentials directly; that code was removed on 2026-09-27. The underlying infrastructure was not changed, and the repository contains no server-side size, schema, or submission-rate enforcement for that legacy path.
 
 **Impact:** an attacker can bypass the contact UI and write arbitrary objects into the inbox, creating spam and storage/request costs. Write-only permission limits reading but does not prevent repeated uploads or replacement of a known object key. This finding is based on checked-in configuration; deployed IAM was not queried or abuse-tested.
 
@@ -53,7 +73,7 @@ Run the generator after changing any inline script. Hash freshness and policy pl
 
 **Evidence:** [views/contact.html:19](views/contact.html#L19), [views/contact.html:93](views/contact.html#L93), [script.js:678](script.js#L678).
 
-Opening the raw fragment or losing its JavaScript handler could otherwise submit entered personal details as URL query parameters. The form now declares POST and its submit button stays disabled until the handler is attached. The visible email address remains available. The normal SPA flow still uploads privately to S3; a successful upload does not send email.
+Opening the raw fragment or losing its JavaScript handler could otherwise submit entered personal details as URL query parameters. The form declares POST and its submit button stays disabled until the handler is attached. The visible email address remains available. Since 2026-09-27, the handler prepares an email draft without uploading the form.
 
 ## QA fixes
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-irGoY1c0IU9ICVxf0ib0bW9lPvdyx0wTjV/c8XX++Ko=' 'sha256-ZUJhLLxqmeCLmq4xv2cJgd2VLEZEOVAI8uZG+dYK/6o=' 'sha256-lEIvfbYJ60A54y/8/v9Z+aIaxUSjgxjy9JcNrWEOBbA=' 'sha256-Fn5b+C6rMtw00CcggfHxHhswU9YY15SuggahBXcXjeY=' 'sha256-4UlsrkYtASKCtEeUzIRyEaIcKi1weyxe5j7cyMu5DV0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cognito-identity.eu-west-1.amazonaws.com https://*.s3.eu-west-1.amazonaws.com; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-irGoY1c0IU9ICVxf0ib0bW9lPvdyx0wTjV/c8XX++Ko=' 'sha256-ZUJhLLxqmeCLmq4xv2cJgd2VLEZEOVAI8uZG+dYK/6o=' 'sha256-rAgfOMhB/XVG/j/EtnFJGKuBAF/B1ylNxlvxmJKv6Zw=' 'sha256-Fn5b+C6rMtw00CcggfHxHhswU9YY15SuggahBXcXjeY=' 'sha256-4UlsrkYtASKCtEeUzIRyEaIcKi1weyxe5j7cyMu5DV0='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests">
     <base href="/">
     <script>
         // SPA fallback restore: 404.html redirects unknown paths to /?/orig-path
@@ -29,7 +29,7 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThePrivilegedCompany | Privacy</title>
-    <meta name="description" content="How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.">
+    <meta name="description" content="How ThePrivilegedCompany handles email enquiries and information shared during an engagement.">
     <meta property="og:image" content="https://www.theprivilegedcompany.com/og-image.png">
     <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/og-image.png">
     <meta property="og:image:type" content="image/png">
@@ -49,10 +49,10 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ThePrivilegedCompany">
     <meta property="og:title" content="ThePrivilegedCompany | Privacy">
-    <meta property="og:description" content="How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.">
+    <meta property="og:description" content="How ThePrivilegedCompany handles email enquiries and information shared during an engagement.">
     <meta property="og:url" content="https://www.theprivilegedcompany.com/privacy">
     <meta name="twitter:title" content="ThePrivilegedCompany | Privacy">
-    <meta name="twitter:description" content="How ThePrivilegedCompany handles contact briefs, private inbox storage, and information shared during an engagement.">
+    <meta name="twitter:description" content="How ThePrivilegedCompany handles email enquiries and information shared during an engagement.">
     
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2">
     <link rel="icon" type="image/svg+xml" href="/assets/logo/LOGO_TPC/Logo_TPC_MARK_LOGO.svg">
@@ -63,7 +63,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20260920a">
+    <link rel="stylesheet" href="styles.css?v=20260927a">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -141,7 +141,7 @@
                 }
             ]
         },
-        "sameAs": []
+        "sameAs": ["https://www.facebook.com/profile.php?id=61594741023963", "https://www.facebook.com/profile.php?id=61594916066192"]
     }
     </script>
     <script type="application/ld+json">
@@ -214,7 +214,7 @@
             <div id="hub-view" class="view-container">
                 <section class="monolith-hero">
                     <div class="hero-content">
-                        <span class="label hero-eyebrow">Independent engineering · 1+AI</span>
+                        <span class="label hero-eyebrow">Independent software studio</span>
                         <div class="reveal-mask hero-title-mask">
                             <h1 class="display-huge" data-scramble>Build Anything</h1>
                         </div>
@@ -249,12 +249,79 @@
                             </g>
                             <g class="orbit-satellite"><circle cx="260" cy="70" r="5" fill="currentColor"/><circle cx="260" cy="70" r="13" opacity=".3"/></g>
                             <circle cx="260" cy="260" r="60" fill="var(--c-bg)"/>
-                            <text x="260" y="271" text-anchor="middle" stroke="none" fill="var(--c-fg)">TPC</text>
+                            <circle cx="260" cy="260" r="8" stroke="none" fill="currentColor"/>
                         </svg>
                         <span class="orbit-caption">Ideas. Systems. Working software.</span>
                     </div>
                 </section>
                 
+                <section class="home-services" aria-labelledby="home-services-title">
+                    <header class="home-section-heading">
+                        <span class="label">A practical starting point</span>
+                        <h2 id="home-services-title">What do you want to build?</h2>
+                    </header>
+                    <div class="home-service-grid">
+                        <article>
+                            <span class="label">01 / Websites</span>
+                            <h3>A better place to meet your customers.</h3>
+                            <p>For a business launching online or replacing a dated site. A responsive website with clear content, useful enquiries, and straightforward upkeep.</p>
+                            <a class="btn-hud" href="/contact?service=Website%20Building%20%26%20Management" data-link>Discuss a website</a>
+                        </article>
+                        <article>
+                            <span class="label">02 / Apps</span>
+                            <h3>Make your idea usable.</h3>
+                            <p>For founders and teams with a service to build. Turn booking, customer access, or an internal process into a focused web or mobile application.</p>
+                            <a class="btn-hud" href="/contact?service=Mobile%20%26%20Web%20Applications" data-link>Discuss an app</a>
+                        </article>
+                        <article>
+                            <span class="label">03 / Automation</span>
+                            <h3>Give repetitive work less of your day.</h3>
+                            <p>For teams copying data or repeating the same steps. Connect the workflow with a script, dashboard, integration, or tool built around the task.</p>
+                            <a class="btn-hud" href="/contact?service=Custom%20Daily%20Tools" data-link>Discuss automation</a>
+                        </article>
+                    </div>
+                    <a href="/manifest" class="home-text-link" data-link>Explore all services</a>
+                </section>
+
+                <section class="selected-work" aria-labelledby="selected-work-title">
+                    <header class="home-section-heading">
+                        <span class="label">Selected projects</span>
+                        <h2 id="selected-work-title">Working software you can explore.</h2>
+                        <p>Our own products and tools, built around real problems. Explore the working applications below.</p>
+                    </header>
+                    <div class="project-grid">
+                        <article class="project-card">
+                            <a href="https://www.growpoint.bg/" class="project-preview" target="_blank" rel="noopener noreferrer" aria-label="Explore GrowPoint">
+                                <img src="assets/showcase/growpoint-public-20260926.jpg" alt="GrowPoint public homepage" width="1189" height="720" loading="lazy" decoding="async">
+                            </a>
+                            <div class="project-copy">
+                                <span class="label">Independent product · Web application</span>
+                                <h3>GrowPoint</h3>
+                                <p>Make it easier to find the right expert and arrange a session. A Bulgarian platform with searchable profiles, booking flows, and account tools.</p>
+                                <div class="project-actions">
+                                    <a href="https://www.growpoint.bg/" target="_blank" rel="noopener noreferrer">Explore GrowPoint</a>
+                                    <a href="/contact?service=Mobile%20%26%20Web%20Applications" data-link>Discuss an app</a>
+                                </div>
+                            </div>
+                        </article>
+                        <article class="project-card">
+                            <a href="/dev/bg/" class="project-preview" aria-label="Explore Bulgaria in Data">
+                                <img src="assets/showcase/bulgaria-atlas-public-20260926.jpg" alt="Bulgaria in Data public atlas" width="1189" height="720" loading="lazy" decoding="async">
+                            </a>
+                            <div class="project-copy">
+                                <span class="label">Independent tool · Data and automation</span>
+                                <h3>Bulgaria in Data</h3>
+                                <p>Turn scattered public datasets into an explorable atlas. Search, charts, maps, and an automated import-and-validation script work from a dated local snapshot.</p>
+                                <div class="project-actions">
+                                    <a href="/dev/bg/">Explore Bulgaria in Data</a>
+                                    <a href="/contact?service=Custom%20Daily%20Tools" data-link>Discuss automation</a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    <p class="project-caption">Public website views captured in September 2026. Open each project to explore its current version.</p>
+                </section>
+
                 <section class="monolith-advert">
                     <div class="advert-text reveal-mask">
                         <span class="label">Our approach</span>
@@ -342,10 +409,11 @@
 
         <footer id="main-footer">
             <div class="footer-left">
-                <p>&copy; 2026 ThePrivilegedCompany / Engineering / 1+AI.</p>
+                <p>&copy; 2026 ThePrivilegedCompany</p>
             </div>
             <div class="footer-right">
                 <a href="mailto:contactus@theprivilegedcompany.com" data-magnetic>Email us</a>
+                <a href="https://www.facebook.com/profile.php?id=61594741023963" target="_blank" rel="noopener noreferrer" data-facebook-link data-magnetic>Facebook</a>
                 <a href="/privacy" data-link data-magnetic>Privacy</a>
                 <a href="/terms" data-link data-magnetic>Terms</a>
                 <a href="/faq" data-link data-magnetic>FAQ</a>
@@ -1131,6 +1199,6 @@ else
 fi
 
 printf "\nScope: HTTP, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled links, metadata, headers, CORS, cookies, passive browser-style DOM checks, client secret/debug exposure, query reflection, SQL error smoke, sensitive-file/route smoke, open-redirect smoke, and optional nmap web-port check.\n"</script>
-    <script type="module" src="script.js?v=20260920a"></script>
+    <script type="module" src="script.js?v=20260927a"></script>
 </body>
 </html>

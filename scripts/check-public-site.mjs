@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import { createHash, webcrypto } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 const source = await readFile(new URL('../script.js', import.meta.url), 'utf8');
 const routerSource = source.slice(source.indexOf('let navigationId = 0;'), source.indexOf('/**\n * Tab Switching Logic'));
@@ -175,77 +175,105 @@ clickHandlers[1]({ target: { closest: () => link } });
 assert.equal(link.rel, 'noopener noreferrer');
 console.log('Navigation QA passed: exact routes, offline fallback, modifier keys, downloads, hashes, safe external links.');
 
-// Exercise the actual form handler. All delivery is mocked; no real messages leave this process.
+// Exercise the real form handler with native navigation and clipboard mocked.
 const formSource = source.slice(source.indexOf('const initContactForm ='), source.indexOf('/**\n * Architecture Canvas'));
-const formHarness = () => {
-    let handler;
-    let deliveries = 0;
-    let finish;
-    let fail;
-    let resets = 0;
-    let focused;
+const translationSource = await readFile(new URL('../translations.js', import.meta.url), 'utf8');
+const bgText = vm.runInNewContext(translationSource.replace(/export const /g, 'const ') + '; translations.bg.text;');
+const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false) => {
+    let handler, copyHandler, focused, copied, selected = false;
     const button = { disabled: true };
-    const data = new Map(Object.entries({ name: 'QA Test', email: 'qa@example.test', phone: '', details: 'Test brief', requestType: 'Other' }));
+    const data = new Map(Object.entries({ name: 'QA Test', email: 'qa@example.test', phone: '', details: 'Test brief', requestType: 'Website or app build' }));
     const elements = Object.fromEntries(Object.entries({ name: 120, email: 254, phone: 80, details: 20000 }).map(([key, maxLength]) => [key, { required: key !== 'phone', maxLength, focus() { focused = key; } }]));
     const form = {
         elements, checkValidity: () => true, reportValidity() {},
-        addEventListener: (_, callback) => { handler = callback; },
-        querySelector: () => button, reset() { resets++; }
+        addEventListener: (_, callback) => { handler = callback; }, querySelector: () => button,
+        reset() { assert.fail('Never discard an unsent enquiry'); }
     };
     const status = { textContent: '', classList: { add() {} } };
-    const fallback = { href: '', hidden: true };
-    const location = { pathname: '/contact', search: '', href: '' };
+    const draftTools = { hidden: true };
+    const draftText = { value: '', focus() { focused = 'draft'; }, select() { selected = true; } };
+    const draftLink = { href: '' };
+    const copyButton = { addEventListener: (_, callback) => { copyHandler = callback; } };
+    const location = { pathname: '/contact', search: '?fbclid=private-click-id&email=private@example.test', href: '' };
     vm.runInNewContext(formSource + '; initContactForm();', {
-        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-email-fallback': fallback }[id] || null) },
+        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton }[id] || null) },
         getSelectedServiceName: () => '', FormData: class { get(key) { return data.get(key); } },
-        t: text => text, currentLanguage: 'en', window: { location }, console: { warn() {} },
-        putBriefInInbox: () => { deliveries++; return new Promise((resolve, reject) => { finish = resolve; fail = reject; }); }
+        t: text => language === 'bg' ? (bgText[text] || text) : text,
+        campaignAttribution, window: { location },
+        navigator: { clipboard: { async writeText(value) { if (clipboardBlocked) throw new Error('blocked'); copied = value; } } },
+        fetch() { assert.fail('The contact form must not send network requests'); }
     });
-    assert.equal(button.disabled, false, 'Enable submission only after binding the handler');
-    return { data, status, button, location, fallback, submit: () => handler({ preventDefault() {} }), resolve: () => finish(), reject: () => fail(new Error('timeout')), get deliveries() { return deliveries; }, get resets() { return resets; }, get focused() { return focused; } };
+    assert.equal(button.disabled, false);
+    return { data, status, button, location, draftTools, draftText, draftLink,
+        submit: () => handler({ preventDefault() {} }), copy: () => copyHandler(),
+        get focused() { return focused; }, get copied() { return copied; }, get selected() { return selected; } };
 };
 const invalid = formHarness();
-invalid.data.set('name', '   '); await invalid.submit();
-assert.equal(invalid.deliveries, 0); assert.equal(invalid.focused, 'name');
-invalid.data.set('name', 'QA'); invalid.data.set('details', 'x'.repeat(20001)); await invalid.submit();
-assert.equal(invalid.deliveries, 0); assert.equal(invalid.focused, 'details');
-const success = formHarness();
-const sending = success.submit();
-await success.submit();
-assert.equal(success.deliveries, 1); assert.equal(success.button.disabled, true);
-success.resolve(); await sending;
-assert.equal(success.resets, 1); assert.equal(success.button.disabled, false);
-assert.match(success.status.textContent, /^Inquiry sent/);
-const failure = formHarness();
-const failedSend = failure.submit(); failure.reject(); await failedSend;
-assert.equal(failure.resets, 0); assert.equal(failure.button.disabled, false);
-assert.equal(failure.fallback.hidden, false);
-assert.equal(failure.fallback.href, failure.location.href);
-assert.match(failure.location.href, /^mailto:contactus@theprivilegedcompany\.com\?subject=/);
-assert.match(failure.status.textContent, /please send it from your email app/);
-const honeypot = formHarness(); honeypot.data.set('_honey', 'spam'); await honeypot.submit(); assert.equal(honeypot.deliveries, 0);
-console.log('Contact QA passed: whitespace, length limits, duplicate submissions, success/reset, failure/preserved input, honeypot.');
+invalid.data.set('name', '   '); invalid.submit();
+assert.equal(invalid.location.href, ''); assert.equal(invalid.focused, 'name');
+invalid.data.set('name', 'QA'); invalid.data.set('details', 'x'.repeat(20001)); invalid.submit();
+assert.equal(invalid.location.href, ''); assert.equal(invalid.focused, 'details');
+const draft = formHarness(); draft.submit();
+const emailLink = new URL(draft.location.href);
+assert.equal(emailLink.protocol, 'mailto:');
+assert.equal(emailLink.pathname, 'contactus@theprivilegedcompany.com');
+assert.equal(emailLink.searchParams.get('subject'), 'Website inquiry from QA Test');
+assert.match(emailLink.searchParams.get('body'), /Details:\nTest brief/);
+assert.equal(draft.draftLink.href, draft.location.href);
+assert.equal(draft.draftTools.hidden, false);
+assert.equal(draft.data.get('details'), 'Test brief');
+assert.doesNotMatch(draft.draftText.value, /private-click-id|private@example/);
+assert.doesNotMatch(draft.status.textContent, /Inquiry sent|Inquiry received/);
+await draft.copy(); assert.equal(draft.copied, draft.draftText.value);
+const longDraft = formHarness(null, 'bg', true);
+longDraft.data.set('name', 'Тест');
+longDraft.data.set('details', 'Проверка на дълго запитване. '.repeat(100));
+longDraft.submit();
+assert.equal(longDraft.location.href, '', 'Do not launch an oversized mailto URL');
+assert.equal(new URL(longDraft.draftLink.href).searchParams.has('body'), false);
+assert.match(longDraft.draftText.value, /Име: Тест/);
+assert.ok(longDraft.draftText.value.endsWith(longDraft.data.get('details').trim()));
+await longDraft.copy(); assert.equal(longDraft.selected, true); assert.equal(longDraft.focused, 'draft');
+const honeypot = formHarness(); honeypot.data.set('_honey', 'spam'); honeypot.submit();
+assert.equal(honeypot.location.href, ''); assert.equal(honeypot.draftTools.hidden, true);
+assert.doesNotMatch(source, /putBriefInInbox|fetchGuestCredentials|amazonaws\.com|AWS4-HMAC/);
+console.log('Email draft checks passed: validation, exact recipient, encoded content, preserved input, long Bulgarian enquiry, copy fallback, no upload or false delivery claim.');
 
-// Guest credential requests and the signed upload share a bounded timeout.
-const deliverySource = source.slice(source.indexOf('const inboxConfig ='), source.indexOf('const serviceRequestTypes ='));
-const requests = [];
-let deadline;
-const boundedSignal = new AbortController().signal;
-const send = vm.runInNewContext(deliverySource + '; putBriefInInbox;', {
-    TextEncoder, crypto: webcrypto,
-    AbortSignal: { timeout(ms) { deadline = ms; return boundedSignal; } },
-    fetch: async (url, options) => {
-        requests.push({ url, options });
-        return { ok: true, json: async () => requests.length === 1 ? { IdentityId: 'test-identity' } : { Credentials: { AccessKeyId: 'TEST', SecretKey: 'test-only', SessionToken: 'test-only' } } };
+// Only known public campaign labels may enter a draft; arbitrary query data is discarded.
+const campaignFor = vm.runInNewContext(
+    source.slice(source.indexOf('const getCampaignAttribution ='), source.indexOf('// ponytail: memory only')) + '; getCampaignAttribution;',
+    { URLSearchParams }
+);
+for (const language of ['en', 'bg']) {
+    const base = `?utm_source=facebook&utm_medium=organic_social&utm_campaign=company_launch_${language}`;
+    for (const content of ['page_button', 'introduction_post']) {
+        const campaign = campaignFor(`${base}&utm_content=${content}&fbclid=private-id&email=private@example.test`);
+        assert.equal(JSON.stringify(campaign), JSON.stringify({ source: 'facebook', medium: 'organic_social', campaign: `company_launch_${language}`, content }));
+        const tagged = formHarness(campaign, language); tagged.submit();
+        assert.match(tagged.draftText.value, new RegExp(`facebook / organic_social / company_launch_${language} / ${content}`));
+        assert.doesNotMatch(tagged.draftText.value, /private-id|private@example/);
     }
-});
-await send({ name: 'QA', details: 'Network is mocked' });
-assert.equal(deadline, 20000);
-assert.equal(requests.length, 3);
-assert.ok(requests.every(request => request.options.signal === boundedSignal));
-assert.equal(requests[2].options.method, 'PUT');
-assert.match(requests[2].url, /inbox\/new\/[^/]+-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.json$/);
-assert.match(requests[2].options.headers.Authorization, /^AWS4-HMAC-SHA256 /);
+    assert.equal(campaignFor(`${base}&utm_content=private@example.test`).content, undefined);
+    assert.equal(campaignFor(`${base}&utm_content=page_button&utm_content=introduction_post`).content, undefined);
+    assert.equal(campaignFor(`${base}&utm_source=facebook`), null);
+}
+for (const search of ['', '?fbclid=private-id', '?utm_source=facebook&utm_medium=organic_social&utm_campaign=private@example.test', '?utm_source=other&utm_medium=organic_social&utm_campaign=company_launch_en']) {
+    assert.equal(campaignFor(search), null);
+}
+console.log('Campaign checks passed: EN/BG labels, content allowlist, query privacy, email draft inclusion.');
+
+// Explicit language links override a stored preference without accepting unsupported languages.
+const initialLanguage = (search, stored, blocked = false) => vm.runInNewContext(
+    source.slice(source.indexOf('const supportedLanguages ='), source.indexOf('const normalizeI18nKey =')) + '; currentLanguage;',
+    { languageMeta: { en: {}, bg: {} }, URLSearchParams, window: { location: { search } }, localStorage: { getItem() { if (blocked) throw new Error('blocked'); return stored; } } }
+);
+assert.equal(initialLanguage('?lang=bg', 'en'), 'bg');
+assert.equal(initialLanguage('?lang=en', 'bg'), 'en');
+assert.equal(initialLanguage('?lang=unknown', 'bg'), 'bg');
+assert.equal(initialLanguage('', 'unknown'), 'en');
+assert.equal(initialLanguage('?lang=bg', null, true), 'bg');
+assert.equal(initialLanguage('', null, true), 'en');
+console.log('Language landing checks passed: explicit EN/BG links, stored preference, blocked storage, safe default.');
 
 // Every published shell must enforce its policy before any script and match its hashes.
 for (const route of ['', 'manifest/', 'who-are-we/', 'data-engine/', 'b2b/', 'personal-it/', 'architecture/', 'privacy/', 'terms/', 'faq/', 'contact/', '404.html']) {
@@ -261,7 +289,7 @@ for (const route of ['', 'manifest/', 'who-are-we/', 'data-engine/', 'b2b/', 'pe
         assert.ok(policy[1].includes(`'sha256-${createHash('sha256').update(code).digest('base64')}'`), `${file}: stale script hash`);
     }
 }
-console.log('Security checks passed: bounded uploads, UUID object keys, CSP placement and script hashes on all 12 shells.');
+console.log('Security checks passed: CSP placement and script hashes on all 12 shells.');
 
 // Motion preference changes and hidden tabs must not create extra animation loops.
 const lifecycleEvents = new Map();
@@ -352,7 +380,7 @@ assert.equal(serviceCards[0].anchor.href, '/contact?service=Licensed%20Market%20
 assert.ok(Object.hasOwn(serviceCards[0].anchor.attributes, 'data-link'));
 assert.equal(serviceCards[1].anchor.href, 'dev/Tech%20Tools/index.html');
 assert.ok(!Object.hasOwn(serviceCards[1].anchor.attributes, 'data-link'));
-console.log('Release checks passed: native service links and actionable email fallback.');
+console.log('Release checks passed: native service links.');
 
 // A skip link must focus locally, never follow <base href="/"> and lose a draft.
 let skip;

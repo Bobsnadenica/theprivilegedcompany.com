@@ -1,6 +1,6 @@
 # Project memory
 
-Last updated: **2026-09-20**. Initial review baseline: `77228f02`; latest public-site release review baseline: `aadebb7a`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+Last updated: **2026-09-27**. Initial review baseline: `77228f02`; latest public-site release review baseline: `8afca85c`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
 
 ## Purpose and working agreement
 
@@ -13,7 +13,7 @@ Keep these two files current when subsequent work changes architecture, setup, d
 - The public brand is ThePrivilegedCompany / TPC. “Build Anything” and “From idea to shipped.” are current homepage messages. Services target both businesses and individuals; the main conversion is a project brief.
 - This is a multi-project repository. The main site is framework-free, but that does not describe the portal or all of `dev/`. There is no root `package.json` or unified test/build command.
 - Root `index.html` is the source shell and embeds the home view. There is no `views/home.html`. Ten public routes fetch fragments; `views/not-found.html` handles unknown routes.
-- `script.js` currently centralizes routing, UI, translations, contact signing/delivery, diagnostics, and animated canvas behavior. It imports `translations.js` as an ES module.
+- `script.js` currently centralizes routing, UI, translations, email-draft preparation, diagnostics, and animated canvas behavior. It imports `translations.js` as an ES module.
 - `<base href="/">` makes fragment and asset URLs resolve from the domain root. Hosting under a different base path needs coordinated changes.
 - Route directory HTML files are generated copies of the shell with distinct head metadata. Regenerate with `node scripts/sync-route-pages.mjs`; do not hand-maintain them.
 - English and Bulgarian use normalized English source text as translation keys. `tpc-language` and `tpc-theme` persist choices. Dark is black/orange; light is amber/burnt orange; fonts are Fraunces and Manrope.
@@ -23,10 +23,10 @@ Keep these two files current when subsequent work changes architecture, setup, d
 
 ## Data and infrastructure boundaries
 
-- Public contact: browser → guest Cognito Identity credentials → SigV4 S3 PUT → `inbox/new/*.json`. The form has a honeypot, field limits, whitespace validation, duplicate-send protection, and a shared 20-second timeout. It rejects overlong messages instead of truncating them. On failure it opens a mail client and offers an explicit draft link; successful delivery has no email notification in the reviewed code.
+- Public contact: the owner chose a free prepared-email flow on 2026-09-27. The form validates input and opens a draft to `contactus@theprivilegedcompany.com`; the visitor presses Send in their mail app. No public form uploads or automatic notifications remain. Input stays on the page; a full copyable draft handles long messages and blocked clipboard access. A draft opening is never evidence of delivery.
 - Portal: Cognito SRP login / new-password challenge → Identity Pool credentials → S3 personal files. Tokens are persisted by the Cognito client in localStorage. Files are scoped to `users/<email>/` using an email principal tag, not identity-ID prefixes.
 - Admin inbox access is gated by `var.admin_email` in IAM. The existence of a Cognito `admin` group alone is not the inbox permission check. “Mark done” copies a brief to `inbox/done/` and deletes its original.
-- `backend/portal-config.tf` generates `portal/config.js`. The public form's `script.js` configuration is separate and must be updated if pool/bucket/region changes.
+- `backend/portal-config.tf` generates `portal/config.js`. Public contact no longer depends on these AWS settings. Legacy inbox storage and guest IAM permissions remain unchanged pending a separate dependency review.
 - `backend/s3.tf` enables private access controls, AES256 encryption, versioning and an inbox expiration rule after 90 days. It also sets `force_destroy = true`; destroying/replacing this bucket can delete stored files and versions.
 - The configured CORS localhost origin is `http://localhost:5173`. Using another origin needs matching configuration for actual S3 requests.
 - `backend/shorturl/` is a separate stack: API Gateway, Node 22 Lambda and DynamoDB, with a custom `go` subdomain. Creation/stats use an `x-create-key`; its value does not belong in documentation. DNS setup is described as manual in its README.
@@ -387,3 +387,40 @@ production build and syntax/whitespace checks pass.
 - Open: Terms jurisdiction/legal-review placeholders; server-enforced inbox abuse
   controls; HTTP security headers; real inbox delivery and native mail-app behavior.
   See `security_best_practices_report.md`. No AWS, DNS, or portal changes in this pass.
+
+## Enquiry and social readiness — 2026-09-27
+
+- Coordinated with the English Social Media and Bulgarian Facebook tasks. Official
+  page IDs are 61594741023963 (English) and 61594916066192 (Bulgarian); the footer
+  follows the selected language, and Organization sameAs includes both.
+- Added three clear service entry points (websites, apps, automation) and two owned
+  public examples (GrowPoint and Bulgaria in Data). Screenshot source/date notes
+  are in assets/showcase/README.md. No client relationships or business results
+  are implied. Existing services, prices, motion, and themes remain.
+- Added explicit lang=en/bg landing support, overriding a saved opposite choice.
+  Manual language changes update an existing lang parameter so reloads agree.
+- Allowlisted Facebook campaign labels survive SPA navigation and appear only in
+  the prepared email. They do not persist across reloads except when present in
+  the current URL. No pixels, analytics, cookies, arbitrary URLs, or click IDs.
+- The owner explicitly rejected AWS alerts and automatic mail services in favor
+  of opening the visitor's email client. Removed public SigV4/S3/Cognito code and
+  its CSP connect exceptions. Updated Contact, FAQ, Privacy and both languages.
+  Portal source/build is unchanged. No AWS or Cloudflare email mutation occurred.
+- Cloudflare redirect: changed the existing apex rule to http*://theprivilegedcompany.com/*
+  with target https://www.theprivilegedcompany.com/${2}, status 301, preserve query.
+  The owner approved this exact change after automatic approval review blocked
+  saving it under the earlier inspection-only request. Eight HTTP/HTTPS × apex/www
+  root/contact-path checks pass. GitHub Pages and mail DNS unchanged; MX is iCloud.
+- Final local checks: public regression/syntax/CSP/diff checks pass. 88 browser
+  route/language/viewport checks passed; no overflow, duplicate visible H1s,
+  broken loaded images, or console errors. Form service context, long Bulgarian
+  drafts, campaign retention, copy, language round trips, and input preservation
+  were checked. Native mail delivery is the visitor's action, not a site promise.
+- The owner wants restrained, Apple-like presentation: less repeated branding,
+  clear services, real proof and memorable motion. Removed the repeated hero TPC
+  lettering and the footer's AI tagline. No extra paid tools or subscriptions;
+  Instagram and marketplace work are deferred to a later user request.
+- Terms still needs owner/legal facts. Historical AWS guest-write permissions and
+  missing host security headers remain open findings. The Social tasks own their
+  separate publication logs. The shared website-readiness report records the
+  actual commit, workflow, deployed byte comparison and remaining limits.
