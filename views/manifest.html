@@ -155,15 +155,16 @@
                                 <img src="assets/logo/career.jpg" alt="" loading="lazy" decoding="async">
                             </div>
                         </article>
-                        <article class="service-card">
-                            <span>Academy</span>
-                            <h3>Tech Training</h3>
-                            <p>One-to-one tech training costs 100 euro per session. Choose a topic for a live lesson, with practical exercises, labs, and homework to continue learning afterward.</p>
+                        <article class="service-card" data-service-name="Tech Training">
+                            <span>One-to-one</span>
+                            <h3>AI &amp; IT Mentoring</h3>
+                            <p>Work one-to-one with a senior software architect. Use AI more confidently or explore an IT topic through practical exercises.</p>
+                            <p>100 euro per session. Includes a live lesson, learning plan, labs, and homework.</p>
                         </article>
                         <article class="service-card service-card-with-preview">
                             <span>Showcase</span>
                             <h3>Learn Any Tech Topic</h3>
-                            <p>Explore technical concepts through guided examples and interactive tools, from the basics to more advanced topics.</p>
+                            <p>Practise commands and explore phone-system call flows with interactive examples. Bring your questions to a one-to-one mentoring session.</p>
                             <div class="service-preview service-preview-single" aria-hidden="true">
                                 <img src="assets/logo/techtools.png" alt="" loading="lazy" decoding="async">
                             </div>
@@ -242,6 +243,7 @@
     .service-card span { display: inline-flex; margin-bottom: 1rem; color: var(--c-accent); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
     .service-card h3 { color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.25; margin-bottom: 0.75rem; }
     .service-card p { color: var(--c-muted); font-size: 0.98rem; font-weight: 400; line-height: 1.65; }
+    .service-card p + p { margin-top: 0.75rem; }
     .service-card-cta { text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 1.35rem; color: var(--c-accent-strong); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
     .service-card-cta::before { content: ""; position: absolute; inset: 0; border-radius: inherit; }
     .service-card-action { position: relative; z-index: 1; }

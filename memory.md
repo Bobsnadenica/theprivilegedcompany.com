@@ -445,3 +445,21 @@ production build and syntax/whitespace checks pass.
   light/dark themes and the retained top navigation; no overflow or console errors.
   The shared website-readiness report records the subsequent release verification.
   Native iPhone opening and actual receipt still need an owner/device check.
+
+
+## AI and IT mentoring — 2026-09-27
+
+The owner explicitly asked to promote one-to-one learning with a senior architect.
+The homepage now mentions AI and IT mentoring and includes a direct training
+enquiry link. The Individuals training card describes the offer in both languages.
+Its existing canonical service key remains `Tech Training`, preserving contact
+preselection and old links; the existing 100 EUR/session price remains unchanged.
+The adjacent Tool Suite card names command practice and interactive phone-system
+examples, confirmed by the TechTools chat. No checkout or paid service was added.
+
+Version `20260927c`. Local regression, syntax, CSP and whitespace checks pass.
+Browser checks cover EN/BG contact preselection, EN 390 px dark and BG 320 px light
+home/service layouts, desktop card layout and console errors. No overflow observed.
+Homepage Selected Projects and duplicate lower navigation remain removed.
+Social Media and the Bulgarian chat own Dot artwork and Facebook publication;
+verified permalinks and exact captions belong in the sibling Social logs.

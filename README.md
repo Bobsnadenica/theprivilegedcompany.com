@@ -4,6 +4,19 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## One-to-one mentoring (2026-09-27)
+
+The homepage and Individuals service card now describe practical AI and IT mentoring
+with a senior software architect. The existing 100 EUR session price is unchanged.
+The homepage's Discuss mentoring link selects the existing Tech Training enquiry;
+old service links remain compatible. The Tool Suite card highlights command practice
+and interactive phone-system examples. English and Bulgarian copy stay in sync.
+No checkout, paid service, new dependency, or homepage project showcase was added.
+
+Local checks cover both languages, service selection, 320/390 px layouts, the
+desktop service card, both themes, regression checks and browser console errors.
+Social artwork and verified publication records live in the sibling `Social/` folder.
+
 ## Enquiries and social landing pages (2026-09-27)
 
 The owner chose a free email-client flow. The contact form now prepares a draft to
@@ -33,7 +46,7 @@ recapture only the current URL's labels. Arbitrary query data and advertising cl
 IDs are omitted. Opening a draft is not a sent or received enquiry, and there is no
 conversion tracking.
 
-Asset version `20260927b`. Regression, syntax, CSP, and whitespace checks pass.
+Asset version `20260927c`. Regression, syntax, CSP, and whitespace checks pass.
 The original release covered 88 route/language/viewport combinations. This follow-up
 checked the changed contact flow in English and Bulgarian, desktop and 320/390 px
 layouts, light/dark themes, and homepage navigation; no overflow or console errors.
@@ -136,7 +149,7 @@ Open `http://localhost:5173/`. The public website has no package installation or
 
 **The root `run.sh` is a Git publishing shortcut:** it stages everything, commits, and pushes. It does not start a development server.
 
-The basic Python server serves existing route directories but does not reproduce GitHub Pages' custom 404 fallback. Contact submission uses the configured AWS backend even from localhost; there is no separate local inbox configured.
+The basic Python server serves existing route directories but does not reproduce GitHub Pages' custom 404 fallback. The public contact form prepares an email draft locally; sending it requires the visitor's email client. It does not submit to an AWS inbox.
 
 ## Repository map
 
