@@ -12,8 +12,8 @@ It no longer uploads public enquiries to AWS. Entered details remain on the page
 with a complete copyable draft for long messages or an unavailable email app.
 No automatic email service, subscription, paid plan, or mail DNS change was added.
 
-The homepage now leads into websites, apps, and automation, with two public examples
-clearly labelled as our own products/tools. Both languages retain the existing
+The homepage now leads into websites, apps, and automation. At the owner's request,
+project showcases stay on their dedicated pages instead of the homepage. Both languages retain the existing
 studio design, particle effects, and warm light theme. The Facebook footer follows
 the selected language; both official pages appear in Organization `sameAs`.
 

@@ -397,6 +397,9 @@ production build and syntax/whitespace checks pass.
   public examples (GrowPoint and Bulgaria in Data). Screenshot source/date notes
   are in assets/showcase/README.md. No client relationships or business results
   are implied. Existing services, prices, motion, and themes remain.
+- Later on 27 September, the owner requested removing the entire Selected Projects
+  section from the homepage. Removed it from the source and generated route shells;
+  the service entry points and existing dedicated showcase content remain.
 - Added explicit lang=en/bg landing support, overriding a saved opposite choice.
   Manual language changes update an existing lang parameter so reloads agree.
 - Allowlisted Facebook campaign labels survive SPA navigation and appear only in
