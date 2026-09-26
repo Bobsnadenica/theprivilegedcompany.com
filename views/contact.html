@@ -12,6 +12,12 @@
                 <li>We reply by email to talk through scope and next steps.</li>
                 <li>No obligation, and your details are only used to respond to you.</li>
             </ul>
+            <div class="contact-direct">
+                <a class="contact-email" href="mailto:contactus@theprivilegedcompany.com">contactus@theprivilegedcompany.com</a>
+                <button id="contact-copy-address" class="btn-hud" type="button" disabled>Copy email address</button>
+                <input id="contact-address-value" type="text" value="contactus@theprivilegedcompany.com" aria-label="Email address" readonly hidden>
+                <p id="contact-address-status" aria-live="polite"></p>
+            </div>
         </div>
 
         <div class="contact-shell reveal-mask">
@@ -90,10 +96,9 @@
             </label>
 
             <div class="contact-actions">
-                <button class="btn-hud contact-submit" type="submit" disabled>Open email draft</button>
+                <button class="btn-hud contact-submit" type="submit" disabled>Prepare email</button>
                 <div class="contact-secondary">
-                    <span>This opens your email app. Review the draft and press Send.</span>
-                    <a href="mailto:contactus@theprivilegedcompany.com" class="contact-email">contactus@theprivilegedcompany.com</a>
+                    <span>Review your message, then open your email app to send it.</span>
                 </div>
             </div>
             <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
@@ -103,9 +108,10 @@
                     <textarea id="contact-draft-text" rows="6" readonly></textarea>
                 </label>
                 <div class="contact-actions">
+                    <a id="contact-email-draft" class="btn-hud contact-submit" href="mailto:contactus@theprivilegedcompany.com">Open email app</a>
                     <button id="contact-copy" class="btn-hud" type="button">Copy enquiry</button>
-                    <a id="contact-email-draft" class="btn-hud" href="mailto:contactus@theprivilegedcompany.com">Open email app</a>
                 </div>
+                <p class="contact-draft-help">If no email app opens, copy the enquiry and email address, then send from your usual inbox.</p>
             </div>
         </form>
         </div>
@@ -154,6 +160,12 @@
     .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: right; }
     .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
     .contact-email:hover { color: var(--c-accent); }
+    .contact-direct { display: grid; justify-items: start; gap: .8rem; margin-top: 2rem; }
+    .contact-direct .contact-email { overflow-wrap: anywhere; color: var(--c-accent-strong); }
+    .contact-direct input { box-sizing: border-box; width: 100%; padding: .8rem; font: inherit; color: var(--c-fg); background: var(--c-surface); border: 1px solid var(--border-soft); border-radius: var(--radius-control); }
+    .contact-direct p, .contact-draft-help { color: var(--c-muted); font-size: .85rem; line-height: 1.6; }
+    .contact-direct p:empty { display: none; }
+    .contact-draft-help { margin-top: 1rem; }
     .contact-email-fallback:not([hidden]) { display: flex; justify-content: center; margin-top: 0.75rem; }
     .contact-email-fallback[hidden] { display: none; }
     .contact-form-status { min-height: 1.5rem; color: var(--c-accent-strong); font-size: 0.85rem; text-align: center; opacity: 0; transition: opacity 0.25s; }

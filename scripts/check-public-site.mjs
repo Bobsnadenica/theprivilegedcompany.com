@@ -180,23 +180,27 @@ const formSource = source.slice(source.indexOf('const initContactForm ='), sourc
 const translationSource = await readFile(new URL('../translations.js', import.meta.url), 'utf8');
 const bgText = vm.runInNewContext(translationSource.replace(/export const /g, 'const ') + '; translations.bg.text;');
 const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false) => {
-    let handler, copyHandler, focused, copied, selected = false;
+    let copyHandler, addressHandler, focused, copied, selected = false;
+    const handlers = {};
     const button = { disabled: true };
     const data = new Map(Object.entries({ name: 'QA Test', email: 'qa@example.test', phone: '', details: 'Test brief', requestType: 'Website or app build' }));
     const elements = Object.fromEntries(Object.entries({ name: 120, email: 254, phone: 80, details: 20000 }).map(([key, maxLength]) => [key, { required: key !== 'phone', maxLength, focus() { focused = key; } }]));
     const form = {
         elements, checkValidity: () => true, reportValidity() {},
-        addEventListener: (_, callback) => { handler = callback; }, querySelector: () => button,
+        addEventListener: (event, callback) => { handlers[event] = callback; }, querySelector: () => button,
         reset() { assert.fail('Never discard an unsent enquiry'); }
     };
-    const status = { textContent: '', classList: { add() {} } };
+    const status = { textContent: '', classList: { add() {}, remove() {} } };
     const draftTools = { hidden: true };
     const draftText = { value: '', focus() { focused = 'draft'; }, select() { selected = true; } };
-    const draftLink = { href: '' };
+    const draftLink = { href: '', focus() { focused = 'email-link'; } };
     const copyButton = { addEventListener: (_, callback) => { copyHandler = callback; } };
+    const addressButton = { disabled: true, addEventListener: (_, callback) => { addressHandler = callback; } };
+    const addressValue = { value: 'contactus@theprivilegedcompany.com', hidden: true, focus() { focused = 'email-address'; }, select() {}, setSelectionRange(start, end) { this.selection = [start, end]; } };
+    const addressStatus = { textContent: '' };
     const location = { pathname: '/contact', search: '?fbclid=private-click-id&email=private@example.test', href: '' };
     vm.runInNewContext(formSource + '; initContactForm();', {
-        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton }[id] || null) },
+        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton, 'contact-copy-address': addressButton, 'contact-address-value': addressValue, 'contact-address-status': addressStatus }[id] || null) },
         getSelectedServiceName: () => '', FormData: class { get(key) { return data.get(key); } },
         t: text => language === 'bg' ? (bgText[text] || text) : text,
         campaignAttribution, window: { location },
@@ -204,8 +208,9 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
         fetch() { assert.fail('The contact form must not send network requests'); }
     });
     assert.equal(button.disabled, false);
-    return { data, status, button, location, draftTools, draftText, draftLink,
-        submit: () => handler({ preventDefault() {} }), copy: () => copyHandler(),
+    assert.equal(addressButton.disabled, false);
+    return { data, status, button, location, draftTools, draftText, draftLink, addressValue, addressStatus,
+        submit: () => handlers.submit({ preventDefault() {} }), edit: () => handlers.input(), copy: () => copyHandler(), copyAddress: () => addressHandler(),
         get focused() { return focused; }, get copied() { return copied; }, get selected() { return selected; } };
 };
 const invalid = formHarness();
@@ -214,17 +219,24 @@ assert.equal(invalid.location.href, ''); assert.equal(invalid.focused, 'name');
 invalid.data.set('name', 'QA'); invalid.data.set('details', 'x'.repeat(20001)); invalid.submit();
 assert.equal(invalid.location.href, ''); assert.equal(invalid.focused, 'details');
 const draft = formHarness(); draft.submit();
-const emailLink = new URL(draft.location.href);
+const emailLink = new URL(draft.draftLink.href);
 assert.equal(emailLink.protocol, 'mailto:');
 assert.equal(emailLink.pathname, 'contactus@theprivilegedcompany.com');
 assert.equal(emailLink.searchParams.get('subject'), 'Website inquiry from QA Test');
 assert.match(emailLink.searchParams.get('body'), /Details:\nTest brief/);
-assert.equal(draft.draftLink.href, draft.location.href);
+assert.equal(draft.location.href, '', 'Preparing a message must not redirect the browser');
+assert.equal(draft.focused, 'email-link', 'Visitors choose a native email link explicitly');
 assert.equal(draft.draftTools.hidden, false);
 assert.equal(draft.data.get('details'), 'Test brief');
 assert.doesNotMatch(draft.draftText.value, /private-click-id|private@example/);
 assert.doesNotMatch(draft.status.textContent, /Inquiry sent|Inquiry received/);
 await draft.copy(); assert.equal(draft.copied, draft.draftText.value);
+await draft.copyAddress(); assert.equal(draft.copied, 'contactus@theprivilegedcompany.com');
+assert.equal(draft.addressValue.hidden, true);
+draft.data.set('details', 'Updated brief'); draft.edit();
+assert.equal(draft.draftTools.hidden, true, 'Hide stale email links after editing');
+assert.equal(draft.status.textContent, '');
+draft.submit(); assert.match(new URL(draft.draftLink.href).searchParams.get('body'), /Updated brief$/);
 const longDraft = formHarness(null, 'bg', true);
 longDraft.data.set('name', 'Тест');
 longDraft.data.set('details', 'Проверка на дълго запитване. '.repeat(100));
@@ -234,10 +246,15 @@ assert.equal(new URL(longDraft.draftLink.href).searchParams.has('body'), false);
 assert.match(longDraft.draftText.value, /Име: Тест/);
 assert.ok(longDraft.draftText.value.endsWith(longDraft.data.get('details').trim()));
 await longDraft.copy(); assert.equal(longDraft.selected, true); assert.equal(longDraft.focused, 'draft');
+await longDraft.copyAddress();
+assert.equal(longDraft.addressValue.hidden, false);
+assert.equal(longDraft.focused, 'email-address');
+assert.deepEqual(longDraft.addressValue.selection, [0, 'contactus@theprivilegedcompany.com'.length]);
+assert.match(longDraft.addressStatus.textContent, /Копирайте/);
 const honeypot = formHarness(); honeypot.data.set('_honey', 'spam'); honeypot.submit();
 assert.equal(honeypot.location.href, ''); assert.equal(honeypot.draftTools.hidden, true);
 assert.doesNotMatch(source, /putBriefInInbox|fetchGuestCredentials|amazonaws\.com|AWS4-HMAC/);
-console.log('Email draft checks passed: validation, exact recipient, encoded content, preserved input, long Bulgarian enquiry, copy fallback, no upload or false delivery claim.');
+console.log('Email draft checks passed: explicit native link, no automatic redirect, validation, preserved input, stale-draft invalidation, long Bulgarian enquiry, enquiry/address copy fallbacks, no upload or false delivery claim.');
 
 // Only known public campaign labels may enter a draft; arbitrary query data is discarded.
 const campaignFor = vm.runInNewContext(

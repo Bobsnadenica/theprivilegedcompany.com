@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927a';
+import { languageMeta, translations } from './translations.js?v=20260927b';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927a';
+const assetVersion = '20260927b';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -478,6 +478,9 @@ const initContactForm = () => {
     const draftText = document.getElementById('contact-draft-text');
     const draftLink = document.getElementById('contact-email-draft');
     const copyButton = document.getElementById('contact-copy');
+    const addressButton = document.getElementById('contact-copy-address');
+    const addressValue = document.getElementById('contact-address-value');
+    const addressStatus = document.getElementById('contact-address-status');
     if (!form || !status) return;
 
     const submitButton = form.querySelector('button[type="submit"]');
@@ -548,10 +551,16 @@ const initContactForm = () => {
         draftLink.href = fitsEmailLink ? mailto : subjectLink;
         draftTools.hidden = false;
         status.textContent = t(fitsEmailLink
-            ? 'Continue in your email app and press Send. If no draft opens, copy your enquiry below and email us directly.'
+            ? 'Your enquiry is ready. Choose Open email app, or copy it and send from your usual inbox.'
             : 'Your enquiry is too long for an email link. Copy it below, open your email app, and paste it before sending.');
         status.classList.add('is-visible');
-        if (fitsEmailLink) window.location.href = mailto;
+        // A separate native link keeps opening the mail app a direct visitor action.
+        draftLink.focus();
+    });
+    form.addEventListener('input', () => {
+        draftTools.hidden = true;
+        status.textContent = '';
+        status.classList.remove('is-visible');
     });
     copyButton.addEventListener('click', async () => {
         try {
@@ -563,6 +572,20 @@ const initContactForm = () => {
             status.textContent = t('Select and copy the prepared enquiry below, then paste it into your email app.');
         }
     });
+    addressButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(addressValue.value);
+            addressValue.hidden = true;
+            addressStatus.textContent = t('Email address copied. Paste it into the To field in your email app.');
+        } catch {
+            addressValue.hidden = false;
+            addressValue.focus();
+            addressValue.select();
+            addressValue.setSelectionRange(0, addressValue.value.length);
+            addressStatus.textContent = t('Copy the selected email address into your email app.');
+        }
+    });
+    addressButton.disabled = false;
     if (submitButton) submitButton.disabled = false;
 };
 

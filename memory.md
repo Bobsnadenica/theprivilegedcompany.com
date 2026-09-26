@@ -427,3 +427,21 @@ production build and syntax/whitespace checks pass.
   missing host security headers remain open findings. The Social tasks own their
   separate publication logs. The shared website-readiness report records the
   actual commit, workflow, deployed byte comparison and remaining limits.
+
+## iPhone email report and repeated navigation — 2026-09-27
+
+- The owner reported that Open email app did nothing on their iPhone. No exact
+  browser/default-mail configuration or physical-device reproduction is available.
+- Removed the automatic JavaScript mailto redirect. Prepare email reveals the
+  full draft and focuses a native Open email app link for an explicit visitor tap.
+  An always-visible Copy email address action has a selectable-field fallback;
+  Copy enquiry continues to retain the entire message. Editing fields invalidates
+  stale prepared links without clearing the enquiry. No email is sent by the site.
+- Removed the lower-page Who we are and Explore all services links. Keep those
+  destinations in the main navigation and preserve the service/contact actions.
+- Asset version 20260927b. Regression and syntax/diff checks pass, including native
+  link preparation, clipboard-denied recovery, stale-draft invalidation and long BG
+  text. Browser checks cover EN/BG contact flows, 320/390 px and desktop layouts,
+  light/dark themes and the retained top navigation; no overflow or console errors.
+  The shared website-readiness report records the subsequent release verification.
+  Native iPhone opening and actual receipt still need an owner/device check.

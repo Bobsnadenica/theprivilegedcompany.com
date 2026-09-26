@@ -12,8 +12,16 @@ It no longer uploads public enquiries to AWS. Entered details remain on the page
 with a complete copyable draft for long messages or an unavailable email app.
 No automatic email service, subscription, paid plan, or mail DNS change was added.
 
+After an iPhone report, Prepare email now reveals the message and a separate native
+Open email app link instead of redirecting the browser automatically. Copy email
+address is always available; clipboard denial reveals a selectable address field.
+Editing a form field hides the stale prepared draft until it is regenerated. Native
+app opening still depends on the visitor's browser and configured email app; an
+iPhone end-to-end check is separate from desktop/browser and regression tests.
+
 The homepage now leads into websites, apps, and automation. At the owner's request,
-project showcases stay on their dedicated pages instead of the homepage. Both languages retain the existing
+project showcases stay on their dedicated pages instead of the homepage. The repeated
+lower-page Who we are and Explore all services navigation links are removed. Both languages retain the existing
 studio design, particle effects, and warm light theme. The Facebook footer follows
 the selected language; both official pages appear in Organization `sameAs`.
 
@@ -25,9 +33,11 @@ recapture only the current URL's labels. Arbitrary query data and advertising cl
 IDs are omitted. Opening a draft is not a sent or received enquiry, and there is no
 conversion tracking.
 
-Asset version `20260927a`. Regression, syntax, CSP, and whitespace checks pass.
-Browser layout QA covers 88 route/language/viewport combinations with no horizontal
-overflow, duplicate visible H1s, broken loaded images, or console errors. Native
+Asset version `20260927b`. Regression, syntax, CSP, and whitespace checks pass.
+The original release covered 88 route/language/viewport combinations. This follow-up
+checked the changed contact flow in English and Bulgarian, desktop and 320/390 px
+layouts, light/dark themes, and homepage navigation; no overflow or console errors.
+Native
 mail-app delivery requires the visitor's configured client and explicit Send action.
 
 Cloudflare's existing apex redirect now covers both HTTP and HTTPS and preserves
