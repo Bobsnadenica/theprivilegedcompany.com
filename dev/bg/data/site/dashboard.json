@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T20:06:30.141874+00:00",
+  "generated_at": "2026-09-27T17:00:35.639118+00:00",
   "language": "bg",
   "portal": {
     "source": "https://data.egov.bg",
@@ -198,233 +198,665 @@
     "source_name": "Световна банка — Отворени данни",
     "country": "България",
     "country_code": "BGR",
-    "retrieved_at": "2026-07-10T20:03:59.560293+00:00",
+    "retrieved_at": "2026-09-27T16:59:13.527789+00:00",
+    "license": "CC BY 4.0",
     "series": {
       "population": {
         "indicator": "SP.POP.TOTL",
-        "title": "Население, общо",
+        "title": "Население",
         "unit": "души",
         "source_url": "https://data.worldbank.org/indicator/SP.POP.TOTL?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/SP.POP.TOTL?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "World Population Prospects, United Nations (UN), uri: https://population.un.org/wpp/, publisher: UN Population Division;\nStatistical databases and publications from national statistical offices, National Statistical Offices (NSOs), uri: https://unstats.un.org/home/nso_sites/, publisher: National Statistical Offices;\nEurostat: Demographic Statistics, Eurostat (ESTAT), uri: https://ec.europa.eu/eurostat/data/database?node_code=earn_ses_monthly, publisher: Eurostat;\nPopulation and Vital Statistics Report (various years), United Nations (UN), uri: https://unstats.un.org, publisher: UN Statistics Division",
+        "definition": "Total population is based on the de facto definition of population, which counts all residents regardless of legal status or citizenship. The values shown are midyear estimates.",
+        "note": "Оценка на населението към средата на годината. Не е броят от преброяване или населението към 31 декември.",
+        "change_unit": "%",
+        "raw_path": "indicators/raw/population.json",
+        "raw_sha256": "df941bcfea7cdac93c7f9e0bf462d0d50b8dd1961ff79ecea64585457ca959de",
+        "metadata_path": "indicators/raw/population-metadata.json",
+        "metadata_sha256": "2f8491efc00bf2c0995112ff8e87aba69e5e9d22d0880b22f7e3a4ec757ba05c",
+        "csv_path": "indicators/population.csv",
         "data": [
           {
             "year": "2014",
-            "value": 7073572
+            "value": 7073572,
+            "status": ""
           },
           {
             "year": "2015",
-            "value": 6984225
+            "value": 6984225,
+            "status": ""
           },
           {
             "year": "2016",
-            "value": 6894139
+            "value": 6894139,
+            "status": ""
           },
           {
             "year": "2017",
-            "value": 6803468
+            "value": 6803468,
+            "status": ""
           },
           {
             "year": "2018",
-            "value": 6710798
+            "value": 6710798,
+            "status": ""
           },
           {
             "year": "2019",
-            "value": 6616726
+            "value": 6616726,
+            "status": ""
           },
           {
             "year": "2020",
-            "value": 6550696
+            "value": 6550696,
+            "status": ""
           },
           {
             "year": "2021",
-            "value": 6507301
+            "value": 6507301,
+            "status": ""
           },
           {
             "year": "2022",
-            "value": 6465097
+            "value": 6465097,
+            "status": ""
           },
           {
             "year": "2023",
-            "value": 6446596
+            "value": 6446596,
+            "status": ""
           },
           {
             "year": "2024",
-            "value": 6441421
+            "value": 6441421,
+            "status": ""
           },
           {
             "year": "2025",
-            "value": 6433302
+            "value": 6433302,
+            "status": ""
           }
         ]
       },
       "gdp": {
         "indicator": "NY.GDP.MKTP.CD",
-        "title": "Брутен вътрешен продукт",
+        "title": "БВП в текущи цени",
         "unit": "текущи щатски долари",
         "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/NY.GDP.MKTP.CD?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "Country official statistics, National Statistical Organizations and/or Central Banks;\nNational Accounts data files, Organisation for Economic Co-operation and Development (OECD);\nStaff estimates, World Bank (WB)",
+        "definition": "Gross domestic product is the total income earned through the production of goods and services in an economic territory during an accounting period. It can be measured in three different ways: using either the expenditure approach, the income approach, or the production approach. This indicator is expressed in current prices, meaning no adjustment has been made to account for price changes over time. This indicator is expressed in United States dollars.",
+        "note": "Номинална стойност. Промяната отразява и цени и валутни курсове; за реалния растеж вижте отделния показател.",
+        "change_unit": "%",
+        "raw_path": "indicators/raw/gdp.json",
+        "raw_sha256": "00f4d7bac87a9ae4b0203683d4937498dac7cd7c99f1ca2601948c7ed794e006",
+        "metadata_path": "indicators/raw/gdp-metadata.json",
+        "metadata_sha256": "51cec1e144a5bad8d92238630c0a305e20116e86d34ad95c7c315ed166255b28",
+        "csv_path": "indicators/gdp.csv",
         "data": [
           {
             "year": "2014",
-            "value": 57083817239.8145
+            "value": 57083817239.8145,
+            "status": ""
           },
           {
             "year": "2015",
-            "value": 50768512172.9373
+            "value": 50768512172.9373,
+            "status": ""
           },
           {
             "year": "2016",
-            "value": 53932152153.5457
+            "value": 53932152153.5457,
+            "status": ""
           },
           {
             "year": "2017",
-            "value": 59170671046.4798
+            "value": 59170671046.4798,
+            "status": ""
           },
           {
             "year": "2018",
-            "value": 66100606676.6544
+            "value": 66100606676.6544,
+            "status": ""
           },
           {
             "year": "2019",
-            "value": 68511235459.4907
+            "value": 68511235459.4907,
+            "status": ""
           },
           {
             "year": "2020",
-            "value": 70490478088.1395
+            "value": 70490478088.1395,
+            "status": ""
           },
           {
             "year": "2021",
-            "value": 84378926047.3002
+            "value": 84378926047.3002,
+            "status": ""
           },
           {
             "year": "2022",
-            "value": 90510784777.6397
+            "value": 90510784777.6397,
+            "status": ""
           },
           {
             "year": "2023",
-            "value": 102204457334.822
+            "value": 102204457334.822,
+            "status": ""
           },
           {
             "year": "2024",
-            "value": 113349149166.793
+            "value": 113349149166.793,
+            "status": ""
           },
           {
             "year": "2025",
-            "value": 130777235529.606
+            "value": 130777235529.606,
+            "status": ""
+          }
+        ]
+      },
+      "growth": {
+        "indicator": "NY.GDP.MKTP.KD.ZG",
+        "title": "Реален растеж на БВП",
+        "unit": "% спрямо предходната година",
+        "source_url": "https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/NY.GDP.MKTP.KD.ZG?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "Country official statistics, National Statistical Organizations and/or Central Banks;\nNational Accounts data files, Organisation for Economic Co-operation and Development (OECD);\nStaff estimates, World Bank (WB)",
+        "definition": "Gross domestic product is the total income earned through the production of goods and services in an economic territory during an accounting period. It can be measured in three different ways: using either the expenditure approach, the income approach, or the production approach. This indicator denotes the percentage change over each previous year of the constant price (base year 2015) series in United States dollars.",
+        "note": "Годишна промяна на БВП по постоянни цени. Отрицателна стойност означава спад спрямо предходната година.",
+        "change_unit": "п.п.",
+        "raw_path": "indicators/raw/growth.json",
+        "raw_sha256": "c99a855ab21df04140a061627c3827dfa058441de08fb0295b64339e66f0a179",
+        "metadata_path": "indicators/raw/growth-metadata.json",
+        "metadata_sha256": "ed7703d841d4dde2d1cb858f0dd53229fe3e841f72abb17dbc8c950ad20c88ce",
+        "csv_path": "indicators/growth.csv",
+        "data": [
+          {
+            "year": "2014",
+            "value": 0.949449772002041,
+            "status": ""
+          },
+          {
+            "year": "2015",
+            "value": 3.39755351999294,
+            "status": ""
+          },
+          {
+            "year": "2016",
+            "value": 3.02662820096305,
+            "status": ""
+          },
+          {
+            "year": "2017",
+            "value": 2.74592737750996,
+            "status": ""
+          },
+          {
+            "year": "2018",
+            "value": 2.33015054210419,
+            "status": ""
+          },
+          {
+            "year": "2019",
+            "value": 3.79331964589196,
+            "status": ""
+          },
+          {
+            "year": "2020",
+            "value": -3.13323543125917,
+            "status": ""
+          },
+          {
+            "year": "2021",
+            "value": 7.82817310703665,
+            "status": ""
+          },
+          {
+            "year": "2022",
+            "value": 4.08386398118941,
+            "status": ""
+          },
+          {
+            "year": "2023",
+            "value": 1.68151075832925,
+            "status": ""
+          },
+          {
+            "year": "2024",
+            "value": 3.38708962009333,
+            "status": ""
+          },
+          {
+            "year": "2025",
+            "value": 3.0963663917961,
+            "status": ""
+          }
+        ]
+      },
+      "inflation": {
+        "indicator": "FP.CPI.TOTL.ZG",
+        "title": "Инфлация",
+        "unit": "годишна промяна на потребителските цени, %",
+        "source_url": "https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/FP.CPI.TOTL.ZG?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "International Financial Statistics database, International Monetary Fund (IMF)",
+        "definition": "Inflation as measured by the consumer price index reflects the annual percentage change in the cost to the average consumer of acquiring a basket of goods and services that may be fixed or changed at specified intervals, such as yearly.",
+        "note": "Годишна промяна на индекса на потребителските цени. Това не е текущата месечна инфлация или хармонизираният индекс на ЕС.",
+        "change_unit": "п.п.",
+        "raw_path": "indicators/raw/inflation.json",
+        "raw_sha256": "0199ef8921a71efd1ac55375b0aa4c9735b008290ec7106561033f0f96f4ef47",
+        "metadata_path": "indicators/raw/inflation-metadata.json",
+        "metadata_sha256": "df9371a3b6c01e55a3f28991e62e1b1ebbe0cd2a7da94456be9938c7a2962233",
+        "csv_path": "indicators/inflation.csv",
+        "data": [
+          {
+            "year": "2014",
+            "value": -1.4181838026484,
+            "status": ""
+          },
+          {
+            "year": "2015",
+            "value": -0.104633261008479,
+            "status": ""
+          },
+          {
+            "year": "2016",
+            "value": -0.798649886453617,
+            "status": ""
+          },
+          {
+            "year": "2017",
+            "value": 2.06159619443141,
+            "status": ""
+          },
+          {
+            "year": "2018",
+            "value": 2.81454473824838,
+            "status": ""
+          },
+          {
+            "year": "2019",
+            "value": 3.10372944796771,
+            "status": ""
+          },
+          {
+            "year": "2020",
+            "value": 1.67244096855756,
+            "status": ""
+          },
+          {
+            "year": "2021",
+            "value": 3.29774435299506,
+            "status": ""
+          },
+          {
+            "year": "2022",
+            "value": 15.3252589264367,
+            "status": ""
+          },
+          {
+            "year": "2023",
+            "value": 9.44284140088564,
+            "status": ""
+          },
+          {
+            "year": "2024",
+            "value": 2.44651943006079,
+            "status": ""
+          },
+          {
+            "year": "2025",
+            "value": 4.58084355235697,
+            "status": ""
+          }
+        ]
+      },
+      "unemployment": {
+        "indicator": "SL.UEM.TOTL.ZS",
+        "title": "Безработица",
+        "unit": "% от работната сила · моделна оценка на МОТ",
+        "source_url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/SL.UEM.TOTL.ZS?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/SL.UEM.TOTL.ZS?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "ILO Modelled Estimates database (ILOEST), International Labour Organization (ILO), uri: https://ilostat.ilo.org/data/bulk/, publisher: ILOSTAT, type: external database, date accessed: January 17, 2026",
+        "definition": "Unemployment refers to the share of the labor force that is without work but available for and seeking employment.",
+        "note": "Моделна оценка на Международната организация на труда. Делът е от работната сила, не от цялото население; не е регистрираната безработица.",
+        "change_unit": "п.п.",
+        "raw_path": "indicators/raw/unemployment.json",
+        "raw_sha256": "297ebf3e4768dec8a18ba6588ab5fd3ec8882e34bb3019535d81568d6de91521",
+        "metadata_path": "indicators/raw/unemployment-metadata.json",
+        "metadata_sha256": "3ae370ed4bebba092338e94334c35add71490324ee57f1dfe81885dade51f52f",
+        "csv_path": "indicators/unemployment.csv",
+        "data": [
+          {
+            "year": "2014",
+            "value": 11.424,
+            "status": ""
+          },
+          {
+            "year": "2015",
+            "value": 9.143,
+            "status": ""
+          },
+          {
+            "year": "2016",
+            "value": 7.575,
+            "status": ""
+          },
+          {
+            "year": "2017",
+            "value": 6.164,
+            "status": ""
+          },
+          {
+            "year": "2018",
+            "value": 5.211,
+            "status": ""
+          },
+          {
+            "year": "2019",
+            "value": 4.148,
+            "status": ""
+          },
+          {
+            "year": "2020",
+            "value": 5.037,
+            "status": ""
+          },
+          {
+            "year": "2021",
+            "value": 5.166,
+            "status": ""
+          },
+          {
+            "year": "2022",
+            "value": 4.148,
+            "status": ""
+          },
+          {
+            "year": "2023",
+            "value": 4.319,
+            "status": ""
+          },
+          {
+            "year": "2024",
+            "value": 4.2,
+            "status": ""
+          },
+          {
+            "year": "2025",
+            "value": 3.536,
+            "status": ""
+          }
+        ]
+      },
+      "life": {
+        "indicator": "SP.DYN.LE00.IN",
+        "title": "Продължителност на живота",
+        "unit": "години · при раждане",
+        "source_url": "https://data.worldbank.org/indicator/SP.DYN.LE00.IN?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/SP.DYN.LE00.IN?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/SP.DYN.LE00.IN?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "World Population Prospects, United Nations (UN), uri: UN Population Division;\nStatistical databases and publications from national statistical offices, National Statistical Offices (NSOs), note: Derived from male and female life expectancy at birth from sources such as statistical databases and publications from national statistical offices.;\nDemographic Statistics, Eurostat (ESTAT), note: Derived from male and female life expectancy at birth from sources such as Eurostat: Demographic Statistics.",
+        "definition": "Life expectancy at birth indicates the number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life.",
+        "note": "Очаквана продължителност при запазване на наблюдаваните нива на смъртност. Не е средната възраст на населението.",
+        "change_unit": "години",
+        "raw_path": "indicators/raw/life.json",
+        "raw_sha256": "89ee60d2315916195863fb30efab9d4793bb1a4e86e3f0ea1f8a8bdea95bd54c",
+        "metadata_path": "indicators/raw/life-metadata.json",
+        "metadata_sha256": "a39cb6fddfbbb953053690366243dffe77a266c4deae79c46ce5a06da9f5fc31",
+        "csv_path": "indicators/life.csv",
+        "data": [
+          {
+            "year": "2013",
+            "value": 74.8609756097561,
+            "status": ""
+          },
+          {
+            "year": "2014",
+            "value": 74.4658536585366,
+            "status": ""
+          },
+          {
+            "year": "2015",
+            "value": 74.6146341463415,
+            "status": ""
+          },
+          {
+            "year": "2016",
+            "value": 74.8121951219512,
+            "status": ""
+          },
+          {
+            "year": "2017",
+            "value": 74.8146341463415,
+            "status": ""
+          },
+          {
+            "year": "2018",
+            "value": 74.9634146341464,
+            "status": ""
+          },
+          {
+            "year": "2019",
+            "value": 75.1121951219512,
+            "status": ""
+          },
+          {
+            "year": "2020",
+            "value": 73.3560975609756,
+            "status": ""
+          },
+          {
+            "year": "2021",
+            "value": 71.2121951219512,
+            "status": ""
+          },
+          {
+            "year": "2022",
+            "value": 74.1609756097561,
+            "status": ""
+          },
+          {
+            "year": "2023",
+            "value": 75.7560975609756,
+            "status": ""
+          },
+          {
+            "year": "2024",
+            "value": 75.7609756097561,
+            "status": ""
           }
         ]
       },
       "forest": {
         "indicator": "AG.LND.FRST.ZS",
         "title": "Горски територии",
-        "unit": "% от площта на страната",
+        "unit": "% от сухоземната площ",
         "source_url": "https://data.worldbank.org/indicator/AG.LND.FRST.ZS?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/AG.LND.FRST.ZS?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/AG.LND.FRST.ZS?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "FAOSTAT, Food and Agriculture Organization of the United Nations (FAO), uri: https://www.fao.org/faostat/en/#data/RL, publisher: Food and Agriculture Organization of the United Nations (FAO)",
+        "definition": "Forest area (% of land area) is the share of total land area that is under natural or planted stands of trees of at least 5 meters in situ, whether productive or not, and excludes tree stands in agricultural production systems (for example, in fruit plantations and agroforestry systems) and trees in urban parks and gardens.",
+        "note": "Дял от сухоземната площ по данни на ФАО. Вътрешните водни площи не участват в знаменателя.",
+        "change_unit": "п.п.",
+        "raw_path": "indicators/raw/forest.json",
+        "raw_sha256": "7f6d6593557c20f91197a8f8c43dd9db4a6127e17e4db8d3362831589f8ebef5",
+        "metadata_path": "indicators/raw/forest-metadata.json",
+        "metadata_sha256": "706587ee22b05b930a1e745e4f104d6c895f46b827f5209655405764b85c7145",
+        "csv_path": "indicators/forest.csv",
         "data": [
           {
             "year": "2012",
-            "value": 34.777081798084
+            "value": 34.777081798084,
+            "status": ""
           },
           {
             "year": "2013",
-            "value": 34.9539425202653
+            "value": 34.9539425202653,
+            "status": ""
           },
           {
             "year": "2014",
-            "value": 35.1308032424466
+            "value": 35.1308032424466,
+            "status": ""
           },
           {
             "year": "2015",
-            "value": 35.3076639646279
+            "value": 35.3076639646279,
+            "status": ""
           },
           {
             "year": "2016",
-            "value": 35.3813559322034
+            "value": 35.3813559322034,
+            "status": ""
           },
           {
             "year": "2017",
-            "value": 35.5011053795136
+            "value": 35.5011053795136,
+            "status": ""
           },
           {
             "year": "2018",
-            "value": 35.6208548268239
+            "value": 35.6208548268239,
+            "status": ""
           },
           {
             "year": "2019",
-            "value": 35.7406042741341
+            "value": 35.7406042741341,
+            "status": ""
           },
           {
             "year": "2020",
-            "value": 35.8603537214444
+            "value": 35.8603537214444,
+            "status": ""
           },
           {
             "year": "2021",
-            "value": 35.9801031687546
+            "value": 35.9801031687546,
+            "status": ""
           },
           {
             "year": "2022",
-            "value": 36.0998526160649
+            "value": 36.0998526160649,
+            "status": ""
           },
           {
             "year": "2023",
-            "value": 36.2196020633751
+            "value": 36.2196020633751,
+            "status": ""
           }
         ]
       },
       "internet": {
         "indicator": "IT.NET.USER.ZS",
-        "title": "Лица, използващи интернет",
+        "title": "Използване на интернет",
         "unit": "% от населението",
         "source_url": "https://data.worldbank.org/indicator/IT.NET.USER.ZS?locations=BG",
+        "api_url": "https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100",
+        "metadata_url": "https://api.worldbank.org/v2/indicator/IT.NET.USER.ZS?format=json",
+        "source_last_updated": "2026-07-13",
+        "publisher": "World Telecommunication/ICT Indicators Database, International Telecommunication Union (ITU), uri: https://datahub.itu.int/",
+        "definition": "Internet users are individuals who have used the Internet (from any location) in the last 3 months. The Internet can be used via a computer, mobile phone, personal digital assistant, games machine, digital TV etc.",
+        "note": "Лица, използвали интернет през последните три месеца, по данни на Международния съюз по далекосъобщения. Не е дял на домакинствата с достъп.",
+        "change_unit": "п.п.",
+        "raw_path": "indicators/raw/internet.json",
+        "raw_sha256": "5cd55ed8603608963f94e0039b39abb20a4131720a6a4ac98d7a8c35a4e43037",
+        "metadata_path": "indicators/raw/internet-metadata.json",
+        "metadata_sha256": "6e6fc76f94bda17bd30c3303f1e8965698c93d344c26a556ea6ee18a86c3cc32",
+        "csv_path": "indicators/internet.csv",
         "data": [
           {
             "year": "2013",
-            "value": 53.0615
+            "value": 53.0615,
+            "status": ""
           },
           {
             "year": "2014",
-            "value": 55.4903766299262
+            "value": 55.4903766299262,
+            "status": ""
           },
           {
             "year": "2015",
-            "value": 56.6562516053086
+            "value": 56.6562516053086,
+            "status": ""
           },
           {
             "year": "2016",
-            "value": 59.825547661014
+            "value": 59.825547661014,
+            "status": ""
           },
           {
             "year": "2017",
-            "value": 63.4101013837926
+            "value": 63.4101013837926,
+            "status": ""
           },
           {
             "year": "2018",
-            "value": 64.78201069118
+            "value": 64.78201069118,
+            "status": ""
           },
           {
             "year": "2019",
-            "value": 67.9469809417603
+            "value": 67.9469809417603,
+            "status": ""
           },
           {
             "year": "2020",
-            "value": 70.16248359
+            "value": 70.16248359,
+            "status": ""
           },
           {
             "year": "2021",
-            "value": 75.27144583
+            "value": 75.27144583,
+            "status": ""
           },
           {
             "year": "2022",
-            "value": 79.12686326
+            "value": 79.12686326,
+            "status": ""
           },
           {
             "year": "2023",
-            "value": 80.38956462
+            "value": 80.38956462,
+            "status": ""
           },
           {
             "year": "2024",
-            "value": 82.438955
+            "value": 82.438955,
+            "status": ""
           }
         ]
       }
     }
+  },
+  "road": {
+    "generated_at": "2026-07-10T20:06:29.535685+00:00",
+    "source": {
+      "publisher": "Министерство на вътрешните работи",
+      "dataset_title": "Актуални данни за ПТП в периода от 01.01.2024 до момента",
+      "dataset_uuid": "4b948dd7-c9ef-4239-b2de-9b8e1c312467",
+      "resource_uuid": "e1c2e981-9a77-45fb-bc05-1a997646c66c",
+      "dataset_url": "https://data.egov.bg/data/view/4b948dd7-c9ef-4239-b2de-9b8e1c312467",
+      "api_url": "https://data.egov.bg/api/getResourceData"
+    },
+    "date_from": "2024-01-01",
+    "date_to": "2026-07-10",
+    "mapped_rows": 84083,
+    "total_rows": 88361
   },
   "themes": {
     "transport": {

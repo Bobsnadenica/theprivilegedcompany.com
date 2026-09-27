@@ -1,0 +1,13 @@
+﻿year,value,unit,indicator,country,status,source
+2014,57083817239.8145,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2015,50768512172.9373,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2016,53932152153.5457,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2017,59170671046.4798,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2018,66100606676.6544,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2019,68511235459.4907,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2020,70490478088.1395,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2021,84378926047.3002,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2022,90510784777.6397,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2023,102204457334.822,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2024,113349149166.793,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100
+2025,130777235529.606,текущи щатски долари,NY.GDP.MKTP.CD,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.CD?format=json&per_page=100

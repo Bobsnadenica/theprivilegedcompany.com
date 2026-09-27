@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   },
   "scripts": {
     "prepare:data": "node scripts/prepare_public_data.mjs",
+    "refresh:indicators": "python3 scripts/update_data.py --indicators-only",
     "dev": "npm run prepare:data && vite",
     "build": "npm run prepare:data && tsc --noEmit && vite build",
     "deploy": "npm run build && node scripts/sync_deploy.mjs",
     "preview": "vite preview",
-    "test": "npm run deploy && node --test tests/static-site.test.mjs tests/data-quality.test.mjs"
+    "test": "npm run deploy && node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "react": "19.2.6",

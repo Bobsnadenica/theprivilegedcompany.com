@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "generated_at": "2026-07-10T20:06:30.341305+00:00",
+  "generated_at": "2026-09-27T17:00:36.066425+00:00",
   "sources": [
     {
       "name": "Портал за отворени данни",
@@ -21,14 +21,14 @@
   ],
   "changes": {
     "previous_snapshot_found": true,
-    "added_datasets": 3504,
-    "removed_datasets": 1906
+    "added_datasets": 0,
+    "removed_datasets": 0
   },
   "files": [
     {
       "path": "README.md",
-      "bytes": 2622,
-      "sha256": "8d3b224f02d7a700dc221a67c97be4e6ee4cbb4a8a916d301306fe11ad16ba66"
+      "bytes": 2967,
+      "sha256": "b2ba984926d1df6cc2445b2b92dc81c0bcf5e89059ed40597af48a1072a1779b"
     },
     {
       "path": "catalog/categories.json",
@@ -56,9 +56,129 @@
       "sha256": "422b2211f56df42882f6d0c916beb9929124f3aba07577035965a0404892e95c"
     },
     {
+      "path": "indicators/forest.csv",
+      "bytes": 2127,
+      "sha256": "2bf647081092767b593a9dce62230140ba43528eb0e6f9342b9098c2ef6e923d"
+    },
+    {
+      "path": "indicators/gdp.csv",
+      "bytes": 2128,
+      "sha256": "8c28a798908919a6b6a8f760335bd185ee6b118c88d3d600ac22275414829456"
+    },
+    {
+      "path": "indicators/growth.csv",
+      "bytes": 2345,
+      "sha256": "7baecb62aa18b79559226e78edca74fd7e8512cbf6e963f993b5e5fb0ee40338"
+    },
+    {
+      "path": "indicators/inflation.csv",
+      "bytes": 2624,
+      "sha256": "be84f11a62d658403499ac64bb98dbed2612db6dffa0d10ec536dac7a8a2dcff"
+    },
+    {
+      "path": "indicators/internet.csv",
+      "bytes": 1981,
+      "sha256": "d197ac6e35d820774694d2ec9bbbdbda17aac8e66a30f01c2240183c74fe06ab"
+    },
+    {
+      "path": "indicators/life.csv",
+      "bytes": 2116,
+      "sha256": "66b306da5ff8c3b51450cdc8d6481ae4931f7ec6c8714e7fe163e6c323566d61"
+    },
+    {
+      "path": "indicators/population.csv",
+      "bytes": 1588,
+      "sha256": "4547328732c27dfef4e5e79d6f4723dedea1975c76b678c53b1beeee54be0712"
+    },
+    {
+      "path": "indicators/raw/forest-metadata.json",
+      "bytes": 879,
+      "sha256": "706587ee22b05b930a1e745e4f104d6c895f46b827f5209655405764b85c7145"
+    },
+    {
+      "path": "indicators/raw/forest.json",
+      "bytes": 14158,
+      "sha256": "7f6d6593557c20f91197a8f8c43dd9db4a6127e17e4db8d3362831589f8ebef5"
+    },
+    {
+      "path": "indicators/raw/gdp-metadata.json",
+      "bytes": 938,
+      "sha256": "51cec1e144a5bad8d92238630c0a305e20116e86d34ad95c7c315ed166255b28"
+    },
+    {
+      "path": "indicators/raw/gdp.json",
+      "bytes": 13576,
+      "sha256": "00f4d7bac87a9ae4b0203683d4937498dac7cd7c99f1ca2601948c7ed794e006"
+    },
+    {
+      "path": "indicators/raw/growth-metadata.json",
+      "bytes": 909,
+      "sha256": "ed7703d841d4dde2d1cb858f0dd53229fe3e841f72abb17dbc8c950ad20c88ce"
+    },
+    {
+      "path": "indicators/raw/growth.json",
+      "bytes": 14040,
+      "sha256": "c99a855ab21df04140a061627c3827dfa058441de08fb0295b64339e66f0a179"
+    },
+    {
+      "path": "indicators/raw/inflation-metadata.json",
+      "bytes": 632,
+      "sha256": "df9371a3b6c01e55a3f28991e62e1b1ebbe0cd2a7da94456be9938c7a2962233"
+    },
+    {
+      "path": "indicators/raw/inflation.json",
+      "bytes": 14831,
+      "sha256": "0199ef8921a71efd1ac55375b0aa4c9735b008290ec7106561033f0f96f4ef47"
+    },
+    {
+      "path": "indicators/raw/internet-metadata.json",
+      "bytes": 629,
+      "sha256": "6e6fc76f94bda17bd30c3303f1e8965698c93d344c26a556ea6ee18a86c3cc32"
+    },
+    {
+      "path": "indicators/raw/internet.json",
+      "bytes": 15234,
+      "sha256": "5cd55ed8603608963f94e0039b39abb20a4131720a6a4ac98d7a8c35a4e43037"
+    },
+    {
+      "path": "indicators/raw/life-metadata.json",
+      "bytes": 969,
+      "sha256": "a39cb6fddfbbb953053690366243dffe77a266c4deae79c46ce5a06da9f5fc31"
+    },
+    {
+      "path": "indicators/raw/life.json",
+      "bytes": 15246,
+      "sha256": "89ee60d2315916195863fb30efab9d4793bb1a4e86e3f0ea1f8a8bdea95bd54c"
+    },
+    {
+      "path": "indicators/raw/population-metadata.json",
+      "bytes": 1099,
+      "sha256": "2f8491efc00bf2c0995112ff8e87aba69e5e9d22d0880b22f7e3a4ec757ba05c"
+    },
+    {
+      "path": "indicators/raw/population.json",
+      "bytes": 13028,
+      "sha256": "df941bcfea7cdac93c7f9e0bf462d0d50b8dd1961ff79ecea64585457ca959de"
+    },
+    {
+      "path": "indicators/raw/unemployment-metadata.json",
+      "bytes": 670,
+      "sha256": "3ae370ed4bebba092338e94334c35add71490324ee57f1dfe81885dade51f52f"
+    },
+    {
+      "path": "indicators/raw/unemployment.json",
+      "bytes": 16360,
+      "sha256": "297ebf3e4768dec8a18ba6588ab5fd3ec8882e34bb3019535d81568d6de91521"
+    },
+    {
+      "path": "indicators/unemployment.csv",
+      "bytes": 2463,
+      "sha256": "3a5a772cb23da9d67617c989ffafd956500605396b3698605b7cf9f7271d2f37"
+    },
+    {
       "path": "indicators/world-bank.json",
-      "bytes": 5210,
-      "sha256": "31ec91408dd4ceb792ce238cead28898d8c68c9fb0aef2f79319b5753430d836"
+      "bytes": 23943,
+      "sha256": "2555918d880385ae294fbe931b3b0f9fa74d280e3d2b878bdf2783dc8776ab94"
     },
     {
       "path": "schemas/dataset.schema.json",
@@ -87,18 +207,18 @@
     },
     {
       "path": "site/chart-map.json",
-      "bytes": 2339,
-      "sha256": "b9586d6bab2d3ba2bf44f54a020256bc8a78c9e15418b85661d1d4d6444f9ed6"
+      "bytes": 2387,
+      "sha256": "36c72553d71c860afacecc61179e32b8278f2ef1db9f86617cba63e2f0616197"
     },
     {
       "path": "site/dashboard.json",
-      "bytes": 54533,
-      "sha256": "de034d445d75953449fdce0132743395d88a20feb4b06a9f803ea89150419459"
+      "bytes": 74789,
+      "sha256": "3f9f971a6c518eb519f5b052f2d3e12f30b0483a366c080fc7a638be992002f3"
     },
     {
       "path": "validation/report.json",
-      "bytes": 3968,
-      "sha256": "bab29ae285199e45e459109d9a95573505216d396bcb76bebdb7a1b0258ed8e7"
+      "bytes": 4107,
+      "sha256": "2e010b1692deca1c3ac2f48003d4986c2ef6325bdc3603ebca47216a57972632"
     },
     {
       "path": "visuals/road.json",

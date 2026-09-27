@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -17,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
+from update_country_indicators import SERIES
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -196,7 +198,7 @@ def validate_data(stage: Path) -> dict[str, Any]:
         "предупреждение",
     ))
 
-    expected_series = {"population", "gdp", "forest", "internet"}
+    expected_series = set(SERIES)
     actual_series = set(indicators.get("series", {}))
     series_valid = actual_series == expected_series
     series_details: list[str] = []
@@ -204,7 +206,17 @@ def validate_data(stage: Path) -> dict[str, Any]:
         rows = series.get("data", [])
         years = [int(row["year"]) for row in rows if str(row.get("year", "")).isdigit()]
         values = [row.get("value") for row in rows]
-        valid = len(rows) >= 10 and len(years) == len(rows) and years == sorted(years) and all(isinstance(value, (int, float)) for value in values)
+        valid = len(rows) >= 10 and len(years) == len(rows) and years == sorted(set(years)) and all(isinstance(value, (int, float)) and math.isfinite(value) for value in values)
+        raw_path = stage / series.get("raw_path", "missing")
+        metadata_path = stage / series.get("metadata_path", "missing")
+        valid = valid and raw_path.is_file() and metadata_path.is_file()
+        if valid:
+            raw = read_json(raw_path)
+            observations = {row["date"]: row["value"] for row in raw[1] if row.get("value") is not None}
+            valid = (sha256(raw_path) == series.get("raw_sha256")
+                     and sha256(metadata_path) == series.get("metadata_sha256")
+                     and all(observations.get(row["year"]) == row["value"] for row in rows)
+                     and all(row.get("countryiso3code") == "BGR" and row["indicator"]["id"] == series["indicator"] for row in raw[1]))
         series_valid = series_valid and valid
         series_details.append(f"{key}: {len(rows)} наблюдения")
     checks.append(make_check(
@@ -335,6 +347,7 @@ def build_dashboard(stage: Path, report: dict[str, Any]) -> dict[str, Any]:
     datasets = read_json(stage / "catalog/datasets.json")["datasets"]
     organisations = read_json(stage / "catalog/organisations.json")["organisations"]
     indicators = read_json(stage / "indicators/world-bank.json")
+    road = read_json(stage / "visuals/road.json")
     organisation_names = {row["id"]: row["name"] for row in organisations}
     category_counts = {row["id"]: row["dataset_count"] for row in categories}
     category_names = {row["id"]: row["name"] for row in categories}
@@ -379,6 +392,9 @@ def build_dashboard(stage: Path, report: dict[str, Any]) -> dict[str, Any]:
         "categories": categories,
         "catalog_profile": build_metadata_profile(datasets, organisation_names),
         "indicators": indicators,
+        "road": {"generated_at": road["generated_at"], "source": road["source"],
+                 "date_from": road["summary"]["date_from"], "date_to": road["summary"]["date_to"],
+                 "mapped_rows": road["summary"]["mapped_rows"], "total_rows": road["summary"]["total_rows"]},
         "themes": themes,
         "validation": {
             "status": report["status"],
@@ -415,7 +431,7 @@ def build_chart_map() -> dict[str, Any]:
                 "section": "Икономика, природа и хора",
                 "question": "Как се променят проверените национални индикатори във времето?",
                 "family": "Тенденция",
-                "type": "Годишни ленти с нулева основа и точни стойности",
+                "type": "Линейни графики с означена скала, годишни таблици, CSV и изходни API отговори",
                 "fields": ["year", "value", "unit"],
                 "source": "indicators/world-bank.json",
             },
@@ -543,7 +559,9 @@ def write_readme(stage: Path) -> None:
 - `catalog/datasets.json` — всички публични български каталожни записи.
 - `catalog/organisations.json` — активните и одобрени организации.
 - `catalog/resources.json` — ресурсите, извлечени от каталожните записи.
-- `indicators/world-bank.json` — четири проверени национални времеви серии.
+- `indicators/world-bank.json` — осем национални времеви серии с произход и определения.
+- `indicators/raw/` — оригинални API отговори и метаданни на Световната банка; SHA-256 хешовете са в нормализираните серии.
+- `indicators/*.csv` — годишните стойности от графиките без закръгляване.
 - `visuals/road.json` — нормализирани координати на ПТП, контур на България, речници и контролни бройки за картата.
 - `site/dashboard.json` — малък производен файл, използван от интерфейса.
 - `site/catalog-index.json` — локален индекс за търсене с имената на издателите.
@@ -626,6 +644,7 @@ def main() -> int:
     parser.add_argument("--road-portal-base", default="https://data.egov.bg")
     parser.add_argument("--road-resource-uuid", help="По избор; иначе се открива автоматично от страницата на ПТП набора")
     parser.add_argument("--years", type=int, default=12)
+    parser.add_argument("--indicators-only", action="store_true", help="Обновява само националните серии; запазва датите на каталога и ПТП")
     parser.add_argument("--delay", type=float, default=1.05)
     parser.add_argument("--max-pages", type=int, help="Само за тест; няма да бъде активиран като пълен snapshot")
     args = parser.parse_args()
@@ -635,6 +654,9 @@ def main() -> int:
     stage = Path(tempfile.mkdtemp(prefix=f".{target.name}-staging-", dir=target.parent))
     promoted = False
     try:
+        if args.indicators_only:
+            for folder in ("catalog", "visuals"):
+                shutil.copytree(target / folder, stage / folder)
         snapshot_command = [
             sys.executable,
             str(PORTAL_SCRIPT),
@@ -652,7 +674,8 @@ def main() -> int:
             [sys.executable, str(INDICATOR_SCRIPT), "--years", str(args.years), "--output", str(stage / "indicators/world-bank.json")],
             check=True,
         )
-        subprocess.run(snapshot_command, check=True)
+        if not args.indicators_only:
+            subprocess.run(snapshot_command, check=True)
         road_command = [
             sys.executable,
             str(ROAD_SCRIPT),
@@ -663,7 +686,8 @@ def main() -> int:
         ]
         if args.road_resource_uuid:
             road_command.extend(["--resource-uuid", args.road_resource_uuid])
-        subprocess.run(road_command, check=True)
+        if not args.indicators_only:
+            subprocess.run(road_command, check=True)
         for filename, schema in schema_documents().items():
             write_json(stage / "schemas" / filename, schema)
         write_readme(stage)

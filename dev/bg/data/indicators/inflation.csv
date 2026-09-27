@@ -1,0 +1,13 @@
+﻿year,value,unit,indicator,country,status,source
+2014,-1.4181838026484,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2015,-0.104633261008479,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2016,-0.798649886453617,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2017,2.06159619443141,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2018,2.81454473824838,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2019,3.10372944796771,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2020,1.67244096855756,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2021,3.29774435299506,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2022,15.3252589264367,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2023,9.44284140088564,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2024,2.44651943006079,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100
+2025,4.58084355235697,"годишна промяна на потребителските цени, %",FP.CPI.TOTL.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/FP.CPI.TOTL.ZG?format=json&per_page=100

@@ -13,4 +13,5 @@ await Promise.all([
   cp(resolve(root, "data/validation/report.json"), resolve(output, "validation.json")),
   cp(resolve(root, "data/manifest.json"), resolve(output, "manifest.json")),
   cp(resolve(root, "data/visuals/road.json"), resolve(output, "road-visuals.json")),
+  cp(resolve(root, "data/indicators"), resolve(output, "indicators"), { recursive: true }),
 ]);

@@ -1,0 +1,13 @@
+﻿year,value,unit,indicator,country,status,source
+2013,53.0615,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2014,55.4903766299262,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2015,56.6562516053086,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2016,59.825547661014,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2017,63.4101013837926,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2018,64.78201069118,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2019,67.9469809417603,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2020,70.16248359,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2021,75.27144583,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2022,79.12686326,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2023,80.38956462,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100
+2024,82.438955,% от населението,IT.NET.USER.ZS,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/IT.NET.USER.ZS?format=json&per_page=100

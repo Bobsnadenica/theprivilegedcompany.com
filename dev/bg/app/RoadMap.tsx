@@ -135,7 +135,7 @@ export default function RoadMap() {
     const element = stageRef.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
-      const width = Math.max(300, Math.round(entry.contentRect.width));
+      const width = Math.max(1, Math.round(entry.contentRect.width));
       setSize({ width, height: Math.max(350, Math.min(560, Math.round(width * 0.52))) });
     });
     observer.observe(element);
@@ -307,7 +307,7 @@ export default function RoadMap() {
               <button
                 key={item.year}
                 type="button"
-                aria-pressed={dateFrom === `${item.year}-01-01` && dateTo === `${item.year}-12-31`}
+                aria-pressed={dateFrom === (`${item.year}-01-01` < data.summary.date_from ? data.summary.date_from : `${item.year}-01-01`) && dateTo === (`${item.year}-12-31` > data.summary.date_to ? data.summary.date_to : `${item.year}-12-31`)}
                 onClick={() => setRange(
                   `${item.year}-01-01` < data.summary.date_from ? data.summary.date_from : `${item.year}-01-01`,
                   `${item.year}-12-31` > data.summary.date_to ? data.summary.date_to : `${item.year}-12-31`,

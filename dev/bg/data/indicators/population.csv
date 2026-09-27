@@ -1,0 +1,13 @@
+﻿year,value,unit,indicator,country,status,source
+2014,7073572,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2015,6984225,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2016,6894139,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2017,6803468,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2018,6710798,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2019,6616726,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2020,6550696,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2021,6507301,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2022,6465097,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2023,6446596,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2024,6441421,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100
+2025,6433302,души,SP.POP.TOTL,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/SP.POP.TOTL?format=json&per_page=100

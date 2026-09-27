@@ -1,0 +1,13 @@
+﻿year,value,unit,indicator,country,status,source
+2014,0.949449772002041,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2015,3.39755351999294,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2016,3.02662820096305,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2017,2.74592737750996,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2018,2.33015054210419,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2019,3.79331964589196,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2020,-3.13323543125917,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2021,7.82817310703665,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2022,4.08386398118941,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2023,1.68151075832925,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2024,3.38708962009333,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100
+2025,3.0963663917961,% спрямо предходната година,NY.GDP.MKTP.KD.ZG,BGR,,https://api.worldbank.org/v2/country/BGR/indicator/NY.GDP.MKTP.KD.ZG?format=json&per_page=100

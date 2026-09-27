@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -41,7 +42,7 @@ test("данните за интерфейса са на български и �
   assert.equal(dashboard.language, "bg");
   assert.equal(dashboard.portal.source, "https://data.egov.bg");
   assert.equal(dashboard.categories.length, 14);
-  assert.equal(Object.keys(dashboard.indicators.series).length, 4);
+  assert.equal(Object.keys(dashboard.indicators.series).length, 8);
   assert.equal(dashboard.indicators.series.population.unit, "души");
   assert.equal(dashboard.validation.status, "валиден");
   assert.ok(dashboard.themes.transport.featured.length > 0);
@@ -59,3 +60,42 @@ test("данните за интерфейса са на български и �
   assert.equal(catalogIndex.total_records, dashboard.portal.datasets);
   assert.ok(catalogIndex.datasets.every((dataset) => dataset.organisation));
 });
+
+test("всяка графика съвпада с оригиналния API отговор и CSV", async () => {
+  const document = await readJson("../data/indicators/world-bank.json");
+  for (const series of Object.values(document.series)) {
+    const raw = await readFile(new URL(`../data/${series.raw_path}`, import.meta.url));
+    assert.equal(createHash("sha256").update(raw).digest("hex"), series.raw_sha256);
+    const [meta, rows] = JSON.parse(raw);
+    assert.equal(meta.pages, 1);
+    assert.equal(meta.total, rows.length);
+    assert.ok(rows.every(row => row.countryiso3code === "BGR" && row.indicator.id === series.indicator));
+    const source = rows.filter(row => row.value !== null).sort((a, b) => Number(a.date) - Number(b.date)).slice(-12);
+    assert.deepEqual(series.data, source.map(row => ({ year: row.date, value: row.value, status: row.obs_status || "" })));
+    assert.equal(new Set(series.data.map(row => row.year)).size, 12);
+    assert.ok(series.data.every(row => Number.isFinite(row.value)));
+    const csv = await readFile(new URL(`../data/${series.csv_path}`, import.meta.url), "utf8");
+    const lines = csv.trim().split(/\r?\n/).slice(1);
+    assert.equal(lines.length, 12);
+    lines.forEach((line, index) => {
+      const [year, value] = line.split(",");
+      assert.equal(year, source[index].date);
+      assert.equal(Number(value), source[index].value);
+    });
+    const metadata = await readFile(new URL(`../data/${series.metadata_path}`, import.meta.url));
+    assert.equal(createHash("sha256").update(metadata).digest("hex"), series.metadata_sha256);
+    await accessPublished(series.csv_path);
+    await accessPublished(series.raw_path);
+  }
+  assert.equal(document.series.forest.unit, "% от сухоземната площ");
+  assert.equal(document.series.inflation.change_unit, "п.п.");
+  assert.equal(document.series.life.change_unit, "години");
+});
+
+async function accessPublished(path) {
+  const [source, published] = await Promise.all([
+    readFile(new URL(`../data/${path}`, import.meta.url)),
+    readFile(new URL(`../dist/data/${path}`, import.meta.url)),
+  ]);
+  assert.deepEqual(published, source);
+}

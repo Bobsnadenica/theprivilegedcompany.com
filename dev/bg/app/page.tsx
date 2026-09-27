@@ -2,15 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from "react";
 import dashboard from "../data/site/dashboard.json";
 import RoadMap from "./RoadMap";
+import TrendChart from "./TrendChart";
+import SourcesPanel from "./SourcesPanel";
 
-type TrendPoint = { year: string; value: number };
-type Indicator = {
-  indicator: string;
-  title: string;
-  unit: string;
-  source_url: string;
-  data: TrendPoint[];
-};
 type FeaturedDataset = {
   identifier: string;
   identifier_type: "uuid" | "legacy";
@@ -39,6 +33,7 @@ const tabs = [
   { id: "people", label: "Хора" },
   { id: "public", label: "Държава" },
   { id: "catalog", label: "Каталог" },
+  { id: "sources", label: "Източници" },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -55,7 +50,7 @@ const themeCopy: Record<ThemeId, { eyebrow: string; title: string; intro: string
   economy: {
     eyebrow: "Икономика и финанси",
     title: "Публичната икономика в контекст",
-    intro: "Финансовите набори в портала са съчетани с проверен дългосрочен индикатор за мащаба на българската икономика.",
+    intro: "Финансовите набори в портала са съчетани с годишни серии за БВП, реален растеж, инфлация и безработица. Единиците и определенията са до всяка графика.",
     short: "Финанси, бюджети и пазари",
   },
   nature: {
@@ -67,7 +62,7 @@ const themeCopy: Record<ThemeId, { eyebrow: string; title: string; intro: string
   people: {
     eyebrow: "Население и общество",
     title: "Промените зад числата",
-    intro: "Население, образование, здравеопазване и дигитално участие — представени чрез две проверени тенденции и пълния каталог.",
+    intro: "Население, образование, здравеопазване и дигитално участие — представени чрез национални серии за население, интернет и продължителност на живота.",
     short: "Население, здраве и образование",
   },
   public: {
@@ -85,21 +80,11 @@ const date = new Intl.DateTimeFormat("bg-BG", { day: "2-digit", month: "long", y
 const baseUrl = import.meta.env.BASE_URL;
 
 function DataIcon({ name, size = "normal" }: { name: IconName; size?: "small" | "normal" | "large" }) {
-  return <span className={`data-icon icon-${name} icon-${size}`} aria-hidden="true"><i /></span>;
-}
-
-function latest(series: Indicator) {
-  return series.data[series.data.length - 1];
+  return <span className={`data-icon icon-${name === "sources" ? "catalog" : name} icon-${size}`} aria-hidden="true"><i /></span>;
 }
 
 function formatDate(value: string | null | undefined) {
   return value ? date.format(new Date(value.replace(" ", "T") + (value.includes("T") ? "" : "Z"))) : "неуказана дата";
-}
-
-function formatIndicator(key: string, value: number) {
-  if (key === "gdp") return `${(value / 1_000_000_000).toLocaleString("bg-BG", { maximumFractionDigits: 1 })} млрд. щ.д.`;
-  if (key === "population") return `${(value / 1_000_000).toLocaleString("bg-BG", { maximumFractionDigits: 2 })} млн.`;
-  return `${value.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}%`;
 }
 
 function themeForCategory(categoryId: number): ThemeId {
@@ -123,69 +108,21 @@ function Metric({ value, label, note, icon }: { value: string; label: string; no
 
 function DatasetCard({ dataset }: { dataset: FeaturedDataset | CatalogDataset }) {
   const theme = themeForCategory(dataset.category_id);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const themeSummary = dashboard.themes[theme];
-  const themeAverage = themeSummary.dataset_count ? themeSummary.resource_count / themeSummary.dataset_count : 0;
-  const profileMax = Math.max(dataset.resource_count, themeAverage, 1);
-
-  useEffect(() => {
-    if (!profileOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setProfileOpen(false);
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [profileOpen]);
-
   return (
     <article className="dataset-card">
       <div className="dataset-meta">
         <span><DataIcon name={theme} size="small" />{categoryName.get(dataset.category_id) ?? "Некатегоризирани"}</span>
         <span>{dataset.formats.join(" · ") || "форматът не е указан"}</span>
       </div>
-      <h3>{dataset.title}</h3>
+      <h3><a href={dataset.portal_url} target="_blank" rel="noreferrer">{dataset.title}</a></h3>
       <p>{dataset.description || "Порталът не е публикувал описание към този набор."}</p>
       <div className="dataset-foot">
         <div>
           <strong>{dataset.organisation}</strong>
           <span>{dataset.resource_count} ресурса · обновено {formatDate(dataset.updated_at)}</span>
         </div>
-        <button type="button" onClick={() => setProfileOpen(true)} aria-label={`Визуален профил за „${dataset.title}“`}>
-          Виж профил <span aria-hidden="true">→</span>
-        </button>
+        <a href={dataset.portal_url} target="_blank" rel="noreferrer">Отвори в портала ↗</a>
       </div>
-      {profileOpen && (
-        <div className="dataset-profile-backdrop" onMouseDown={() => setProfileOpen(false)}>
-          <section className="dataset-profile" role="dialog" aria-modal="true" aria-labelledby={`profile-${dataset.identifier}`} onMouseDown={(event) => event.stopPropagation()}>
-            <header>
-              <div><span className="eyebrow">Локален визуален профил</span><h3 id={`profile-${dataset.identifier}`}>{dataset.title}</h3></div>
-              <button type="button" onClick={() => setProfileOpen(false)} aria-label="Затвори визуалния профил">Затвори ×</button>
-            </header>
-            <div className="dataset-profile-meta">
-              <p><span>Издател</span><strong>{dataset.organisation}</strong></p>
-              <p><span>Категория</span><strong>{categoryName.get(dataset.category_id) ?? "Некатегоризирани"}</strong></p>
-              <p><span>Обновено</span><strong>{formatDate(dataset.updated_at)}</strong></p>
-            </div>
-            <figure className="dataset-profile-chart">
-              <figcaption><span className="eyebrow">Ресурсен профил</span><h4>Публикувани ресурси спрямо тематичната средна стойност</h4></figcaption>
-              <ol>
-                <li><div><span>Този набор</span><strong>{number.format(dataset.resource_count)}</strong></div><i><b style={{ width: `${(dataset.resource_count / profileMax) * 100}%` }} /></i></li>
-                <li><div><span>Средно за „{themeSummary.name}“</span><strong>{themeAverage.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}</strong></div><i><b style={{ width: `${(themeAverage / profileMax) * 100}%` }} /></i></li>
-              </ol>
-            </figure>
-            <div className="dataset-format-profile">
-              <span className="eyebrow">Публикувани формати</span>
-              <div>{dataset.formats.length ? dataset.formats.map((format) => <strong key={format}>{format}</strong>) : <strong>Не е указан формат</strong>}</div>
-            </div>
-            <p className="dataset-profile-note">Профилът визуализира проверените каталожни метаданни в локалната моментна снимка. Стойностите вътре в отделните файлове не се представят без самостоятелна проверка.</p>
-          </section>
-        </div>
-      )}
     </article>
   );
 }
@@ -213,53 +150,6 @@ function YearRangeControl({ years, from, to, onChange, label }: {
         </select>
       </label>
     </div>
-  );
-}
-
-function TrendChart({ indicatorKey, series }: { indicatorKey: string; series: Indicator }) {
-  const years = series.data.map((point) => Number(point.year));
-  const [fromYear, setFromYear] = useState(years[0]);
-  const [toYear, setToYear] = useState(years[years.length - 1]);
-  const visibleData = series.data.filter((point) => Number(point.year) >= fromYear && Number(point.year) <= toYear);
-  const values = visibleData.map((point) => point.value);
-  const max = Math.max(...values, 1);
-  const current = visibleData[visibleData.length - 1];
-  const first = visibleData[0];
-  const change = ((current.value - first.value) / first.value) * 100;
-  return (
-    <figure className="trend-chart">
-      <figcaption>
-        <div>
-          <span className="eyebrow">Национален индикатор</span>
-          <h3>{series.title}</h3>
-          <p>{series.unit} · {visibleData.length} годишни наблюдения · {first.year}–{current.year}</p>
-        </div>
-        <div className="trend-summary">
-          <strong>{formatIndicator(indicatorKey, current.value)}</strong>
-          <span className={change < 0 ? "change-negative" : "change-positive"}>{change > 0 ? "+" : ""}{change.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}% за периода</span>
-          <YearRangeControl
-            years={years}
-            from={fromYear}
-            to={toYear}
-            onChange={(from, to) => { setFromYear(from); setToYear(to); }}
-            label={`Период за ${series.title}`}
-          />
-        </div>
-      </figcaption>
-      <ol aria-label={`${series.title} по години; колоните започват от нула`}>
-        {visibleData.map((point) => {
-          const height = Math.max(3, (point.value / max) * 100);
-          return (
-            <li key={point.year} aria-label={`${point.year}: ${formatIndicator(indicatorKey, point.value)}`}>
-              <span className="bar-value">{indicatorKey === "gdp" ? compact.format(point.value) : point.value.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}</span>
-              <i style={{ "--height": `${height}%` } as CSSProperties} />
-              <span>{point.year.slice(2)}</span>
-            </li>
-          );
-        })}
-      </ol>
-      <div className="chart-note"><span>Скала от нула</span><a href={series.source_url} target="_blank" rel="noreferrer">Източник: Световна банка ↗</a></div>
-    </figure>
   );
 }
 
@@ -470,12 +360,11 @@ function ThemePanel({ id }: { id: ThemeId }) {
       </div>
 
       {id === "transport" && <RoadMap />}
-      {id === "economy" && <TrendChart indicatorKey="gdp" series={dashboard.indicators.series.gdp as Indicator} />}
-      {id === "nature" && <TrendChart indicatorKey="forest" series={dashboard.indicators.series.forest as Indicator} />}
+      {id === "economy" && <div className="indicator-grid">{(["gdp", "growth", "inflation", "unemployment"] as const).map(key => <TrendChart key={key} indicatorKey={key} series={dashboard.indicators.series[key]} retrievedAt={dashboard.indicators.retrieved_at} />)}</div>}
+      {id === "nature" && <TrendChart indicatorKey="forest" series={dashboard.indicators.series.forest} retrievedAt={dashboard.indicators.retrieved_at} />}
       {id === "people" && (
         <div className="indicator-grid">
-          <TrendChart indicatorKey="population" series={dashboard.indicators.series.population as Indicator} />
-          <TrendChart indicatorKey="internet" series={dashboard.indicators.series.internet as Indicator} />
+          {(["population", "internet", "life"] as const).map(key => <TrendChart key={key} indicatorKey={key} series={dashboard.indicators.series[key]} retrievedAt={dashboard.indicators.retrieved_at} />)}
         </div>
       )}
       {id === "public" && <PublicSignal rows={theme.category_breakdown as CategoryBreakdownRow[]} />}
@@ -498,35 +387,19 @@ function ThemePanel({ id }: { id: ThemeId }) {
   );
 }
 
-function HomePanel({ onNavigate }: { onNavigate: (id: ThemeId) => void }) {
-  const population = dashboard.indicators.series.population as Indicator;
-  const internet = dashboard.indicators.series.internet as Indicator;
+function HomePanel({ onNavigate }: { onNavigate: (id: TabId) => void }) {
   return (
     <section className="panel" aria-labelledby="home-title">
       <header className="section-head">
-        <div><span className="eyebrow">Проверен обзор</span><h2 id="home-title">Публичните данни на едно място</h2></div>
-        <p>БвД подрежда целия наличен каталог в пет разбираеми теми, визуализира проверими показатели и винаги води обратно към официалния запис.</p>
+        <div><span className="eyebrow">Числата в контекст</span><h2 id="home-title">Как се променя България?</h2></div>
+        <p>Население, икономика и дигитален живот. Изберете период, прочетете стойностите и отворете източника. Последната налична година е посочена отделно за всеки показател.</p>
       </header>
-      <div className="metric-row">
-        <Metric icon="people" value={`${(latest(population).value / 1_000_000).toLocaleString("bg-BG", { maximumFractionDigits: 2 })} млн.`} label={`население през ${latest(population).year} г.`} note="Световна банка" />
-        <Metric icon="data" value={`${latest(internet).value.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}%`} label={`използват интернет през ${latest(internet).year} г.`} note="Дял от населението" />
-        <Metric icon="resources" value={number.format(dashboard.portal.resources)} label="ресурса в каталога" note="Свързани с публичните набори" />
+      <div className="indicator-grid home-statistics">
+        {(["population", "growth", "inflation", "internet"] as const).map(key => <TrendChart key={key} indicatorKey={key} series={dashboard.indicators.series[key]} retrievedAt={dashboard.indicators.retrieved_at} />)}
       </div>
+      <div className="source-banner"><div><h3>Не вярвайте само на графиката.</h3><p>Вижте определенията, оригиналните данни и датите. Различните източници се обновяват по различно време.</p></div><button type="button" onClick={() => onNavigate("sources")}>Проверете източниците ↗</button></div>
       <ThemeNavigator onNavigate={onNavigate} />
-      <div className="home-visual-grid">
-        <CategoryChart compactView />
-        <div>
-          <FreshnessChart rows={dashboard.catalog_profile.updated_distribution as FreshnessRow[]} />
-          <CoverageChart rows={dashboard.catalog_profile.coverage as CoverageRow[]} title="Колко добре е описан каталогът" />
-        </div>
-      </div>
-      <ProfileComposition organisations={dashboard.catalog_profile.top_organisations as OrganisationRow[]} formats={dashboard.catalog_profile.format_breakdown as FormatRow[]} label="целия каталог" />
-      <div className="method-card">
-        <DataIcon name="verified" size="large" />
-        <div><span className="eyebrow">Какво е проверено</span><h3>Прозрачен обхват</h3></div>
-        <p>{dashboard.validation.verified_scope}</p>
-        <a href={`${baseUrl}data/validation.json`}>Доклад от проверките →</a>
-      </div>
+      <aside className="project-cta"><div><span className="eyebrow">The Privileged Company</span><h3>Вашите данни могат да разказват повече.</h3><p>Създаваме табла с данни и автоматизации. Предлагаме и 1:1 консултации със сертифициран старши архитект на облачни решения.</p></div><a href="/contact?lang=bg">Обсъдете идея ↗</a></aside>
     </section>
   );
 }
@@ -561,7 +434,7 @@ function CatalogPanel() {
   return (
     <section className="panel" aria-labelledby="catalog-title">
       <header className="section-head themed-head">
-        <div><DataIcon name="catalog" size="large" /><span className="eyebrow">Пълен локален индекс</span><h2 id="catalog-title">Всички отворени данни</h2></div>
+        <div><DataIcon name="catalog" size="large" /><span className="eyebrow">Пълен локален индекс</span><h2 id="catalog-title">Каталог на отворените данни</h2></div>
         <p>Тук няма подбор: търсенето обхваща всеки запис в моментната снимка. Резултатите се променят само след ръчното обновяване.</p>
       </header>
       <div className="metric-row">
@@ -596,12 +469,26 @@ function CatalogPanel() {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabId>("home");
+  const readTab = () => tabs.find(tab => `#${tab.id}` === window.location.hash)?.id ?? "home";
+  const [activeTab, setActiveTab] = useState<TabId>(readTab);
+  useEffect(() => {
+    const onHash = () => {
+      setActiveTab(readTab());
+      if (tabs.some(tab => `#${tab.id}` === window.location.hash)) document.getElementById("explorer")?.scrollIntoView({ block: "start", behavior: "instant" });
+    };
+    window.addEventListener("hashchange", onHash);
+    onHash();
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  function activateTab(id: TabId) {
+    setActiveTab(id);
+    window.location.hash = id;
+  }
   const snapshotDate = date.format(new Date(dashboard.portal.retrieved_at));
 
   function selectTab(id: TabId) {
-    setActiveTab(id);
-    document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    activateTab(id);
+    document.getElementById("explorer")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
 
   function onTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, index: number) {
@@ -609,7 +496,7 @@ export default function Home() {
     event.preventDefault();
     const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
     const tab = tabs[next];
-    setActiveTab(tab.id);
+    activateTab(tab.id);
     document.getElementById(`tab-${tab.id}`)?.focus();
   }
 
@@ -620,7 +507,7 @@ export default function Home() {
           <span className="brand-monogram">БвД</span>
           <span><strong>България в Данни</strong><small>отворен публичен атлас</small></span>
         </a>
-        <div className="header-status"><i /> Проверена моментна снимка</div>
+        <div className="header-status"><i /> Публични източници · ясни дати</div>
         <a className="portal-link" href={dashboard.portal.source} target="_blank" rel="noreferrer">Официален портал ↗</a>
       </header>
 
@@ -628,28 +515,28 @@ export default function Home() {
         <div>
           <span className="hero-kicker"><b>БвД</b> Отворени данни · България</span>
           <h1>България<br /><em>в Данни.</em></h1>
-          <p>Професионален, локален и проверим изглед към всички публични данни — от пътищата и икономиката до природата, хората и държавата.</p>
-          <button type="button" onClick={() => selectTab("home")}>Влезте в атласа <span>↓</span></button>
+          <p>Население, цени, икономика и още. Разгледайте тенденциите, сравнете годините и проверете всяко число в неговия източник.</p>
+          <button type="button" onClick={() => selectTab("home")}>Разгледайте графиките <span>↓</span></button>
         </div>
         <aside aria-label="Обобщение на моментната снимка">
-          <div><DataIcon name="data" /><strong>{number.format(dashboard.portal.datasets)}</strong><span>набора от данни</span></div>
-          <div><DataIcon name="resources" /><strong>{number.format(dashboard.portal.resources)}</strong><span>публикувани ресурса</span></div>
+          <div><DataIcon name="data" /><strong>{Object.keys(dashboard.indicators.series).length}</strong><span>национални показателя</span></div>
+          <div><DataIcon name="resources" /><strong>12</strong><span>годишни наблюдения за показател</span></div>
           <div><DataIcon name="catalog" /><strong>{dashboard.portal.themes}</strong><span>официални категории</span></div>
-          <p>Моментна снимка от {snapshotDate}<br />Обновява се само с <code>./update.sh</code></p>
+          <p>Национални серии: {formatDate(dashboard.indicators.retrieved_at)}<br />Каталог: {snapshotDate}<br /><a href="#sources">Периоди и източници ↗</a></p>
         </aside>
       </section>
 
       <div className="trust-strip">
-        <p><DataIcon name="verified" /><span><strong>{dashboard.validation.checks} автоматични проверки</strong><small>{dashboard.validation.warnings} предупреждения · 0 грешки</small></span></p>
-        <p><DataIcon name="catalog" /><span><strong>Всички 14 категории</strong><small>Пет тематични раздела + пълен каталог</small></span></p>
-        <p><DataIcon name="data" /><span><strong>Статични локални данни</strong><small>Без външни заявки при разглеждане</small></span></p>
+        <p><DataIcon name="verified" /><span><strong>Вижте тенденцията</strong><small>Годишни стойности с единици и контекст</small></span></p>
+        <p><DataIcon name="catalog" /><span><strong>Проверете източника</strong><small>Официални страници и оригинални данни</small></span></p>
+        <p><DataIcon name="data" /><span><strong>Изтеглете стойностите</strong><small>CSV за собствен анализ</small></span></p>
       </div>
 
       <section className="explorer" id="explorer">
         <div className="tab-wrap">
           <div className="tabs" role="tablist" aria-label="Раздели с данни">
             {tabs.map((tab, index) => (
-              <button key={tab.id} id={`tab-${tab.id}`} type="button" role="tab" aria-selected={activeTab === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={activeTab === tab.id ? 0 : -1} onClick={() => setActiveTab(tab.id)} onKeyDown={(event) => onTabKeyDown(event, index)}>
+              <button key={tab.id} id={`tab-${tab.id}`} type="button" role="tab" aria-selected={activeTab === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={activeTab === tab.id ? 0 : -1} onClick={() => activateTab(tab.id)} onKeyDown={(event) => onTabKeyDown(event, index)}>
                 <DataIcon name={tab.id} size="small" /><span>0{index + 1}</span><b>{tab.label}</b>
               </button>
             ))}
@@ -663,12 +550,13 @@ export default function Home() {
           {activeTab === "people" && <ThemePanel id="people" />}
           {activeTab === "public" && <ThemePanel id="public" />}
           {activeTab === "catalog" && <CatalogPanel />}
+          {activeTab === "sources" && <SourcesPanel />}
         </div>
       </section>
 
       <footer>
-        <div><span className="brand-monogram brand-monogram-small">БвД</span><span><strong>България в Данни</strong><small>Локален проект с публични източници</small></span></div>
-        <div><a href={`${baseUrl}data/validation.json`}>Проверки</a><a href={`${baseUrl}data/manifest.json`}>Манифест</a><a href={dashboard.portal.source} target="_blank" rel="noreferrer">Източник ↗</a></div>
+        <div><span className="brand-monogram brand-monogram-small">БвД</span><span><strong>България в Данни</strong><small>Публични данни. Проверими източници.</small></span></div>
+        <div><a href="#sources">Източници и метод</a><a href={`${baseUrl}data/manifest.json`}>Данни и хешове</a><a href={dashboard.portal.source} target="_blank" rel="noreferrer">Източник ↗</a></div>
       </footer>
     </main>
   );
