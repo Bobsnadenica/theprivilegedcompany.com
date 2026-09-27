@@ -1320,7 +1320,7 @@ function ChallengePanel({
       <div>
         <p className="eyebrow">{t("Challenge")}</p>
         <h2>
-          {t(caller?.name ?? "Player")} {t("vs")} {t(accused?.name ?? "Player")}
+          {t(caller?.name ?? "Player")} {t("vs")} {t(accused?.name === "You" ? "you" : accused?.name ?? "Player")}
         </h2>
       </div>
       <div className="revealed-cards">

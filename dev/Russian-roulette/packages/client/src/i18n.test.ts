@@ -20,6 +20,14 @@ describe("game language", () => {
     expect(t("3 cards", "bg")).toBe("3 карти");
     expect(t("Ready to play 2 cards face down.", "bg")).toBe("Готови за ход с 2 карти с лицето надолу.");
   });
+  it("uses natural Bulgarian player pronouns and count agreement", () => {
+    expect(t("You played 1 card face down.", "bg")).toBe("Играете 1 карта с лицето надолу.");
+    expect(t("You wins the table", "bg")).toBe("Печелите играта!");
+    expect(t("You got hit", "bg")).toBe("Отпадате.");
+    expect(t("You wins the table.", "en")).toBe("You win the table!");
+    expect(t("1 card left", "bg")).toBe("1 карта остава");
+    expect(t("1 shot left", "bg")).toBe("1 оставащ опит");
+  });
   it("retains English and safely falls back for unfamiliar player messages", () => {
     expect(t("Play against bots", "en")).toBe("Play against bots");
     expect(t("Иван <script>", "bg")).toBe("Иван <script>");
