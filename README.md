@@ -14,7 +14,7 @@ The existing prepared-email flow remains the contact destination. No hiring
 automation, applicant form, new inbox, or personal employment history was added.
 
 The standalone introduction at `dev/soroya/` has English and Bulgarian pages,
-native language links, the approved original desk portrait with provenance, and
+native language links, a shared portrait presenting her business and model roles with provenance, and
 the existing privacy/deletion links. The introduction uses one concise character
 disclosure without repeating generation wording in captions or copy. Contact-page
 language switching also selects
