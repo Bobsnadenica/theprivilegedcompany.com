@@ -301,6 +301,7 @@ This is an orientation list, not a full review of every app:
 | `dev/bg/` | Bulgarian open-data atlas using React/TypeScript/Vite and local data snapshots; [guide](dev/bg/README.md) |
 | `dev/Cylinder/` | React/TypeScript tank-volume calculator; [guide](dev/Cylinder/README.md) |
 | `dev/Candycrush/` | Sugarbox: The Hollow Orchard, an ASCII idle RPG; [guide](dev/Candycrush/README.md) |
+| `dev/password_game/` | Bilingual 37-rule logic puzzle with a tested winning path; [guide](dev/password_game/README.md) |
 | `dev/Russian-roulette/` | React/Three.js bluffing game; static solo demo plus Node/Socket.IO multiplayer; [guide](dev/Russian-roulette/README.md) |
 | `dev/Mist_of_Atlas/game/FogMap/` | Mist of Atlas: World of Fog, a Flutter exploration app with its own AWS stack; [guide](dev/Mist_of_Atlas/game/FogMap/README.md) |
 | `dev/aipost247/` | Python Facebook posting application; [guide](dev/aipost247/README.md) |

@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0c16">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2284%22>🔐</text></svg>">
-  <title>The Password Game — TPC Labs</title>
-  <meta name="description" content="An increasingly ridiculous password game. The next requirement stays secret until you earn it.">
+  <title>The Password Game — The Privileged Company</title>
+  <link rel="canonical" href="https://www.theprivilegedcompany.com/dev/password_game/index.html">
+  <meta name="description" content="A free browser logic puzzle with 37 increasingly tricky rules. Play in English or Bulgarian. No account or time limit.">
   <meta property="og:title" content="The Password Game">
-  <meta property="og:description" content="The requirements keep coming. One perfectly legal password. Can you find it?">
+  <meta property="og:description" content="37 rules. One password. Can you make them all agree? Play free in English or Bulgarian.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/password_game/index.html">
   <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
@@ -19,7 +20,7 @@
   <meta property="og:image:alt" content="The Privileged Company logo">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="The Password Game">
-  <meta name="twitter:description" content="The requirements keep coming. One perfectly legal password. Can you find it?">
+  <meta name="twitter:description" content="37 rules. One password. Can you make them all agree? Play free in English or Bulgarian.">
   <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta name="twitter:image:alt" content="The Privileged Company logo">
   <style>
@@ -649,612 +650,144 @@
         transition-duration: 0.01ms !important;
       }
     }
+
+    a { color: var(--ink); text-underline-offset: 4px; }
+    .button { min-height: 44px; text-decoration: none; }
+    a:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .brand-row { flex-wrap: wrap; margin-bottom: 22px; }
+    .header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .language-switch { display: flex; gap: 4px; }
+    .language-switch .button { padding: 8px 11px; }
+    .language-switch [aria-pressed="true"] { background: var(--accent); color: #17131a; }
+    .back-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-size: .85rem; }
+    h1 { font-size: clamp(2.8rem, 7vw, 5.4rem); line-height: 1.04; }
+    .lede { margin-top: 16px; line-height: 1.5; max-width: 650px; }
+    #password { min-height: 130px; max-height: 250px; }
+    #password::placeholder { color: #a09da9; }
+    .progress-row { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--line); }
+    .progress-row span { font-size: .78rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    progress { display: block; width: 100%; height: 5px; accent-color: var(--accent); border: 0; border-radius: 4px; overflow: hidden; background: var(--line); }
+    progress::-webkit-progress-bar { background: var(--line); }
+    progress::-webkit-progress-value { background: var(--accent); border-radius: 4px; transition: width 160ms ease; }
+    progress::-moz-progress-bar { background: var(--accent); }
+    .hint { margin-top: 16px; font-size: .82rem; line-height: 1.5; }
+    .hint summary { min-height: 44px; padding-block: 12px; cursor: pointer; color: var(--accent); }
+    .hint p { color: #c6c4d0; margin: 4px 0 0; overflow-wrap: anywhere; }
+    .rule-detail { min-height: 0; overflow-wrap: anywhere; }
+    .challenge-note { color: var(--muted); padding-top: 0; margin: 8px 0 0; }
+    .insert-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .insert-tools .button { min-width: 44px; font-size: 1rem; }
+    .footer-note { display: block; color: var(--muted); line-height: 1.6; }
+    .privacy-note { text-align: center; color: var(--muted); font-size: .75rem; line-height: 1.5; }
+    .service-card { padding: 30px 0; margin-top: 24px; border-top: 1px solid var(--line); display: flex; gap: 28px; align-items: center; }
+    .service-card div { flex: 1; }
+    .service-card h2 { margin: 0 0 10px; font-size: 1.5rem; letter-spacing: -.025em; }
+    .service-card p { margin: 0; color: var(--muted); line-height: 1.6; font-size: .9rem; }
+    .service-card a { flex-shrink: 0; }
+    .signature { color: var(--muted); font-size: .75rem; }
+    dialog { width: min(420px, calc(100% - 32px)); padding: 26px; border-radius: 20px; border: 1px solid var(--line); color: var(--ink); background: #1d1e31; }
+    dialog::backdrop { background: #000a; }
+    dialog h2 { margin-top: 0; }
+    dialog p { color: var(--muted); line-height: 1.5; }
+    .dialog-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    @media (max-width: 760px) {
+      .page { padding-top: 6px; }
+      .hero { padding: 4px 4px 20px; }
+      .brand-row { gap: 4px; margin-bottom: 18px; }
+      .header-controls { gap: 6px; }
+      .best-time { border: 0; padding: 0; font-size: .65rem; }
+      .lede { font-size: .94rem; margin-top: 12px; }
+      .kicker { font-size: .63rem; letter-spacing: .1em; }
+      .progress-row { padding: 14px 18px; }
+      .challenge { order: -1; min-height: 0; border: 0; border-bottom: 1px solid var(--line); padding: 18px; }
+      .challenge .section-label { display: none; }
+      .rule-title { font-size: 1.55rem; margin-top: 12px; }
+      .composer { padding: 18px; }
+      .composer-footer { align-items: center; }
+      .field-label { font-size: .72rem; letter-spacing: .04em; }
+      .microcopy { max-width: none; }
+      .hint { margin-top: 8px; }
+      .service-card { align-items: flex-start; flex-direction: column; gap: 16px; }
+      .victory-actions { flex-wrap: wrap; }
+      .summary-meta { font-size: .68rem; }
+    }
   </style>
 </head>
 <body>
   <main class="page">
     <header class="hero">
       <div class="brand-row">
-        <div class="brand"><span class="brand-dot" aria-hidden="true"></span>TPC Labs / Game 01</div>
-        <div class="best-time" id="bestTime">Best —</div>
+        <a class="back-link" id="backLink" href="/dev" data-i18n="back">← More games</a>
+        <div class="header-controls">
+          <span class="best-time" id="bestTime">Best —</span>
+          <div class="language-switch" role="group" aria-label="Language / Език">
+            <button class="button" type="button" data-language="en" lang="en" aria-pressed="true">English</button>
+            <button class="button" type="button" data-language="bg" lang="bg" aria-pressed="false">Български</button>
+          </div>
+        </div>
       </div>
       <div class="hero-copy">
-        <p class="kicker">Looks impossible. Isn’t.</p>
-        <h1>The <em>Password</em> Game</h1>
-        <p class="lede">Build one password while the requirements get progressively more unreasonable. The next one stays secret until the current chain passes.</p>
+        <p class="kicker" data-i18n="kicker">37 rules. One very stubborn puzzle.</p>
+        <h1><span data-i18n="titleStart">The </span><em data-i18n="titleWord">Password</em><span data-i18n="titleEnd"> Game</span></h1>
+        <p class="lede" data-i18n="intro">One password. A new rule every time you get it right. Keep them all happy to win.</p>
       </div>
     </header>
-
-    <section class="game-shell" aria-label="Password game">
+    <noscript><p>This game needs JavaScript. / За тази игра е нужен JavaScript.</p></noscript>
+    <section class="game-shell" id="gameShell" aria-label="The Password Game">
+      <div class="progress-row"><progress id="progress" max="37" value="0" aria-label="Rules passed"></progress><span id="progressLabel">0 / 37 passed</span></div>
       <div class="game-grid">
         <section class="composer">
-          <label class="field-label" for="password">
-            <span>Your password</span>
-            <span class="timer" id="timer">00:00</span>
-          </label>
+          <div class="field-label"><label for="password" data-i18n="label">Your puzzle password</label><span class="timer" id="timer" aria-label="Timer">00:00</span></div>
           <div class="password-wrap">
-            <textarea id="password" rows="5" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="inputHelp" placeholder="Start typing. The next rule will reveal itself…"></textarea>
+            <textarea id="password" rows="4" maxlength="1024" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" aria-describedby="inputHelp" placeholder="Start with 8 characters…"></textarea>
             <span class="char-count" id="charCount">0 characters</span>
           </div>
-          <div class="composer-footer">
-            <p class="microcopy" id="inputHelp">No hidden penalties. Earlier rules stay active.</p>
-            <button class="button" id="resetButton" type="button">Reset</button>
+          <div class="insert-tools" id="insertTools" role="group" aria-label="Insert a character" hidden>
+            <button class="button" type="button" data-insert="😺" data-after="11" data-name="cat" aria-label="Insert cat emoji">😺</button>
+            <button class="button" type="button" data-insert="🎵" data-after="11" data-name="music" aria-label="Insert music emoji">🎵</button>
+            <button class="button" type="button" data-insert="α" data-after="15" data-name="greek" aria-label="Insert Greek alpha" hidden>α</button>
+            <button class="button" type="button" data-insert="€" data-after="25" data-name="euro" aria-label="Insert euro symbol" hidden>€</button>
           </div>
+          <div class="composer-footer"><p class="microcopy" id="inputHelp" data-i18n="inputHelp">Use a made-up password. Never enter a real one.</p><button class="button" id="resetButton" type="button" data-i18n="reset">Start over</button></div>
         </section>
-
-        <section class="challenge" aria-live="polite" aria-atomic="true">
-          <div class="section-label"><span>Current challenge</span></div>
-          <span class="rule-number" id="ruleNumber">Active requirement</span>
+        <section class="challenge" aria-labelledby="ruleTitle">
+          <div class="section-label" data-i18n="challenge">Next move</div>
+          <span class="rule-number" id="ruleNumber">Rule 1 of 37</span>
           <h2 class="rule-title" id="ruleTitle">Use at least 8 characters.</h2>
           <p class="rule-detail" id="ruleDetail">0 / 8 characters</p>
-          <p class="challenge-note" id="challengeNote">Whatever comes next remains classified until this requirement passes.</p>
+          <details class="hint" id="hint"><summary data-i18n="hint">Need a hint?</summary><p id="hintText"></p></details>
         </section>
       </div>
-
       <details class="rulebook" id="rulebook">
-        <summary>
-          <span>Discovered requirements</span>
-          <span class="summary-meta">Review</span>
-        </summary>
+        <summary><span data-i18n="rules">Discovered rules</span><span class="summary-meta" id="summaryMeta">1 / 37 unlocked</span></summary>
+        <p class="challenge-note" style="padding:0 22px 18px" data-i18n="note">Earlier rules stay active. English words work in both languages.</p>
         <ol class="rule-list" id="ruleList"></ol>
       </details>
     </section>
-
-    <section class="victory" id="victory" aria-live="assertive">
+    <section class="victory" id="victory" aria-labelledby="victoryTitle">
       <div>
-        <p class="kicker">Policy defeated</p>
-        <h2>That should not have worked.</h2>
-        <p>You found the legal loophole in a deeply unreasonable security policy. Your final password is locked in below.</p>
+        <p class="kicker" data-i18n="winKicker">All 37. Nicely done.</p>
+        <h2 id="victoryTitle" tabindex="-1" data-i18n="winTitle">You made the rules agree.</h2>
+        <p data-i18n="winCopy">A beautifully ridiculous solution. Keep it for the puzzle, never for a real account.</p>
         <code class="victory-code" id="victoryPassword"></code>
+        <p id="copyStatus" role="status"></p>
       </div>
-      <div class="victory-actions">
-        <button class="button primary" id="copyButton" type="button">Copy password</button>
-        <button class="button" id="playAgainButton" type="button">Play again</button>
-      </div>
+      <div class="victory-actions"><button class="button primary" id="copyButton" type="button" data-i18n="copy">Copy solution</button><button class="button" id="playAgainButton" type="button" data-i18n="replay">Play again</button></div>
     </section>
-
-    <p class="footer-note"><span>Rules reveal one at a time</span><span>No spoilers</span><span>Built to be beaten</span></p>
+    <p class="footer-note" data-i18n="footer">Free to play · No account · No time limit</p>
+    <p class="privacy-note" data-i18n="privacy">Your puzzle text is not saved or sent to a server. Only your best time and language preference are saved.</p>
+    <section class="service-card" aria-labelledby="serviceTitle">
+      <div><h2 id="serviceTitle" data-i18n="ctaTitle">Your idea could be next.</h2><p data-i18n="ctaCopy">We build games and apps. Learn to build your own with 1:1 consultations from a certified senior cloud architect.</p></div>
+      <a class="button primary" id="contactLink" href="/contact?service=App%20Building" data-i18n="ctaLink">Let’s talk</a>
+    </section>
+    <a class="signature" href="/">The Privileged Company</a>
   </main>
-
+  <dialog id="resetDialog" aria-labelledby="resetTitle" aria-describedby="resetDescription">
+    <h2 id="resetTitle" data-i18n="confirmTitle">Start a new game?</h2><p id="resetDescription" data-i18n="confirmCopy">This clears your current puzzle. Your best time stays.</p>
+    <div class="dialog-actions"><button class="button primary" type="button" id="resetCancel" data-i18n="cancel" autofocus>Keep playing</button><button class="button" type="button" id="resetConfirm" data-i18n="reset">Start over</button></div>
+  </dialog>
   <canvas id="confetti" aria-hidden="true"></canvas>
-  <div class="sr-only" id="announcer" aria-live="polite"></div>
-
-  <script>
-    const currentYear = String(new Date().getFullYear());
-    const colors = ["red", "green", "blue", "yellow", "purple", "orange", "pink", "black", "white", "teal", "gold", "silver"];
-    const planets = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"];
-    const foods = ["pizza", "sushi", "taco", "burger", "pasta", "ramen", "salad", "cookie", "cake", "bread", "cheese", "waffle"];
-    const weatherWords = ["rain", "sun", "storm", "snow", "fog", "wind", "hail", "cloud", "mist", "thunder"];
-    const movies = ["matrix", "shrek", "inception", "avatar", "titanic", "rocky", "frozen", "batman", "dune", "interstellar"];
-    const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    const toCharacters = value => Array.from(value);
-    const characterCount = value => toCharacters(value).length;
-    const uppercaseCount = value => (value.match(/[A-Z]/g) || []).length;
-    const digitSum = value => (value.match(/\d/g) || []).reduce((total, digit) => total + Number(digit), 0);
-    const emojiCount = value => Array.from(value.matchAll(/\p{Extended_Pictographic}/gu)).length;
-
-    function isPrime(number) {
-      if (number < 2) return false;
-      for (let divisor = 2; divisor <= Math.sqrt(number); divisor += 1) {
-        if (number % divisor === 0) return false;
-      }
-      return true;
-    }
-
-    function additionMatches(value) {
-      const matches = value.matchAll(/(\d{1,3})\+(\d{1,3})=(\d{1,4})/g);
-      for (const match of matches) {
-        if (Number(match[1]) + Number(match[2]) === Number(match[3])) return true;
-      }
-      return false;
-    }
-
-    function largestInteger(value) {
-      const numbers = (value.match(/\d+/g) || []).map(Number).filter(Number.isFinite);
-      return numbers.length ? Math.max(...numbers) : null;
-    }
-
-    function distinctVowels(value) {
-      return new Set((value.toLowerCase().match(/[aeiou]/g) || [])).size;
-    }
-
-    function findIncluded(value, options) {
-      const normalized = value.toLowerCase();
-      return options.find(option => normalized.includes(option));
-    }
-
-    const rules = [
-      {
-        text: "Use at least 8 characters.",
-        check: value => characterCount(value) >= 8,
-        detail: value => `${characterCount(value)} / 8 characters`
-      },
-      {
-        text: "Do not use whitespace.",
-        check: value => !/\s/.test(value),
-        detail: value => /\s/.test(value) ? "Whitespace detected" : "No whitespace detected"
-      },
-      {
-        text: "Include both lowercase and uppercase letters.",
-        check: value => /[a-z]/.test(value) && /[A-Z]/.test(value),
-        detail: value => `${/[a-z]/.test(value) ? "Lowercase ✓" : "Lowercase missing"} · ${/[A-Z]/.test(value) ? "Uppercase ✓" : "Uppercase missing"}`
-      },
-      {
-        text: "Include at least one number.",
-        check: value => /\d/.test(value),
-        detail: value => `${(value.match(/\d/g) || []).length} digit${(value.match(/\d/g) || []).length === 1 ? "" : "s"} found`
-      },
-      {
-        text: "Include a symbol.",
-        check: value => /[!@#$%^&*?+=._-]/.test(value),
-        detail: value => /[!@#$%^&*?+=._-]/.test(value) ? "Symbol found" : "No accepted symbol yet"
-      },
-      {
-        text: "Make the 3rd character a vowel.",
-        check: value => /[aeiou]/i.test(toCharacters(value)[2] || ""),
-        detail: value => `3rd character: ${toCharacters(value)[2] ? `“${toCharacters(value)[2]}”` : "not entered"}`
-      },
-      {
-        text: "Make the 7th character !, @, #, $, %, ^, &, *, or ?.",
-        check: value => /[!@#$%^&*?]/.test(toCharacters(value)[6] || ""),
-        detail: value => `7th character: ${toCharacters(value)[6] ? `“${toCharacters(value)[6]}”` : "not entered"}`
-      },
-      {
-        text: "Include the word “cat”.",
-        check: value => value.toLowerCase().includes("cat"),
-        detail: value => value.toLowerCase().includes("cat") ? "Cat located 😺" : "No cat yet"
-      },
-      {
-        text: "Include a color.",
-        check: value => colors.some(color => value.toLowerCase().includes(color)),
-        detail: value => {
-          const match = colors.find(color => value.toLowerCase().includes(color));
-          return match ? `Color found: ${match}` : "No accepted color yet";
-        }
-      },
-      {
-        text: `Include the current year: ${currentYear}.`,
-        check: value => value.includes(currentYear),
-        detail: value => value.includes(currentYear) ? `${currentYear} found` : `${currentYear} is missing`
-      },
-      {
-        text: "Include an emoji.",
-        check: value => /\p{Extended_Pictographic}/u.test(value),
-        detail: value => /\p{Extended_Pictographic}/u.test(value) ? "Emoji found" : "No emoji detected"
-      },
-      {
-        text: "Include both “bacon” and “chicken”.",
-        check: value => value.toLowerCase().includes("bacon") && value.toLowerCase().includes("chicken"),
-        detail: value => `${value.toLowerCase().includes("bacon") ? "Bacon ✓" : "Bacon missing"} · ${value.toLowerCase().includes("chicken") ? "Chicken ✓" : "Chicken missing"}`
-      },
-      {
-        text: "Name a planet in our solar system.",
-        check: value => planets.some(planet => value.toLowerCase().includes(planet)),
-        detail: value => {
-          const match = planets.find(planet => value.toLowerCase().includes(planet));
-          return match ? `Planet found: ${match}` : "No planet found";
-        }
-      },
-      {
-        text: "Use at least 3 different vowels.",
-        check: value => distinctVowels(value) >= 3,
-        detail: value => `${distinctVowels(value)} / 3 distinct vowels`
-      },
-      {
-        text: "Include a lowercase Greek letter.",
-        check: value => /[α-ω]/u.test(value),
-        detail: value => /[α-ω]/u.test(value) ? "Greek letter found" : "No lowercase Greek letter yet"
-      },
-      {
-        text: "Include a food word.",
-        check: value => Boolean(findIncluded(value, foods)),
-        detail: value => findIncluded(value, foods) ? `Food found: ${findIncluded(value, foods)}` : "Accepted foods include pizza, sushi, taco, pasta, ramen, cake, and waffle"
-      },
-      {
-        text: "Include either “coffee” or “tea”.",
-        check: value => /coffee|tea/i.test(value),
-        detail: value => /coffee|tea/i.test(value) ? "Caffeine secured" : "Coffee or tea is missing"
-      },
-      {
-        text: "Include a weather word.",
-        check: value => Boolean(findIncluded(value, weatherWords)),
-        detail: value => findIncluded(value, weatherWords) ? `Weather found: ${findIncluded(value, weatherWords)}` : "Accepted weather includes rain, sun, storm, snow, fog, wind, and cloud"
-      },
-      {
-        text: "Mention a movie title.",
-        check: value => Boolean(findIncluded(value, movies)),
-        detail: value => findIncluded(value, movies) ? `Movie found: ${findIncluded(value, movies)}` : "Try a title such as Matrix, Shrek, Inception, Batman, Dune, or Interstellar"
-      },
-      {
-        text: "Include laughter: “haha” or “lol”.",
-        check: value => /haha|lol/i.test(value),
-        detail: value => /haha|lol/i.test(value) ? "Laughter detected" : "This password is too serious"
-      },
-      {
-        text: "Include a day of the week.",
-        check: value => Boolean(findIncluded(value, weekdays)),
-        detail: value => findIncluded(value, weekdays) ? `Day found: ${findIncluded(value, weekdays)}` : "No weekday found"
-      },
-      {
-        text: "Include a hashtag made of letters.",
-        check: value => /#[a-z]+/i.test(value),
-        detail: value => /#[a-z]+/i.test(value) ? "Hashtag found" : "No letter-based hashtag found"
-      },
-      {
-        text: "Include the uppercase distress signal “SOS”.",
-        check: value => value.includes("SOS"),
-        detail: value => value.includes("SOS") ? "SOS received" : "SOS is missing"
-      },
-      {
-        text: "Include an uppercase Roman numeral.",
-        check: value => /[IVXLCDM]/.test(value),
-        detail: value => /[IVXLCDM]/.test(value) ? "Roman numeral found" : "Use one of I, V, X, L, C, D, or M"
-      },
-      {
-        text: "Include a currency symbol: $, €, £, or ¥.",
-        check: value => /[$€£¥]/u.test(value),
-        detail: value => /[$€£¥]/u.test(value) ? "Currency symbol found" : "No accepted currency symbol found"
-      },
-      {
-        text: "Include “www.” somewhere.",
-        check: value => value.toLowerCase().includes("www."),
-        detail: value => value.toLowerCase().includes("www.") ? "The web is represented" : "www. is missing"
-      },
-      {
-        text: "Include a doubled lowercase letter.",
-        check: value => /([a-z])\1/.test(value),
-        detail: value => /([a-z])\1/.test(value) ? "Double letter found" : "No doubled lowercase letter found"
-      },
-      {
-        text: "Use exactly two emoji.",
-        check: value => emojiCount(value) === 2,
-        detail: value => `${emojiCount(value)} emoji detected`
-      },
-      {
-        text: "Include the word “rules”.",
-        check: value => value.toLowerCase().includes("rules"),
-        detail: value => value.toLowerCase().includes("rules") ? "Rules acknowledged" : "The word rules is missing"
-      },
-      {
-        text: "Include a correct compact addition equation, such as 8+7=15.",
-        check: additionMatches,
-        detail: value => additionMatches(value) ? "The math checks out" : "No valid compact addition equation found"
-      },
-      {
-        text: "Include “404” for the internet gods.",
-        check: value => value.includes("404"),
-        detail: value => value.includes("404") ? "404 found (the rule is not lost)" : "404 is missing"
-      },
-      {
-        text: "Include an integer greater than 9000.",
-        check: value => (largestInteger(value) || 0) > 9000,
-        detail: value => largestInteger(value) === null ? "No integer found" : `Largest integer: ${largestInteger(value).toLocaleString()}`
-      },
-      {
-        text: "Include a 3-letter palindrome.",
-        check: value => /([a-z])([a-z])\1/i.test(value),
-        detail: value => /([a-z])([a-z])\1/i.test(value) ? "3-letter palindrome found" : "No 3-letter palindrome yet"
-      },
-      {
-        text: "Start and end with the same letter.",
-        check: value => {
-          const characters = toCharacters(value);
-          return characters.length > 1 && /^[a-z]$/i.test(characters[0]) && characters[0].toLowerCase() === characters.at(-1).toLowerCase();
-        },
-        detail: value => {
-          const characters = toCharacters(value);
-          return characters.length ? `First: “${characters[0]}” · Last: “${characters.at(-1)}”` : "No first or last character yet";
-        }
-      },
-      {
-        text: "Use exactly 8 uppercase English letters.",
-        check: value => uppercaseCount(value) === 8,
-        detail: value => `${uppercaseCount(value)} / 8 uppercase letters`
-      },
-      {
-        text: "Make every digit add up to exactly 69.",
-        check: value => digitSum(value) === 69,
-        detail: value => `${digitSum(value)} / 69 total digit value`
-      },
-      {
-        text: "Finish with a prime number of characters.",
-        check: value => isPrime(characterCount(value)),
-        detail: value => {
-          const length = characterCount(value);
-          return isPrime(length) ? `${length} characters · prime ✓` : `${length} characters · not prime`;
-        }
-      }
-    ];
-
-    const passwordInput = document.getElementById("password");
-    const charCountElement = document.getElementById("charCount");
-    const timerElement = document.getElementById("timer");
-    const bestTimeElement = document.getElementById("bestTime");
-    const ruleNumber = document.getElementById("ruleNumber");
-    const ruleTitle = document.getElementById("ruleTitle");
-    const ruleDetail = document.getElementById("ruleDetail");
-    const challengeNote = document.getElementById("challengeNote");
-    const ruleList = document.getElementById("ruleList");
-    const resetButton = document.getElementById("resetButton");
-    const victory = document.getElementById("victory");
-    const victoryPassword = document.getElementById("victoryPassword");
-    const copyButton = document.getElementById("copyButton");
-    const playAgainButton = document.getElementById("playAgainButton");
-    const announcer = document.getElementById("announcer");
-
-    let visibleRules = 1;
-    let activeRuleIndex = 0;
-    let hasWon = false;
-    let startTime = null;
-    let finishTime = null;
-    let timerId = null;
-
-    function formatTime(milliseconds) {
-      const totalSeconds = Math.floor(milliseconds / 1000);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    function readBestTime() {
-      try {
-        const best = Number(localStorage.getItem("password-game-best-time"));
-        bestTimeElement.textContent = best > 0 ? `Best ${formatTime(best)}` : "Best —";
-      } catch {
-        bestTimeElement.textContent = "Best —";
-      }
-    }
-
-    function beginTimer() {
-      if (startTime || hasWon) return;
-      startTime = Date.now();
-      timerId = window.setInterval(() => {
-        timerElement.textContent = formatTime(Date.now() - startTime);
-      }, 250);
-    }
-
-    function stopTimer() {
-      if (timerId) window.clearInterval(timerId);
-      timerId = null;
-      finishTime = startTime ? Date.now() - startTime : 0;
-      timerElement.textContent = formatTime(finishTime);
-
-      if (!finishTime) return;
-      try {
-        const oldBest = Number(localStorage.getItem("password-game-best-time"));
-        if (!oldBest || finishTime < oldBest) localStorage.setItem("password-game-best-time", String(finishTime));
-      } catch {
-        // The game remains fully functional when storage is unavailable.
-      }
-      readBestTime();
-    }
-
-    function resizeInput() {
-      passwordInput.style.height = "auto";
-      passwordInput.style.height = `${Math.min(Math.max(passwordInput.scrollHeight, 160), 280)}px`;
-    }
-
-    function getStates(value) {
-      return rules.map(rule => rule.check(value));
-    }
-
-    function renderRulebook(states) {
-      ruleList.replaceChildren();
-      for (let index = 0; index < visibleRules; index += 1) {
-        const item = document.createElement("li");
-        item.className = `rule-item ${states[index] ? "passed" : "failed"}${index === activeRuleIndex && !hasWon ? " current" : ""}`;
-
-        const icon = document.createElement("span");
-        icon.className = "rule-icon";
-        icon.setAttribute("aria-hidden", "true");
-        icon.textContent = states[index] ? "✓" : "○";
-
-        const copy = document.createElement("span");
-        copy.textContent = rules[index].text;
-
-        item.append(icon, copy);
-        ruleList.appendChild(item);
-      }
-    }
-
-    function render(value, states) {
-      const firstInvalid = states.slice(0, visibleRules).findIndex(state => !state);
-      activeRuleIndex = firstInvalid === -1 ? Math.max(0, visibleRules - 1) : firstInvalid;
-
-      const length = characterCount(value);
-      charCountElement.textContent = `${length} character${length === 1 ? "" : "s"}`;
-
-      if (hasWon) {
-        ruleNumber.textContent = "Complete";
-        ruleNumber.classList.add("complete");
-        ruleTitle.textContent = "Every rule passes.";
-        ruleDetail.textContent = `${length} characters · digit sum ${digitSum(value)} · ${uppercaseCount(value)} uppercase letters`;
-        challengeNote.hidden = true;
-      } else {
-        const activeRule = rules[activeRuleIndex];
-        ruleNumber.textContent = "Active requirement";
-        ruleNumber.classList.remove("complete");
-        ruleTitle.textContent = activeRule.text;
-        ruleDetail.textContent = activeRule.detail(value);
-        challengeNote.hidden = false;
-      }
-
-      renderRulebook(states);
-    }
-
-    function updateGame() {
-      const value = passwordInput.value;
-      const states = getStates(value);
-      const previousVisibleRules = visibleRules;
-
-      while (visibleRules < rules.length && states.slice(0, visibleRules).every(Boolean)) {
-        visibleRules += 1;
-      }
-
-      if (visibleRules !== previousVisibleRules) {
-        announcer.textContent = `New requirement: ${rules[visibleRules - 1].text}`;
-      }
-
-      const allPassed = visibleRules === rules.length && states.every(Boolean);
-      if (allPassed && !hasWon) winGame(value);
-      render(value, states);
-    }
-
-    function winGame(value) {
-      hasWon = true;
-      stopTimer();
-      passwordInput.readOnly = true;
-      victoryPassword.textContent = value;
-      victory.classList.add("visible");
-      announcer.textContent = "Congratulations. Every password requirement is valid.";
-      launchConfetti();
-      window.setTimeout(() => victory.scrollIntoView({ behavior: "smooth", block: "center" }), 180);
-    }
-
-    function resetGame() {
-      if (timerId) window.clearInterval(timerId);
-      stopConfetti();
-      timerId = null;
-      visibleRules = 1;
-      activeRuleIndex = 0;
-      hasWon = false;
-      startTime = null;
-      finishTime = null;
-      passwordInput.readOnly = false;
-      passwordInput.value = "";
-      passwordInput.style.height = "160px";
-      timerElement.textContent = "00:00";
-      victory.classList.remove("visible");
-      copyButton.textContent = "Copy password";
-      updateGame();
-      passwordInput.focus();
-    }
-
-    async function copyPassword() {
-      try {
-        await navigator.clipboard.writeText(passwordInput.value);
-      } catch {
-        passwordInput.focus();
-        passwordInput.select();
-        document.execCommand("copy");
-        passwordInput.setSelectionRange(passwordInput.value.length, passwordInput.value.length);
-      }
-      copyButton.textContent = "Copied ✓";
-      window.setTimeout(() => { copyButton.textContent = "Copy password"; }, 1600);
-    }
-
-    const confettiCanvas = document.getElementById("confetti");
-    const confettiContext = confettiCanvas.getContext("2d");
-    let confettiParticles = [];
-    let confettiFrame = null;
-    let confettiEndsAt = 0;
-
-    function sizeConfettiCanvas() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      confettiCanvas.width = Math.floor(window.innerWidth * ratio);
-      confettiCanvas.height = Math.floor(window.innerHeight * ratio);
-      confettiContext.setTransform(ratio, 0, 0, ratio, 0, 0);
-    }
-
-    function launchConfetti() {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      stopConfetti();
-      sizeConfettiCanvas();
-      const palette = ["#ffcf70", "#7ef3b2", "#9f91ff", "#ff8e9e", "#f7f4ec"];
-      confettiParticles = Array.from({ length: 150 }, () => ({
-        x: Math.random() * window.innerWidth,
-        y: -20 - Math.random() * window.innerHeight * 0.65,
-        width: 5 + Math.random() * 7,
-        height: 8 + Math.random() * 11,
-        velocityX: -1.8 + Math.random() * 3.6,
-        velocityY: 2.2 + Math.random() * 4,
-        rotation: Math.random() * Math.PI,
-        spin: -0.11 + Math.random() * 0.22,
-        color: palette[Math.floor(Math.random() * palette.length)]
-      }));
-      confettiEndsAt = performance.now() + 4200;
-      confettiFrame = requestAnimationFrame(drawConfetti);
-    }
-
-    function drawConfetti(now) {
-      confettiContext.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      confettiParticles.forEach(particle => {
-        particle.x += particle.velocityX;
-        particle.y += particle.velocityY;
-        particle.rotation += particle.spin;
-        confettiContext.save();
-        confettiContext.translate(particle.x, particle.y);
-        confettiContext.rotate(particle.rotation);
-        confettiContext.fillStyle = particle.color;
-        confettiContext.fillRect(-particle.width / 2, -particle.height / 2, particle.width, particle.height);
-        confettiContext.restore();
-      });
-      confettiParticles = confettiParticles.filter(particle => particle.y < window.innerHeight + 30);
-
-      if (now < confettiEndsAt && confettiParticles.length) {
-        confettiFrame = requestAnimationFrame(drawConfetti);
-      } else {
-        stopConfetti();
-      }
-    }
-
-    function stopConfetti() {
-      if (confettiFrame) cancelAnimationFrame(confettiFrame);
-      confettiFrame = null;
-      confettiParticles = [];
-      confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-    }
-
-    function findNumericPairForSolution() {
-      const largeNumbersByDigitSum = new Map();
-      for (let number = 9001; number <= 9999; number += 1) {
-        const sum = digitSum(String(number));
-        if (!largeNumbersByDigitSum.has(sum)) largeNumbersByDigitSum.set(sum, String(number));
-      }
-
-      const equations = ["8+7=15"];
-      for (let left = 1; left <= 99; left += 1) {
-        for (let right = 1; right <= 99; right += 1) {
-          equations.push(`${left}+${right}=${left + right}`);
-        }
-      }
-
-      for (const equation of equations) {
-        const requiredLargeNumberSum = 69 - digitSum(currentYear) - digitSum("404") - digitSum(equation);
-        if (largeNumbersByDigitSum.has(requiredLargeNumberSum)) {
-          return { equation, largeNumber: largeNumbersByDigitSum.get(requiredLargeNumberSum) };
-        }
-      }
-      throw new Error("Unable to construct the built-in winning path for this year.");
-    }
-
-    function buildVerifiedSolution() {
-      const { equation, largeNumber } = findNumericPairForSolution();
-      const core = `abaxyz!ABCDEcatgreen${currentYear}😺baconchickenvenusαsushicoffeefogshreklolmonday#winningSOS$www.🎵rules${equation}#404#${largeNumber}`;
-      let padding = "";
-      while (!isPrime(characterCount(`${core}${padding}a`))) padding += "x";
-      const solution = `${core}${padding}a`;
-      const failedRules = rules.reduce((failures, rule, index) => rule.check(solution) ? failures : [...failures, index + 1], []);
-      if (failedRules.length) throw new Error(`Built-in solvability check failed on rules: ${failedRules.join(", ")}`);
-      return solution;
-    }
-
-    passwordInput.addEventListener("input", () => {
-      if (passwordInput.value && !startTime) beginTimer();
-      resizeInput();
-      updateGame();
-    });
-    resetButton.addEventListener("click", resetGame);
-    playAgainButton.addEventListener("click", resetGame);
-    copyButton.addEventListener("click", copyPassword);
-    window.addEventListener("resize", () => {
-      if (confettiFrame) sizeConfettiCanvas();
-    });
-
-    buildVerifiedSolution();
-
-    readBestTime();
-    updateGame();
-  </script>
+  <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="game.mjs?v=20260927a"></script>
 </body>
 </html>
