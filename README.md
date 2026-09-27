@@ -311,7 +311,7 @@ This is an orientation list, not a full review of every app:
 | `dev/Tech Tools/`, `dev/converter/`, `dev/shorturl/` | Browser utilities, converters, and short-link UI; short-link infrastructure has a [separate guide](backend/shorturl/README.md) |
 | `dev/Archive/` | Searchable links sourced from `Links.txt`; [guide](dev/Archive/README.md) |
 | `dev/Trading/` | Static Asset Intel dashboard with Python-generated data; [guide](dev/Trading/README.md) |
-| `dev/bg/` | Bulgarian open-data atlas using React/TypeScript/Vite and local data snapshots; [guide](dev/bg/README.md) |
+| `dev/bg/` | Eight sourced national indicators with interactive charts, CSV data and source notes; React/TypeScript/Vite with local snapshots; [guide](dev/bg/README.md) |
 | `dev/Cylinder/` | React/TypeScript tank-volume calculator; [guide](dev/Cylinder/README.md) |
 | `dev/Candycrush/` | Sugarbox: The Hollow Orchard, an ASCII idle RPG; [guide](dev/Candycrush/README.md) |
 | `dev/password_game/` | Bilingual 37-rule logic puzzle with a tested winning path; [guide](dev/password_game/README.md) |

@@ -36,19 +36,9 @@ export default function TrendChart({ indicatorKey, series, retrievedAt }: { indi
 
   return <figure className="trend-chart" id={`stat-${indicatorKey}`}>
     <figcaption>
-      <div><span className="eyebrow">България · {first.year}–{last.year}</span><h3>{series.title}</h3><p>{series.unit}</p></div>
-      <div className="trend-summary">
-        <strong>{formatIndicator(indicatorKey, last.value)}</strong><span>за {last.year} г.</span>
-        <span>{rows.length === 1 ? "Избрана е една година" : delta === null ? "Промяна: няма база за сравнение" : `${delta > 0 ? "+" : ""}${delta.toLocaleString("bg-BG", { maximumFractionDigits: 1 })} ${series.change_unit} между ${first.year} и ${last.year}`}</span>
-      </div>
+      <div><span className="eyebrow">{first.year}–{last.year}</span><h2>{series.title}</h2><p>{series.unit}{indicatorKey === "population" ? " · оценка към средата на годината" : ""}</p></div>
+      <div className="trend-summary"><strong>{formatIndicator(indicatorKey, selected.value)}</strong><span>{selected.year} г.</span></div>
     </figcaption>
-    <div className="stat-controls">
-      <div className="year-range" aria-label={`Период за ${series.title}`}>
-        <label>От<select aria-label={`От година — ${series.title}`} value={from} onChange={e => setFrom(e.target.value)}>{series.data.filter(row => row.year <= to).map(row => <option key={row.year}>{row.year}</option>)}</select></label>
-        <label>До<select aria-label={`До година — ${series.title}`} value={to} onChange={e => setTo(e.target.value)}>{series.data.filter(row => row.year >= from).map(row => <option key={row.year}>{row.year}</option>)}</select></label>
-      </div>
-      <label className="zero-control"><input type="checkbox" checked={includeZero} onChange={e => setIncludeZero(e.target.checked)} />Включи нулата в скалата</label>
-    </div>
     <svg className="stat-plot" viewBox="0 0 640 265" role="img" aria-label={`${series.title}: ${first.year}–${last.year}. Точните стойности са в таблицата под графиката.`}>
       <text x="88" y="17" className="stat-axis-unit">{axisUnit}</text>
       {scale.ticks.map((tick, index) => <g key={index}><line x1="88" x2="608" y1={y(tick)} y2={y(tick)} className="stat-gridline" /><text x="76" y={y(tick) + 5} textAnchor="end">{axis(tick)}</text></g>)}
@@ -58,14 +48,27 @@ export default function TrendChart({ indicatorKey, series, retrievedAt }: { indi
       {[...new Set([0, Math.floor((rows.length - 1) / 2), rows.length - 1])].map(index => <text key={index} x={scale.points[index].x} y="252" textAnchor="middle">{rows[index].year}</text>)}
     </svg>
     <div className="stat-scrubber">
-      <label htmlFor={`year-${indicatorKey}`}>Година: <strong>{selected.year}</strong><span>{formatIndicator(indicatorKey, selected.value)}</span></label>
+      <label htmlFor={`year-${indicatorKey}`}>Изберете година <strong>{selected.year}</strong></label>
       <input id={`year-${indicatorKey}`} type="range" min="0" max={rows.length - 1} value={selectedIndex} disabled={rows.length === 1} onChange={e => setSelectedYear(rows[Number(e.target.value)].year)} aria-valuetext={`${selected.year}: ${formatIndicator(indicatorKey, selected.value)}`} />
     </div>
-    <p className="stat-context">{series.note}</p>
-    <p className="stat-scale-note">{includeZero ? "Скалата включва нулата." : "Скалата следва диапазона на стойностите; вижте деленията вляво."} п.п. = процентни пункта.</p>
-    <details className="stat-table"><summary>Вижте стойностите · {rows.length} {rows.length === 1 ? "година" : "години"}</summary>
-      <div className="table-scroll"><table><caption>{series.title} · {series.unit}. До 8 знака след запетаята; CSV пази оригиналната точност.</caption><thead><tr><th scope="col">Година</th><th scope="col">Стойност</th><th scope="col">Бележка</th></tr></thead><tbody>{rows.map(row => <tr key={row.year}><th scope="row">{row.year}</th><td>{row.value.toLocaleString("bg-BG", { maximumFractionDigits: 8 })}</td><td>{row.status === "F" ? "Прогноза в източника" : row.status || "—"}</td></tr>)}</tbody></table></div>
+    <div className="chart-links"><a href={series.source_url} target="_blank" rel="noreferrer">Световна банка ↗</a><a href={`${base}data/${series.csv_path}`} download>CSV ↓</a></div>
+    <details className="stat-details">
+      <summary>Стойности и подробности</summary>
+      <div className="stat-detail-content">
+        <div className="stat-controls">
+          <div className="year-range" aria-label={`Период за ${series.title}`}>
+            <label>От<select aria-label={`От година — ${series.title}`} value={from} onChange={e => setFrom(e.target.value)}>{series.data.filter(row => row.year <= to).map(row => <option key={row.year}>{row.year}</option>)}</select></label>
+            <label>До<select aria-label={`До година — ${series.title}`} value={to} onChange={e => setTo(e.target.value)}>{series.data.filter(row => row.year >= from).map(row => <option key={row.year}>{row.year}</option>)}</select></label>
+          </div>
+          <label className="zero-control"><input type="checkbox" checked={includeZero} onChange={e => setIncludeZero(e.target.checked)} />Включи нулата в скалата</label>
+        </div>
+        <p className="stat-context">{series.note}</p>
+        <p className="stat-change">{rows.length === 1 ? "Избрана е една година." : delta === null ? "Промяна: няма база за сравнение." : `${delta > 0 ? "+" : ""}${delta.toLocaleString("bg-BG", { maximumFractionDigits: 1 })} ${series.change_unit} между ${first.year} и ${last.year}.`}</p>
+        <p className="stat-scale-note">{includeZero ? "Скалата включва нулата." : "Скалата следва диапазона на стойностите."}{series.change_unit === "п.п." ? " п.п. = процентни пункта." : ""}</p>
+        <div className="table-scroll"><table><caption>{series.title} · {series.unit}. До 8 знака след запетаята; CSV пази оригиналната точност за всички години.</caption><thead><tr><th scope="col">Година</th><th scope="col">Стойност</th><th scope="col">Бележка</th></tr></thead><tbody>{rows.map(row => <tr key={row.year}><th scope="row">{row.year}</th><td>{row.value.toLocaleString("bg-BG", { maximumFractionDigits: 8 })}</td><td>{row.status === "F" ? "Прогноза в източника" : row.status || "—"}</td></tr>)}</tbody></table></div>
+        <div className="source-links"><a href={series.api_url} target="_blank" rel="noreferrer">API ↗</a><a href={`${base}data/${series.raw_path}`}>Оригинален отговор (JSON)</a><a href={`${base}data/${series.metadata_path}`}>Определение и произход</a></div>
+        <p className="source-date">Изтеглено: {stamp}. Годината на всяко наблюдение е в таблицата.</p>
+      </div>
     </details>
-    <div className="chart-note"><a href={series.source_url} target="_blank" rel="noreferrer">Световна банка · източник ↗</a><a href={`${base}data/${series.csv_path}`} download>CSV · всички години ↓</a><a href={`${base}data/${series.raw_path}`}>Оригинален отговор (JSON)</a><span>Изтеглено: {stamp}</span></div>
   </figure>;
 }

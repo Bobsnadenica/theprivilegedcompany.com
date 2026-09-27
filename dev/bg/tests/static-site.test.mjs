@@ -40,9 +40,19 @@ test("публикуваният /dev/bg/ вход сочи към наличн�
   const scriptPath = localReferences.find((path) => path.endsWith(".js"));
   const script = await readFile(new URL(`../${scriptPath}`, import.meta.url), "utf8");
   assert.match(script, /\/dev\/bg\//);
-  assert.match(script, /data\/catalog-datasets\.json/);
-  assert.match(script, /data\/road-visuals\.json/);
+  const indicators = JSON.parse(await readFile(new URL("../data/indicators/world-bank.json", import.meta.url), "utf8"));
+  for (const series of Object.values(indicators.series)) {
+    assert.ok(script.includes(series.indicator), `Липсва показателят ${series.indicator}`);
+    assert.ok(script.includes(series.title), `Липсва заглавието ${series.title}`);
+    assert.ok(script.includes(series.source_url), `Липсва източникът ${series.indicator}`);
+    assert.ok(script.includes(series.csv_path), `Липсва CSV за ${series.indicator}`);
+    assert.ok(script.includes(series.raw_path), `Липсва оригиналът за ${series.indicator}`);
+  }
+  assert.match(script, /Стойности и подробности/);
+  assert.match(script, /Източници и метод/);
   assert.match(script, /Период за/);
-  assert.match(script, /type:[`"']date[`"']/);
+  assert.match(script, /type:[`"']range[`"']/);
+  assert.doesNotMatch(script, /data\/catalog-datasets\.json|data\/road-visuals\.json/);
+  assert.doesNotMatch(script, /Покритие на метаданните|Кой публикува най-много|Намерете конкретен набор/);
   assert.doesNotMatch(script, /testdata\.egov\.bg/i);
 });
