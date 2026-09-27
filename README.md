@@ -22,7 +22,7 @@ No email was sent. Regression, syntax, CSP and whitespace checks pass.
 ## One-to-one mentoring (2026-09-27)
 
 The homepage and Individuals service card now describe practical AI and IT mentoring
-with a senior software architect. The existing 100 EUR session price is unchanged.
+with a certified senior cloud architect. The existing 100 EUR session price is unchanged.
 The homepage's Discuss mentoring link selects the existing Tech Training enquiry;
 old service links remain compatible. The Tool Suite card highlights command practice
 and interactive phone-system examples. English and Bulgarian copy stay in sync.
@@ -61,7 +61,7 @@ recapture only the current URL's labels. Arbitrary query data and advertising cl
 IDs are omitted. Opening a draft is not a sent or received enquiry, and there is no
 conversion tracking.
 
-Asset version `20260927d`. Regression, syntax, CSP, and whitespace checks pass.
+Asset version `20260927e`. Regression, syntax, CSP, and whitespace checks pass.
 The original release covered 88 route/language/viewport combinations. This follow-up
 checked the changed contact flow in English and Bulgarian, desktop and 320/390 px
 layouts, light/dark themes, and homepage navigation; no overflow or console errors.

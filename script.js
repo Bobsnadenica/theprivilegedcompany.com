@@ -2,19 +2,19 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927d';
+import { languageMeta, translations } from './translations.js?v=20260927e';
 
 const routes = {
     '': {
         title: 'IT Solutions, App & Website Development',
         // Root renders the hub view baked into index.html; no fragment is fetched.
         isStatic: true,
-        description: 'Websites, apps, automation, and 1:1 tech consultations for individuals and businesses. Practical AI and IT mentoring with a senior software architect.'
+        description: 'Websites, apps, automation, and 1:1 tech consultations for individuals and businesses. Practical AI and IT mentoring with a certified senior cloud architect.'
     },
     'manifest': {
         title: 'Services',
         view: 'manifest.html',
-        description: 'Explore websites, apps, automation, 1:1 consultations, and AI/IT mentoring for individuals and businesses.'
+        description: 'Websites, apps, automation, and 1:1 AI/IT mentoring with a certified senior cloud architect. Services for individuals and businesses.'
     },
     'who-are-we': {
         title: 'Who we are',
@@ -59,7 +59,7 @@ const routes = {
     'contact': {
         title: 'Contact',
         view: 'contact.html',
-        description: 'Ask about a project, a 1:1 consultation, or AI and IT mentoring. Get practical help for yourself or your business.'
+        description: 'Ask about a project, a 1:1 consultation, or AI/IT mentoring with a certified senior cloud architect. Practical help for you or your business.'
     }
 };
 
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927d';
+const assetVersion = '20260927e';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);

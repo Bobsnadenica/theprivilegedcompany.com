@@ -9,7 +9,7 @@ const siteOrigin = 'https://www.theprivilegedcompany.com';
 const routes = {
   manifest: {
     title: 'ThePrivilegedCompany | Services',
-    description: 'Explore websites, apps, automation, 1:1 consultations, and AI/IT mentoring for individuals and businesses.'
+    description: 'Websites, apps, automation, and 1:1 AI/IT mentoring with a certified senior cloud architect. Services for individuals and businesses.'
   },
   'who-are-we': {
     title: 'ThePrivilegedCompany | Who we are',
@@ -45,7 +45,7 @@ const routes = {
   },
   contact: {
     title: 'ThePrivilegedCompany | Contact',
-    description: 'Ask about a project, a 1:1 consultation, or AI and IT mentoring. Get practical help for yourself or your business.'
+    description: 'Ask about a project, a 1:1 consultation, or AI/IT mentoring with a certified senior cloud architect. Practical help for you or your business.'
   }
 };
 

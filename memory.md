@@ -484,3 +484,19 @@ desktop/dark, without overflow or console errors. New EN/BG consultation selecti
 and encoded email drafts were verified using synthetic input; no email was sent.
 Facebook bio and relevant caption updates plus the pending AIPost247 posts remain
 owned by Social Media and the Bulgarian chat, with receipts in sibling Social logs.
+
+## Mentoring credential wording — 2026-09-27
+
+The owner explicitly states that 1:1 mentoring is delivered by a **certified senior
+cloud architect**. Use that full title in mentoring descriptions and keep the
+architect title consistent across related consultation copy. Bulgarian wording:
+**сертифициран старши архитект на облачни решения**. This is owner-provided
+positioning; do not invent a certification issuer, certificate name, level or ID.
+Keep short navigation and action labels readable; qualify the adjacent service
+description. Individuals and businesses are both welcome. Consultation pricing
+remains separate from the existing 100 EUR mentoring session price.
+
+The owner also requested one more Dot image promoting AIPost247 as free software.
+The product remains named AIPost247. The application is free to download and use;
+third-party AI-provider fees may apply. This image request does not add a new
+Facebook publication or paid boost. Artwork and publishing records stay in Social.
