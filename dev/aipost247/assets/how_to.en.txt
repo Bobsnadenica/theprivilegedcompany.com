@@ -1,0 +1,7 @@
+1.jpg - Download and unzip AIPost247.
+
+2.jpg - Run ./run.sh on Mac/Linux, or double-click run.bat on Windows.
+
+3.jpg - The first launch installs the required dependencies. Wait for setup to finish.
+
+4.jpg - The dashboard opens in your browser so you can configure the app.

@@ -4,13 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>AIPost247 — Свържете вашата Facebook страница</title>
-<meta property="og:title" content="AIPost247 — Свържете вашата Facebook страница">
-<meta property="og:description" content="ThePrivilegedCompany project page.">
+<meta name="description" content="Изтеглете безплатния AIPost247 и настройте AI публикации за вашата Facebook страница." data-en-content="Download the free AIPost247 app and set up AI-written posts for your Facebook Page.">
+<title data-en="AIPost247 — Connect your Facebook Page">AIPost247 — Свържете вашата Facebook страница</title>
+<meta property="og:title" content="AIPost247 — Свържете вашата Facebook страница" data-en-content="AIPost247 — Connect your Facebook Page">
+<meta property="og:description" content="Изтеглете безплатния AIPost247 и настройте AI публикации за вашата Facebook страница." data-en-content="Download the free AIPost247 app and set up AI-written posts for your Facebook Page.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/aipost247/index.html">
-<meta name="twitter:title" content="AIPost247 — Свържете вашата Facebook страница">
-<meta name="twitter:description" content="ThePrivilegedCompany project page.">
+<meta name="twitter:title" content="AIPost247 — Свържете вашата Facebook страница" data-en-content="AIPost247 — Connect your Facebook Page">
+<meta name="twitter:description" content="Изтеглете безплатния AIPost247 и настройте AI публикации за вашата Facebook страница." data-en-content="Download the free AIPost247 app and set up AI-written posts for your Facebook Page.">
 <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:type" content="image/png">
@@ -167,8 +168,12 @@
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
   .back-link { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
   .back-link:hover { color: var(--accent-ink); }
-  .top-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
-  .shots-btn { cursor: pointer; border: 1px solid var(--accent); background: #fff; color: var(--accent);
+  .language-switch { display: flex; padding: 4px; gap: 3px; background: #e8eef8; border: 1px solid #d2ddef; border-radius: 999px; }
+  .language-switch button { border: 0; background: transparent; color: #43526a; font: inherit; font-size: .88rem; font-weight: 650; padding: 9px 12px; min-height: 44px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .language-switch button[aria-pressed="true"] { background: #fff; color: #0b5fd0; box-shadow: 0 2px 6px #182c4614; }
+  .language-switch button:hover { color: #0b5fd0; background: #fff; }
+  .top-actions { width: 100%; display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+  .shots-btn { cursor: pointer; min-height: 44px; border: 1px solid var(--accent); background: #fff; color: var(--accent);
     font: inherit; font-weight: 700; font-size: 0.9rem; padding: 8px 15px; border-radius: 999px; transition: background .15s, color .15s, transform .12s, box-shadow .15s; }
   .shots-btn:hover { background: var(--accent); color: #fff; transform: translateY(-1px); box-shadow: 0 12px 22px -16px var(--accent); }
 
@@ -180,10 +185,10 @@
     display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
   .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid var(--line); }
   .modal-head h3 { margin: 0; font-size: 1.08rem; }
-  .modal-close { cursor: pointer; border: none; background: #eef2f8; color: var(--ink); width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; }
+  .modal-close { cursor: pointer; border: none; background: #eef2f8; color: var(--ink); width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; font-size: 1rem; }
   .modal-close:hover { background: #e0e6f0; }
   .modal-body { padding: 18px 20px; overflow: auto; }
-  .shots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .shots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: 14px; }
   .shot { position: relative; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fafcff; cursor: zoom-in; text-align: left; padding: 0; aspect-ratio: 16 / 10; transition: transform .15s, box-shadow .15s, border-color .15s; }
   .shot:hover { transform: translateY(-2px); border-color: #cbd8ec; box-shadow: 0 16px 28px -22px rgba(16,32,44,.7); }
   .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -191,7 +196,7 @@
     background: linear-gradient(to top, rgba(4, 10, 18, .94), rgba(4, 10, 18, .78), rgba(4, 10, 18, 0));
     color: #fff; font-size: 0.85rem; font-weight: 650; line-height: 1.3; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
   .shots-empty { color: var(--muted); text-align: center; padding: 30px 10px; }
-  .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
   .video-card { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fafcff; box-shadow: 0 14px 26px -24px rgba(16,32,44,.7); }
   .video-frame { aspect-ratio: 16 / 9; background: #0f1722; }
   .video-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
@@ -204,6 +209,8 @@
     flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; z-index: 60; cursor: zoom-out; }
   .lightbox[hidden] { display: none; }
   .lightbox img { max-width: 96%; max-height: 92vh; border-radius: 10px; box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); }
+  .lightbox > .modal-close { position: absolute; top: 16px; right: 16px; }
+  .lightbox img { max-height: 72vh; }
   .lightbox-caption { max-width: min(760px, 96%); color: #fff; text-align: center; font-weight: 650;
     background: rgba(8,14,22,.68); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 9px 13px; }
   .lightbox-caption[hidden] { display: none; }
@@ -219,7 +226,11 @@
     header.hero { padding: 27px 22px; }
     header.hero h1 { font-size: 1.62rem; }
     .card { padding: 5px 18px; }
-    table { display: block; overflow-x: auto; white-space: nowrap; }
+    table { display: block; overflow-x: auto; }
+    .top-actions { justify-content: flex-start; }
+    .topbar > .language-switch { margin-left: auto; }
+    .card, .callout { min-width: 0; overflow-wrap: anywhere; }
+    td { min-width: 145px; }
   }
 </style>
 </head>
@@ -228,115 +239,93 @@
 
   <div class="topbar">
     <a class="back-link" href="https://www.theprivilegedcompany.com/">← The Privileged Company</a>
+    <div class="language-switch" role="group" aria-label="Език" data-en-aria-label="Language">
+      <button type="button" data-language="en" lang="en" aria-pressed="false"><span aria-hidden="true">🇬🇧</span> English</button>
+      <button type="button" data-language="bg" lang="bg" aria-pressed="true"><span aria-hidden="true">🇧🇬</span> Български</button>
+    </div>
     <div class="top-actions">
-      <button type="button" class="shots-btn" id="open-shots">📷 Снимки, за по-лесно</button>
-      <button type="button" class="shots-btn" id="open-videos">🎥 Видео, за още по-лесно</button>
+      <button type="button" class="shots-btn" id="open-shots" data-en="📷 Screenshots">📷 Снимки</button>
+      <button type="button" class="shots-btn" id="open-videos" data-en="🎥 Video guide">🎥 Видео ръководство</button>
     </div>
   </div>
 
   <header class="hero">
-    <p class="eyebrow">AIPost247 · Ръководство за настройка</p>
-    <h1>Свържете вашата Facebook страница</h1>
-    <p>Направете тази еднократна настройка (около 3–5 минути) и след това
-       <strong>всичко работи локално от скрипта</strong> — той ви вписва, намира
-       страницата ви, пише публикации с AI и ги публикува по вашия график.</p>
+    <p class="eyebrow" data-en="AIPost247 · Setup guide">AIPost247 · Ръководство за настройка</p>
+    <h1 data-en="Connect your Facebook Page">Свържете вашата Facebook страница</h1>
+    <p data-en="Set up once, then create AI-written posts and publish to your Facebook Page on your schedule. &lt;strong&gt;AIPost247 runs on your computer&lt;/strong&gt; with your chosen AI provider and Meta app.">Настройте веднъж, след това създавайте публикации с AI и ги публикувайте във вашата Facebook страница по избран график. <strong>AIPost247 работи на вашия компютър</strong> с избрания AI доставчик и вашето Meta приложение.</p>
     <div class="badge-row">
-      <span class="badge">⏱ Еднократно · ~3–5 мин</span>
-      <span class="badge">🔒 Данните остават на вашия компютър</span>
-      <span class="badge">✅ Без App Review за вашите страници</span>
-      <span class="badge">💸 Напълно безплатно!</span>
-      <span class="badge">🖼 Скоро: Автоматично създаване на изображения</span>
+      <span class="badge" data-en="⏱ One-time setup">⏱ Еднократна настройка</span>
+      <span class="badge" data-en="💻 Runs on your computer">💻 Работи на вашия компютър</span>
+      <span class="badge" data-en="✓ Your Facebook Page">✓ Вашата Facebook страница</span>
+      <span class="badge" data-en="↓ Free app">↓ Безплатно приложение</span>
+      <span class="badge" data-en="✦ AI-written posts">✦ Публикации с AI</span>
     </div>
   </header>
 
   <div class="dl">
     <div>
-      <div class="dl-title">Изтеглете AIPost247</div>
-      <div class="dl-sub">Разархивирайте и стартирайте <code class="inline">run.sh</code> (Mac/Linux) или <code class="inline">run.bat</code> (Windows). После следвайте стъпките по-долу.</div>
+      <div class="dl-title" data-en="Download AIPost247">Изтеглете AIPost247</div>
+      <div class="dl-sub" data-en="Unzip and launch &lt;code class=&quot;inline&quot;&gt;run.sh&lt;/code&gt; (Mac/Linux) or &lt;code class=&quot;inline&quot;&gt;run.bat&lt;/code&gt; (Windows). Then follow the steps below. The app is free to download and use; AI-provider fees and limits may apply.">Разархивирайте и стартирайте <code class="inline">run.sh</code> (Mac/Linux) или <code class="inline">run.bat</code> (Windows). После следвайте стъпките по-долу. Приложението е безплатно; възможни са такси и ограничения от AI доставчика.</div>
     </div>
     <div class="dl-cta">
-      <a class="dl-btn" href="download/aipost247.zip" download>⬇ Изтегли .zip</a>
+      <a class="dl-btn" href="download/aipost247.zip" download data-en="⬇ Download .zip">⬇ Изтегли .zip</a>
       <div class="dl-ver" id="dl-ver">Версия 1.4.0 · обновена 2026-07-10</div>
     </div>
   </div>
 
-  <div class="callout">
-    <strong>🧠 Обучавайте AI с всяка публикация.</strong> След като генерирате или
-    публикувате (<code class="inline">generate</code> / <code class="inline">post-now</code>)
-    можете да напишете какво харесвате или какво да се промени — напр. „по-кратко“,
-    „повече емоджи“, „по-малко продажбено“. AI <b>сам съгласува</b> указанията ви в
-    единен стил (по-новата обратна връзка отменя по-старата при противоречие), така
-    че моделът се подобрява без да „блуждае“. Освен това четенето на ангажираността
-    автоматично записва кои публикации работят най-добре.
-  </div>
+  <div class="callout" data-en="&lt;strong&gt;🧠 Shape your writing style.&lt;/strong&gt; After generating or publishing a post (&lt;code class=&quot;inline&quot;&gt;generate&lt;/code&gt; / &lt;code class=&quot;inline&quot;&gt;post-now&lt;/code&gt;), leave feedback such as “shorter”, “more emojis”, or “less promotional”. AIPost247 saves this guidance as context for future posts. Newer feedback takes priority when instructions conflict. You can also refresh engagement data to help guide future drafts."><strong>🧠 Оформете своя стил.</strong> След генериране или публикуване (<code class="inline">generate</code> / <code class="inline">post-now</code>) дайте обратна връзка — например „по-кратко“, „повече емоджи“ или „по-малко продажбено“. AIPost247 запазва насоките като контекст за следващите публикации. При противоречие по-новата обратна връзка има предимство. Можете да обновявате и данните за ангажираността, за да насочвате бъдещите текстове.</div>
 
-  <div class="callout local">
-    <strong>Полезно е да знаете.</strong> Управлявате <b>собствените</b> си
-    страници в режим <em>Development</em> (по подразбиране) — <b>без App Review и
-    без Business Verification.</b> Те са нужни само ако искате други хора да
-    използват вашето приложение.
-  </div>
+  <div class="callout local" data-en="&lt;strong&gt;Before you begin.&lt;/strong&gt; You need a Facebook Page you manage, a Meta developer app, Python 3.9+, and access to an AI provider. Follow the access, App Review, and verification requirements shown in your Meta dashboard; they depend on your app and how you use it."><strong>Преди да започнете.</strong> Нужни са Facebook страница, която управлявате, Meta приложение за разработчици, Python 3.9+ и достъп до AI доставчик. Следвайте изискванията за достъп, App Review и верификация в таблото на Meta — те зависят от приложението и начина на използване.</div>
 
-  <div class="callout">
-    <strong>Защо е необходимо?</strong> Facebook позволява на програма да
-    публикува на страница само чрез <b>регистрирано Meta приложение</b> — по
-    същата причина инструменти като autopost24 искат да "свържете Facebook" и да
-    си платите. Създавате това приложение веднъж; след това скриптът прави всичко
-    останало на вашата машина.
-  </div>
+  <div class="callout" data-en="&lt;strong&gt;Why a Meta app?&lt;/strong&gt; AIPost247 uses Facebook’s official API to publish to your Page. Register your own Meta app once, then connect it through the local dashboard. Meta’s screens can change; the steps below use the English menu labels."><strong>Защо е нужно Meta приложение?</strong> AIPost247 използва официалния API на Facebook, за да публикува във вашата страница. Регистрирайте собствено Meta приложение и го свържете през локалното табло. Екраните на Meta могат да се променят; стъпките по-долу използват английските имена на менютата.</div>
 
   <!-- СТЪПКА 1 -->
-  <h2><span class="num">1</span>Създайте акаунт за разработчици във Facebook</h2>
-  <p class="sub">Безплатно и веднага — използва обикновения ви Facebook вход.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;1&lt;/span&gt;Create a Facebook developer account"><span class="num">1</span>Създайте акаунт за разработчици във Facebook</h2>
+  <p class="sub" data-en="Use your existing Facebook account to register as a developer.">Регистрирайте се като разработчик със съществуващия си Facebook акаунт.</p>
   <div class="card">
     <ol class="steps">
-      <li>Отворете <a href="https://developers.facebook.com/" target="_blank" rel="noopener">developers.facebook.com</a>.</li>
-      <li>Натиснете <b>Get Started</b> (горе вдясно) и влезте с вашия Facebook акаунт.</li>
-      <li>Приемете условията за разработчици и потвърдете имейл или телефон, ако бъдете подканени.</li>
+      <li data-en="Open &lt;a href=&quot;https://developers.facebook.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;developers.facebook.com&lt;/a&gt;.">Отворете <a href="https://developers.facebook.com/" target="_blank" rel="noopener">developers.facebook.com</a>.</li>
+      <li data-en="Click &lt;b&gt;Get Started&lt;/b&gt; and sign in with your Facebook account.">Натиснете <b>Get Started</b> (горе вдясно) и влезте с вашия Facebook акаунт.</li>
+      <li data-en="Review the developer terms and verify your email or phone if prompted.">Приемете условията за разработчици и потвърдете имейл или телефон, ако бъдете подканени.</li>
     </ol>
   </div>
 
-  <h2><span class="num">2</span>Създайте приложение (App details)</h2>
-  <p class="sub">Първата стъпка иска само име.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;2&lt;/span&gt;Create an app (App details)"><span class="num">2</span>Създайте приложение (App details)</h2>
+  <p class="sub" data-en="Choose a name and contact email for your app.">Изберете име и имейл за контакт за приложението.</p>
   <div class="card">
     <ol class="steps">
-      <li>Отидете на <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b>.</li>
-      <li>На <b>App details</b> въведете <b>App name</b> (напр. <span class="pill">My Page Poster</span>) и имейл за контакт → <b>Next</b>.</li>
+      <li data-en="Go to &lt;a href=&quot;https://developers.facebook.com/apps/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;developers.facebook.com/apps&lt;/a&gt; → &lt;b&gt;Create app&lt;/b&gt;.">Отидете на <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps</a> → <b>Create app</b>.</li>
+      <li data-en="Under &lt;b&gt;App details&lt;/b&gt;, enter an &lt;b&gt;App name&lt;/b&gt; (for example, &lt;span class=&quot;pill&quot;&gt;My Page Poster&lt;/span&gt;) and contact email → &lt;b&gt;Next&lt;/b&gt;.">На <b>App details</b> въведете <b>App name</b> (напр. <span class="pill">My Page Poster</span>) и имейл за контакт → <b>Next</b>.</li>
     </ol>
   </div>
 
   <h2><span class="num">3</span>Use cases → „Manage everything on your Page“</h2>
-  <p class="sub">Това дава правата за публикуване и за четене на ангажираността.</p>
+  <p class="sub" data-en="Choose the use case for Page publishing and engagement.">Изберете случая на употреба за публикуване в страница и отчитане на ангажираността.</p>
   <div class="card">
     <ol class="steps">
-      <li>На стъпка <b>Use cases</b> вляво филтрирайте по <b>All</b> (вече <b>няма</b> опция „Other“).</li>
-      <li>Изберете <b>„Manage everything on your Page“</b> → <b>Next</b>.</li>
+      <li data-en="Under &lt;b&gt;Use cases&lt;/b&gt;, select the &lt;b&gt;All&lt;/b&gt; filter to find the Page management option.">В <b>Use cases</b> изберете филтъра <b>All</b>, за да намерите опцията за управление на страници.</li>
+      <li data-en="Select &lt;b&gt;Manage everything on your Page&lt;/b&gt; → &lt;b&gt;Next&lt;/b&gt;.">Изберете <b>„Manage everything on your Page“</b> → <b>Next</b>.</li>
     </ol>
-    <div class="warn" style="background:#e8f8ef;border-color:#bce6cd">
-      Този use case дава достъп до <code class="inline">pages_manage_posts</code> и
-      <code class="inline">pages_read_engagement</code>, но изборът му <b>не ги активира
-      сам</b> — трябва да ги <b>добавите ръчно</b> в <b>Стъпка 5</b> (иначе при вход
-      ще видите „Invalid Scopes“).
-    </div>
+    <div class="warn" style="background:#e8f8ef;border-color:#bce6cd" data-en="Selecting the use case &lt;b&gt;does not automatically enable&lt;/b&gt; every permission. Add &lt;code class=&quot;inline&quot;&gt;pages_manage_posts&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;pages_read_engagement&lt;/code&gt;, and &lt;code class=&quot;inline&quot;&gt;pages_show_list&lt;/code&gt; in &lt;b&gt;Step 5&lt;/b&gt;. Missing permissions can cause an “Invalid Scopes” error.">Изборът на use case <b>не активира автоматично</b> всички права. Добавете <code class="inline">pages_manage_posts</code>, <code class="inline">pages_read_engagement</code> и <code class="inline">pages_show_list</code> в <b>Стъпка 5</b>. Липсващи права могат да доведат до грешка „Invalid Scopes“.</div>
   </div>
 
-  <h2><span class="num">4</span>Бизнес портфолио (Business)</h2>
-  <p class="sub">На въпроса „Want to connect a new business portfolio?“.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;4&lt;/span&gt;Business portfolio"><span class="num">4</span>Бизнес портфолио (Business)</h2>
+  <p class="sub" data-en="If Meta asks “Want to connect a new business portfolio?”.">Ако Meta попита „Want to connect a new business portfolio?“.</p>
   <div class="card">
     <ol class="steps">
-      <li>Натиснете <b>Create a business portfolio</b> (или свържете съществуващо, ако имате такова).</li>
-      <li>Въведете име (вашето или на бизнеса) и имейл → продължете.</li>
-      <li>На <b>Requirements</b> и <b>Overview</b> прегледайте и натиснете <b>Create app</b> (въведете паролата си).</li>
+      <li data-en="Click &lt;b&gt;Create a business portfolio&lt;/b&gt;, or connect an existing one.">Натиснете <b>Create a business portfolio</b> (или свържете съществуващо, ако имате такова).</li>
+      <li data-en="Enter your name or business name and an email address, then continue.">Въведете име (вашето или на бизнеса) и имейл → продължете.</li>
+      <li data-en="Review &lt;b&gt;Requirements&lt;/b&gt; and &lt;b&gt;Overview&lt;/b&gt;, then click &lt;b&gt;Create app&lt;/b&gt;. Enter your Facebook password if prompted.">На <b>Requirements</b> и <b>Overview</b> прегледайте и натиснете <b>Create app</b> (въведете паролата си).</li>
     </ol>
-    <div class="warn">Безплатно е и отнема минута. Помага правата за страницата да работят правилно.</div>
+    <div class="warn" data-en="Complete any requirements Meta shows for your app or business portfolio.">Изпълнете изискванията, които Meta показва за приложението или бизнес портфолиото.</div>
   </div>
 
-  <h2><span class="num">5</span>Добавете правата за страницата (задължително)</h2>
-  <p class="sub">Дори да избрахте „Manage everything on your Page“, тези права трябва да се добавят ръчно.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;5&lt;/span&gt;Add the Page permissions"><span class="num">5</span>Добавете правата за страницата (задължително)</h2>
+  <p class="sub" data-en="Check these permissions even if you already selected “Manage everything on your Page”.">Проверете тези права, дори вече да сте избрали „Manage everything on your Page“.</p>
   <div class="card">
     <ol class="steps">
-      <li>Отворете use case-а → <b>Customize</b> (или <b>Use cases</b> → вашия use case → <b>Permissions</b>).</li>
-      <li>
+      <li data-en="Open the use case → &lt;b&gt;Customize&lt;/b&gt; (or &lt;b&gt;Use cases&lt;/b&gt; → your use case → &lt;b&gt;Permissions&lt;/b&gt;).">Отворете use case-а → <b>Customize</b> (или <b>Use cases</b> → вашия use case → <b>Permissions</b>).</li>
+      <li data-en="Click &lt;b&gt;Add&lt;/b&gt; for each required permission:&lt;ul style=&quot;margin:6px 0 0; padding-left:20px&quot;&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;pages_show_list&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;pages_read_engagement&lt;/code&gt;&lt;/li&gt;&lt;li&gt;&lt;code class=&quot;inline&quot;&gt;pages_manage_posts&lt;/code&gt;&lt;/li&gt;&lt;/ul&gt;">
         За всяко от тези права натиснете <b>Add</b>, докато станат добавени:
         <ul style="margin:6px 0 0; padding-left:20px">
           <li><code class="inline">pages_show_list</code></li>
@@ -344,46 +333,36 @@
           <li><code class="inline">pages_manage_posts</code></li>
         </ul>
       </li>
-      <li>В режим <b>Development</b> правата работят за <b>вашите</b> страници веднага — без App Review и без публикуване.</li>
+      <li data-en="Check your app role, Page access, and permission access level in Meta’s dashboard before connecting.">Проверете ролята си в приложението, достъпа до страницата и нивото на достъп за правата в таблото на Meta преди свързване.</li>
     </ol>
-    <div class="warn">
-      Изборът на use case <b>не</b> ги активира автоматично — ако пропуснете тази стъпка,
-      входът ще даде грешка <b>„Invalid Scopes: pages_read_engagement, pages_manage_posts“</b>.
-    </div>
+    <div class="warn" data-en="If you see &lt;b&gt;“Invalid Scopes: pages_read_engagement, pages_manage_posts”&lt;/b&gt;, return here and check that the permissions were added.">Ако видите <b>„Invalid Scopes: pages_read_engagement, pages_manage_posts“</b>, върнете се тук и проверете дали правата са добавени.</div>
   </div>
 
-  <h2><span class="num">6</span>Копирайте App ID и App Secret</h2>
-  <p class="sub">Двете стойности, които скриптът иска — въвеждат се веднъж.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;6&lt;/span&gt;Copy your App ID and App Secret"><span class="num">6</span>Копирайте App ID и App Secret</h2>
+  <p class="sub" data-en="Enter these once in AIPost247’s local setup. Keep the App Secret private.">Въведете ги веднъж в локалната настройка на AIPost247. Пазете App Secret в тайна.</p>
   <div class="card">
     <ol class="steps">
-      <li>Отворете <b>App Settings → Basic</b>.</li>
-      <li>Копирайте <b>App ID</b>, показан най-горе.</li>
-      <li>До <b>App Secret</b> натиснете <b>Show</b> (въведете паролата си) и копирайте.</li>
+      <li data-en="Open &lt;b&gt;App Settings → Basic&lt;/b&gt;.">Отворете <b>App Settings → Basic</b>.</li>
+      <li data-en="Copy the &lt;b&gt;App ID&lt;/b&gt; shown at the top.">Копирайте <b>App ID</b>, показан най-горе.</li>
+      <li data-en="Next to &lt;b&gt;App Secret&lt;/b&gt;, click &lt;b&gt;Show&lt;/b&gt;, enter your password if prompted, and copy the value.">До <b>App Secret</b> натиснете <b>Show</b> (въведете паролата си) и копирайте.</li>
     </ol>
   </div>
 
-  <h2><span class="num">7</span>Стартирайте — отваря се табло в браузъра</h2>
-  <p class="sub">Цялата настройка и наблюдение стават в уеб табло — без терминал.</p>
+  <h2 data-en="&lt;span class=&quot;num&quot;&gt;7&lt;/span&gt;Launch the local dashboard"><span class="num">7</span>Стартирайте — отваря се табло в браузъра</h2>
+  <p class="sub" data-en="The dashboard opens in your browser. Its current controls are labelled in Bulgarian; the English explanations below include those labels.">След стартиране настройката и наблюдението се извършват в табло в браузъра.</p>
   <div class="card">
     <ol class="steps">
-      <li>
-        <b>Стартирайте програмата:</b>
-        <ul style="margin:6px 0 0; padding-left:20px">
-          <li><b>Windows:</b> <b>щракнете два пъти</b> върху <code class="inline">run.bat</code>.</li>
-          <li><b>Mac/Linux:</b> изпълнете <code class="inline">./run.sh</code> в папката на програмата.</li>
-        </ul>
-        Автоматично се отваря <b>табло</b> на адрес <code class="inline">http://localhost:8730</code>.
-      </li>
-      <li><b>Настройка</b> (в таблото): изберете безплатен AI — по подразбиране <b>Antigravity</b> (заместникът на Gemini, инсталира се автоматично), или <b>Gemini</b> / <b>ChatGPT (Codex)</b> — и натиснете <b>Вход с акаунт</b> (без API ключ); при <b>Facebook</b> поставете <b>App ID</b> и <b>App Secret</b> и натиснете <b>Свържи</b> → одобрете в браузъра.</li>
-      <li><b>Бизнес &amp; стил</b>: попълнете кратък профил на бизнеса; по-късно можете да насочвате стила с обратна връзка след всяка публикация.</li>
-      <li><b>График</b>: изберете на колко време да публикува и запазете.</li>
-      <li><b>Старт на автопилота</b> — таблото започва да генерира и публикува по вашия график и показва <b>публикациите, изпълненията и дневника</b> на живо.</li>
+      <li data-en="&lt;b&gt;Launch the app:&lt;/b&gt;&lt;ul style=&quot;margin:6px 0 0; padding-left:20px&quot;&gt;&lt;li&gt;&lt;b&gt;Windows:&lt;/b&gt; double-click &lt;code class=&quot;inline&quot;&gt;run.bat&lt;/code&gt;.&lt;/li&gt;&lt;li&gt;&lt;b&gt;Mac/Linux:&lt;/b&gt; run &lt;code class=&quot;inline&quot;&gt;./run.sh&lt;/code&gt; from the app’s folder.&lt;/li&gt;&lt;/ul&gt;The &lt;b&gt;dashboard&lt;/b&gt; opens at &lt;code class=&quot;inline&quot;&gt;http://localhost:8730&lt;/code&gt;, or the next available port. The first launch may take longer while dependencies install."><b>Стартирайте програмата:</b><ul style="margin:6px 0 0; padding-left:20px"><li><b>Windows:</b> щракнете два пъти върху <code class="inline">run.bat</code>.</li><li><b>Mac/Linux:</b> изпълнете <code class="inline">./run.sh</code> в папката на програмата.</li></ul>Отваря се <b>табло</b> на <code class="inline">http://localhost:8730</code> или следващия свободен порт. Първото стартиране може да отнеме повече време за инсталиране на зависимостите.</li>
+      <li data-en="&lt;b&gt;Setup (Настройка):&lt;/b&gt; choose an AI provider — &lt;b&gt;Antigravity&lt;/b&gt;, &lt;b&gt;Gemini&lt;/b&gt;, &lt;b&gt;ChatGPT (Codex)&lt;/b&gt;, or &lt;b&gt;OpenAI API&lt;/b&gt;. Use &lt;b&gt;Sign in (Вход с акаунт)&lt;/b&gt; for an account-based provider, or enter your API key for OpenAI. Provider fees and usage limits may apply. Under &lt;b&gt;Facebook&lt;/b&gt;, enter your &lt;b&gt;App ID&lt;/b&gt; and &lt;b&gt;App Secret&lt;/b&gt;, click &lt;b&gt;Connect (Свържи)&lt;/b&gt;, and complete the browser sign-in."><b>Настройка:</b> изберете AI доставчик — <b>Antigravity</b>, <b>Gemini</b>, <b>ChatGPT (Codex)</b> или <b>OpenAI API</b>. Натиснете <b>Вход с акаунт</b> за доставчик с потребителски вход или въведете API ключ за OpenAI. Възможни са такси и ограничения от доставчика. При <b>Facebook</b> поставете <b>App ID</b> и <b>App Secret</b>, натиснете <b>Свържи</b> и завършете входа в браузъра.</li>
+      <li data-en="&lt;b&gt;Business &amp;amp; style (Бизнес &amp;amp; стил):&lt;/b&gt; add a short business profile. You can refine the writing style with feedback after each post."><b>Бизнес &amp; стил</b>: попълнете кратък профил на бизнеса; по-късно можете да насочвате стила с обратна връзка след всяка публикация.</li>
+      <li data-en="&lt;b&gt;Schedule (График):&lt;/b&gt; choose how often to post, then save."><b>График</b>: изберете на колко време да публикува и запазете.</li>
+      <li data-en="&lt;b&gt;Start autopilot (Старт на автопилота)&lt;/b&gt; to generate and publish on your schedule. The dashboard shows posts, runs, and logs. &lt;b&gt;Keep the app and your computer running&lt;/b&gt; for scheduled publishing."><b>Старт на автопилота</b> започва генериране и публикуване по график. Таблото показва публикациите, изпълненията и дневника. <b>Оставете приложението и компютъра включени</b>, за да работи графикът.</li>
     </ol>
-    <p style="color:var(--muted)">Съвет: натиснете <b>Генерирай (преглед)</b> в таблото, за да видите публикация <b>без</b> да я публикувате.</p>
-    <p style="color:var(--muted)">Предпочитате терминал? Работят и <code class="inline">./run.sh setup</code>, <code class="inline">./run.sh run</code>, <code class="inline">generate</code>, <code class="inline">post-now</code> и т.н.</p>
+    <p style="color:var(--muted)" data-en="Tip: use &lt;b&gt;Generate preview (Генерирай (преглед))&lt;/b&gt; to review a draft &lt;b&gt;without publishing&lt;/b&gt;.">Съвет: натиснете <b>Генерирай (преглед)</b> в таблото, за да видите публикация <b>без</b> да я публикувате.</p>
+    <p style="color:var(--muted)" data-en="Prefer the terminal? You can also use &lt;code class=&quot;inline&quot;&gt;./run.sh setup&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;./run.sh run&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;generate&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;post-now&lt;/code&gt;, and the commands below.">Предпочитате терминал? Работят и <code class="inline">./run.sh setup</code>, <code class="inline">./run.sh run</code>, <code class="inline">generate</code>, <code class="inline">post-now</code> и т.н.</p>
   </div>
 
-  <div class="callout">
+  <div class="callout" data-en="&lt;strong&gt;🗂 More than one Page.&lt;/strong&gt; Use a &lt;b&gt;separate extracted folder&lt;/b&gt; for each Facebook Page. Each copy keeps its own settings, history, and Page connection. The dashboard picks an available port (8730, 8731, 8732…). AI sign-in may be shared through the same Google or ChatGPT account. &lt;b&gt;Do not run two instances from the same folder&lt;/b&gt;: they share settings and a database. To choose a fixed port, set &lt;code class=&quot;inline&quot;&gt;AIPOST_DASHBOARD_PORT&lt;/code&gt; in &lt;code class=&quot;inline&quot;&gt;.env&lt;/code&gt;.">
     <strong>🗂 Няколко страници едновременно.</strong> Може да управлявате повече от
     една Facebook страница. Стартирайте всяка инстанция от <b>отделна папка</b>
     (отделно разархивирано копие) — всяка има собствена настройка, история и
@@ -394,98 +373,141 @@
     <code class="inline">AIPOST_DASHBOARD_PORT</code> в <code class="inline">.env</code>.
   </div>
 
-  <h2 style="margin-top:46px">Команди</h2>
-  <p class="sub">Изпълняват се с <code class="inline">./run.sh &lt;команда&gt;</code> (Windows: <code class="inline">run.bat &lt;команда&gt;</code>).</p>
+  <h2 style="margin-top:46px" data-en="Commands">Команди</h2>
+  <p class="sub" data-en="Run &lt;code class=&quot;inline&quot;&gt;./run.sh &amp;lt;command&amp;gt;&lt;/code&gt; (Windows: &lt;code class=&quot;inline&quot;&gt;run.bat &amp;lt;command&amp;gt;&lt;/code&gt;).">Изпълняват се с <code class="inline">./run.sh &lt;команда&gt;</code> (Windows: <code class="inline">run.bat &lt;команда&gt;</code>).</p>
   <div class="card" style="padding:8px 18px">
     <table>
-      <thead><tr><th style="width:34%">Команда</th><th>Какво прави</th></tr></thead>
+      <thead><tr><th style="width:34%" data-en="Command">Команда</th><th data-en="What it does">Какво прави</th></tr></thead>
       <tbody>
-        <tr><td><code class="inline">./run.sh dashboard</code></td><td><b>Отваря таблото</b> в браузъра (по подразбиране — само стартирайте <code class="inline">run.bat</code> / <code class="inline">./run.sh</code>). Конфигурирайте и наблюдавайте всичко оттам.</td></tr>
-        <tr><td><code class="inline">./run.sh setup</code></td><td>Настройка през <b>терминал</b> (алтернатива на таблото): AI, Facebook, бизнес профил, график.</td></tr>
-        <tr><td><code class="inline">./run.sh generate</code></td><td>Генерира една публикация и я показва — <b>без</b> да публикува. После може да дадете обратна връзка, за да насочите следващата.</td></tr>
-        <tr><td><code class="inline">./run.sh post-now</code></td><td>Генерира и <b>публикува</b> една публикация веднага. После може да напишете какво да променим за следващата.</td></tr>
-        <tr><td><code class="inline">./run.sh run</code></td><td>Стартира автоматичния режим по график (по подразбиране).</td></tr>
-        <tr><td><code class="inline">./run.sh status</code></td><td>Показва настройките (скрити тайни) и последните публикации.</td></tr>
-        <tr><td><code class="inline">./run.sh train</code></td><td>Отваря формата „Профил на бизнеса“ (в браузъра или като прозорец).</td></tr>
-        <tr><td><code class="inline">./run.sh learn</code></td><td>Чете ангажираността и обновява <code class="inline">skill.md</code> (какво работи).</td></tr>
-        <tr><td><code class="inline">./run.sh clear-memory</code></td><td>Изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</td></tr>
-        <tr><td><code class="inline">./run.sh login-gemini</code></td><td>(Повторен) вход в избрания login-only AI доставчик.</td></tr>
+        <tr><td><code class="inline">./run.sh dashboard</code></td><td data-en="&lt;b&gt;Opens the dashboard&lt;/b&gt; in your browser. This is the default when you launch &lt;code class=&quot;inline&quot;&gt;run.bat&lt;/code&gt; or &lt;code class=&quot;inline&quot;&gt;./run.sh&lt;/code&gt; without arguments."><b>Отваря таблото</b> в браузъра (по подразбиране — само стартирайте <code class="inline">run.bat</code> / <code class="inline">./run.sh</code>). Конфигурирайте и наблюдавайте всичко оттам.</td></tr>
+        <tr><td><code class="inline">./run.sh setup</code></td><td data-en="Opens the &lt;b&gt;terminal setup wizard&lt;/b&gt;: AI provider, Facebook, business profile, and schedule.">Настройка през <b>терминал</b> (алтернатива на таблото): AI, Facebook, бизнес профил, график.</td></tr>
+        <tr><td><code class="inline">./run.sh generate</code></td><td data-en="Generates and previews one post &lt;b&gt;without publishing&lt;/b&gt;. You can then leave feedback for the next draft.">Генерира една публикация и я показва — <b>без</b> да публикува. После може да дадете обратна връзка, за да насочите следващата.</td></tr>
+        <tr><td><code class="inline">./run.sh post-now</code></td><td data-en="Generates and &lt;b&gt;publishes&lt;/b&gt; one post immediately. You can then leave feedback for future posts.">Генерира и <b>публикува</b> една публикация веднага. После може да напишете какво да променим за следващата.</td></tr>
+        <tr><td><code class="inline">./run.sh run</code></td><td data-en="Starts scheduled publishing in the terminal.">Стартира публикуване по график през терминала.</td></tr>
+        <tr><td><code class="inline">./run.sh status</code></td><td data-en="Shows settings with secrets masked, plus recent posts.">Показва настройките (скрити тайни) и последните публикации.</td></tr>
+        <tr><td><code class="inline">./run.sh train</code></td><td data-en="Opens the business profile form in a browser or window.">Отваря формата „Профил на бизнеса“ (в браузъра или като прозорец).</td></tr>
+        <tr><td><code class="inline">./run.sh learn</code></td><td data-en="Reads engagement data and updates &lt;code class=&quot;inline&quot;&gt;skill.md&lt;/code&gt; to guide future posts.">Чете ангажираността и обновява <code class="inline">skill.md</code> (какво работи).</td></tr>
+        <tr><td><code class="inline">./run.sh clear-memory</code></td><td data-en="Clears saved history, learnings, and business profile &lt;b&gt;after confirmation&lt;/b&gt;.">Изтрива натрупаната памет (история, наученото, бизнес профил) след потвърждение.</td></tr>
+        <tr><td><code class="inline">./run.sh login-gemini</code></td><td data-en="Signs in again to the selected account-based AI provider.">(Повторен) вход в избрания login-only AI доставчик.</td></tr>
       </tbody>
     </table>
   </div>
 
   <details class="guide-details">
-  <summary>Отстраняване на проблеми</summary>
+  <summary data-en="Troubleshooting">Отстраняване на проблеми</summary>
   <div class="card" style="padding:8px 18px">
     <table>
-      <thead><tr><th style="width:46%">Какво виждате</th><th>Решение</th></tr></thead>
+      <thead><tr><th style="width:46%" data-en="What you see">Какво виждате</th><th data-en="What to check">Решение</th></tr></thead>
       <tbody>
-        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td>Не сте добавили правата (<b>Стъпка 5</b>). Изборът на use case не ги активира сам: use case → Customize → Permissions → <b>Add</b> за <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code>, <code class="inline">pages_manage_posts</code>. Все още грешка? Уверете се, че сте admin на страницата, добавете Privacy Policy URL или генерирайте токен веднъж в Graph API Explorer. <b>Не</b> е нужно публикуване или App Review.</td></tr>
-        <tr><td>„the app is configured as a desktop app“ при размяна на кода</td><td>В <b>App Settings → Advanced</b> изключете <b>„Native or desktop app?“</b> (трябва да е <b>No</b> — това е стойността по подразбиране) и Save. Като desktop app Facebook не приема App Secret, а той е нужен за дълготрайния токен.</td></tr>
-        <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td>В <b>Development</b> режим localhost се позволява автоматично, така че обикновено това не се случва. Ако се случи (или сте в Live режим), добавете <span class="pill">http://localhost:8723/</span> <b>точно</b> в Facebook Login → Settings и натиснете Save.</td></tr>
-        <tr><td>Входът в браузъра не се връща / времето изтича</td><td>Уверете се, че приложението е в <b>Development</b> режим. Ако е в Live — добавете redirect URI точно както по-горе.</td></tr>
-        <tr><td>Вашата страница я няма в списъка</td><td>Трябва да сте <b>admin</b> на страницата и да дадете правата по време на входа.</td></tr>
-        <tr><td>„Invalid or expired token“ по-късно</td><td>Изпълнете отново <code class="inline">./run.sh setup</code> и влезте пак.</td></tr>
-        <tr><td><code class="inline">Port 8723 already in use</code></td><td>Затворете това, което го използва, и опитайте отново.</td></tr>
+        <tr><td>„Invalid Scopes: pages_read_engagement, pages_manage_posts“ / „This content isn't available right now“</td><td data-en="Check the permissions in &lt;b&gt;Step 5&lt;/b&gt;: use case → Customize → Permissions → &lt;b&gt;Add&lt;/b&gt; for &lt;code class=&quot;inline&quot;&gt;pages_show_list&lt;/code&gt;, &lt;code class=&quot;inline&quot;&gt;pages_read_engagement&lt;/code&gt;, and &lt;code class=&quot;inline&quot;&gt;pages_manage_posts&lt;/code&gt;. Also check your Page access, app role, and any access or review requirements shown by Meta.">Проверете правата в <b>Стъпка 5</b>: use case → Customize → Permissions → <b>Add</b> за <code class="inline">pages_show_list</code>, <code class="inline">pages_read_engagement</code> и <code class="inline">pages_manage_posts</code>. Проверете също достъпа до страницата, ролята си в приложението и изискванията за достъп или преглед, показани от Meta.</td></tr>
+        <tr><td data-en="“The app is configured as a desktop app” during the code exchange">„the app is configured as a desktop app“ при размяна на кода</td><td data-en="Under &lt;b&gt;App Settings → Advanced&lt;/b&gt;, check &lt;b&gt;Native or desktop app?&lt;/b&gt;. AIPost247’s App Secret flow expects &lt;b&gt;No&lt;/b&gt;. Save any change, then reconnect.">В <b>App Settings → Advanced</b> проверете <b>Native or desktop app?</b>. Свързването с App Secret в AIPost247 изисква <b>No</b>. Запазете промяната и се свържете отново.</td></tr>
+        <tr><td>„URL Blocked“ / „redirect_uri isn't allowed“</td><td data-en="Check the redirect settings under &lt;b&gt;Facebook Login → Settings&lt;/b&gt;. If Meta requires an allowed redirect URI, enter &lt;span class=&quot;pill&quot;&gt;http://localhost:8723/&lt;/span&gt; exactly, including the trailing slash, and save.">Проверете настройките в <b>Facebook Login → Settings</b>. Ако Meta изисква разрешен redirect URI, въведете <span class="pill">http://localhost:8723/</span> точно, включително крайната наклонена черта, и запазете.</td></tr>
+        <tr><td data-en="Browser sign-in does not return, or times out">Входът в браузъра не се връща / времето изтича</td><td data-en="Keep AIPost247 running during sign-in. Check the app mode, your app role, and the redirect URI above, then retry.">Оставете AIPost247 включен по време на входа. Проверете режима на приложението, ролята си в него и redirect URI по-горе, след което опитайте отново.</td></tr>
+        <tr><td data-en="Your Page is missing from the list">Вашата страница я няма в списъка</td><td data-en="Check that your Facebook account has the required Page access and that you granted the Page permissions during sign-in.">Проверете дали Facebook акаунтът ви има нужния достъп до страницата и дали сте дали правата за нея при входа.</td></tr>
+        <tr><td data-en="“Invalid or expired token” after setup">„Invalid or expired token“ по-късно</td><td data-en="Run &lt;code class=&quot;inline&quot;&gt;./run.sh setup&lt;/code&gt; again and reconnect Facebook.">Изпълнете отново <code class="inline">./run.sh setup</code> и влезте пак.</td></tr>
+        <tr><td><code class="inline">Port 8723 already in use</code></td><td data-en="Close the app using that port, then try again.">Затворете това, което го използва, и опитайте отново.</td></tr>
       </tbody>
     </table>
   </div>
   </details>
 
-  <h2>Сигурност</h2>
-  <div class="callout local" style="margin-top:10px">
-    Вашите <strong>App Secret</strong> и <strong>Page token</strong> се пазят само
-    в <code class="inline">dev/aipost247/.env</code> (права <b>600</b>, в
-    .gitignore). Никога не се комитват, качват или споделят. Текстът на
-    публикациите отива само към избрания AI доставчик; токените — само към Facebook.
-    Цялото приложение работи на вашата машина — нищо не се хоства от друг.
-  </div>
+  <h2 data-en="Privacy &amp;amp; credentials">Сигурност</h2>
+  <div class="callout local" style="margin-top:10px" data-en="AIPost247 stores your &lt;strong&gt;App Secret&lt;/strong&gt; and &lt;strong&gt;Page token&lt;/strong&gt; in &lt;code class=&quot;inline&quot;&gt;.env&lt;/code&gt; inside the app folder. The file is excluded from Git; on supported systems its permissions are restricted to the owner. &lt;b&gt;Keep it private and do not upload it.&lt;/b&gt; Your selected AI provider receives the context needed to generate posts; Facebook receives authentication requests and published content. The dashboard and saved history run locally on your computer.">AIPost247 пази вашите <strong>App Secret</strong> и <strong>Page token</strong> във файла <code class="inline">.env</code> в папката на програмата. Файлът е изключен от Git; в поддържаните системи достъпът е ограничен до собственика. <b>Пазете го в тайна и не го качвайте онлайн.</b> Избраният AI доставчик получава контекста за генериране на публикации; Facebook получава заявките за вход и публикуваното съдържание. Таблото и запазената история работят локално на вашия компютър.</div>
 
-  <footer>
-    AIPost247 · Това ръководство е налично и като
-    <a href="FACEBOOK_SETUP.md">FACEBOOK_SETUP.md</a>. Нужни са ви командите? Вижте
-    <a href="README.md">README</a>.
-  </footer>
+  <footer data-en="AIPost247 · &lt;a href=&quot;FACEBOOK_SETUP.md&quot;&gt;Text setup guide (Bulgarian)&lt;/a&gt; · &lt;a href=&quot;README.md&quot;&gt;README (English)&lt;/a&gt;">AIPost247 · <a href="FACEBOOK_SETUP.md">Текстово ръководство (български)</a> · <a href="README.md">README (английски)</a></footer>
 </div>
 
 <div class="modal-overlay" id="shots-modal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Снимки за настройката">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Снимки за настройката" data-en-aria-label="Setup screenshots">
     <div class="modal-head">
-      <h3>📷 Снимки за по-лесна настройка</h3>
-      <button type="button" class="modal-close" id="close-shots" aria-label="Затвори">✕</button>
+      <h3 data-en="📷 Setup screenshots">📷 Снимки за по-лесна настройка</h3>
+      <button type="button" class="modal-close" id="close-shots" aria-label="Затвори" data-en-aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
-      <div class="shots-grid" id="shots-grid"><p class="shots-empty">Зареждане…</p></div>
+      <div class="shots-grid" id="shots-grid"><p class="shots-empty" data-en="Loading…">Зареждане…</p></div>
     </div>
   </div>
 </div>
 <div class="modal-overlay" id="videos-modal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Видео за настройката">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Видео за настройката" data-en-aria-label="Video guide">
     <div class="modal-head">
-      <h3>🎥 Видео за още по-лесна настройка</h3>
-      <button type="button" class="modal-close" id="close-videos" aria-label="Затвори">✕</button>
+      <h3 data-en="🎥 Video guide">🎥 Видео за още по-лесна настройка</h3>
+      <button type="button" class="modal-close" id="close-videos" aria-label="Затвори" data-en-aria-label="Close">✕</button>
     </div>
     <div class="modal-body">
-      <div class="videos-grid" id="videos-grid"><p class="shots-empty">Зареждане…</p></div>
+      <div class="videos-grid" id="videos-grid"><p class="shots-empty" data-en="Loading…">Зареждане…</p></div>
     </div>
   </div>
 </div>
-<div class="lightbox" id="lightbox" hidden>
-  <img id="lightbox-img" alt="Снимка" />
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Снимка" data-en-aria-label="Screenshot" hidden>
+  <button type="button" class="modal-close" id="close-lightbox" aria-label="Затвори снимката" data-en-aria-label="Close screenshot">✕</button>
+  <img id="lightbox-img" alt="" />
   <div class="lightbox-caption" id="lightbox-caption" hidden></div>
 </div>
 
 <script>
+  // Bulgarian stays readable without JavaScript. English markup is authored alongside it.
+  var guideLanguage = 'bg';
+  var bilingualContent = [];
+  ['html', 'content', 'aria-label'].forEach(function (attribute) {
+    var key = attribute === 'html' ? 'data-en' : 'data-en-' + attribute;
+    document.querySelectorAll('[' + key + ']').forEach(function (element) {
+      bilingualContent.push({ element: element, attribute: attribute,
+        bg: attribute === 'html' ? element.innerHTML : element.getAttribute(attribute),
+        en: element.getAttribute(key) });
+    });
+  });
+  var releaseLabel = document.getElementById('dl-ver').textContent;
+  function guideText(en, bg) { return guideLanguage === 'en' ? en : bg; }
+  function preferredGuideLanguage() {
+    var requested = new URL(window.location.href).searchParams.get('lang');
+    if (requested === 'en' || requested === 'bg') return requested;
+    try {
+      var saved = localStorage.getItem('tpc-language');
+      if (saved === 'en' || saved === 'bg') return saved;
+    } catch (e) {}
+    return 'en';
+  }
+  function setGuideLanguage(language, remember) {
+    if (language !== 'en' && language !== 'bg') return;
+    guideLanguage = language;
+    document.documentElement.lang = language;
+    bilingualContent.forEach(function (item) {
+      if (item.attribute === 'html') item.element.innerHTML = item[language];
+      else item.element.setAttribute(item.attribute, item[language]);
+    });
+    document.getElementById('dl-ver').textContent = language === 'en'
+      ? releaseLabel.replace('Версия', 'Version').replace('обновена', 'updated') : releaseLabel;
+    document.querySelectorAll('[data-language]').forEach(function (button) {
+      button.setAttribute('aria-pressed', String(button.dataset.language === language));
+    });
+    var backLink = document.querySelector('.back-link');
+    var backUrl = new URL(backLink.href);
+    backUrl.searchParams.set('lang', language);
+    backLink.href = backUrl.href;
+    if (remember) {
+      try { localStorage.setItem('tpc-language', language); } catch (e) {}
+      var url = new URL(window.location.href);
+      url.searchParams.set('lang', language);
+      try { window.history.replaceState(null, '', url); } catch (e) {}
+    }
+    document.dispatchEvent(new Event('guide-language-change'));
+  }
+  document.querySelectorAll('[data-language]').forEach(function (button) {
+    button.addEventListener('click', function () { setGuideLanguage(button.dataset.language, true); });
+  });
+  window.addEventListener('popstate', function () { setGuideLanguage(preferredGuideLanguage(), false); });
+  setGuideLanguage(preferredGuideLanguage(), false);
+
   // Копиране на кодовите блокове.
   document.querySelectorAll('.copy').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var pre = btn.parentElement.querySelector('pre[data-copy]');
       var text = pre ? pre.innerText : '';
       var done = function () {
-        var old = btn.textContent;
-        btn.textContent = 'Копирано';
+        btn.textContent = guideText('Copied', 'Копирано');
         btn.classList.add('done');
-        setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1400);
+        setTimeout(function () { btn.textContent = guideText('Copy', 'Копирай'); btn.classList.remove('done'); }, 1400);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(done, function () { fallback(text, done); });
@@ -497,7 +519,7 @@
   function fallback(text, done) {
     var ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
+    try { if (document.execCommand('copy')) done(); } catch (e) {}
     document.body.removeChild(ta);
   }
   var AIPOST_ASSET_VERSION = document.documentElement.getAttribute('data-assets-version') || '';
@@ -506,6 +528,30 @@
     if (AIPOST_ASSET_VERSION) url.searchParams.set('v', AIPOST_ASSET_VERSION);
     return url.href;
   }
+
+  // Keep keyboard focus inside the visible overlay, including the nested screenshot viewer.
+  var overlayTriggers = new Map();
+  function visibleGuideOverlay() {
+    return document.querySelector('.lightbox:not([hidden])') || document.querySelector('.modal-overlay:not([hidden])');
+  }
+  function setGuideOverlay(overlay, open) {
+    if (open) overlayTriggers.set(overlay, document.activeElement);
+    overlay.hidden = !open;
+    var active = visibleGuideOverlay();
+    document.querySelector('.wrap').inert = Boolean(active);
+    document.querySelectorAll('.modal-overlay').forEach(function (item) { item.inert = Boolean(active && item !== active); });
+    document.body.style.overflow = active ? 'hidden' : '';
+    if (open) overlay.querySelector('.modal-close').focus();
+    else if (overlayTriggers.has(overlay)) overlayTriggers.get(overlay).focus();
+  }
+  document.addEventListener('keydown', function (event) {
+    var overlay = visibleGuideOverlay();
+    if (!overlay || event.key !== 'Tab') return;
+    var controls = overlay.querySelectorAll('button, a[href], iframe');
+    var first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
 
   // „Снимки, за по-лесно“ — галерия от ./assets/ (чете images.json + how_to.txt).
   (function () {
@@ -516,6 +562,8 @@
     var lightImg = document.getElementById('lightbox-img');
     var lightCaption = document.getElementById('lightbox-caption');
     var loaded = false;
+    var images = null;
+    var captions = { bg: {}, en: {} };
 
     function normalizedName(name) {
       return String(name || '').split(/[\\/]/).pop().trim().toLowerCase();
@@ -535,24 +583,27 @@
       return /^(https?:|data:|blob:|\/)/.test(name) ? name : staticAssetUrl(ASSETS, name);
     }
     function openLightbox(src, alt, caption) {
-      lightImg.src = src; lightImg.alt = alt || 'Снимка';
+      lightImg.src = src; lightImg.alt = alt || guideText('Screenshot', 'Снимка');
       lightCaption.textContent = caption || '';
       lightCaption.hidden = !caption;
-      lightbox.hidden = false;
+      setGuideOverlay(lightbox, true);
+    }
+    function closeLightbox() {
+      setGuideOverlay(lightbox, false);
+      lightImg.removeAttribute('src');
+      lightCaption.hidden = true;
     }
     function renderEmpty() {
-      grid.innerHTML = '<p class="shots-empty">Все още няма качени снимки. ' +
-        'Добавете изображения в <code>assets/</code> и ги впишете в ' +
-        '<code>images.json</code>. Описанията се четат от <code>how_to.txt</code>.</p>';
+      grid.innerHTML = '<p class="shots-empty">' + guideText('Screenshots are unavailable. Please reopen the gallery to try again.', 'Снимките не са достъпни. Отворете галерията отново, за да опитате пак.') + '</p>';
     }
     function render(items, notes) {
       if (!items || !items.length) { renderEmpty(); return; }
       grid.innerHTML = '';
-      items.forEach(function (it) {
+      items.forEach(function (it, index) {
         var name = typeof it === 'string' ? it : (it.src || '');
         if (!name) return;
-        var manifestCaption = (typeof it === 'object' && it.caption) ? it.caption : '';
-        var cap = notes[normalizedName(name)] || manifestCaption;
+        var manifestCaption = (guideLanguage === 'bg' && typeof it === 'object' && it.caption) ? it.caption : '';
+        var cap = notes[normalizedName(name)] || manifestCaption || (guideText('Screenshot ', 'Снимка ') + (index + 1));
         var src = resolveAsset(name);
         var card = document.createElement('button');
         card.type = 'button'; card.className = 'shot'; card.setAttribute('aria-label', cap || name);
@@ -571,25 +622,36 @@
           .then(function (r) { if (!r.ok) throw new Error('no manifest'); return r.json(); }),
         fetch(staticAssetUrl(ASSETS, 'how_to.txt'), { cache: 'no-store' })
           .then(function (r) { return r.ok ? r.text() : ''; })
+          .catch(function () { return ''; }),
+        fetch(staticAssetUrl(ASSETS, 'how_to.en.txt'), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.text() : ''; })
           .catch(function () { return ''; })
       ])
         .then(function (result) {
           var data = result[0];
-          var notes = parseHowTo(result[1]);
-          render(Array.isArray(data) ? data : (data.images || []), notes);
+          captions.bg = parseHowTo(result[1]);
+          captions.en = parseHowTo(result[2]);
+          images = Array.isArray(data) ? data : (data.images || []);
+          render(images, captions[guideLanguage]);
         })
-        .catch(function () { renderEmpty(); });
+        .catch(function () { loaded = false; renderEmpty(); });
     }
-    function openModal() { modal.hidden = false; load(); }
-    function closeModal() { modal.hidden = true; }
+    function openModal() { setGuideOverlay(modal, true); load(); }
+    function closeModal() { setGuideOverlay(modal, false); }
+
+    document.addEventListener('guide-language-change', function () {
+      if (images) render(images, captions[guideLanguage]);
+      else if (grid.querySelector('.shots-empty')) grid.querySelector('.shots-empty').textContent = loaded
+        ? guideText('Loading…', 'Зареждане…') : guideText('Open the gallery to load screenshots.', 'Отворете галерията, за да заредите снимките.');
+    });
 
     document.getElementById('open-shots').addEventListener('click', openModal);
     document.getElementById('close-shots').addEventListener('click', closeModal);
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    lightbox.addEventListener('click', function () { lightbox.hidden = true; lightImg.src = ''; lightCaption.hidden = true; });
+    lightbox.addEventListener('click', closeLightbox);
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
-      if (!lightbox.hidden) { lightbox.hidden = true; lightImg.src = ''; lightCaption.hidden = true; }
+      if (!lightbox.hidden) closeLightbox();
       else if (!modal.hidden) closeModal();
     });
   })();
@@ -601,6 +663,9 @@
     var modal = document.getElementById('videos-modal');
     var grid = document.getElementById('videos-grid');
     var loaded = false;
+    var videos = null;
+    var videoRequest = 0;
+    var englishTitles = { 'xxb2gBg-2lU': 'Testing your AI model' };
 
     function normalizeVideoUrl(rawUrl) {
       return /^https?:\/\//i.test(rawUrl) ? rawUrl : 'https://' + rawUrl;
@@ -618,9 +683,9 @@
       } catch (e) {}
       return '';
     }
-    function cleanTitle(text, url, index) {
+    function cleanTitle(text, url) {
       var title = String(text || '').replace(url, '').replace(/^\s*[-–—|:]\s*/, '').replace(/\s*[-–—|:]\s*$/, '').trim();
-      return title || ('Видео ' + index);
+      return title;
     }
     function parseVideos(text) {
       var videos = [];
@@ -632,17 +697,20 @@
         var url = normalizeVideoUrl(match[0].replace(/[),.;]+$/, ''));
         var id = youtubeId(url);
         if (!id) return;
-        videos.push({ id: id, url: url, title: cleanTitle(raw, url, videos.length + 1) });
+        videos.push({ id: id, url: url, title: cleanTitle(raw, url) });
       });
       return videos;
     }
     function renderEmpty(message) {
-      grid.innerHTML = '<p class="shots-empty">' + (message || 'В <code>assets/video/video.txt</code> няма активни YouTube линкове. Добавете поне един линк, например <code>https://youtu.be/...</code>.') + '</p>';
+      grid.innerHTML = '<p class="shots-empty">' + (message || guideText('No videos are available yet.', 'Все още няма налични видеа.')) + '</p>';
+    }
+    function videoTitle(video, index) {
+      return (guideLanguage === 'en' ? englishTitles[video.id] : video.title) || (guideText('Video ', 'Видео ') + (index + 1));
     }
     function render(videos) {
       if (!videos.length) { renderEmpty(); return; }
       grid.innerHTML = '';
-      videos.forEach(function (video) {
+      videos.forEach(function (video, index) {
         var card = document.createElement('article');
         card.className = 'video-card';
         var frame = document.createElement('div');
@@ -650,7 +718,7 @@
         var iframe = document.createElement('iframe');
         iframe.loading = 'lazy';
         iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(video.id);
-        iframe.title = video.title;
+        iframe.title = videoTitle(video, index);
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
         iframe.allowFullscreen = true;
         iframe.referrerPolicy = 'strict-origin-when-cross-origin';
@@ -659,13 +727,13 @@
         meta.className = 'video-meta';
         var title = document.createElement('p');
         title.className = 'video-title';
-        title.textContent = video.title;
+        title.textContent = videoTitle(video, index);
         var link = document.createElement('a');
         link.className = 'video-link';
         link.href = video.url;
         link.target = '_blank';
         link.rel = 'noopener';
-        link.textContent = 'Отвори в YouTube';
+        link.textContent = guideText('Open in YouTube', 'Отвори в YouTube');
         meta.appendChild(title);
         meta.appendChild(link);
         card.appendChild(frame);
@@ -675,13 +743,28 @@
     }
     function load() {
       if (loaded) return; loaded = true;
+      var request = ++videoRequest;
+      grid.innerHTML = '<p class="shots-empty">' + guideText('Loading…', 'Зареждане…') + '</p>';
       fetch(VIDEO_LIST, { cache: 'no-store' })
         .then(function (r) { if (!r.ok) throw new Error('no video list'); return r.text(); })
-        .then(function (text) { render(parseVideos(text)); })
-        .catch(function () { renderEmpty('Не намирам <code>assets/video/video.txt</code>. Добавете файла с YouTube линкове и опитайте пак.'); });
+        .then(function (text) { if (request !== videoRequest) return; videos = parseVideos(text); render(videos); })
+        .catch(function () { if (request !== videoRequest) return; loaded = false; renderEmpty(guideText('Videos could not load. Please reopen the guide to try again.', 'Видеата не се заредиха. Отворете ръководството отново, за да опитате пак.')); });
     }
-    function openModal() { modal.hidden = false; load(); }
-    function closeModal() { modal.hidden = true; }
+    function openModal() { setGuideOverlay(modal, true); load(); }
+    function closeModal() {
+      setGuideOverlay(modal, false);
+      // Removing embeds stops playback after the viewer closes.
+      grid.innerHTML = '';
+      videoRequest++;
+      videos = null;
+      loaded = false;
+    }
+
+    document.addEventListener('guide-language-change', function () {
+      if (videos) render(videos);
+      else if (grid.querySelector('.shots-empty')) grid.querySelector('.shots-empty').textContent = loaded
+        ? guideText('Loading…', 'Зареждане…') : guideText('Open the guide to load videos.', 'Отворете ръководството, за да заредите видеата.');
+    });
 
     document.getElementById('open-videos').addEventListener('click', openModal);
     document.getElementById('close-videos').addEventListener('click', closeModal);
