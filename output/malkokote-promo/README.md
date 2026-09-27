@@ -30,7 +30,7 @@ Soft Bulgarian female narration, macOS Daria, rate 140, gentle high-frequency re
 
 The illustration was generated with the built-in image generation tool and saved as `model.png`. All animation and audio composition were rendered locally using Pillow, NumPy, macOS speech, and FFmpeg. No Higgsfield generation was used. Nothing was published or added to a website.
 
-Reproduce from the repository root with `/Users/privileged/Projects/ComfyUI/ComfyUI/standalone-env/bin/python output/malkokote-promo/render.py`. Add `--preview` to regenerate the storyboard. All required media is retained in this folder.
+Reproduce from the repository root with `python3 output/malkokote-promo/render.py`. Add `--preview` to regenerate the storyboard. All required media is retained in this folder.
 
 ## Illustration prompt
 

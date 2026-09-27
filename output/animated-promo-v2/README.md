@@ -31,6 +31,6 @@ The company name is written phonetically only in the Bulgarian speech input, for
 
 ## Reproduce
 
-Use `/Users/privileged/Projects/ComfyUI/ComfyUI/standalone-env/bin/python output/animated-promo-v2/render.py en` and the same command with `bg`. The renderer imports the original illustration and motion design from `../animated-promo/render.py`, and consumes the saved voice clips. Add `--preview` to render a storyboard instead of a video. `scripts.json` retains voice settings and speech inputs.
+Use `python3 output/animated-promo-v2/render.py en` and the same command with `bg`. The renderer imports the original illustration and motion design from `../animated-promo/render.py`, and consumes the saved voice clips. Add `--preview` to render a storyboard instead of a video. `scripts.json` retains voice settings and speech inputs.
 
 Only promotional media was created. These videos have not been published or added to the website.

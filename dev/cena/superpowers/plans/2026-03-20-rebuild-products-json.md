@@ -68,7 +68,7 @@ import json, os, sys
 GROCERY_JSON = os.path.join(os.path.dirname(__file__), "grocery.json")
 # Also check parent dir (when running from worktree)
 if not os.path.exists(GROCERY_JSON):
-    GROCERY_JSON = "/Users/Presidential/Desktop/Spesti/grocery.json"
+    GROCERY_JSON = "/path/to/Spesti/grocery.json"
 
 OUTPUT = os.path.join(os.path.dirname(__file__) or ".", "products.json")
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
 - [ ] **Step 2: Run the script**
 
-Run: `cd /Users/Presidential/Desktop/Spesti/.claude/worktrees/vibrant-tesla && python3 rebuild_products.py`
+Run: `python3 rebuild_products.py`
 Expected: ~10,480 products, ~3.8 MB file
 
 - [ ] **Step 3: Verify app still loads correctly**
@@ -197,7 +197,7 @@ Search for items that the stress test couldn't find:
 ```python
 python3 -c "
 import json
-with open('/Users/Presidential/Desktop/Spesti/products.json') as f:
+with open('/path/to/Spesti/products.json') as f:
     old = json.load(f)
 with open('products.json') as f:
     new = json.load(f)

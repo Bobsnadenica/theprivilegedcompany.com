@@ -16,7 +16,7 @@ The original music bed was synthesized locally in `render.py`. Interface cards a
 
 ## Reproduce
 
-Run `/Users/privileged/Projects/ComfyUI/ComfyUI/standalone-env/bin/python output/animated-promo/render.py` from the repository root. `ffmpeg` is expected at `/opt/homebrew/bin/ffmpeg`. The renderer uses the saved illustration and narration, Pillow, NumPy, and installed macOS fonts. Use `--preview` to regenerate the storyboard.
+Run `python3 output/animated-promo/render.py` from the repository root. `ffmpeg` is expected at `/opt/homebrew/bin/ffmpeg`. The renderer uses the saved illustration and narration, Pillow, NumPy, and installed macOS fonts. Use `--preview` to regenerate the storyboard.
 
 ## Illustration prompt
 

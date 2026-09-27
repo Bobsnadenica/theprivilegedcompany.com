@@ -356,7 +356,7 @@ export const translations = {
             "100 euro per session. Includes a live lesson, learning plan, labs, and homework.": "100 евро на сесия. Включва урок на живо, план за обучение, практически задачи и домашна работа.",
             "Showcase": "Демонстрации",
             "Learn Any Tech Topic": "Обучение по избрана IT тема",
-            "Practise commands and explore phone-system call flows with interactive examples. Bring your questions to a one-to-one mentoring session with a certified senior cloud architect.": "Упражнявайте команди и проследете телефонни обаждания чрез интерактивни примери. Обсъдете въпросите си в индивидуална менторска сесия със сертифициран старши архитект на облачни решения.",
+            "Practise commands and explore cloud and networking concepts with interactive examples. Bring your questions to a one-to-one mentoring session with a certified senior cloud architect.": "Упражнявайте команди и изучавайте облачни технологии и мрежи чрез интерактивни примери. Обсъдете въпросите си в индивидуална менторска сесия със сертифициран старши архитект на облачни решения.",
             "Presence": "Присъствие",
             "Social Media Management": "Управление на социални мрежи",
             "Profile setup, content direction, posting systems, brand consistency, campaign planning, and practical growth support.": "Създаване на профили, стратегия за съдържание, график за публикуване, последователно представяне на бранда и планиране на кампании за развитие на аудиторията.",

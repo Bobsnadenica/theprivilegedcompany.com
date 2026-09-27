@@ -454,8 +454,8 @@ The homepage now mentions AI and IT mentoring and includes a direct training
 enquiry link. The Individuals training card describes the offer in both languages.
 Its existing canonical service key remains `Tech Training`, preserving contact
 preselection and old links; the existing 100 EUR/session price remains unchanged.
-The adjacent Tool Suite card names command practice and interactive phone-system
-examples, confirmed by the TechTools chat. No checkout or paid service was added.
+The adjacent Tool Suite card names command practice and interactive cloud and networking
+examples. No checkout or paid service was added.
 
 Version `20260927c`. Local regression, syntax, CSP and whitespace checks pass.
 Browser checks cover EN/BG contact preselection, EN 390 px dark and BG 320 px light
@@ -500,3 +500,18 @@ The owner also requested one more Dot image promoting AIPost247 as free software
 The product remains named AIPost247. The application is free to download and use;
 third-party AI-provider fees may apply. This image request does not add a new
 Facebook publication or paid boost. Artwork and publishing records stay in Social.
+
+## Public-content cleanup — 2026-09-27
+
+The owner asked to remove personal and client/employer references while keeping
+technology names and independent projects. The neutral recipe demo now lives at
+`dev/recipes/`. The personal gaming-profile hub, private task list, remote-PC
+shortcut, and employer-specific telephony guide and support files are removed.
+The mentoring card describes cloud and networking examples in English/Bulgarian.
+Mist of Atlas uses the company contact address and canonical URLs. Local machine
+paths and a tracked Python interpreter cache were removed from published files.
+Keep the source repository URLs needed by downloads/data refresh, technical
+attributions, and public reference datasets. Earlier Git history is unchanged.
+
+Asset version `20260927f`; dev service-worker cache version 5 clears previous
+hub caches without touching unrelated app caches.

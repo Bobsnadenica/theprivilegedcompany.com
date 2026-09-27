@@ -1,7 +1,7 @@
 {
     "name": "ThePrivilegedCompany Dev Portal",
     "short_name": "Dev Portal",
-    "description": "A private development launchpad for tools, experiments, games, and project demos.",
+    "description": "Explore our tools, experiments, browser games, and project demos.",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",

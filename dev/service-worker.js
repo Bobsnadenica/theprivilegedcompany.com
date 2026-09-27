@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tpc-dev-portal-v4';
+const CACHE_NAME = 'tpc-dev-portal-v5';
 const urlsToCache = [
     './',
     './index.html',
@@ -8,8 +8,7 @@ const urlsToCache = [
     './manifest.json',
     './icons/apple-touch-icon.png',
     './converter/index.html',
-    './games/index.html',
-    './iveto/index.html',
+    './recipes/index.html',
     './conspiracy/index.html',
     './whoami/whoami.html',
 ];
@@ -30,7 +29,7 @@ self.addEventListener('activate', (event) => {
         caches.keys()
             .then((cacheNames) => Promise.all(
                 cacheNames
-                    .filter((cacheName) => cacheName !== CACHE_NAME)
+                    .filter((cacheName) => cacheName.startsWith('tpc-dev-portal-') && cacheName !== CACHE_NAME)
                     .map((cacheName) => caches.delete(cacheName))
             ))
             .then(() => self.clients.claim())

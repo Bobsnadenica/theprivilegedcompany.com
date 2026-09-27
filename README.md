@@ -4,6 +4,20 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## Public-content cleanup (2026-09-27)
+
+The projects hub now uses neutral labels. The recipe demo is **Домашни рецепти**
+at `dev/recipes/`. Personal profile pages, private task-list files, the remote-PC
+account shortcut, and the employer-specific telephony guide have been removed.
+Mist of Atlas now uses the company website and public contact address. Technical
+product names, our independent projects, public reference datasets, and required
+third-party attribution remain.
+
+The development service worker uses cache version 5 to retire old cached pages.
+Published source documentation uses portable paths, and Python interpreter caches
+are ignored. This cleans the current published tree; earlier Git commits and
+copies already downloaded elsewhere are outside this change.
+
 ## Individual consultations (2026-09-27)
 
 The public site explicitly welcomes individuals and businesses. The homepage has
@@ -25,7 +39,7 @@ The homepage and Individuals service card now describe practical AI and IT mento
 with a certified senior cloud architect. The existing 100 EUR session price is unchanged.
 The homepage's Discuss mentoring link selects the existing Tech Training enquiry;
 old service links remain compatible. The Tool Suite card highlights command practice
-and interactive phone-system examples. English and Bulgarian copy stay in sync.
+and interactive cloud and networking examples. English and Bulgarian copy stay in sync.
 No checkout, paid service, new dependency, or homepage project showcase was added.
 
 Local checks cover both languages, service selection, 320/390 px layouts, the

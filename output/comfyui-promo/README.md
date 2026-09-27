@@ -10,7 +10,7 @@ Apple M2, 16 GB unified memory. ComfyUI runs at http://127.0.0.1:8188.
 
 - Video: `ltxv-2b-0.9.8-distilled.safetensors`, loaded on MPS in bfloat16.
 - Text encoder: `t5xxl_fp8_e4m3fn.safetensors`, explicitly loaded on CPU with float16 computation. Do not switch this FP8-stored encoder to the MPS device.
-- Models live under `/Users/privileged/ComfyUI-Shared/models`.
+- Models live under `your configured ComfyUI models folder`.
 - The five MiniMax H3 model, encoder, LoRA, and VAE files were deleted at the user's request, freeing 44.43 GB. They were too large or used unsuitable quantization for this setup.
 - The two smaller required model files were already fully downloaded when work resumed; they were not downloaded a second time.
 
