@@ -4,6 +4,18 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## Services and quote-based pricing (2026-09-27)
+
+The Services page now presents generic capabilities without public project names,
+logos, screenshots, or showcase links. Relevant work examples are shared on request.
+A Pricing note and each service's Request a quote action lead to the existing
+contact flow, preserving the selected service and English/Bulgarian language.
+
+All services, including mentoring, are priced by quote. The former fixed training
+price was removed from the Services page, FAQ, terms copy, and structured data.
+This pricing policy supersedes older fixed-price references in the change history.
+The independent projects remain available through Projects & experiments.
+
 ## Public-content cleanup (2026-09-27)
 
 The projects hub now uses neutral labels. The recipe demo is **Домашни рецепти**

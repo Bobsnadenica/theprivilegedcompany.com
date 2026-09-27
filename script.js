@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927f';
+import { languageMeta, translations } from './translations.js?v=20260927g';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927f';
+const assetVersion = '20260927g';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -114,15 +114,6 @@ const serviceRequestTypes = {
     'Advertisement Support': 'Marketing or social media',
     'Adult entertainment': 'Marketing or social media',
     'Scam & Funnel Awareness': 'Scam or fraud awareness'
-};
-const toolSuiteServiceName = 'Learn Any Tech Topic';
-const toolSuitePath = 'dev/Tech%20Tools/index.html';
-const serviceDestinations = {
-    [toolSuiteServiceName]: {
-        type: 'internal',
-        href: toolSuitePath,
-        label: 'Open Tool Suite'
-    }
 };
 const knownServiceNames = Object.keys(serviceRequestTypes);
 const supportedLanguages = Object.keys(languageMeta);
@@ -452,20 +443,19 @@ const initServiceCards = () => {
         const serviceName = card.dataset.serviceName || getSourceText(card.querySelector('h3'));
         if (!serviceRequestTypes[serviceName]) return;
         card.dataset.serviceName = serviceName;
-        const destination = serviceDestinations[serviceName];
         let cta = card.querySelector('.service-card-cta');
         if (!cta) {
             cta = document.createElement('a');
             cta.className = 'service-card-cta';
             card.append(cta);
         }
-        cta.href = destination?.href || `/contact?service=${encodeURIComponent(serviceName)}`;
-        cta.toggleAttribute('data-link', !destination);
-        cta.dataset.i18nSource = destination ? destination.label : "Let's talk";
+        cta.href = `/contact?service=${encodeURIComponent(serviceName)}`;
+        cta.toggleAttribute('data-link', true);
+        cta.dataset.i18nSource = 'Request a quote';
         cta.textContent = t(cta.dataset.i18nSource);
-        cta.setAttribute('aria-label', destination ? t(destination.label) : (currentLanguage === 'bg'
-            ? `Запитване за: ${t(serviceName)}`
-            : `Ask about: ${serviceName}`));
+        cta.setAttribute('aria-label', currentLanguage === 'bg'
+            ? `Оферта за: ${t(serviceName)}`
+            : `Request a quote for: ${serviceName}`);
     });
 };
 

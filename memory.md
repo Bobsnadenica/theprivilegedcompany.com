@@ -515,3 +515,15 @@ attributions, and public reference datasets. Earlier Git history is unchanged.
 
 Asset version `20260927f`; dev service-worker cache version 5 clears previous
 hub caches without touching unrelated app caches.
+
+## Services and pricing — 2026-09-27
+
+The owner requested generic services without named businesses, public showcase
+links, logos, or screenshots on `/manifest`. Examples of relevant work are now
+shared on request. All 21 service cards use Request a quote and preserve their
+service context in the contact form, including learning topics. Independent
+project files remain available outside the Services page.
+
+Pricing is now by quote for all services, including individual mentoring. This
+supersedes earlier fixed session-price notes. FAQ, terms text, structured data,
+and English/Bulgarian translations match. Asset version `20260927g`.

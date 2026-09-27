@@ -389,14 +389,14 @@ const serviceCards = ['Licensed Market Intelligence', 'Learn Any Tech Topic'].ma
 vm.runInNewContext(source.slice(source.indexOf('const initServiceCards ='), source.indexOf('const initContactForm =')) + '; initServiceCards();', {
     document: { querySelectorAll: () => serviceCards, createElement: tag => ({ tag, dataset: {}, attributes: {}, setAttribute(key, value) { this.attributes[key] = value; }, toggleAttribute(key, enabled) { if (enabled) this.attributes[key] = ''; else delete this.attributes[key]; } }) },
     getSourceText: node => node.textContent, t: text => text, currentLanguage: 'en',
-    serviceRequestTypes: { 'Licensed Market Intelligence': 'Data', 'Learn Any Tech Topic': 'Training' },
-    serviceDestinations: { 'Learn Any Tech Topic': { href: 'dev/Tech%20Tools/index.html', label: 'Open Tool Suite' } }
+    serviceRequestTypes: { 'Licensed Market Intelligence': 'Data', 'Learn Any Tech Topic': 'Training' }
 });
 assert.equal(serviceCards[0].anchor.tag, 'a');
 assert.equal(serviceCards[0].anchor.href, '/contact?service=Licensed%20Market%20Intelligence');
 assert.ok(Object.hasOwn(serviceCards[0].anchor.attributes, 'data-link'));
-assert.equal(serviceCards[1].anchor.href, 'dev/Tech%20Tools/index.html');
-assert.ok(!Object.hasOwn(serviceCards[1].anchor.attributes, 'data-link'));
+assert.equal(serviceCards[1].anchor.href, '/contact?service=Learn%20Any%20Tech%20Topic');
+assert.ok(Object.hasOwn(serviceCards[1].anchor.attributes, 'data-link'));
+for (const card of serviceCards) assert.equal(card.anchor.textContent, 'Request a quote');
 console.log('Release checks passed: native service links.');
 
 // A skip link must focus locally, never follow <base href="/"> and lose a draft.
