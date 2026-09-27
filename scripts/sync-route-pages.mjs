@@ -9,7 +9,7 @@ const siteOrigin = 'https://www.theprivilegedcompany.com';
 const routes = {
   manifest: {
     title: 'ThePrivilegedCompany | Services',
-    description: 'Explore software development, data services, audits, automation, consulting, and training for businesses and individuals.'
+    description: 'Explore websites, apps, automation, 1:1 consultations, and AI/IT mentoring for individuals and businesses.'
   },
   'who-are-we': {
     title: 'ThePrivilegedCompany | Who we are',
@@ -45,7 +45,7 @@ const routes = {
   },
   contact: {
     title: 'ThePrivilegedCompany | Contact',
-    description: 'Contact ThePrivilegedCompany with your project details, contact information, timeline, and the outcome you want to build.'
+    description: 'Ask about a project, a 1:1 consultation, or AI and IT mentoring. Get practical help for yourself or your business.'
   }
 };
 

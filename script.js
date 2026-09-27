@@ -2,19 +2,19 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927c';
+import { languageMeta, translations } from './translations.js?v=20260927d';
 
 const routes = {
     '': {
         title: 'IT Solutions, App & Website Development',
         // Root renders the hub view baked into index.html; no fragment is fetched.
         isStatic: true,
-        description: 'App & website development, technical SEO, automation, AI tools, cloud audits, and tech training for businesses and individuals. Contact us for a clear plan.'
+        description: 'Websites, apps, automation, and 1:1 tech consultations for individuals and businesses. Practical AI and IT mentoring with a senior software architect.'
     },
     'manifest': {
         title: 'Services',
         view: 'manifest.html',
-        description: 'Explore software development, data services, audits, automation, consulting, and training for businesses and individuals.'
+        description: 'Explore websites, apps, automation, 1:1 consultations, and AI/IT mentoring for individuals and businesses.'
     },
     'who-are-we': {
         title: 'Who we are',
@@ -59,7 +59,7 @@ const routes = {
     'contact': {
         title: 'Contact',
         view: 'contact.html',
-        description: 'Contact ThePrivilegedCompany with your project details, contact information, timeline, and the outcome you want to build.'
+        description: 'Ask about a project, a 1:1 consultation, or AI and IT mentoring. Get practical help for yourself or your business.'
     }
 };
 
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927c';
+const assetVersion = '20260927d';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -107,6 +107,7 @@ const serviceRequestTypes = {
     'Website Building': 'Website or app build',
     'App Building': 'Website or app build',
     'Career Consulting': 'Career consulting',
+    '1:1 Tech Consultations': 'Consulting or advisory',
     'Tech Training': 'Training / academy',
     'Learn Any Tech Topic': 'Training / academy',
     'Social Media Management': 'Marketing or social media',
@@ -460,7 +461,7 @@ const initServiceCards = () => {
         }
         cta.href = destination?.href || `/contact?service=${encodeURIComponent(serviceName)}`;
         cta.toggleAttribute('data-link', !destination);
-        cta.dataset.i18nSource = destination ? destination.label : 'Discuss your project';
+        cta.dataset.i18nSource = destination ? destination.label : "Let's talk";
         cta.textContent = t(cta.dataset.i18nSource);
         cta.setAttribute('aria-label', destination ? t(destination.label) : (currentLanguage === 'bg'
             ? `Запитване за: ${t(serviceName)}`

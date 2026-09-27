@@ -463,3 +463,24 @@ home/service layouts, desktop card layout and console errors. No overflow observ
 Homepage Selected Projects and duplicate lower navigation remain removed.
 Social Media and the Bulgarian chat own Dot artwork and Facebook publication;
 verified permalinks and exact captions belong in the sibling Social logs.
+
+
+## Individual consultation positioning — 2026-09-27
+
+The owner clarified that services are for individual people as well as businesses,
+and explicitly requested 1:1 consultations in page and post copy. The homepage now
+has a dedicated consultation card, inclusive hero copy and a two-column desktop
+service grid. The Individuals tab begins with `1:1 Tech Consultations`, mapped to
+`Consulting or advisory`. Contact, Who we are, Personal IT, FAQ and relevant metadata
+are updated in both languages. Native service CTAs use Let's talk.
+
+Consultation scope and pricing are agreed separately. Do not reuse the existing
+100 EUR training-session price as a blanket consultation rate. Existing mentoring,
+email-draft flow, particles, themes and removed homepage project section remain.
+
+Version `20260927d`. Existing regression, syntax, CSP and whitespace checks pass.
+Browser QA covered home plus five changed routes in BG at 320 px/light and EN at
+desktop/dark, without overflow or console errors. New EN/BG consultation selections
+and encoded email drafts were verified using synthetic input; no email was sent.
+Facebook bio and relevant caption updates plus the pending AIPost247 posts remain
+owned by Social Media and the Bulgarian chat, with receipts in sibling Social logs.

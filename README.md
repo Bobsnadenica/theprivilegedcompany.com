@@ -4,6 +4,21 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## Individual consultations (2026-09-27)
+
+The public site explicitly welcomes individuals and businesses. The homepage has
+a fourth service card for 1:1 consultations, with a two-column desktop grid and
+single-column mobile layout. The Individuals tab offers `1:1 Tech Consultations`
+separately from mentoring; its contact link selects Consulting or advisory.
+Consultation scope and price are agreed before the session. The existing 100 EUR
+training price is unchanged and does not become a general consultation price.
+
+Contact, company, personal IT, FAQ, and metadata copy reflect the broader audience
+in English and Bulgarian. Native service actions now say Let's talk. Browser QA
+covered all six changed views at 320 px in Bulgarian/light and desktop in
+English/dark, plus consultation selection and prepared drafts in both languages.
+No email was sent. Regression, syntax, CSP and whitespace checks pass.
+
 ## One-to-one mentoring (2026-09-27)
 
 The homepage and Individuals service card now describe practical AI and IT mentoring
@@ -46,7 +61,7 @@ recapture only the current URL's labels. Arbitrary query data and advertising cl
 IDs are omitted. Opening a draft is not a sent or received enquiry, and there is no
 conversion tracking.
 
-Asset version `20260927c`. Regression, syntax, CSP, and whitespace checks pass.
+Asset version `20260927d`. Regression, syntax, CSP, and whitespace checks pass.
 The original release covered 88 route/language/viewport combinations. This follow-up
 checked the changed contact flow in English and Bulgarian, desktop and 320/390 px
 layouts, light/dark themes, and homepage navigation; no overflow or console errors.
