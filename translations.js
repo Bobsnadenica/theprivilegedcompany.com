@@ -13,15 +13,11 @@ export const translations = {
     "bg": {
         "text": {
             "Soroya": "Сороя",
-            "Meet Soroya.": "Запознайте се със Сороя.",
             "About Soroya": "За Сороя",
             "Your first point of contact": "Вашият първи контакт",
             "Head of HR & Operations": "Ръководител „Човешки ресурси и операции“",
-            "The face of our company, created with AI. Your enquiries go to our human team for a personal reply.": "Лицето на компанията, създадено с AI. Запитванията ви достигат до нашия екип, който отговаря лично.",
-            "AI-created company face. Your enquiry is handled by our human team.": "Лице на компанията, създадено с AI. Запитването ви се обработва от нашия екип.",
-            "Soroya is our AI-created Head of HR & Operations persona and public face. Our human team handles enquiries, commitments and decisions.": "Сороя е нашият AI персонаж в ролята на ръководител „Човешки ресурси и операции“ и лице на компанията. Реалният ни екип обработва запитванията, поема ангажиментите и взема решенията.",
-            "AI-created portrait of Soroya at her desk": "Портрет на Сороя на бюрото ѝ, създаден с AI",
-            "Start a conversation": "Нека поговорим",
+            "Our AI-created contact persona. Our team replies personally.": "Нашият AI персонаж за първи контакт. Екипът ни отговаря лично.",
+            "Soroya at her desk": "Сороя на бюрото си",
             "1:1 consultations": "Индивидуални консултации",
             "Let's talk": "Свържете се с нас",
             "04 / 1:1 Consultations": "04 / Индивидуални консултации",

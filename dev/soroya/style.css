@@ -13,13 +13,9 @@
 .actions .button{background:#272622;color:#f6f3ed;margin-top:0}
 .actions .button:hover{background:#514632}
 .text-link{font-size:.88rem;text-decoration:none;padding-block:12px}
-.contact-note{font-size:.76rem;color:#706453;margin-top:12px}
 .landing .introduction{display:grid;grid-template-columns:1fr 1.35fr;gap:50px;max-width:none;padding-block:48px}
 .email-link{font-size:.9rem;overflow-wrap:anywhere}
-.landing .project-note{display:grid;grid-template-columns:1fr 1.35fr;gap:50px;max-width:none;padding-block:40px;color:#625d54}
-.project-note h2{font-size:1.75rem}
-.project-note p{font-size:.9rem;margin:0}
 html[lang="bg"] .landing h1{font-size:clamp(2.8rem,5.5vw,4.65rem)}
 html[lang="bg"] .landing .eyebrow{letter-spacing:.08em}
-@media(max-width:800px){.landing .header-links{gap:16px}.landing .hero{gap:30px}.landing .introduction,.landing .project-note{gap:28px}}
-@media(max-width:650px){.landing header{align-items:center;flex-wrap:wrap;gap:14px}.landing .header-links{margin-left:auto}.landing .company-link{display:none}.landing .hero{padding-bottom:34px}.landing .lead{font-size:1.07rem}.landing .introduction,.landing .project-note{grid-template-columns:1fr;gap:8px;padding-block:32px}.landing .actions{gap:10px 22px}.landing .portrait{max-width:none}}
+@media(max-width:800px){.landing .header-links{gap:16px}.landing .hero{gap:30px}.landing .introduction{gap:28px}}
+@media(max-width:650px){.landing header{align-items:center;flex-wrap:wrap;gap:14px}.landing .header-links{margin-left:auto}.landing .company-link{display:none}.landing .hero{padding-bottom:34px}.landing .lead{font-size:1.07rem}.landing .introduction{grid-template-columns:1fr;gap:8px;padding-block:32px}.landing .actions{gap:10px 22px}.landing .portrait{max-width:none}}

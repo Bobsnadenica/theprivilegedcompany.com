@@ -7,14 +7,17 @@ This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable
 ## Soroya and company contact (2026-09-27)
 
 Soroya is the owner-appointed Head of HR & Operations persona, company face, and
-first point of contact. The home, company and contact pages explain that she is
-AI-created; the actual team reads and answers enquiries and makes commitments.
+first point of contact. Her main-site presence is confined to Contacts, with one
+concise disclosure. Home, About and the project hub do not repeat a Soroya feature.
+The actual team reads and answers enquiries and makes commitments.
 The existing prepared-email flow remains the contact destination. No hiring
 automation, applicant form, new inbox, or personal employment history was added.
 
 The standalone introduction at `dev/soroya/` has English and Bulgarian pages,
 native language links, the approved original desk portrait with provenance, and
-the existing privacy/deletion links. Main-site language switching also selects
+the existing privacy/deletion links. The introduction uses one concise character
+disclosure without repeating generation wording in captions or copy. Contact-page
+language switching also selects
 the matching Soroya introduction. See `AGENTS.md` for durable role boundaries.
 
 ## Services and quote-based pricing (2026-09-27)

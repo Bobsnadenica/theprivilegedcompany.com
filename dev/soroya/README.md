@@ -11,7 +11,7 @@ Privacy details reflect the current local publishing application, not a public m
 
 ## Company role and contact
 
-The owner appointed Soroya the company’s public face, first contact persona and Head of HR & Operations on 27 September 2026. Keep that role consistent in both languages. Always disclose that Soroya is a fictional adult AI-created character. The human company team answers enquiries, agrees work and makes all HR/hiring decisions; the persona has no autonomous hiring or contracting authority. Do not invent a human employment history, client endorsements or credentials for Soroya.
+The owner appointed Soroya the company’s public face, first contact persona and Head of HR & Operations on 27 September 2026. Keep that role consistent in both languages. Use one concise disclosure that Soroya is an adult AI-created character. Avoid repeating this in the metadata, portrait captions and every paragraph. Her main-site mention belongs in Contacts only; keep the standalone project and legal URLs working. The human company team answers enquiries, agrees work and makes all HR/hiring decisions; the persona has no autonomous hiring or contracting authority. Do not invent a human employment history, client endorsements or credentials for Soroya.
 
 Use the existing `/contact?lang=en` / `/contact?lang=bg` routes and `contactus@theprivilegedcompany.com`. These lead to the established visitor-owned email flow. Do not add an inbox, application form, applicant-data collection, tracking or paid integration. Company 1:1 consultations are delivered by a certified senior cloud architect; do not attribute that qualification to the character.
 
