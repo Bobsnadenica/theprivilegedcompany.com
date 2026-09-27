@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createInitialState } from "../src/state.js";
 import { availableQuests, runQuestToEnd, startQuest, tickQuest, usePotion } from "../src/quests.js";
+import { QUESTS } from "../src/content.js";
+import { createQuestRun } from "../src/questTypes.js";
 
 test("quests are gated by requirements", () => {
   const state = createInitialState(0);
@@ -37,4 +39,17 @@ test("potions affect an active quest", () => {
   assert.equal(state.activeQuest.buffs.turtle, 8);
   tickQuest(state);
   assert.ok(state.activeQuest.buffs.turtle < 8 || state.activeQuest === null);
+});
+
+test("surviving the final round is required to earn quest rewards", () => {
+  const state = createInitialState();
+  const quest = QUESTS.find((entry) => entry.type === "survival");
+  state.activeQuest = createQuestRun(quest, { maxHp: 100 });
+  state.activeQuest.round = state.activeQuest.roundsRequired - 1;
+  state.activeQuest.playerHp = 1;
+  state.activeQuest.choicesMade = Object.fromEntries((quest.events || []).map((event) => [event.id, "done"]));
+  tickQuest(state);
+  assert.equal(state.stats.deaths, 1);
+  assert.equal(state.quests.completed[quest.id], undefined);
+  assert.equal(state.activeQuest, null);
 });

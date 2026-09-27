@@ -1,7 +1,7 @@
-import { CAULDRON_RECIPES, EQUIPMENT, FORGE_RECIPES } from "./content.js";
-import { addLog, hasResources, spendResources, visibleByRule } from "./utils.js";
-import { equipItem } from "./economy.js";
-import { recordRecipeKnown } from "./story.js";
+import { CAULDRON_RECIPES, EQUIPMENT, FORGE_RECIPES } from "./content.js?v=20260927b";
+import { addLog, hasResources, spendResources, visibleByRule } from "./utils.js?v=20260927b";
+import { equipItem } from "./economy.js?v=20260927b";
+import { recordRecipeKnown } from "./story.js?v=20260927b";
 
 export function availableForgeRecipes(state) {
   return FORGE_RECIPES.filter((recipe) => visibleByRule(state, recipe.visibleWhen));

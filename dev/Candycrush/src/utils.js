@@ -1,4 +1,4 @@
-import { RESOURCE_LABELS, RESOURCE_ORDER } from "./content.js";
+import { RESOURCE_LABELS, RESOURCE_ORDER } from "./content.js?v=20260927b";
 
 export function formatNumber(value) {
   const number = Math.floor(Number(value) || 0);

@@ -1,5 +1,5 @@
-import { LOCATION_DETAILS, RUMORS } from "./content.js";
-import { addLog, addResources, hasResources, spendResources } from "./utils.js";
+import { LOCATION_DETAILS, RUMORS } from "./content.js?v=20260927b";
+import { addLog, addResources, hasResources, spendResources } from "./utils.js?v=20260927b";
 
 export function createInitialStoryState() {
   return {

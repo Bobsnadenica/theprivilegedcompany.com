@@ -4,11 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sugarbox: The Hollow Orchard</title>
+    <meta name="description" content="A free ASCII idle adventure. Collect sweets, explore a curious world and discover what is hiding inside the box. No account needed.">
+    <link rel="canonical" href="https://www.theprivilegedcompany.com/dev/Candycrush/index.html">
+    <meta property="og:title" content="Sugarbox: The Hollow Orchard">
+    <meta property="og:description" content="Small box. Big adventure. Play our free ASCII idle game in your browser.">
+    <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/Candycrush/index.html">
+    <meta property="og:type" content="website">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.css?v=20260927b">
   </head>
   <body>
-    <div id="app" class="app" aria-live="polite"></div>
-    <script type="module" src="./src/main.js"></script>
+    <nav class="site-links" aria-label="Website">
+      <a href="/dev/">More things to explore</a>
+      <a href="/contact?service=App%20Building">Build a game with us <span aria-hidden="true">↗</span></a>
+    </nav>
+    <div id="app" class="app"></div>
+    <noscript><p class="app">Sugarbox needs JavaScript to run. Enable it in your browser, then reload to play.</p></noscript>
+    <script type="module" src="./src/main.js?v=20260927b"></script>
   </body>
 </html>

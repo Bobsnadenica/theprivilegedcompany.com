@@ -1,8 +1,8 @@
-import { QUESTS } from "./content.js";
-import { addLog, addMapNodes, addResources, requirementMet, spendResources } from "./utils.js";
-import { deriveStats, refreshUnlocks } from "./economy.js";
-import { applyPotionToRun, applyQuestChoice, createQuestRun, tickQuestRun } from "./questTypes.js";
-import { recordChoice, recordEnding, recordQuestCompletion } from "./story.js";
+import { QUESTS } from "./content.js?v=20260927b";
+import { addLog, addMapNodes, addResources, requirementMet, spendResources } from "./utils.js?v=20260927b";
+import { deriveStats, refreshUnlocks } from "./economy.js?v=20260927b";
+import { applyPotionToRun, applyQuestChoice, createQuestRun, tickQuestRun } from "./questTypes.js?v=20260927b";
+import { recordChoice, recordEnding, recordQuestCompletion } from "./story.js?v=20260927b";
 
 export function getQuest(id) {
   return QUESTS.find((quest) => quest.id === id);
@@ -45,8 +45,8 @@ export function tickQuest(state) {
   }
   const result = tickQuestRun(state, quest, active, deriveStats(state));
   for (const line of result.logs || []) pushQuestLog(active, line);
-  if (result.completed) return completeQuest(state, quest);
   if (result.failed) return failQuest(state, quest);
+  if (result.completed) return completeQuest(state, quest);
   return true;
 }
 

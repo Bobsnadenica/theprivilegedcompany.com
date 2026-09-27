@@ -1,5 +1,5 @@
-import { MAP_NODES, RESOURCE_ORDER } from "./content.js";
-import { getAvailableSecrets } from "./story.js";
+import { MAP_NODES, RESOURCE_ORDER } from "./content.js?v=20260927b";
+import { getAvailableSecrets } from "./story.js?v=20260927b";
 
 const SURFACE_RULES = [
   ["box", () => true],
@@ -139,7 +139,7 @@ export function getFoggedMapNodes(state) {
 }
 
 export function canUseSaveMenu(state) {
-  return Boolean(state.purchases.statusRibbon || state.unlocks.inventory || state.stats.candiesEaten >= 20);
+  return Boolean(state.flags.boxInspected || state.purchases.statusRibbon || state.unlocks.inventory || state.stats.candiesEaten >= 20);
 }
 
 function getStage(state) {

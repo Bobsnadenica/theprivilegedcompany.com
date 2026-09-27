@@ -1,6 +1,6 @@
-import { EQUIPMENT, LIGHTHOUSE_SEQUENCE, RIDDLES, SHOP_ITEMS, WISHES, CAVE_SEQUENCE, DEV_COMMANDS } from "./content.js";
-import { estimateFarmCapacity, estimateLollipopRate, summarizeOfflineGain } from "./balance.js";
-import { recordEnding, recordPuzzleSolved } from "./story.js";
+import { EQUIPMENT, LIGHTHOUSE_SEQUENCE, RIDDLES, SHOP_ITEMS, WISHES, CAVE_SEQUENCE, DEV_COMMANDS } from "./content.js?v=20260927b";
+import { estimateFarmCapacity, estimateLollipopRate, summarizeOfflineGain } from "./balance.js?v=20260927b";
+import { recordEnding, recordPuzzleSolved } from "./story.js?v=20260927b";
 import {
   addLog,
   addMapNodes,
@@ -10,8 +10,8 @@ import {
   hasResources,
   ownsItem,
   spendResources
-} from "./utils.js";
-import { updateProgression } from "./progression.js";
+} from "./utils.js?v=20260927b";
+import { updateProgression } from "./progression.js?v=20260927b";
 
 const OFFLINE_CAP_SECONDS = 6 * 60 * 60;
 
@@ -50,12 +50,11 @@ export function tickState(state, now = Date.now()) {
   state.resources.lollipops += gain.lollipops;
   const chocolateRate = getChocolateRate(state);
   state.timers.chocolate += cappedElapsed * chocolateRate;
-  while (state.timers.chocolate >= 1) {
-    state.resources.chocolateBars += 1;
-    gain.chocolateBars += 1;
-    state.timers.chocolate -= 1;
-  }
-  state.lastTick = now;
+  const cooled = Math.max(0, Math.floor(state.timers.chocolate));
+  state.resources.chocolateBars += cooled;
+  gain.chocolateBars += cooled;
+  state.timers.chocolate -= cooled;
+  state.lastTick += elapsed * 1000;
   state.stats.offlineSeconds += Math.max(0, elapsed - cappedElapsed);
   if (elapsed >= 60) addLog(state, summarizeOfflineGain(gain));
   refreshUnlocks(state);

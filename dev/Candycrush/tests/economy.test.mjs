@@ -22,6 +22,21 @@ test("candies accrue at the base rate and offline progress is capped", () => {
   assert.equal(state.stats.offlineSeconds, 60);
 });
 
+test("frequent actions preserve partial seconds of candy production", () => {
+  const state = createInitialState(0);
+  for (const now of [1500, 2400, 3000]) tickState(state, now);
+  assert.equal(state.resources.candies, 3);
+  assert.equal(state.lastTick, 3000);
+});
+
+test("large imported chocolate timers settle without an unbounded loop", () => {
+  const state = createInitialState(0);
+  state.timers.chocolate = 1e20;
+  tickState(state, 1000);
+  assert.equal(state.resources.chocolateBars, 1e20);
+  assert.equal(state.timers.chocolate, 0);
+});
+
 test("early actions reveal shop and inventory", () => {
   const state = createInitialState(0);
   state.resources.candies = 35;

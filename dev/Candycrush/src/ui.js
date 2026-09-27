@@ -12,12 +12,12 @@ import {
   RIDDLES,
   SHOP_ITEMS,
   WISHES
-} from "./content.js";
-import { deriveStats, getLollipopRate } from "./economy.js";
-import { estimateFarmCapacity } from "./balance.js";
-import { availableQuests, getQuest } from "./quests.js";
-import { formatCost, formatNumber, hasResources, ownsItem, requirementMet, visibleByRule } from "./utils.js";
-import { getJournalSummary } from "./story.js";
+} from "./content.js?v=20260927b";
+import { deriveStats, getLollipopRate } from "./economy.js?v=20260927b";
+import { estimateFarmCapacity } from "./balance.js?v=20260927b";
+import { availableQuests, getQuest } from "./quests.js?v=20260927b";
+import { formatCost, formatNumber, hasResources, ownsItem, requirementMet, visibleByRule } from "./utils.js?v=20260927b";
+import { getJournalSummary } from "./story.js?v=20260927b";
 import {
   canUseSaveMenu,
   getAvailableCommands,
@@ -25,11 +25,10 @@ import {
   getVisibleResources,
   getVisibleSurfaces,
   migrateUiProgress
-} from "./progression.js";
+} from "./progression.js?v=20260927b";
 
 export function renderGame(state, view = {}) {
   migrateUiProgress(state);
-  document.body.classList.toggle("dark", state.darkMode);
   const surfaces = getVisibleSurfaces(state);
   const activeSurface = surfaces.includes(state.activeTab) ? state.activeTab : "box";
   const asideVisible = view.showImport || shouldShowLog(state);
@@ -37,6 +36,7 @@ export function renderGame(state, view = {}) {
     <main class="game-shell stage-${state.ui.stage} ${asideVisible ? "has-aside" : ""}">
       <section class="play-column">
         ${renderHeader(state)}
+        ${view.storageUnavailable ? `<p class="warn" role="status">Your browser cannot save progress. Keep this tab open and export a save code from the save menu.</p>` : ""}
         ${renderStatus(state)}
         ${renderReveal(state)}
         ${renderCurrentSurface(state, view, activeSurface)}
@@ -48,7 +48,7 @@ export function renderGame(state, view = {}) {
 }
 
 function renderHeader(state) {
-  if (!state.flags.boxInspected) return "";
+  if (!state.flags.boxInspected) return `<header class="intro-heading"><h1>Sugarbox</h1><p>The Hollow Orchard</p></header>`;
   return `
     <header class="minimal-header">
       <h1>Sugarbox</h1>
@@ -124,7 +124,7 @@ function renderCommandButton(command, activeSurface) {
   const action = isCommand ? "command" : isSecret ? "secret" : command.id;
   const active = command.surface && command.surface === activeSurface ? "active" : "";
   const dataId = isCommand || isSecret ? `data-id="${isSecret ? command.id.slice(7) : command.id}"` : "";
-  return `<button class="${command.kind} ${active}" data-action="${action}" ${dataId}>${command.label}</button>`;
+  return `<button class="${command.kind} ${active}" data-action="${action}" ${dataId} ${command.surface ? `aria-pressed="${Boolean(active)}"` : ""}>${command.label}</button>`;
 }
 
 function renderCurrentSurface(state, view, activeSurface) {
@@ -145,6 +145,7 @@ function renderBox(state) {
     return `
       <section class="box-stage intro">
         <div class="ascii-stage"><pre>${ASCII.sugarbox}</pre></div>
+        <p class="intro-hint">A quiet adventure, one candy at a time.<br>Inspect the box. New choices appear as you play.</p>
       </section>
     `;
   }
@@ -223,7 +224,7 @@ function renderInventory(state) {
       </div>
       <h3>Potions and spells</h3>
       <p>${formatPotions(state)}</p>
-      <p>Spells: ${state.inventory.spells.length ? state.inventory.spells.join(", ") : "none"}</p>
+      <p>Spells: ${state.inventory.spells.length ? escapeHtml(state.inventory.spells.join(", ")) : "none"}</p>
     </section>
   `;
 }
@@ -287,16 +288,16 @@ function renderJournal(state) {
         <button data-action="buy-rumor" ${hasResources(state, { lollipops: 40 }) ? "" : "disabled"}>buy a rumor</button>
       </div>
       <h3>Locations</h3>
-      ${journal.locations.length ? journal.locations.map(([id, entry]) => `<p><b>${id}</b>: ${(entry.notes || []).slice(-2).join(" / ") || "visited"}</p>`).join("") : `<p class="muted">No location notes yet.</p>`}
+      ${journal.locations.length ? journal.locations.map(([id, entry]) => `<p><b>${escapeHtml(MAP_NODES.find((node) => node.id === id)?.name || id)}</b>: ${escapeHtml((entry.notes || []).slice(-2).join(" / ") || "visited")}</p>`).join("") : `<p class="muted">No location notes yet.</p>`}
       <h3>Quests</h3>
-      ${journal.quests.length ? journal.quests.map((quest) => `<p>${quest.name} (${quest.type || "combat"})</p>`).join("") : `<p class="muted">No quest notes yet.</p>`}
+      ${journal.quests.length ? journal.quests.map((quest) => `<p>${escapeHtml(quest.name)} (${escapeHtml(quest.type || "combat")})</p>`).join("") : `<p class="muted">No quest notes yet.</p>`}
       <h3>Rumors and mysteries</h3>
-      ${journal.rumors.concat(journal.mysteries).length ? journal.rumors.concat(journal.mysteries).map((line) => `<p>${line}</p>`).join("") : `<p class="muted">No rumors bought yet.</p>`}
+      ${journal.rumors.concat(journal.mysteries).length ? journal.rumors.concat(journal.mysteries).map((line) => `<p>${escapeHtml(line)}</p>`).join("") : `<p class="muted">No rumors bought yet.</p>`}
       <h3>Recipes and puzzles</h3>
-      <p>${journal.recipes.length ? journal.recipes.join(", ") : "No recipes recorded."}</p>
-      <p>${journal.puzzles.length ? journal.puzzles.map(([, note]) => note).join(" / ") : "No puzzle notes recorded."}</p>
+      <p>${journal.recipes.length ? escapeHtml(journal.recipes.join(", ")) : "No recipes recorded."}</p>
+      <p>${journal.puzzles.length ? escapeHtml(journal.puzzles.map(([, note]) => note).join(" / ")) : "No puzzle notes recorded."}</p>
       <h3>Endings</h3>
-      <p>${journal.endings.length ? journal.endings.map((ending) => ending.label).join(", ") : "No endings discovered."}</p>
+      <p>${journal.endings.length ? escapeHtml(journal.endings.map((ending) => ending.label).join(", ")) : "No endings discovered."}</p>
     </section>
   `;
 }
@@ -410,7 +411,7 @@ function renderActiveQuest(state) {
       <div class="bar"><span style="width:${Math.max(0, (active.playerHp / active.maxHp) * 100)}%"></span><b>${Math.max(0, active.playerHp)} / ${active.maxHp}</b></div>
       ${active.progress ? `<p>Progress: ${Math.floor(active.progress)} / ${active.targetProgress}</p>` : ""}
       ${active.type === "escort" ? `<p>Integrity: ${Math.max(0, active.integrity)}%</p>` : ""}
-      ${enemy ? `<p>Enemy: ${enemy.name}</p><div class="bar"><span style="width:${Math.max(0, (enemy.hpLeft / enemy.hp) * 100)}%"></span><b>${Math.max(0, enemy.hpLeft)} / ${enemy.hp}</b></div>` : ""}
+      ${enemy ? `<p>Enemy: ${escapeHtml(enemy.name)}</p><div class="bar"><span style="width:${Math.max(0, (enemy.hpLeft / enemy.hp) * 100)}%"></span><b>${Math.max(0, enemy.hpLeft)} / ${enemy.hp}</b></div>` : ""}
       ${active.pendingChoice ? renderQuestChoice(active) : renderQuestActions(state)}
       <div class="quest-log">
         ${active.log.map((line) => `<div class="log-line">${escapeHtml(line)}</div>`).join("")}
@@ -436,9 +437,9 @@ function renderQuestActions(state) {
       <button data-action="quest-tick">wait a round</button>
       ${Object.entries(state.inventory.potions)
         .filter(([, count]) => count > 0)
-        .map(([id, count]) => `<button data-action="potion" data-id="${id}">${id} (${count})</button>`)
+        .map(([id, count]) => `<button data-action="potion" data-id="${escapeHtml(id)}">${escapeHtml(id)} (${count})</button>`)
         .join("")}
-      ${state.inventory.spells.map((spell) => `<button data-action="spell" data-id="${spell}">${spell}</button>`).join("")}
+      ${state.inventory.spells.map((spell) => `<button data-action="spell" data-id="${escapeHtml(spell)}">${escapeHtml(spell)}</button>`).join("")}
       <button data-action="abandon-quest">leave</button>
     </div>
   `;
@@ -518,17 +519,19 @@ function renderSidePanel(state, view) {
   if (view.showImport) {
     return `
       <h2>Save</h2>
+      <p class="muted">Progress saves in this browser. Export a code to keep a backup or continue on another device.</p>
       <div class="save-tools">
         <button data-action="toggle-dark">${state.darkMode ? "light" : "dark"}</button>
         <button data-action="save-export">export</button>
         <button data-action="reset">restart</button>
       </div>
-      ${view.exportText ? `<textarea readonly>${escapeHtml(view.exportText)}</textarea>` : ""}
+      ${view.exportText ? `<label for="export-code">Your save code</label><textarea id="export-code" readonly spellcheck="false">${escapeHtml(view.exportText)}</textarea>` : ""}
       <form data-form="import-save">
-        <textarea name="saveText" placeholder="paste save code"></textarea>
+        <label for="import-code">Restore a save</label>
+        <textarea id="import-code" name="saveText" placeholder="paste save code" spellcheck="false" maxlength="1000000" required></textarea>
         <button>import</button>
       </form>
-      ${view.importError ? `<p class="bad">${escapeHtml(view.importError)}</p>` : ""}
+      ${view.importError ? `<p class="bad" role="alert">${escapeHtml(view.importError)}</p>` : ""}
     `;
   }
   return `
@@ -546,7 +549,7 @@ function shouldShowLog(state) {
 
 function formatPotions(state) {
   const entries = Object.entries(state.inventory.potions).filter(([, count]) => count > 0);
-  return entries.length ? entries.map(([id, count]) => `${id} ${count}`).join(" | ") : "No potions bottled.";
+  return entries.length ? entries.map(([id, count]) => `${escapeHtml(id)} ${count}`).join(" | ") : "No potions bottled.";
 }
 
 function escapeHtml(value) {
