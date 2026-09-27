@@ -38,8 +38,9 @@ import { SOLO_HUMAN_ID, useSoloGame, type SoloSchedulerState } from "./soloGame"
 import { useAnimationDirector } from "./useAnimationDirector";
 import { useTableAudio } from "./useTableAudio";
 import { useVoiceChat, type VoiceClientState, type VoicePeerAudioStatus } from "./useVoiceChat";
+import { t, useLanguage } from "./i18n";
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? "http://localhost:3001";
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? "http://localhost:3001" : window.location.origin);
 const STATIC_SOLO_ONLY = import.meta.env.VITE_STATIC_SOLO_ONLY === "true";
 const SESSION_KEY = "rrld-session";
 const RULES_DISMISSED_KEY = "rrld-rules-dismissed";
@@ -67,6 +68,7 @@ interface SavedSession {
 }
 
 export function App() {
+  const [language, setLanguage] = useLanguage();
   const [playMode, setPlayMode] = useState<PlayMode>("entry");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [onlineRoom, setOnlineRoom] = useState<RoomState | null>(null);
@@ -78,7 +80,7 @@ export function App() {
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [soloDockCollapsed, setSoloDockCollapsed] = useState(false);
+  const [soloDockCollapsed, setSoloDockCollapsed] = useState(true);
   const [dismissedChallengeKey, setDismissedChallengeKey] = useState<string | undefined>(undefined);
   const [rouletteSpoiler, setRouletteSpoiler] = useState<RouletteSpoilerState>({ displayPhase: "hidden", resultUiUnlocked: false });
   const [lockNow, setLockNow] = useState(() => Date.now());
@@ -451,9 +453,9 @@ export function App() {
   );
 
   useEffect(() => {
-    if (room?.phase === "lobby" && window.localStorage.getItem(RULES_DISMISSED_KEY) !== "true") {
-      setRulesOpen(true);
-    }
+    try {
+      if (room?.phase === "lobby" && window.localStorage.getItem(RULES_DISMISSED_KEY) !== "true") setRulesOpen(true);
+    } catch { /* The game remains usable with browser storage disabled. */ }
   }, [room?.code, room?.phase]);
 
   useEffect(() => {
@@ -532,13 +534,13 @@ export function App() {
 
   function closeRules() {
     setRulesOpen(false);
-    window.localStorage.setItem(RULES_DISMISSED_KEY, "true");
+    try { window.localStorage.setItem(RULES_DISMISSED_KEY, "true"); } catch {}
   }
 
   function toggleTableSound() {
     setSoundEnabled((current) => {
       const next = !current;
-      window.localStorage.setItem(SOUND_ENABLED_KEY, String(next));
+      try { window.localStorage.setItem(SOUND_ENABLED_KEY, String(next)); } catch {}
       if (next) {
         void tableAudio.warm();
       }
@@ -597,7 +599,7 @@ export function App() {
     function handleKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null;
       const tagName = target?.tagName.toLowerCase();
-      if (tagName === "input" || tagName === "textarea" || target?.isContentEditable) {
+      if (rulesOpen || tagName === "input" || tagName === "textarea" || target?.isContentEditable || target?.closest('button, a, select, summary, dialog')) {
         return;
       }
 
@@ -614,12 +616,13 @@ export function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canCall, canPlay, isSoloMode, privateState?.hand, selectedCardIds]);
+  }, [canCall, canPlay, isSoloMode, privateState?.hand, selectedCardIds, rulesOpen]);
 
   return (
     <main className="app-shell" data-game-ui={game && (game.phase !== "gameOver" || resultConcealed) ? "active" : room ? "room" : "entry"}>
       <BarScene
         ref={sceneRef}
+        language={language}
         players={publicPlayers}
         currentTurnPlayerId={game?.currentTurnPlayerId}
         winnerId={visibleWinner?.id}
@@ -642,11 +645,15 @@ export function App() {
       <div className="noise" aria-hidden="true" />
       <header className="topbar" data-compact={Boolean(room)}>
         <div className="brand-lockup">
-          <p className="eyebrow">Online room bluff game</p>
-          <h1>Russian Roulette Liar&apos;s Deck</h1>
-          {room ? <span className="phase-chip">{phaseLabel(cockpitPhase)}</span> : null}
+          <a className="studio-link" href={`https://www.theprivilegedcompany.com/?lang=${language}`}>{t("← The Privileged Company")}</a>
+          <h1>{t("Liar's Deck")}</h1>
+          {room ? <span className="phase-chip">{t(phaseLabel(cockpitPhase))}</span> : null}
         </div>
         <div className="topbar-actions">
+          <div className="language-switch" role="group" aria-label={t("Language")}>
+            <button type="button" lang="en" aria-pressed={language === "en"} onClick={() => setLanguage("en")}><span aria-hidden="true">🇬🇧</span> {t("EN")}</button>
+            <button type="button" lang="bg" aria-pressed={language === "bg"} onClick={() => setLanguage("bg")}><span aria-hidden="true">🇧🇬</span> БГ</button>
+          </div>
           {room ? (
             <RoomHeader
               room={room}
@@ -658,7 +665,7 @@ export function App() {
           ) : null}
           <div className="status-pill" data-status={connectionLabel.toLowerCase()}>
             <span />
-            {connectionLabel}
+            {t(connectionLabel)}
           </div>
         </div>
       </header>
@@ -666,12 +673,12 @@ export function App() {
       {error ? (
         <div className="toast" role="alert">
           <AlertTriangle size={18} />
-          {error}
+          {t(error)}
         </div>
       ) : null}
 
       {!room ? (
-        <EntryPanel onCreate={createRoom} onJoin={joinRoom} onStartSolo={startSolo} soloOnly={STATIC_SOLO_ONLY} />
+        <EntryPanel onCreate={createRoom} onJoin={joinRoom} onStartSolo={startSolo} onRules={openRules} soloOnly={STATIC_SOLO_ONLY} />
       ) : (
         <section
           className="game-cockpit"
@@ -683,17 +690,16 @@ export function App() {
         >
           <section
             className="table-surface"
-            aria-label="Game table"
+            aria-label={t("Game table")}
             data-challenge={challengeVisualActive}
             data-roulette-phase={rouletteSpoiler.displayPhase}
           >
-            <RulesOverlay open={rulesOpen} onClose={closeRules} />
             {game ? (
               <>
                 <div className="round-strip">
                   <div>
-                    <span>Round {game.roundNumber}</span>
-                    <strong>{displayRank(game.tableRank)} table</strong>
+                    <span>{t("Round")} {game.roundNumber}</span>
+                    <strong>{t("Table")}: {t(displayRank(game.tableRank))}</strong>
                   </div>
                   <TimerBar turnEndsAt={game.turnEndsAt} turnStartedAt={game.turnStartedAt} running={game.phase === "playing" && !controlsBlocked} />
                 </div>
@@ -701,27 +707,27 @@ export function App() {
                 <div className="table-center" data-has-play={Boolean(game.previousPlay)}>
                   <div className="table-card">
                     <span>{rankGlyph(game.tableRank)}</span>
-                    <strong>{displayRank(game.tableRank)}</strong>
+                    <strong>{t(displayRank(game.tableRank))}</strong>
                   </div>
                   <div className="pile-stack" data-testid="pile-count" data-pile={game.pileCount}>
                     {game.pileCount > 0 ? <div className="card-back" /> : null}
                     <div>
                       <span>{game.pileCount}</span>
-                      <p>Face down</p>
+                      <p>{t("Face down")}</p>
                     </div>
                   </div>
                   <div className="previous-play" data-claimed={Boolean(previousPlayer && game.previousPlay)}>
                     {previousPlayer && game.previousPlay ? (
                       <>
-                        <span>{previousPlayer.name}</span>
+                        <span>{t(previousPlayer.name)}</span>
                         <strong>
-                          {game.previousPlay.cardCount} card{game.previousPlay.cardCount === 1 ? "" : "s"}
+                          {t(`${game.previousPlay.cardCount} card${game.previousPlay.cardCount === 1 ? "" : "s"}`)}
                         </strong>
                       </>
                     ) : (
                       <>
-                        <span>Opening turn</span>
-                        <strong>No claim yet</strong>
+                        <span>{t("Opening turn")}</span>
+                        <strong>{t("No claim yet")}</strong>
                       </>
                     )}
                   </div>
@@ -731,7 +737,7 @@ export function App() {
                 {visibleWinner ? (
                   <div className="winner-banner" data-testid="winner-banner">
                     <Shield size={20} />
-                    {visibleWinner.name} wins the table
+                    {t(`${visibleWinner.name} wins the table`)}
                   </div>
                 ) : null}
                 {showEndGameActions ? <EndGameActions isHost={isHost} onPlayAgain={restartGame} onExit={leaveRoom} /> : null}
@@ -739,8 +745,8 @@ export function App() {
             ) : (
               <div className="waiting-table">
                 <Users size={28} />
-                <h2>Room is open</h2>
-                <p>{isHost ? "Invite players with the code above, then start when at least two seats are filled." : "Waiting for the host to start."}</p>
+                <h2>{t("Room is open")}</h2>
+                <p>{t(isHost ? "Invite players with the code above, then start when at least two seats are filled." : "Waiting for the host to start.")}</p>
                 <LobbyCommand isHost={isHost} playerCount={publicPlayers.length} onStart={startRoom} />
               </div>
             )}
@@ -756,7 +762,7 @@ export function App() {
                 data-testid="solo-dock-toggle"
               >
                 {soloDockCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-                <span>{soloDockCollapsed ? "Open status" : "Minimize"}</span>
+                <span>{t(soloDockCollapsed ? "Open status" : "Minimize")}</span>
               </button>
             ) : null}
             {!(isSoloMode && soloDockCollapsed) ? (
@@ -794,9 +800,9 @@ export function App() {
           {game && game.phase !== "gameOver" ? (
             <section className="bottom-action-tray" data-testid="bottom-action-tray">
               <div className="bottom-status">
-                <p className="eyebrow">Seat</p>
-                <h2>{me?.name ?? "Joining"}</h2>
-                <p>{bottomStatusLine}</p>
+                <p className="eyebrow">{t("Seat")}</p>
+                <h2>{t(me?.name ?? "Joining")}</h2>
+                <p>{t(bottomStatusLine)}</p>
               </div>
               <Hand
                 cards={privateState?.hand ?? []}
@@ -808,20 +814,21 @@ export function App() {
                 <div className="action-row">
                   <button className="primary-button" type="button" disabled={!canPlay} onClick={playSelected} data-testid="play-selected">
                     <Play size={18} />
-                    Play {selectedCardIds.length || ""}
+                    {t("Play")} {selectedCardIds.length || ""}
                   </button>
                   <button className="danger-button" type="button" disabled={!canCall} onClick={callLiar} data-testid="call-liar">
                     <Flame size={18} />
-                    LIAR
+                    {t("Call bluff")}
                   </button>
                 </div>
-                <p className="action-hint" data-testid="action-hint">{actionHint}</p>
+                <p className="action-hint" data-testid="action-hint">{t(actionHint)}</p>
               </div>
             </section>
           ) : null}
 
         </section>
       )}
+      <RulesOverlay open={rulesOpen} onClose={closeRules} />
     </main>
   );
 }
@@ -830,11 +837,13 @@ function EntryPanel({
   onCreate,
   onJoin,
   onStartSolo,
+  onRules,
   soloOnly = false
 }: {
   onCreate: (name: string) => void;
   onJoin: (name: string, roomCode: string) => void;
   onStartSolo: (name?: string) => void;
+  onRules: () => void;
   soloOnly?: boolean;
 }) {
   const [mode, setMode] = useState<"create" | "join">("create");
@@ -845,33 +854,43 @@ function EntryPanel({
     <section className="entry-grid" data-mode={mode} data-testid="entry-cockpit">
       <div className="entry-panel entry-cockpit-panel">
         <div className="entry-copy">
-          <p className="eyebrow">{soloOnly ? "GitLab playable demo" : "Private table"}</p>
-          <h2>{soloOnly ? "Play instantly" : mode === "create" ? "Host a table" : "Join a table"}</h2>
+          <p className="eyebrow">{t(soloOnly ? "Free browser demo" : "Private table")}</p>
+          <h2>{t(soloOnly ? "Good cards. Better bluffs." : mode === "create" ? "Host a table" : "Join a table")}</h2>
           <p>
-            {soloOnly
-              ? "Jump straight into the browser-only solo demo against three bot opponents. No clone, install, server, or room code needed."
+            {t(soloOnly
+              ? "A quick game of nerve against three bots. Play your cards, spot the bluff, and be the last one at the table."
               : mode === "create"
                 ? "Create a room code, share it, and start once two players are seated."
-                : "Enter a room code from the host and take a seat at the table."}
+                : "Enter a room code from the host and take a seat at the table.")}
           </p>
         </div>
+        {soloOnly ? <div className="entry-card-fan" aria-hidden="true"><span>{t("K")}<small>♠</small></span><span>{t("Q")}<small>♦</small></span><span>{t("A")}<small>♣</small></span></div> : null}
         <button className="solo-demo-button" type="button" onClick={() => onStartSolo(name)} data-testid="play-solo-demo">
           <Play size={19} />
           <span>
-            Play Solo Demo
-            <small>No server needed · 3 bot opponents</small>
+            {t("Play against bots")}<small>{t("Free · No account or install")}</small>
           </span>
         </button>
+        <button className="text-button" type="button" onClick={onRules}><HelpCircle size={16} /> {t("How to play")}</button>
+        {soloOnly ? <>
+          <p className="quick-rule">{t("Play 1–3 cards. Match the table rank, or bluff. Jokers always count.")}</p>
+          <details className="friends-download">
+            <summary><Users size={17} /> {t("Play with friends")}</summary>
+            <p>{t("Download the free game for 2–4 players on the same Wi-Fi. One computer hosts; friends join from their browsers.")}</p>
+            <ol><li>{t("Install Node.js 22 or newer on the host computer.")}</li><li>{t("Unzip the game and run start.command (Mac), start.bat (Windows), or bash start.sh (Linux).")}</li><li>{t("Share the network address and room code shown by the host.")}</li></ol>
+            <p>{t("Setup needs an internet connection. Keep the host running. Voice chat needs localhost or HTTPS.")}</p>
+            <a className="secondary-button download-game" href="../download/liars-deck.zip" download>{t("Download free game")}</a>
+            <small>{t("Found the treasure. Your friends owe you a rematch.")}</small>
+          </details>
+        </> : null}
         {!soloOnly ? (
-          <div className="entry-segment" role="tablist" aria-label="Entry mode">
+          <div className="entry-segment" role="tablist" aria-label={t("Entry mode")}>
             <button type="button" role="tab" aria-selected={mode === "create"} data-active={mode === "create"} onClick={() => setMode("create")} data-testid="entry-mode-create">
               <Users size={17} />
-              Create
-            </button>
+              {t("Create")}</button>
             <button type="button" role="tab" aria-selected={mode === "join"} data-active={mode === "join"} onClick={() => setMode("join")} data-testid="entry-mode-join">
               <DoorOpen size={17} />
-              Join
-            </button>
+              {t("Join")}</button>
           </div>
         ) : null}
 
@@ -884,13 +903,11 @@ function EntryPanel({
             }}
           >
             <label>
-              Name
-              <input value={name} onChange={(event) => setName(event.target.value)} maxLength={18} placeholder="Player name" data-testid="create-name" />
+              {t("Name")}<input value={name} onChange={(event) => setName(event.target.value)} maxLength={18} placeholder={t("Player name")} data-testid="create-name" />
             </label>
             <button className="primary-button" type="submit" data-testid="create-room">
               <Users size={18} />
-              Create room
-            </button>
+              {t("Create room")}</button>
           </form>
         ) : !soloOnly ? (
           <form
@@ -901,12 +918,10 @@ function EntryPanel({
             }}
           >
             <label>
-              Name
-              <input value={name} onChange={(event) => setName(event.target.value)} maxLength={18} placeholder="Player name" data-testid="join-name" />
+              {t("Name")}<input value={name} onChange={(event) => setName(event.target.value)} maxLength={18} placeholder={t("Player name")} data-testid="join-name" />
             </label>
             <label>
-              Code
-              <input
+              {t("Code")}<input
                 value={roomCode}
                 onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
                 maxLength={5}
@@ -916,8 +931,7 @@ function EntryPanel({
             </label>
             <button className="primary-button" type="submit" data-testid="join-room">
               <DoorOpen size={18} />
-              Join room
-            </button>
+              {t("Join room")}</button>
           </form>
         ) : null}
       </div>
@@ -941,46 +955,54 @@ function RoomHeader({
   const isSolo = room.code.startsWith("SOLO-");
   const showInviteCode = room.phase === "lobby" && !isSolo;
 
+  const [copyStatus, setCopyStatus] = useState("");
   async function copyCode() {
-    await navigator.clipboard?.writeText(room.code);
+    try {
+      if (!navigator.clipboard) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(room.code);
+      setCopyStatus("Copied");
+    } catch {
+      setCopyStatus("Select the code to copy it.");
+    }
   }
 
   return (
     <section className="room-header">
-      <p className="eyebrow">Room</p>
+      <p className="eyebrow">{t("Room")}</p>
       <div className="room-code">
-        {isSolo ? <span className="solo-mode-pill" data-testid="solo-mode-pill">Solo Demo</span> : null}
+        {isSolo ? <span className="solo-mode-pill" data-testid="solo-mode-pill">{t("Solo Demo")}</span> : null}
         {showInviteCode ? (
           <>
             <div className="invite-code" data-testid="invite-code">
-              <span>Invite code</span>
+              <span>{t("Invite code")}</span>
               <strong data-testid="room-code">{room.code}</strong>
             </div>
-            <button type="button" title="Copy room code" aria-label="Copy invite code" onClick={copyCode}>
+            <button type="button" title={t("Copy room code")} aria-label={t("Copy invite code")} onClick={copyCode}>
               <Clipboard size={16} />
-              <span>Copy</span>
+              <span>{t("Copy")}</span>
             </button>
           </>
         ) : null}
-        <button type="button" title="Show rules" aria-label="Show rules" onClick={onRules} data-testid="open-rules">
+        <button type="button" title={t("Show rules")} aria-label={t("Show rules")} onClick={onRules} data-testid="open-rules">
           <HelpCircle size={16} />
-          <span>Rules</span>
+          <span>{t("Rules")}</span>
         </button>
         <button
           type="button"
-          title={soundEnabled ? "Mute table sounds" : "Enable table sounds"}
-          aria-label={soundEnabled ? "Mute table sounds" : "Enable table sounds"}
+          title={t(soundEnabled ? "Mute table sounds" : "Enable table sounds")}
+          aria-label={t(soundEnabled ? "Mute table sounds" : "Enable table sounds")}
           onClick={onToggleSound}
           data-testid="toggle-table-sound"
         >
           {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          <span>{soundEnabled ? "Sound" : "Muted"}</span>
+          <span>{t(soundEnabled ? "Sound" : "Muted")}</span>
         </button>
-        <button type="button" title="Leave room" aria-label="Leave room" onClick={onLeave}>
+        <button type="button" title={t("Leave room")} aria-label={t("Leave room")} onClick={onLeave}>
           <DoorOpen size={16} />
-          <span>Exit</span>
+          <span>{t("Exit")}</span>
         </button>
       </div>
+      {copyStatus ? <small role="status">{t(copyStatus)}</small> : null}
     </section>
   );
 }
@@ -990,14 +1012,13 @@ function LobbyCommand({ isHost, playerCount, onStart }: { isHost: boolean; playe
   return (
     <section className="lobby-command" data-ready={ready} data-testid="lobby-command">
       <div>
-        <p className="eyebrow">Next move</p>
-        <strong>{playerCount < 2 ? "Need one more player" : isHost ? "Ready to start" : "Waiting for host"}</strong>
-        <span>{playerCount < 2 ? "Share the room code with someone on this network or online server." : "Rules are available anytime from the top bar."}</span>
+        <p className="eyebrow">{t("Next move")}</p>
+        <strong>{t(playerCount < 2 ? "Need one more player" : isHost ? "Ready to start" : "Waiting for host")}</strong>
+        <span>{t(playerCount < 2 ? "Share the room code with someone on this network or online server." : "Rules are available anytime from the top bar.")}</span>
       </div>
       <button className="primary-button" type="button" disabled={!ready} onClick={onStart}>
         <Play size={18} />
-        Start
-      </button>
+        {t("Start")}</button>
     </section>
   );
 }
@@ -1024,32 +1045,31 @@ function SoloDemoPanel({
     <section className="solo-demo-panel" data-expanded={detailsOpen} data-testid="solo-demo-panel">
       <div className="voice-panel-head">
         <div>
-          <p className="eyebrow">Solo Demo</p>
-          <strong>{soloPhaseLabel(scheduler, activeBot?.name)}</strong>
+          <p className="eyebrow">{t("Solo Demo")}</p>
+          <strong>{t(soloPhaseLabel(scheduler, activeBot?.name))}</strong>
         </div>
         <span className="voice-live-dot" data-live={scheduler.phase !== "gameOver"} />
       </div>
-      <p>{soloPhaseDescription(scheduler, activeBot?.name)}</p>
+      <p>{t(soloPhaseDescription(scheduler, activeBot?.name))}</p>
       <div className="solo-quick-row" data-testid="solo-quick-row">
         <span>
-          <small>Focus</small>
-          <strong>{activeLabel}</strong>
+          <small>{t("Focus")}</small>
+          <strong>{t(activeLabel)}</strong>
         </span>
         <button className="secondary-button solo-sound-button" type="button" onClick={onToggleSound} data-active={soundEnabled} data-testid="solo-sound-toggle">
           {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-          {soundEnabled ? "Sound on" : "Sound off"}
+          {t(soundEnabled ? "Sound on" : "Sound off")}
         </button>
         <button className="secondary-button solo-details-button" type="button" onClick={() => setDetailsOpen((open) => !open)} data-testid="solo-details-toggle">
-          {detailsOpen ? "Hide details" : "Details"}
+          {t(detailsOpen ? "Hide details" : "Details")}
         </button>
       </div>
       <div className="solo-status-grid" hidden={!detailsOpen} data-testid="solo-status-grid">
         {players.map((player) => (
           <span key={player.id} data-eliminated={player.eliminated}>
-            <strong>{player.name}</strong>
+            <strong>{t(player.name)}</strong>
             <small>
-              {player.handCount} card{player.handCount === 1 ? "" : "s"} · {player.revolverRemaining ?? 0} shot
-              {(player.revolverRemaining ?? 0) === 1 ? "" : "s"}
+              {t(`${player.handCount} card${player.handCount === 1 ? "" : "s"}`)} · {t(`${player.revolverRemaining ?? 0} shot${player.revolverRemaining === 1 ? "" : "s"} left`)}
             </small>
           </span>
         ))}
@@ -1063,7 +1083,7 @@ function SoloDemoPanel({
           data-testid="solo-fast-forward"
         >
           <RefreshCcw size={16} />
-          {scheduler.fastForward ? "Normal pace" : "Fast forward"}
+          {t(scheduler.fastForward ? "Normal pace" : "Fast forward")}
         </button>
       ) : null}
     </section>
@@ -1106,18 +1126,18 @@ function VoicePanel({
     <section className="voice-panel" data-status={voice.status} data-testid="voice-panel">
       <div className="voice-panel-head">
         <div>
-          <p className="eyebrow">Voice</p>
-          <strong>{connected ? "Room voice live" : "Push-to-room mic"}</strong>
+          <p className="eyebrow">{t("Voice")}</p>
+          <strong>{t(connected ? "Room voice live" : "Push-to-room mic")}</strong>
         </div>
         <span className="voice-live-dot" data-live={connected} />
       </div>
       <p className="voice-status" data-testid="voice-status">
-        {voiceStatusLabel(voice)}
-        {connected ? ` · ${activePeerCount} in voice · ${voice.remoteAudioCount} speaker link${voice.remoteAudioCount === 1 ? "" : "s"}` : ""}
+        {t(voiceStatusLabel(voice))}
+        {t(connected ? ` · ${activePeerCount} in voice · ${voice.remoteAudioCount} speaker link${voice.remoteAudioCount === 1 ? "" : "s"}` : "")}
       </p>
       {connected ? (
         <div className="voice-peer-list" data-testid="voice-peer-list">
-          {remotePeers.length === 0 ? <span>No remote speakers yet</span> : null}
+          {remotePeers.length === 0 ? <span>{t("No remote speakers yet")}</span> : null}
           {remotePeers.map((peer) => {
             const player = players.find((candidate) => candidate.id === peer.playerId);
             const status = voice.peerAudioStates[peer.playerId] ?? "connecting";
@@ -1125,14 +1145,14 @@ function VoicePanel({
             return (
               <div className="voice-peer-row" data-audio-state={status} key={peer.playerId}>
                 <span>
-                  {player?.name ?? "Player"}
+                  {t(player?.name ?? "Player")}
                   {diagnostics ? (
                     <small>
                       {diagnostics.signalingState ?? "new"} / {diagnostics.iceConnectionState ?? "new"}
                     </small>
                   ) : null}
                 </span>
-                <strong>{voiceAudioStatusLabel(status, diagnostics)}</strong>
+                <strong>{t(voiceAudioStatusLabel(status, diagnostics))}</strong>
               </div>
             );
           })}
@@ -1140,38 +1160,35 @@ function VoicePanel({
       ) : null}
       {hasBlockedAudio ? (
         <button className="voice-warning" type="button" onClick={onRetryAudio} data-testid="enable-audio">
-          Click to enable audio
-        </button>
+          {t("Click to enable audio")}</button>
       ) : null}
       <div className="voice-actions">
         {connected ? (
           <button className="secondary-button" type="button" onClick={onLeave} data-testid="leave-voice">
             <Radio size={17} />
-            Leave
-          </button>
+            {t("Leave")}</button>
         ) : (
           <button className="primary-button" type="button" disabled={disabled || requesting || voice.status === "unsupported"} onClick={onJoin} data-testid="join-voice">
             <Mic size={17} />
-            {requesting ? "Requesting" : "Join"}
+            {t(requesting ? "Requesting" : "Join")}
           </button>
         )}
         <button className="secondary-button" type="button" disabled={!connected} onClick={onToggleMute} data-testid="toggle-mute">
           {voice.muted ? <MicOff size={17} /> : <Mic size={17} />}
-          {voice.muted ? "Unmute" : "Mute"}
+          {t(voice.muted ? "Unmute" : "Mute")}
         </button>
         {connected && hasStuckPeer ? (
           <button className="secondary-button" type="button" onClick={onResetVoice} data-testid="reset-voice">
             <RefreshCcw size={17} />
-            Reset voice
-          </button>
+            {t("Reset voice")}</button>
         ) : null}
         <button className="secondary-button" type="button" onClick={onTestSpeaker} data-testid="test-speaker">
           <Volume2 size={17} />
-          {voice.speakerTestRunning ? "Playing" : "Test speaker"}
+          {t(voice.speakerTestRunning ? "Playing" : "Test speaker")}
         </button>
         <button className="secondary-button" type="button" disabled={!connected} onClick={onTestMicLoopback} data-testid="test-mic-loopback">
           <Radio size={17} />
-          {voice.micLoopbackRunning ? "Looping" : "Test mic"}
+          {t(voice.micLoopbackRunning ? "Looping" : "Test mic")}
         </button>
       </div>
     </section>
@@ -1190,12 +1207,12 @@ function EventTicker({
   return (
     <section className="event-ticker" data-testid="event-ticker">
       <div>
-        <p className="eyebrow">Latest</p>
-        <strong>{latestEvent?.message ?? "Waiting for the table..."}</strong>
+        <p className="eyebrow">{t("Latest")}</p>
+        <strong>{t(latestEvent?.message ?? "Waiting for the table...")}</strong>
       </div>
       <button className="secondary-button" type="button" onClick={onToggleHistory} data-testid="history-toggle">
         <History size={17} />
-        {historyOpen ? "Hide history" : "History"}
+        {t(historyOpen ? "Hide history" : "History")}
       </button>
     </section>
   );
@@ -1205,7 +1222,7 @@ function HistoryPanel({ events, open, onToggle }: { events: GameEvent[]; open: b
   return (
     <section className="history-panel" data-open={open} data-testid="history-panel">
       <button className="history-panel-head" type="button" onClick={onToggle}>
-        <span>Full history</span>
+        <span>{t("Full history")}</span>
         <strong>{events.length}</strong>
       </button>
       {open ? <EventLog events={events} /> : null}
@@ -1223,21 +1240,19 @@ function EndGameActions({
   onExit: () => void;
 }) {
   return (
-    <section className="endgame-actions" aria-label="End game actions" data-testid="endgame-actions">
+    <section className="endgame-actions" aria-label={t("End game actions")} data-testid="endgame-actions">
       <div>
-        <p className="eyebrow">Game over</p>
-        <h2>Play another round?</h2>
-        {!isHost ? <p>Waiting for the host to restart, or you can exit the room.</p> : <p>Start a fresh game with the same seated players, or leave the room.</p>}
+        <p className="eyebrow">{t("Game over")}</p>
+        <h2>{t("Play another round?")}</h2>
+        {!isHost ? <p>{t("Waiting for the host to restart, or you can exit the room.")}</p> : <p>{t("Start a fresh game with the same seated players, or leave the room.")}</p>}
       </div>
       <div className="endgame-buttons">
         <button className="primary-button" type="button" disabled={!isHost} onClick={onPlayAgain} data-testid="play-again">
           <RefreshCcw size={18} />
-          Play again
-        </button>
+          {t("Play again")}</button>
         <button className="secondary-button" type="button" onClick={onExit} data-testid="exit-room">
           <DoorOpen size={18} />
-          Exit
-        </button>
+          {t("Exit")}</button>
       </div>
     </section>
   );
@@ -1255,21 +1270,22 @@ function Hand({
   onToggle: (cardId: string) => void;
 }) {
   return (
-    <section className="hand" aria-label="Your hand">
-      {cards.length === 0 ? <p className="empty-hand">No cards in hand</p> : null}
+    <section className="hand" aria-label={t("Your hand")}>
+      {cards.length === 0 ? <p className="empty-hand">{t("No cards in hand")}</p> : null}
       <div className="hand-cards">
         {cards.map((card) => (
           <button
             type="button"
             className="playing-card"
             data-selected={selectedCardIds.includes(card.id)}
+            aria-pressed={selectedCardIds.includes(card.id)}
             disabled={disabled}
             key={card.id}
             onClick={() => onToggle(card.id)}
             data-testid={`hand-card-${card.id}`}
           >
             <span>{rankGlyph(card.rank)}</span>
-            <strong>{displayRank(card.rank)}</strong>
+            <strong>{t(displayRank(card.rank))}</strong>
           </button>
         ))}
       </div>
@@ -1300,25 +1316,25 @@ function ChallengePanel({
 
   return (
     <section className="challenge-panel" data-result-unlocked={!resultConcealed} data-testid="challenge-panel">
-      <div className="liar-stamp">LIAR CALLED</div>
+      <div className="liar-stamp">{t("LIAR CALLED")}</div>
       <div>
-        <p className="eyebrow">Challenge</p>
+        <p className="eyebrow">{t("Challenge")}</p>
         <h2>
-          {caller?.name} vs {accused?.name}
+          {t(caller?.name ?? "Player")} {t("vs")} {t(accused?.name ?? "Player")}
         </h2>
       </div>
       <div className="revealed-cards">
         {challenge.revealedCards.map((card) => (
           <div className="mini-card" data-liar={challenge.liarCardIds.includes(card.id)} key={card.id}>
             <span>{rankGlyph(card.rank)}</span>
-            <strong>{displayRank(card.rank)}</strong>
+            <strong>{t(displayRank(card.rank))}</strong>
           </div>
         ))}
       </div>
       <div className="roulette-result" data-lethal={!resultConcealed && challenge.rouletteResult === "LETHAL"}>
         <Flame size={18} />
         <span>
-          {resultConcealed ? roulettePendingLabel(displayPhase, roulettePlayer?.name) : rouletteResultSentence(roulettePlayer?.name, challenge.rouletteResult)}
+          {t(resultConcealed ? roulettePendingLabel(displayPhase, roulettePlayer?.name) : rouletteResultSentence(roulettePlayer?.name, challenge.rouletteResult))}
         </span>
       </div>
       <div
@@ -1328,7 +1344,7 @@ function ChallengePanel({
         data-testid="toy-roulette-readout"
       >
         <span />
-        <strong>{resultConcealed ? roulettePendingReadout(displayPhase) : rouletteResultReadout(challenge.rouletteResult)}</strong>
+        <strong>{t(resultConcealed ? roulettePendingReadout(displayPhase) : rouletteResultReadout(challenge.rouletteResult))}</strong>
       </div>
     </section>
   );
@@ -1351,23 +1367,23 @@ function TimerBar({ turnStartedAt, turnEndsAt, running }: { turnStartedAt: numbe
   const seconds = Math.min(Math.ceil(total / 1000), Math.ceil(remaining / 1000));
 
   return (
-    <div className="timer-wrap" title="Turn timer">
+    <div className="timer-wrap" title={t("Turn timer")}>
       <Timer size={16} />
       <div className="timer-track">
         <span style={{ width: `${percent}%` }} />
       </div>
-      <strong>{seconds}s</strong>
+      <strong>{seconds}{t("s")}</strong>
     </div>
   );
 }
 
 function EventLog({ events }: { events: GameEvent[] }) {
   return (
-    <section className="event-log" aria-label="Event log">
-      <p className="eyebrow">Log</p>
+    <section className="event-log" aria-label={t("Event log")}>
+      <p className="eyebrow">{t("Log")}</p>
       {events.map((event) => (
         <article key={event.id} data-kind={event.kind}>
-          {event.message}
+          {t(event.message)}
         </article>
       ))}
     </section>
@@ -1738,9 +1754,9 @@ function readSavedSession(): SavedSession | null {
 }
 
 function writeSavedSession(session: SavedSession) {
-  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  try { window.localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch {}
 }
 
 function clearSavedSession() {
-  window.localStorage.removeItem(SESSION_KEY);
+  try { window.localStorage.removeItem(SESSION_KEY); } catch {}
 }

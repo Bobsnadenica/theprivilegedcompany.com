@@ -23,7 +23,8 @@
     "test:e2e:solo": "E2E_STATIC_SOLO_ONLY=true E2E_CLIENT_PORT=5178 playwright test --grep \"solo bot demo\"",
     "test:e2e:release": "npm run test:e2e:dry && npm run test:e2e:hit && npm run test:e2e:solo",
     "typecheck": "npm run typecheck --workspace @rrld/client && npm run typecheck --workspace @rrld/server",
-    "release:check": "npm run typecheck && npm test && npm run build && VITE_BASE_PATH=/ VITE_STATIC_SOLO_ONLY=true npm run build:pages && npm run test:e2e:release"
+    "release:check": "npm run typecheck && npm test && npm run build && VITE_BASE_PATH=/ VITE_STATIC_SOLO_ONLY=true npm run build:pages && npm run test:e2e:release",
+    "build:download": "python3 scripts/package-download.py"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.2",

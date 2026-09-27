@@ -882,7 +882,7 @@ async function createRoomWithPlayers(browser: import("@playwright/test").Browser
     await guest.getByTestId("join-code").fill(roomCode);
     await guest.getByTestId("join-room").click();
     await expect(guest.getByTestId("room-code")).toHaveText(roomCode);
-    if ((await guest.getByTestId("rules-overlay").count()) > 0) {
+    if (await guest.getByTestId("rules-overlay").isVisible()) {
       await guest.getByTestId("close-rules").click();
     }
   }
@@ -896,7 +896,7 @@ async function createHostRoom(host: import("@playwright/test").Page, name: strin
   await host.getByTestId("create-name").fill(name);
   await host.getByTestId("create-room").click();
   await expect(host.getByTestId("room-code")).toBeVisible();
-  if ((await host.getByTestId("rules-overlay").count()) > 0) {
+  if (await host.getByTestId("rules-overlay").isVisible()) {
     await host.getByTestId("close-rules").click();
   }
   return (await host.getByTestId("room-code").innerText()).trim();

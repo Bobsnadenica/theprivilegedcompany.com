@@ -1,80 +1,30 @@
-import { ChevronLeft, ChevronRight, Flame, HelpCircle, Shield, Sparkles, X } from "lucide-react";
-import { useState } from "react";
-import type { RulesStep } from "./animationTypes";
+import { X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { t } from "./i18n";
 
-const RULES: RulesStep[] = [
-  {
-    kicker: "Goal",
-    title: "Survive the table",
-    body: "Play until only one player is not eliminated. Every round has a table card, and every bluff can send someone to roulette."
-  },
-  {
-    kicker: "Cards",
-    title: "Play face down",
-    body: "On your turn, play 1 to 3 cards. Cards matching the table rank are safe. Jokers are always safe. Everything else is a lie."
-  },
-  {
-    kicker: "LIAR",
-    title: "Challenge the last play",
-    body: "Call LIAR when you think the previous player hid at least one wrong card. If they lied, they take the risk. If they were honest, you do."
-  },
-  {
-    kicker: "Roulette",
-    title: "Dry click or splash",
-    body: "The chamber has five dry clicks and one water-filled shot. A dry click misses. A hit eliminates you with a dramatic but non-graphic splash."
-  }
+const RULES = [
+  ["Read the table", "The table shows King, Queen, or Ace. Matching cards and Jokers count as honest plays."],
+  ["Play or bluff", "Choose 1–3 cards and play them face down. You can bluff with a different rank."],
+  ["Call a bluff", "Challenge the previous play. If they lied, they take the risk. If they told the truth, you do."],
+  ["Stay at the table", "Five dry chambers, one splash. A splash knocks a player out. The last player wins."]
 ];
 
 export function RulesOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [index, setIndex] = useState(0);
-  if (!open) {
-    return null;
-  }
-
-  const step = RULES[index];
-  const Icon = index === 0 ? Shield : index === 1 ? Sparkles : index === 2 ? Flame : HelpCircle;
-
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (open && !dialog.current?.open) dialog.current?.showModal();
+    else if (!open) dialog.current?.close();
+  }, [open]);
   return (
-    <section className="rules-overlay" data-testid="rules-overlay" aria-label="Game rules">
+    <dialog ref={dialog} className="rules-dialog" data-testid="rules-overlay" aria-labelledby="rules-title" onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose(); }}>
       <div className="rules-card">
-        <button className="rules-close" type="button" title="Close rules" onClick={onClose} data-testid="close-rules">
-          <X size={18} />
-        </button>
-        <div className="rules-icon">
-          <Icon size={32} />
-        </div>
-        <p className="eyebrow">{step.kicker}</p>
-        <h2>{step.title}</h2>
-        <p>{step.body}</p>
-        <div className="rules-dots" aria-label="Rules step">
-          {RULES.map((item, itemIndex) => (
-            <button
-              type="button"
-              key={item.title}
-              title={item.title}
-              data-active={itemIndex === index}
-              onClick={() => setIndex(itemIndex)}
-            />
-          ))}
-        </div>
-        <div className="rules-actions">
-          <button className="secondary-button" type="button" disabled={index === 0} onClick={() => setIndex((current) => Math.max(0, current - 1))}>
-            <ChevronLeft size={18} />
-            Back
-          </button>
-          {index === RULES.length - 1 ? (
-            <button className="primary-button" type="button" onClick={onClose}>
-              <Shield size={18} />
-              Got it
-            </button>
-          ) : (
-            <button className="primary-button" type="button" onClick={() => setIndex((current) => Math.min(RULES.length - 1, current + 1))}>
-              Next
-              <ChevronRight size={18} />
-            </button>
-          )}
-        </div>
+        <button className="rules-close" type="button" aria-label={t("Close rules")} onClick={onClose} data-testid="close-rules"><X size={20} /></button>
+        <p className="eyebrow">{t("A minute to learn")}</p>
+        <h2 id="rules-title">{t("How to play")}</h2>
+        <ol className="rules-list">{RULES.map(([title, body]) => <li key={title}><strong>{t(title)}</strong><p>{t(body)}</p></li>)}</ol>
+        <p className="rules-note">{t("Only one player still holding cards? They must challenge. This is a fictional card game with water effects.")}</p>
+        <button className="primary-button" type="button" onClick={onClose}>{t("Got it")}</button>
       </div>
-    </section>
+    </dialog>
   );
 }

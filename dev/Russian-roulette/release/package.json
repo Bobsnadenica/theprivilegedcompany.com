@@ -1,0 +1,17 @@
+{
+  "name": "liars-deck-free",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node start.mjs"
+  },
+  "dependencies": {
+    "cors": "2.8.6",
+    "express": "5.2.1",
+    "socket.io": "4.8.3"
+  }
+}

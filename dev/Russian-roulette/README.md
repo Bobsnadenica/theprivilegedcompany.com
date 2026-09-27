@@ -1,14 +1,15 @@
-# Russian Roulette Liar's Deck
+# Liar's Deck / Тесте на блъфа
 
 <p align="center">
   <img src="docs/logo.svg" alt="Russian Roulette Liar's Deck logo" width="140" />
 </p>
 
-An online multiplayer browser bluffing game. Players join a room, play hidden cards, call `LIAR`, and resolve a roulette-gun consequence when someone is caught bluffing or challenges incorrectly.
+A free browser bluffing game in English and Bulgarian. Play 1–3 hidden cards, call a bluff, and stay at the table. The fictional roulette consequence uses water effects.
 
 ## Play In Browser
 
-- **Solo bot demo:** [Play Solo Demo](https://www.theprivilegedcompany.com/dev/Russian-roulette/play/?autostart=1). The static solo-only build can auto-start for dashboard checks.
+- **Browser demo:** [English](https://www.theprivilegedcompany.com/dev/Russian-roulette/play/index.html?lang=en) · [Български](https://www.theprivilegedcompany.com/dev/Russian-roulette/play/index.html?lang=bg). One human against three bots; no install or account.
+- **Free friends version:** open **Play with friends** in the demo for the download. One computer hosts 2–4 players on the same local network. The ZIP contains the ready-built game, free runtime dependencies manifest, launchers for Mac/Windows/Linux, and bilingual instructions. Node.js 22+ and internet are needed for the host’s first setup.
 - **Multiplayer:** Real player rooms still require the Node/Socket.IO server because hidden cards, turns, timers, reconnect, and voice signaling are authoritative on the backend.
 
 ## What It Is
@@ -167,10 +168,10 @@ The static build is playable directly from the README and runs solo against bots
 To build the static artifact locally:
 
 ```bash
-npm run build:pages
+VITE_BASE_PATH=/dev/Russian-roulette/play/ VITE_STATIC_SOLO_ONLY=true npm run build:pages
 ```
 
-The static deployment job runs the same client build with a subpath-safe base and publishes the generated client artifact.
+Copy `packages/client/dist/` into the committed `play/` directory after this build. The main website repository publishes that committed artifact through GitHub Pages. The ordinary client build is for the downloadable server and must use `/` as its base.
 
 The static demo disables room codes, WebRTC voice, and Socket.IO. It uses a local solo scheduler for bot turns, bot quotes, challenge pacing, and lightweight table sounds. The `?autostart=1` URL starts the bot demo immediately for hosted dashboard monitors; the in-game **Play** button also auto-plays one card in solo mode when no card is selected. For human-vs-human multiplayer, run the local/LAN/private Node server instructions above.
 
@@ -303,3 +304,23 @@ tests/e2e/  Playwright multiplayer smoke tests
 docs/       Screenshots, deployment notes, third-party asset notes
 scripts/    Cinematic GLB and texture asset generators
 ```
+
+
+## September 2026 UI and bilingual release
+
+The entry screen has one primary **Play against bots** action, concise rules in a keyboard-accessible native dialog, and an expandable friends-download guide. EN / БГ works without restarting the game, updates the URL and document language, and shares the website's language preference. Game rules, feedback, bot dialogue, card labels, and canvas nameplates are translated. Gameplay/protocol values stay unchanged.
+
+Larger card and action controls remain available on phones. The portrait camera keeps more of the table in view. Menu buttons no longer accidentally trigger the Play keyboard shortcut. The downloaded client connects to its own server origin, so friends can use the host's LAN address.
+
+### Build the free download
+
+```bash
+npm ci
+npm run build:download
+```
+
+This command requires Python 3 on the build machine, builds the normal multiplayer client/server, and packages only the allowlisted public runtime into `download/liars-deck.zip`. Players do not need Python or build tools. `release/` holds the small standalone npm manifest/lockfile and bilingual launch instructions. `.env`, `node_modules`, local state, and the optional experimental prop are excluded. Build the static Pages client **after** the download; the two clients have different runtime modes.
+
+### Validation boundaries
+
+TypeScript and 49 unit/integration tests cover game rules, hidden hands, socket rooms, token rotation, action locks, audio helpers, solo scheduling, and language selection/dynamic translation. Manual browser checks cover English/Bulgarian entry, rules, card selection, bot turns, phone controls, two-player LAN joining, challenge/winner/replay, and refresh recovery. The extracted ZIP's first-launch install and subsequent start are checked on macOS with Node 22.22.2. Windows launcher execution, physical phone performance, and real microphone calls are not claimed as tested.

@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { t, type Language } from "./i18n";
 import type { Card, PublicPlayer, RoomState } from "@rrld/shared";
 import type {
   BarSceneHandle,
@@ -31,6 +32,7 @@ import {
 } from "./animationTypes";
 
 interface BarSceneProps {
+  language?: Language;
   players: PublicPlayer[];
   currentTurnPlayerId?: string;
   winnerId?: string;
@@ -345,6 +347,7 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
     });
   }, [
     props.players,
+    props.language,
     props.currentTurnPlayerId,
     props.winnerId,
     props.phase,
@@ -377,7 +380,7 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
       {!sceneReady ? (
         <div className="scene-loading">
           <span />
-          Loading cinematic table
+          {t("Loading table…")}
         </div>
       ) : null}
     </div>
@@ -837,6 +840,11 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   }
 
   function syncSceneState(next: ScenePropsSnapshot) {
+    if (next.language !== props.language) {
+      for (const texture of rankTextureCache.values()) {
+        createRankTexture(texture.userData.rank, texture.userData.danger, true);
+      }
+    }
     props = {
       ...props,
       ...next,
@@ -2359,7 +2367,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
       face.material = new THREE.MeshStandardMaterial({
         color: danger ? 0xffd2be : rankColor(rank),
         roughness: 0.55,
-        map: rank ? createRankTexture(rank, danger) : undefined,
+        map: rank ? createRankTexture(rank, danger) : null,
         side: THREE.DoubleSide
       });
     }
@@ -2418,7 +2426,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   function createCardFaceMaterial(rank: Card["rank"] | undefined, danger: boolean) {
     const material = new THREE.MeshBasicMaterial({
       color: danger ? 0xffd2be : rankColor(rank),
-      map: rank ? createRankTexture(rank, danger) : undefined,
+      map: rank ? createRankTexture(rank, danger) : null,
       side: THREE.DoubleSide,
       polygonOffset: true,
       polygonOffsetFactor: -1,
@@ -3034,7 +3042,7 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
         : resultStatus === "LOSER"
           ? "Eliminated"
           : `${indicator.remaining} shot${indicator.remaining === 1 ? "" : "s"} left`;
-    const key = `${player.name}|${cardsLabel}|${shotsLabel}|${voiceLabel}|${voiceState}|${player.connected}|${visualPlayer.eliminated}|${resultStatus ?? "playing"}`;
+    const key = `${props.language}|${player.name}|${cardsLabel}|${shotsLabel}|${voiceLabel}|${voiceState}|${player.connected}|${visualPlayer.eliminated}|${resultStatus ?? "playing"}`;
     if (key !== nameplate.lastKey) {
       const oldMap = nameplate.panel.material.map;
       nameplate.panel.material.map = createSeatNameplateTexture(player.name, cardsLabel, shotsLabel, voiceLabel, voiceState, resultStatus, player.id) ?? null;
@@ -3052,10 +3060,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
   }
 
   function updateSeatQuote(nameplate: SeatNameplateRig, quote: SceneTableQuote | undefined | null, resultStatus?: "WINNER" | "LOSER") {
-    const quoteKey = quote ? `${quote.playerId}|${quote.tone}|${quote.text}|${resultStatus ?? "playing"}` : "";
+    const quoteKey = quote ? `${props.language}|${quote.playerId}|${quote.tone}|${quote.text}|${resultStatus ?? "playing"}` : "";
     if (quoteKey !== nameplate.lastQuoteKey) {
       const oldMap = nameplate.quotePanel.material.map;
-      nameplate.quotePanel.material.map = quote ? createSeatQuoteTexture(quote.text, quote.tone, quote.playerId) ?? null : null;
+      nameplate.quotePanel.material.map = quote ? createSeatQuoteTexture(t(quote.text), quote.tone, quote.playerId) ?? null : null;
       nameplate.quotePanel.material.needsUpdate = true;
       oldMap?.dispose();
       nameplate.lastQuoteKey = quoteKey;
@@ -3306,6 +3314,10 @@ function createRuntime(host: HTMLDivElement, initialProps: ScenePropsSnapshot, c
     const width = Math.max(1, host.clientWidth);
     const height = Math.max(1, host.clientHeight);
     camera.aspect = width / height;
+    // Keep the other seats in view on portrait screens.
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(20)) * Math.max(1, 1.75 / camera.aspect)));
+    if (camera.aspect < 0.9) camera.setViewOffset(width, height, 0, height * 0.16, width, height);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
   }
@@ -3579,7 +3591,7 @@ function createSeatNameplateTexture(
   context.font = "900 44px Inter, Arial, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(trimNameplateText(name, 15), canvas.width / 2, status ? 43 : 58);
+  context.fillText(trimNameplateText(t(name), 15), canvas.width / 2, status ? 43 : 58);
 
   if (status) {
     const isWinner = status === "WINNER";
@@ -3596,15 +3608,15 @@ function createSeatNameplateTexture(
     context.shadowBlur = 14;
     context.fillStyle = isWinner ? "#fff2a8" : "#ffd1c1";
     context.font = "950 34px Inter, Arial, sans-serif";
-    context.fillText(status, canvas.width / 2, 90);
+    context.fillText(t(status), canvas.width / 2, 90);
     context.shadowBlur = 0;
   } else {
     context.fillStyle = "#ffd27a";
     context.font = "850 24px Inter, Arial, sans-serif";
-    context.fillText(cards, canvas.width / 2, 93);
+    context.fillText(t(cards), canvas.width / 2, 93);
     context.fillStyle = "#ffe3a4";
     context.font = "850 22px Inter, Arial, sans-serif";
-    context.fillText(shots, canvas.width / 2, 116);
+    context.fillText(t(shots), canvas.width / 2, 116);
   }
 
   const dotColor = voiceState === "speaking" ? "#84ffbd" : voiceState === "on" ? "#77d8ff" : voiceState === "muted" ? "#ffc56c" : "#9a8d82";
@@ -3615,7 +3627,7 @@ function createSeatNameplateTexture(
   context.fillStyle = "#d8e4df";
   context.font = "800 22px Inter, Arial, sans-serif";
   context.textAlign = "left";
-  context.fillText(voice, 180, 138);
+  context.fillText(t(voice), 180, 138);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -3874,10 +3886,10 @@ function characterPoseConfig(pose: CharacterPose) {
   return configs[pose];
 }
 
-function createRankTexture(rank: Card["rank"], danger: boolean) {
+function createRankTexture(rank: Card["rank"], danger: boolean, refresh = false) {
   const cacheKey = `${rank}:${danger ? "danger" : "normal"}`;
   const cached = rankTextureCache.get(cacheKey);
-  if (cached) {
+  if (cached && !refresh) {
     return cached;
   }
 
@@ -3914,13 +3926,16 @@ function createRankTexture(rank: Card["rank"], danger: boolean) {
   context.textBaseline = "middle";
   context.fillText(rankGlyph(rank), CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height * 0.42);
   context.font = "900 28px Inter, Arial, sans-serif";
-  context.fillText(displayRank(rank), CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height * 0.72);
+  context.fillText(t(displayRank(rank)), CARD_FACE_SIZE.width / 2, CARD_FACE_SIZE.height * 0.72);
   context.font = "900 34px Inter, Arial, sans-serif";
   context.textAlign = "left";
   context.fillText(rankGlyph(rank), 30, 42);
   context.textAlign = "right";
   context.fillText(rankGlyph(rank), CARD_FACE_SIZE.width - 30, CARD_FACE_SIZE.height - 42);
-  const texture = new THREE.CanvasTexture(canvas);
+  const texture = cached ?? new THREE.CanvasTexture(canvas);
+  texture.image = canvas;
+  texture.needsUpdate = true;
+  texture.userData = { rank, danger };
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
   rankTextureCache.set(cacheKey, texture);
