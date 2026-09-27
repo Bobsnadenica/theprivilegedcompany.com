@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927g';
+import { languageMeta, translations } from './translations.js?v=20260927h';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927g';
+const assetVersion = '20260927h';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -212,6 +212,9 @@ const applyTranslations = (root = document) => {
         link.href = currentLanguage === 'bg'
             ? 'https://www.facebook.com/profile.php?id=61594916066192'
             : 'https://www.facebook.com/profile.php?id=61594741023963';
+    });
+    document.querySelectorAll('[data-soroya-link]').forEach(link => {
+        link.href = `/dev/soroya/${currentLanguage === 'bg' ? 'index-bg.html' : 'index.html'}`;
     });
 
     const sourceElements = [
