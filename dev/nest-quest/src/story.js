@@ -1,0 +1,32 @@
+import { language } from './i18n.js';
+const stories = {
+  cottage: {
+    en: ['The cottage at the edge of the woods', 'An empty cottage waits at the edge of Willowmere. Ember finds a crumpled map and a letter: the valley’s lanterns have gone dark, and Princess Iris is missing. Before setting out, every good adventurer needs a plan.', 'You invite the neighbors to help mend the roof. Soon a kettle sings, and the little cottage feels like home.', 'You slip through the overgrown garden and discover a hidden door. It is a clever shortcut, though the neighbors still need help with the roof.'],
+    bg: ['Къщичката край гората', 'Празна къщичка чака в края на Уилоумир. Ембър намира смачкана карта и писмо: фенерите са угаснали, а принцеса Ирис е изчезнала. Преди път всеки добър приключенец има нужда от план.', 'Каниш съседите да помогнат с покрива. Скоро чайникът запява и къщичката се превръща в дом.', 'Промъкваш се през обраслата градина и откриваш скрита врата. Умен пряк път, но съседите още имат нужда от помощ с покрива.'],
+  },
+  lanterns: {
+    en: ['A light in the village', 'The village lanterns are cold. Three little keepers guard them: one for what we need, one for what we enjoy, and one for tomorrow. Knowing where your money goes gives each keeper a place in the story.', 'You share your map with the keepers. They light the lanterns together, and a warm glow leads everyone toward the river.', 'You borrow a spark from an old forge and light the path yourself. It works, but Ember promises to return the spark when the valley is safe.'],
+    bg: ['Светлина в селото', 'Фенерите на селото са студени. Пазят ги трима малки пазители: за нуждите, за удоволствията и за утре. Когато знаеш къде отиват парите, всеки намира място в историята.', 'Споделяш картата с пазителите. Те палят фенерите заедно и топла светлина отвежда всички към реката.', 'Заемаш искра от старата ковачница и осветяваш пътя сам. Получава се, но Ембър обещава да върне искрата, когато долината е в безопасност.'],
+  },
+  bridge: {
+    en: ['A bridge to better things', 'The river has carried away a few stones from the old bridge. A quarter of your savings goal is a first foundation: small, solid, and enough to start crossing. Nothing is repaired all at once.', 'You gather the villagers and place each stone together. Everyone crosses safely, and Ember leaves a little flower on the railing.', 'You balance across the fallen beam and tie a rope on the far bank. A daring crossing! The villagers can follow, but the stonework still needs care.'],
+    bg: ['Мост към по-добри дни', 'Реката е отнесла няколко камъка от стария мост. Четвърт от целта ти е първа основа: малка, здрава и достатъчна за начало. Нищо не се поправя наведнъж.', 'Събираш селяните и поставяте всеки камък заедно. Всички преминават безопасно, а Ембър оставя цвете на парапета.', 'Балансираш по падналата греда и връзваш въже на другия бряг. Смело преминаване! Селяните могат да последват, но каменният мост още има нужда от грижа.'],
+  },
+  forest: {
+    en: ['Whispers of the old forest', 'Beyond the bridge, old trees whisper about a shadow around the tower. Halfway to your savings goal, and with a little regular care, Ember is ready to follow their clues. Rest is part of a long journey.', 'You stop to free a trapped woodland spirit. In thanks, it reveals a safe trail to the tower and walks beside you until dusk.', 'You follow a mysterious glow through a narrow thorn passage. Ember reaches the tower faster, with a scratched satchel and a new respect for patience.'],
+    bg: ['Шепотът на старата гора', 'Отвъд моста дърветата шепнат за сянка около кулата. На половината от целта и с редовна грижа Ембър е готов да следва следите. Почивката е част от дългия път.', 'Спираш, за да освободиш горски дух. В благодарност той разкрива безопасна пътека и ви придружава до здрач.', 'Следваш тайнствена светлина през тесен проход с тръни. Ембър стига по-бързо, с надраскана чантичка и ново уважение към търпението.'],
+  },
+  princess: {
+    en: ['Princess Iris and the sleeping shadow', 'Your savings goal is reached. At the tower, Iris is safe but the door is sealed by a sleeping shadow dragon. It isn’t evil; it is frightened and has forgotten the way home. Your little companion must choose how to open the door.', 'Ember offers warmth instead of a fight. The dragon wakes gently, opens the door, and Iris invites it back to the valley. Sometimes the bravest thing is kindness.', 'Ember sneaks up the ivy, opens the high window, and leads Iris out while the dragon sleeps. A brilliant rescue, but the lonely dragon still needs a way home.'],
+    bg: ['Принцеса Ирис и спящата сянка', 'Целта за спестяване е постигната. Ирис е в безопасност в кулата, но вратата е запечатана от спящ дракон. Той не е зъл — уплашен е и е забравил пътя към дома. Спътникът ти трябва да избере как да отвори вратата.', 'Ембър предлага топлина вместо битка. Драконът се събужда спокойно, отваря вратата и Ирис го кани в долината. Понякога най-смелото е да бъдеш добър.', 'Ембър се качва по бръшляна, отваря високия прозорец и извежда Ирис, докато драконът спи. Блестящо спасение, но самотният дракон още има нужда от дом.'],
+  },
+  sanctuary: {
+    en: ['A home for everyone', 'Iris plants a sapling beneath the old sanctuary tree. Your savings goal and three days of care have brought you here. The valley can become a haven, or a frontier full of new discoveries. The next month is another beginning.', 'You make room for the shadow dragon and every weary traveler. Willowmere becomes a warm haven, and Ember earns the valley’s trust.', 'You turn the sanctuary into an explorer’s outpost. New trails are marked, the dragon has a place to rest, and Ember dreams of the next daring expedition.'],
+    bg: ['Дом за всички', 'Ирис засажда фиданка под старото дърво. Целта ти и три дни с грижа те доведоха дотук. Долината може да е убежище или начало на нови открития. Следващият месец е ново начало.', 'Правиш място за дракона и всеки уморен пътник. Уилоумир става топло убежище, а Ембър печели доверието на долината.', 'Превръщаш убежището в лагер за изследователи. Отбелязвате нови пътеки, драконът има къде да почива, а Ембър мечтае за следващия смел поход.'],
+  },
+};
+export function story(id, companionName) {
+  const originalName = language() === 'bg' ? 'Ембър' : 'Ember';
+  const [title, intro, kind, bold] = stories[id][language()].map(text => companionName ? text.replaceAll(originalName, companionName) : text);
+  return { title, intro, kind, bold };
+}

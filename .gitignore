@@ -62,6 +62,10 @@ dev/career/dist/
 portal/.vite/
 portal/src/config.js
 
+# Nest & Quest: deployable root files are tracked; Vite scratch is not.
+/dev/nest-quest/dist/
+/dev/nest-quest/.vite/
+
 # =========================================================================
 # Local scratch / never-commit (migration backups, downloaded user files,
 # private keys). These hold real uploaded data and must never enter git.

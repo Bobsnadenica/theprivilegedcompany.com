@@ -1,0 +1,3 @@
+# Preserve upstream multiline diagnostic strings in the generated AWS SDK chunk.
+# Application source still receives the normal whitespace checks.
+dev/nest-quest/assets/cloud-*.js whitespace=-blank-at-eol

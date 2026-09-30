@@ -15,6 +15,11 @@ Identity Pool, IAM, S3) is provisioned by Terraform in [`../backend`](../backend
 The AWS SDK is **self-hosted** (bundled by Vite), because the site CSP is
 `script-src 'self'` — CDN imports would be blocked.
 
+The standalone [Nest & Quest](../dev/nest-quest/) budgeting RPG reuses this account
+provider and public configuration. Its separate `.nestquest/save-v1.json` document
+is hidden from Files, like the other personal-tool ledgers. It does not read or
+modify portal Budget, add registration, or require new backend resources.
+
 ## Build
 
 ```bash

@@ -86,7 +86,7 @@ export async function listFiles() {
     objects.push(...(out.Contents || []));
     token = out.IsTruncated ? out.NextContinuationToken : undefined;
   } while (token);
-  return objects.filter(o => o.Key !== userPrefix && !o.Key.startsWith(`${userPrefix}.budget/`) && !o.Key.startsWith(`${userPrefix}.timeto/`) && !o.Key.startsWith(`${userPrefix}.bulgaria/`) && !o.Key.startsWith(`${userPrefix}.life/`))
+  return objects.filter(o => o.Key !== userPrefix && !o.Key.startsWith(`${userPrefix}.budget/`) && !o.Key.startsWith(`${userPrefix}.timeto/`) && !o.Key.startsWith(`${userPrefix}.bulgaria/`) && !o.Key.startsWith(`${userPrefix}.life/`) && !o.Key.startsWith(`${userPrefix}.nestquest/`))
     .map(o => ({ key: o.Key, name: o.Key.slice(userPrefix.length), size: o.Size, lastModified: o.LastModified }))
     .sort((a, b) => (b.lastModified || 0) - (a.lastModified || 0));
 }

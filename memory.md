@@ -1,6 +1,39 @@
 # Project memory
 
-Last updated: **2026-09-27**. Initial review baseline: `77228f02`; latest public-site release review baseline: `8afca85c`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier public-site release review baseline: `8afca85c`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+
+## Nest & Quest budgeting RPG (2026-10-01)
+
+- `dev/nest-quest/` is a standalone EN/BG landing page and budgeting RPG, linked
+  under Games & Fun. Its Vite source is in `src/`; root HTML, hashed assets, and
+  `art/` are generated and committed for Pages. `dist/` and dependencies are ignored.
+- Original Ember character stages and the Willowmere map use the built-in
+  imagegen tool. Original PNGs and exact prompts are in `art-source/`; the packaging
+  script preserves character alpha. No new paid tool or infrastructure was added.
+- Monthly income, expenses, essential overrides, explicit savings, category
+  charts, JSON backup/restore, and CSV feed six quests, kind/daring story choices,
+  care, growth, and game-coin decorations. Money uses integer minor units and one
+  currency per adventure. A hard month does not remove earned rewards or chapters.
+- Guest saves use localStorage; the fictional demo uses a separate session key.
+  Optional saves reuse existing Cognito SRP/first-password login and IAM-scoped S3
+  at `.nestquest/save-v1.json` under the authenticated owner’s personal prefix.
+  Portal Files hides this application file; portal Budget stays separate.
+- Cloud connection explicitly chooses a device or account copy. Conditional
+  ETags prevent silent cross-device overwrites, preserve pending device changes,
+  and recognize a lost successful response. Account caches are scoped session
+  copies; logout clears them and returns to guest play. Corrupt saves and changed
+  local tabs also fail closed. Cloud removal deletes the current version; bucket
+  history remains, as explained on the game’s privacy page.
+- Local validation: 23 game tests, 53 portal tests, public-site regression checks,
+  and 40 EN/BG browser layout cases. Fictional test data verified real Cognito/S3
+  sign-in, first-password setup, save/reload, account-switch/logout isolation, a
+  real two-device conflict, and current cloud deletion. Backup restore, edits,
+  deletion, local-tab conflicts, blocked storage, invalid saves, and reduced
+  motion were also checked. Temporary test accounts/identities/object versions
+  are removed after live release verification; never retain their credentials.
+- Release verification must still follow each publication: wait for Pages,
+  compare changed deployable bytes, inspect live UI, and test account operations
+  on the production origin. See the game README for commands and source research.
 
 ## Purpose and working agreement
 

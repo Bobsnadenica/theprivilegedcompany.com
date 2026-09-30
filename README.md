@@ -4,6 +4,20 @@ The company website presents app and website development, automation, technical 
 
 This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
+## Nest & Quest budgeting RPG (2026-10-01)
+
+[Nest & Quest](dev/nest-quest/) is a new English/Bulgarian game in the Dev hub’s
+Games & Fun section. Its landing page explains local play and optional existing
+company-account saving. The game pairs a monthly income/expense/savings ledger
+with an original fox-dragon companion, an illustrated valley, six story chapters,
+care, experience, and earned decorations. Essentials are classified separately;
+difficult months do not erase progress. It adds no bank integration or paid service.
+
+The optional account save uses the existing Cognito/Identity Pool/S3 backend and
+an isolated `.nestquest/` application document, hidden from the portal Files list.
+Source, generated output, asset provenance, development commands, privacy, and
+verification details are documented in [the game README](dev/nest-quest/README.md).
+
 ## Soroya and company contact (2026-09-27)
 
 Soroya is the owner-appointed Head of HR & Operations persona, company face, and
