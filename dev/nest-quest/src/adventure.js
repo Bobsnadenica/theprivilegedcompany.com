@@ -1,0 +1,99 @@
+import { CATEGORIES, QUESTS, localDate } from './model.js';
+import { GOAL_MILESTONES, goalSummary } from './goals.js';
+import { t, money } from './i18n.js';
+import { icon } from './icons.js';
+
+export const escapeText = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+export const goalName = kind => t(`goal${kind.charAt(0).toUpperCase()}${kind.slice(1)}`);
+export function goalTitle(goal) {
+  if (!goal) return t('chooseGoal');
+  const defaults = {
+    car: ['New car', 'Нова кола'], wedding: ['Wedding', 'Сватба'], house: ['New home', 'Нов дом'],
+    emergency: ['Safety fund', 'Резервен фонд'], travel: ['Dream trip', 'Мечтано пътуване'],
+  };
+  return defaults[goal.kind]?.includes(goal.title) ? goalName(goal.kind) : goal.title;
+}
+const symbols = ['home', 'lantern', 'bridge', 'flower', 'shield', 'flag'];
+
+export function companionPosition(ratio) {
+  const clamped = Math.max(0, Math.min(1, ratio));
+  let index = GOAL_MILESTONES.findIndex((threshold, i) => i < 5 && clamped >= threshold && clamped < GOAL_MILESTONES[i + 1]);
+  if (index < 0) return { x: QUESTS[5].x, y: QUESTS[5].y };
+  const part = (clamped - GOAL_MILESTONES[index]) / (GOAL_MILESTONES[index + 1] - GOAL_MILESTONES[index]);
+  return { x: QUESTS[index].x + (QUESTS[index + 1].x - QUESTS[index].x) * part,
+    y: QUESTS[index].y + (QUESTS[index + 1].y - QUESTS[index].y) * part };
+}
+
+export function reactionSpeech(state, reaction) {
+  const total = goalSummary(state);
+  if (!total) return t('goalSetup');
+  const values = { goal: goalTitle(state.goal), amount: money(Math.abs(reaction?.delta || 0), state.profile.currency),
+    place: t(`landmark${Math.min(5, total.milestone + (reaction?.milestoneDown ? 1 : 0))}`) };
+  if (reaction?.pet) return t('petSpeech');
+  if (reaction?.completed) return t('reactionComplete', values);
+  if (reaction?.reopened) return t('reactionReopen', values);
+  if (reaction?.milestoneUp) return t('reactionUnlock', values);
+  if (reaction?.milestoneDown) return t('reactionRelock', values);
+  if (reaction?.direction === 'up') return t('reactionUp', values);
+  if (reaction?.direction === 'down') return t('reactionDown', values);
+  if (total.balance < 0) return t('negativeSpeech');
+  if (total.completed) return t('completeSpeech', values);
+  return t('idleSpeech', { goal: goalTitle(state.goal), amount: money(total.remaining, state.profile.currency) });
+}
+
+export function adventureHTML(state, { reaction = null, reactionActive = false, previous = null, type = 'income', month } = {}) {
+  const esc = escapeText, cash = amount => money(amount, state.profile.currency);
+  const total = goalSummary(state) || { balance: 0, target: 3000000, ratio: 0, percent: 0, remaining: 3000000, stage: 'young', milestone: 0, income: 0, expense: 0 };
+  const before = reactionActive && previous ? previous : total;
+  const position = companionPosition(before.ratio);
+  const next = Math.min(5, total.milestone + 1);
+  const reactionClass = reactionActive ? reaction?.pet ? 'reacting-pet' : reaction?.completed ? 'reacting-complete' : reaction?.direction === 'down' ? 'reacting-down' : reaction?.direction === 'up' ? 'reacting-up' : '' : '';
+  const signed = reaction?.delta ? `${reaction.delta > 0 ? '+' : '−'}${cash(Math.abs(reaction.delta))}` : '';
+  const reveal = Math.min(100, position.x + 12);
+  const date = month === localDate().slice(0, 7) ? localDate() : `${month}-01`;
+  const rail = GOAL_MILESTONES.map((threshold, index) => {
+    const open = index <= total.milestone;
+    return `<button type="button" class="milestone ${open ? 'unlocked' : 'locked'} ${index === total.milestone ? 'current' : ''}" data-action="landmark" data-id="${index}" aria-label="${esc(`${t(`landmark${index}`)} · ${Math.round(threshold * 100)}% · ${t(open ? 'checkpointBuilt' : 'checkpointLocked')}`)}"><span class="milestone-icon">${icon(open ? symbols[index] : 'lock')}</span><span class="milestone-label">${esc(t(`landmark${index}`))}</span><small>${Math.round(threshold * 100)}%</small></button>`;
+  }).join('');
+  const path = QUESTS.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
+  // The path's physical lengths differ from financial checkpoint intervals.
+  // Clip the colored path by the actual companion location instead of assuming
+  // that 50% of savings means 50% of this SVG's length.
+  const pathProgress = pathLengthAt(before.ratio);
+  return `<div class="goal-adventure">
+    <section class="living-world panel" aria-label="${esc(t('adventure'))}">
+      <div class="world-heading"><div><h2>${esc(t('valley'))}</h2><p>${esc(t('valleyHint'))}</p></div><span class="realm-status">${esc(t('worldState', { n: total.milestone + 1 }))}</span></div>
+      <div class="reactive-map ${reactionClass} ${total.balance < 0 ? 'fund-negative' : ''}" style="--unrevealed:${100 - reveal}%" data-world-stage="${total.stage}" data-milestone="${total.milestone}" data-goal-ratio="${total.ratio}">
+        <img class="world-muted" src="/dev/nest-quest/art/willowmere.webp" alt="${esc(t('valley'))}" width="1536" height="1024">
+        <img class="world-color" src="/dev/nest-quest/art/willowmere.webp" alt="" width="1536" height="1024" aria-hidden="true">
+        <svg class="journey-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path class="path-background" d="${path}"/><path class="path-progress" d="${path}" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${100 - pathProgress}"/></svg>
+        ${QUESTS.map((point, index) => `<button type="button" class="map-pin ${index <= total.milestone ? 'unlocked' : 'locked'} ${index === total.milestone ? 'current' : ''}" style="left:${point.x}%;top:${point.y}%" data-action="landmark" data-id="${index}" aria-label="${esc(t(`landmark${index}`))}">${index <= total.milestone ? icon('check') : icon('lock')}</button>`).join('')}
+        <button type="button" id="companion-button" class="map-companion ${position.x < 20 ? 'at-start' : position.x > 80 ? 'at-end' : ''}" style="left:${position.x}%;top:max(90px, ${position.y}%)" data-action="pet" aria-label="${esc(t('tapEmber', { name: state.profile.name }))}"><span class="companion-aura" aria-hidden="true"></span><img src="/dev/nest-quest/art/ember-${total.stage}.webp" alt="${esc(state.profile.name)}" width="512" height="650"><span class="floating-amount" aria-hidden="true">${reactionActive ? esc(signed) : ''}</span></button>
+        <span class="map-caption">${esc(t(total.stage))} · ${total.percent}%</span>
+        <div class="celebration" aria-hidden="true">${Array.from({ length: 12 }, (_, index) => `<i style="--i:${index}"></i>`).join('')}</div>
+      </div>
+      <div class="companion-reaction" role="status" aria-live="polite" aria-atomic="true"><strong>${esc(state.profile.name)}</strong>${signed ? `<span class="reaction-delta ${reaction.delta < 0 ? 'negative' : ''}">${esc(signed)}</span>` : ''}<p id="companion-speech">${esc(reactionSpeech(state, reaction))}</p></div>
+      <div class="milestone-rail" aria-label="${esc(t('adventure'))}">${rail}</div>
+      <p class="next-checkpoint">${esc(total.completed ? t('goalReached') : t('nextCheckpoint', { place: t(`landmark${next}`), amount: cash(Math.ceil(total.target * GOAL_MILESTONES[next])) }))}</p>
+    </section>
+    <aside class="goal-workbench">
+      <section class="goal-card panel"><div class="goal-heading"><span class="tiny-label">${esc(t('savingFor'))}</span><button type="button" class="goal-edit" data-action="goal" aria-label="${esc(t('changeGoal'))}">${icon('edit')}</button></div><h2>${esc(goalTitle(state.goal))}</h2><p class="tiny-label">${esc(t('goalFund'))}</p><div class="goal-balance ${total.balance < 0 ? 'negative' : ''}" id="goal-balance">${esc(cash(total.balance))}</div><p class="goal-total">${esc(t('goalTargetOf', { amount: cash(total.target) }))}</p>
+      <div class="goal-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${total.percent}" aria-label="${esc(goalTitle(state.goal))}"><span style="width:${before.ratio * 100}%"></span></div><div class="goal-meta"><span id="goal-percent">${total.percent}%</span><span>${esc(total.completed ? t('goalReached') : t('goalLeft', { amount: cash(total.remaining) }))}</span></div>
+      <details class="fund-explanation"><summary>${esc(t('howFund'))}</summary><p>${esc(t('fundRule'))}</p><p class="fund-math">${esc(t('fundMath', { opening: cash(state.goal?.opening || 0), income: cash(total.income), expense: cash(total.expense) }))}</p><p>${esc(t('fundOnly'))}</p>${state.entries.some(entry => entry.type === 'saving') ? `<p>${esc(t('legacyHint'))}</p>` : ''}</details></section>
+      <section class="quick-entry panel"><h2>${esc(t('quickTitle'))}</h2><div class="entry-switch" aria-label="${esc(t('ledger'))}">${['income', 'expense'].map(value => `<button type="button" data-quick-type="${value}" class="${value === type ? 'active' : ''}" aria-pressed="${value === type}">${icon(value === 'income' ? 'plus' : 'coins')}${esc(t(value === 'income' ? 'moneyIn' : 'moneyOut'))}</button>`).join('')}</div>
+      <form id="quick-entry-form" data-type="${type}"><div class="form-grid"><div class="field"><label for="quick-amount">${esc(t('amount'))} (${state.profile.currency})</label><input id="quick-amount" name="amount" inputmode="decimal" maxlength="11" required placeholder="0.00" autocomplete="off"></div><div class="field"><label for="quick-date">${esc(t('date'))}</label><input id="quick-date" name="date" type="date" value="${date}" min="2000-01-01" max="${localDate()}" required></div></div>
+      <div class="field quick-category" ${type === 'income' ? 'hidden' : ''}><label for="quick-category">${esc(t('category'))}</label><select id="quick-category" name="category">${Object.keys(CATEGORIES).map(category => `<option value="${category}">${esc(t(category))}</option>`).join('')}</select></div>
+      <div class="field"><label for="quick-note">${esc(t('quickNote'))}</label><input id="quick-note" name="note" maxlength="160" placeholder="${esc(t('quickPlaceholder'))}" autocomplete="off"></div><p class="entry-hint">${esc(t(type === 'income' ? 'quickIncomeHint' : 'quickExpenseHint'))}</p><p id="quick-error" class="form-error" role="alert" tabindex="-1" hidden></p><button class="button button-full" id="quick-submit" type="submit">${icon(type === 'income' ? 'plus' : 'coins')}<span>${esc(t(type === 'income' ? 'recordIncomeNow' : 'recordExpenseNow'))}</span></button></form></section>
+    </aside></div>`;
+}
+
+export function pathLengthAt(ratio) {
+  const segments = QUESTS.slice(1).map((point, index) => Math.hypot(point.x - QUESTS[index].x, point.y - QUESTS[index].y));
+  const total = segments.reduce((sum, length) => sum + length, 0);
+  let covered = 0;
+  for (let index = 0; index < segments.length; index++) {
+    const part = Math.max(0, Math.min(1, (ratio - GOAL_MILESTONES[index]) / (GOAL_MILESTONES[index + 1] - GOAL_MILESTONES[index])));
+    covered += segments[index] * part;
+  }
+  return covered / total * 100;
+}

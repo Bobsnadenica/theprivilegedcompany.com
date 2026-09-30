@@ -1,5 +1,7 @@
-// Money is stored in integer minor units. Savings are explicit transfers, never
-// inferred from an unspent balance. This ledger is separate from portal Budget.
+import { isValidGoal, goalSummary } from './goals.js';
+
+// Money is stored in integer minor units. Version 1 savings remain transfers;
+// version 2 goals use income minus expenses. This is separate from portal Budget.
 export const CURRENCIES = ['EUR', 'USD', 'GBP', 'BGN'];
 export const CATEGORIES = {
   housing: { essential: true, color: '#b79977' },
@@ -46,13 +48,18 @@ export const validMonth = value => typeof value === 'string' && /^20\d{2}-(0[1-9
 const amountValid = n => Number.isSafeInteger(n) && n >= 0 && n <= 9999999999;
 const idValid = s => typeof s === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(s);
 export function createState(date = localDate()) {
-  return { version: 1, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(),
+  return { version: 2, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(), goal: null,
     profile: { name: 'Ember', currency: 'EUR', started: false },
     entries: [], plans: {}, claims: [], checkins: [], recordDays: [], items: [], equipped: [] };
 }
 export function validateState(s) {
   const fail = () => { throw new Error('invalidSave'); };
-  if (!s || s.version !== 1 || !idValid(s.revision) || !validDate(s.createdAt)
+  if (!s || ![1, 2].includes(s.version)) fail();
+  // Migration changes only the schema version and adds the goal selector.
+  // Existing money, story rewards, dates, and optimistic-lock revision survive.
+  if (s.version === 1) s = { ...s, version: 2, goal: null };
+  if (!Object.hasOwn(s, 'goal') || (s.goal !== null && !isValidGoal(s.goal))
+    || !idValid(s.revision) || !validDate(s.createdAt)
     || typeof s.updatedAt !== 'string' || !Number.isFinite(Date.parse(s.updatedAt))
     || !s.profile || typeof s.profile.name !== 'string' || !s.profile.name.trim() || s.profile.name.length > 24
     || !CURRENCIES.includes(s.profile.currency) || typeof s.profile.started !== 'boolean'
@@ -84,6 +91,7 @@ export function validateState(s) {
   if (new Set(s.items).size !== s.items.length || new Set(s.equipped).size !== s.equipped.length
     || s.items.some(id => !ITEMS.some(item => item.id === id)) || s.equipped.some(id => !s.items.includes(id))) fail();
   if (progress(s).gold < 0) fail();
+  goalSummary(s);
   if (new TextEncoder().encode(JSON.stringify(s)).byteLength > 2000000) fail();
   return s;
 }
@@ -162,6 +170,7 @@ export function streak(state, today = localDate()) {
 export function demoState(today = localDate()) {
   const s = createState(today), month = today.slice(0, 7);
   s.profile = { name: 'Ember', currency: 'EUR', started: true };
+  s.goal = { id: uuid(), kind: 'car', title: 'New car', target: 3000000, opening: 730000 };
   s.plans[month] = { goal: 30000, flex: 55000 };
   const entry = (type, amount, category, note, essential = true) => ({ id: uuid(), date: `${month}-01`, type, amount, category, note, ...(type === 'expense' ? { essential } : {}) });
   s.entries = [entry('income', 240000, 'income', 'Monthly salary'), entry('expense', 75000, 'housing', 'A cozy place to live'),

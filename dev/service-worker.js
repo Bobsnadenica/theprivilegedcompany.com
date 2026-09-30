@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tpc-dev-portal-v6';
+const CACHE_NAME = 'tpc-dev-portal-v7';
 const urlsToCache = [
     './',
     './index.html',

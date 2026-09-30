@@ -8,10 +8,15 @@ This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable
 
 [Nest & Quest](dev/nest-quest/) is a new English/Bulgarian game in the Dev hub’s
 Games & Fun section. Its landing page explains local play and optional existing
-company-account saving. The game pairs a monthly income/expense/savings ledger
-with an original fox-dragon companion, an illustrated valley, six story chapters,
-care, experience, and earned decorations. Essentials are classified separately;
-difficult months do not erase progress. It adds no bank integration or paid service.
+company-account saving. One Adventure page pairs inline income/expense entry and
+editable history with an original fox-dragon companion and illustrated valley.
+Choose a suggested car, wedding, home, safety-fund, or trip goal, or set a custom
+name and target. Opening money plus all income minus all expenses funds the goal
+across months. Every change moves Ember and the world forward or back; six
+checkpoints and three character forms follow the current funded percentage.
+Version 1 saves migrate without losing records, and earlier savings transfers
+remain neutral to avoid counting money twice. It adds no bank integration or
+paid service.
 
 The optional account save uses the existing Cognito/Identity Pool/S3 backend and
 an isolated `.nestquest/` application document, hidden from the portal Files list.

@@ -6,25 +6,35 @@ adventure is `play.html?demo=1`. `privacy.html` explains saves and removal.
 
 ## The game
 
-Ember is an original fox-dragon companion with three illustrated stages. A
-six-chapter monthly expedition restores Willowmere, rescues Princess Iris, and
-opens a sanctuary. Kind and daring choices produce different journal outcomes.
-Logging days, daily care, and claimed chapters earn experience and fictional
-coins. Coins buy decorations, with no real-money purchases.
+The game has one Adventure page: Ember and the illustrated Willowmere valley,
+the goal fund, inline income and expense entry, and editable entry history.
+Choose a suggested goal or set a custom name and target. Suggestions are a new
+car (30,000), a wedding (50,000), a new home (100,000), a safety fund (10,000),
+and a dream trip (2,000), in the adventure's chosen currency. Every suggestion
+can be edited; the amounts are examples rather than financial recommendations.
 
-Budgeting supports income, expenses, and explicit savings transfers; dated
-entries; eleven spending categories; editable essential/flexible classification;
-monthly goals and limits; edits and confirmed deletion; category charts; JSON
-backup/restore; and monthly CSV export. All calculations use integer minor units.
-One adventure has one currency (EUR, USD, GBP, or BGN), without conversion.
+The fund equals opening money plus all recorded income minus all recorded
+expenses. Every expense category counts. Enter only money belonging to this
+fund, and do not include already recorded income in the opening amount. The
+goal carries across months; the month selector filters summaries and history
+without resetting the fund. Editing or deleting an entry recalculates the fund
+and the adventure immediately. Changing the goal keeps the existing entries.
 
-Unspent income is not treated as savings. Automatic flexible limits equal
-income minus recorded essentials minus the savings goal, floored at zero.
-Users may choose a manual limit. Above-plan spending or a negative available
-balance brings rain and a recovery message; it does not remove chapters, health,
-experience, or the companion. Daily rewards cannot be claimed twice on a date.
-Correcting financial records never removes earned game rewards. A new month
-starts a new expedition while companion growth, care, and the journal remain.
+Every increase or decrease prompts an animated response from Ember, changes the
+visible map and path, and moves the companion forward or back. Six checkpoints
+open at 0%, 10%, 25%, 50%, 75%, and 100% of the target: camp, lantern village,
+bridge, forest, Princess Iris, and sanctuary. Spending below a checkpoint closes
+it again. Ember grows from the young form into an adventurer at 25%, then a
+guardian at 75%; falling below those amounts also reverses the form. Tapping
+Ember gives a greeting. There are no separate care, experience, shop, or manual
+quest-claim gates in the current interface.
+
+Dated entries support eleven expense categories, edits and confirmed deletion,
+monthly CSV export, and JSON backup/restore. All calculations use integer minor
+units. One adventure has one fixed currency (EUR, USD, GBP, or BGN), without
+conversion. Negative and over-target funds retain their actual amount while the
+progress bar stays between 0% and 100%. Spending prompts a gentle response,
+without treating ordinary life costs as moral failure.
 
 This is a manual personal tracker. The game does not access banks, move money,
 send entries to AI/analytics, or verify the amounts someone enters.
@@ -65,6 +75,12 @@ live landing page and game at mobile and desktop widths.
 - Local adventures use `nestquest:local:v1` in localStorage. Demo adventures use
   a separate sessionStorage key. Corrupt or unsupported saves are preserved for
   original-file export until the player explicitly resets them.
+- Save schema version 2 adds the goal. Existing version 1 saves migrate without
+  changing their entries, metadata, or revision; the player then chooses a goal.
+  Earlier savings-transfer entries remain editable in history but are neutral
+  to the fund, preventing the same money from being counted twice. Old plans,
+  story choices, care dates, and rewards remain in the save for compatibility;
+  they do not gate the current adventure.
 - Accounts use the company’s existing Cognito SRP login, first-password challenge,
   public config, Identity Pool, and private bucket. Existing accounts are provided
   by the company; this game does not add self-registration.
@@ -87,17 +103,25 @@ live landing page and game at mobile and desktop widths.
 
 ## Validation
 
-Node checks cover decimal amounts, dates, monthly isolation, essential overrides,
-explicit savings, quest prerequisites and idempotency, growth, non-punitive
-corrections, care streaks, invalid imports, CSV escaping, conditional conflicts,
-lost responses, read failures, and cloud removal.
+Run the automated checks and browser QA for each release. Goal checks cover
+preset amounts, fund arithmetic across months and categories, neutral legacy
+transfers, reversible checkpoints and forms, edits/deletion, negative and
+over-target balances, and lossless migration. Existing model and repository
+checks cover amount/date validation, imports, CSV escaping, conditional save
+conflicts, lost responses, read failures, and cloud removal.
 
-Browser QA uses fictional entries and dedicated temporary accounts, without
-email invitations. It covers real Cognito sign-in and first-password setup,
-real S3 write/read and reload, account switching, logout isolation, and a real
-two-device conditional-write conflict. Temporary accounts, identities, and all
-their object versions are cleaned up after live release verification. Never put
-test credentials, tokens, identity IDs, or personal budget records in this repo.
+Browser QA must verify the single-page entry loop, visible responses in both
+directions, every checkpoint and form boundary, keyboard interaction, reduced
+motion, and English/Bulgarian mobile and desktop layouts. Recheck backups and
+local-save recovery after changing the schema. These requirements do not imply
+that the current build has passed production verification.
+
+Use fictional entries and dedicated temporary accounts for account QA, without
+email invitations. Verify real Cognito sign-in and first-password setup, real S3
+write/read and reload, account switching, logout isolation, and conditional-write
+conflicts. Clean up temporary accounts, identities, and all their object versions
+after live release verification. Never put test credentials, tokens, identity IDs,
+or personal budget records in this repo.
 
 ## Design research
 

@@ -1,7 +1,9 @@
 import './styles.css';
-import { CURRENCIES, CATEGORIES, QUESTS, ITEMS, createState, validateState, summarize, progress, questStatus, claimQuest, buyItem, demoState, parseMoney, validDate, validMonth, localDate, uuid, streak, csv } from './model.js';
+import './adventure.css';
+import { CURRENCIES, CATEGORIES, createState, validateState, summarize, demoState, parseMoney, validDate, validMonth, localDate, uuid, csv } from './model.js';
+import { GOAL_PRESETS, GOAL_MILESTONES, goalSummary, goalReaction } from './goals.js';
+import { adventureHTML, goalName, goalTitle, companionPosition, pathLengthAt } from './adventure.js';
 import { t, money, locale, language, setLanguage, applyLanguage } from './i18n.js';
-import { story as chapterStory } from './story.js';
 import { icon } from './icons.js';
 
 const $ = selector => document.querySelector(selector);
@@ -12,7 +14,8 @@ let localStore;
 try { localStore = isDemo ? sessionStorage : localStorage; } catch { /* Report inaccessible storage below. */ }
 let damagedSave = null, storageWarning = false, staleTab = false;
 let state = readLocal();
-let month = localDate().slice(0, 7), view = 'adventure', selectedQuest = null, ledgerFilter = 'all', ledgerLimit = 40;
+let month = localDate().slice(0, 7), quickType = 'income', ledgerFilter = 'all', ledgerLimit = 12;
+let reaction = null, reactionActive = false, reactionPrevious = null, reactionTimer;
 let account = null, syncEnabled = false, syncPaused = false, syncBusy = false, saveQueued = false, cloudErrorKey = null;
 let lastSyncedRevision = null, lastDeviceRevision = state.revision;
 let pendingAccount = null, cloudModule = null, modalCleanup = null, toastTimer, modalEpoch = 0;
@@ -25,7 +28,7 @@ if (!isDemo) {
       const stored = sessionStorage.getItem(`nestquest:account:${savedAccount.id}`);
       if (stored) {
         const cached = validateState(JSON.parse(stored));
-        recoverAccount = { ...savedAccount, cached }; state = cached;
+        recoverAccount = { ...savedAccount, cached }; state = cached; damagedSave = null;
       }
     }
   } catch { /* An invalid account cache cannot replace a local adventure. */ }
@@ -59,13 +62,16 @@ function checkOtherTab() {
   } catch { /* The write still reports storage failure. */ }
   if (staleTab) throw new Error('multiTab');
 }
-function mutate(change) {
+function mutate(change, { animate = true } = {}) {
   if (damagedSave) throw new Error('invalidSave');
   checkOtherTab();
   const next = structuredClone(state);
   change(next);
   next.revision = uuid(); next.updatedAt = new Date().toISOString();
-  validateState(next); state = next; storeDevice(); render();
+  validateState(next);
+  if (animate) setReaction(goalReaction(state, next), goalSummary(state));
+  else clearReaction();
+  state = next; storeDevice(); render();
   if (syncEnabled && account && !syncPaused) scheduleCloudSave();
 }
 function scheduleCloudSave() {
@@ -95,7 +101,7 @@ async function flushCloudSave() {
 }
 function errorText(error) {
   const key = error?.message;
-  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync'];
+  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError'];
   return t(key === 'amount' ? 'amountError' : known.includes(key) ? key : 'cloudError');
 }
 function toast(message) {
@@ -105,8 +111,6 @@ function toast(message) {
 function dateLabel(value) { return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short' }).format(new Date(`${value}T12:00:00`)); }
 function monthLabel(value) { return new Intl.DateTimeFormat(locale(), { month: 'long', year: 'numeric' }).format(new Date(`${value}-01T12:00:00`)); }
 function cash(amount) { return money(amount, state.profile.currency); }
-function story(id) { return chapterStory(id, state.profile.name); }
-const bar = ratio => `<div class="progress-track"><span class="progress-fill" style="width:${Math.max(0, Math.min(100, ratio * 100))}%"></span></div>`;
 function renderSaveStatus() {
   const key = damagedSave ? 'corruptLocal' : storageWarning ? 'storageError' : account || recoverAccount ? syncPaused ? 'cloudPaused' : syncBusy || state.revision !== lastSyncedRevision ? 'savingCloud' : 'synced' : isDemo ? 'sessionSave' : 'local';
   $('#save-status').textContent = t(key);
@@ -119,91 +123,72 @@ function renderSaveStatus() {
     banner.innerHTML = `<span>${esc(t(warning))}</span><span class="notice-actions"><button class="button button-small button-outline" data-action="${damagedSave ? 'raw-export' : 'export'}">${esc(t(damagedSave ? 'rawExport' : 'export'))}</button>${staleTab ? `<button class="button button-small" data-action="reload">${esc(t('reload'))}</button>` : damagedSave ? `<button class="button button-small button-outline" data-action="reset">${esc(t('reset'))}</button>` : cloudErrorKey ? `<button class="button button-small button-outline" data-action="reconnect">${esc(t('reconnect'))}</button>` : ''}</span>`;
   }
 }
-function render() {
-  applyLanguage();
-  document.title = `Nest & Quest — ${t(view)}`;
+function clearReaction() {
+  clearTimeout(reactionTimer); reaction = null; reactionActive = false; reactionPrevious = null;
+}
+function setReaction(next, previous) {
+  clearTimeout(reactionTimer);
+  reaction = next; reactionActive = !!(next.delta || next.pet); reactionPrevious = previous;
+  if (reactionActive) reactionTimer = setTimeout(() => {
+    reactionActive = false; reactionPrevious = null;
+    const map = $('.reactive-map');
+    if (map) map.classList.remove('reacting-up', 'reacting-down', 'reacting-complete', 'reacting-pet');
+    $('.floating-amount')?.replaceChildren();
+  }, 4200);
+}
+function render({ keepDraft = false } = {}) {
+  const draft = keepDraft && $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : null;
+  applyLanguage(); document.title = `Nest & Quest — ${t('adventure')}`;
   $('#page-title').textContent = t('dashboardTitle');
-  $('#month').value = month;
-  $('#month').max = localDate().slice(0, 7);
-  $('#demo-banner').hidden = !isDemo;
-  $('#account-button').hidden = isDemo;
-  document.querySelectorAll('[data-view]').forEach(button => {
-    if (button.dataset.view === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
-  });
+  $('#month').value = month; $('#month').max = localDate().slice(0, 7);
+  $('#demo-banner').hidden = !isDemo; $('#account-button').hidden = isDemo;
   const total = summarize(state, month);
-  $('#summary').innerHTML = [
-    ['income', 'incomeHint', 'wallet', total.income], ['spent', 'expenseHint', 'coins', total.expense],
-    ['saved', 'savingHint', 'jar', total.saving], ['remaining', 'remainingHint', 'leaf', total.remaining],
-  ].map(([label, hint, symbol, value]) => `<article class="summary-card ${value < 0 ? 'negative' : ''}"><p class="summary-label"><span>${esc(t(label))}</span>${icon(symbol)}</p><p class="summary-amount">${esc(cash(value))}</p><p class="summary-hint">${esc(t(hint))}</p></article>`).join('');
-  for (const name of ['adventure', 'ledger', 'journal']) $(`#${name}-view`).hidden = name !== view;
-  if (view === 'adventure') renderAdventure(total);
-  if (view === 'ledger') renderLedger(total);
-  if (view === 'journal') renderJournal();
-  renderSaveStatus();
-}
-function renderAdventure(total) {
-  const game = progress(state), quests = QUESTS.map((_, index) => questStatus(state, month, index));
-  const defaultQuest = quests.findIndex(q => !q.complete);
-  const currentIndex = selectedQuest ?? (defaultQuest < 0 ? 5 : defaultQuest);
-  const current = quests[currentIndex], narrative = story(current.id);
-  const completedCount = quests.filter(q => q.complete).length;
-  const mood = total.income === 0 ? 'New' : total.storm ? 'Rain' : total.goalProgress >= .5 ? 'Bright' : 'Calm';
-  const decorations = `${state.equipped.includes('wildflowers') ? `<span class="scene-flower">${icon('flower')}</span>` : ''}${state.equipped.includes('lantern') ? `<span class="scene-lantern">${icon('lantern')}</span>` : ''}${state.equipped.includes('fireflies') ? '<span class="firefly"></span><span class="firefly"></span><span class="firefly"></span>' : ''}`;
-  const finished = completedCount === 6 && selectedQuest === null;
-  $('#adventure-view').innerHTML = `<div class="adventure-grid">
-    <aside class="companion-panel panel"><div class="companion-heading"><span class="tiny-label">${esc(t('companionLabel'))}</span><span class="level-pill">${esc(t('level', { n: game.level }))}</span></div>
-      <div class="companion-scene ${total.storm ? 'raining' : ''}"><img src="/dev/nest-quest/art/ember-${game.stage}.webp" alt="${esc(state.profile.name)}" width="512" height="650">${decorations}</div>
-      <div class="companion-details"><h2 class="companion-name">${esc(state.profile.name)}</h2><p class="companion-role">${esc(t(game.stage))}</p>
-      <div class="xp-line"><span>${game.xp} XP</span><span>${esc(t(game.level === 50 ? 'maxLevel' : 'xp', { n: game.nextXp - game.xp }))}</span></div>${bar(game.levelProgress)}
-      <p class="mood">${icon(total.storm ? 'rain' : 'sun')}${esc(t(`mood${mood}`))}</p><p class="companion-speech">“${esc(t(`message${mood}`))}”</p></div>
-      <button class="button button-outline button-full care-button" data-action="care">${icon('heart')}<span>${esc(t(state.checkins.includes(localDate()) ? 'careDone' : 'care', { name: state.profile.name }))}</span></button><p class="care-hint">${esc(t('careHint'))}</p>
-    </aside>
-    <div class="world-column"><section class="world-panel panel"><div class="world-header"><div><h2>${esc(t('valley'))}</h2><p>${esc(t('valleyHint'))}</p></div><span class="tiny-label">${esc(t('chaptersDone', { n: completedCount }))}</span></div>
-      <div class="world-map ${total.storm ? 'is-raining' : ''}"><img src="/dev/nest-quest/art/willowmere.webp" alt="${esc(t('valley'))}" width="1536" height="1024">
-        ${quests.map((q, i) => `<button class="map-pin ${q.complete ? 'complete' : q.locked ? 'locked' : q.ready ? 'ready' : ''} ${i === currentIndex ? 'selected' : ''}" style="left:${q.x}%;top:${q.y}%" data-quest="${i}" aria-label="${esc(`${t('chapter', { n: i + 1 })}: ${story(q.id).title}${q.complete ? ` — ${t('questComplete')}` : q.locked ? ` — ${t('questLocked')}` : q.ready ? ` — ${t('questReady')}` : ''}`)}" aria-pressed="${i === currentIndex}">${q.complete ? icon('check') : q.locked ? icon('lock') : i + 1}</button>`).join('')}
-        <span class="map-caption">${esc(monthLabel(month))} · ${esc(t('chaptersDone', { n: completedCount }))}</span></div>
-      <div class="quest-card" id="current-quest"><div class="quest-heading"><span class="eyebrow">${esc(finished ? t('questComplete') : t('chapter', { n: currentIndex + 1 }))}</span><span class="reward-preview">+${current.xp} XP <span>+${current.gold} ${icon('coins')}</span></span></div>
-        <h3>${esc(finished ? t('allDone') : narrative.title)}</h3><p class="quest-description">${esc(finished ? t('allDoneBody') : narrative.intro)}</p>
-        ${finished ? '' : current.complete ? `<p class="quest-note">${icon('check')}${esc(t('questComplete'))}</p><button class="plan-edit" data-action="read-story" data-id="${current.id}">${esc(t('journal'))} →</button>` : current.locked ? `<p class="quest-note">${icon('lock')}${esc(t('questLocked'))}</p>` : `<div class="quest-checks">${current.checks.map(check => renderCheck(check)).join('')}</div><button class="button button-small" data-action="explore" data-id="${current.id}" ${current.ready ? '' : 'disabled'}>${icon('map')}${esc(t('explore'))}<span aria-hidden="true">→</span></button>`}
-      </div></section>
-      <div class="plan-panels"><section class="plan-panel panel"><div class="plan-panel-top"><h3>${esc(t('goalTitle'))}</h3>${icon('jar')}</div><p class="plan-value">${esc(cash(total.saving))}</p><p class="plan-subtitle">${esc(t('goalOf', { amount: cash(total.goal) }))}</p>${bar(total.goalProgress)}<p class="plan-description">${esc(t('goalExplain'))}</p><button class="plan-edit" data-action="plan">${esc(t('editPlan'))} ↗</button></section>
-      <section class="plan-panel panel ${total.flexible > total.flexLimit ? 'over-budget' : ''}"><div class="plan-panel-top"><h3>${esc(t('flexTitle'))}</h3>${icon('flower')}</div><p class="plan-value">${esc(cash(Math.max(0, total.flexLimit - total.flexible)))}</p><p class="plan-subtitle">${esc(t('flexOf', { spent: cash(total.flexible), limit: cash(total.flexLimit) }))}</p>${bar(total.flexLimit > 0 ? total.flexible / total.flexLimit : total.flexible > 0 ? 1 : 0)}<p class="plan-description">${esc(t('flexExplain'))}</p><button class="plan-edit" data-action="plan">${esc(t('editPlan'))} ↗</button></section></div>
-      ${total.storm ? `<aside class="rain-notice">${icon('rain')}<div><strong>${esc(t('rainTitle'))}</strong><p>${esc(t('rainBody'))}</p></div></aside>` : total.income === 0 && total.expense > 0 ? `<aside class="rain-notice">${icon('leaf')}<p>${esc(t('unknownIncome'))}</p></aside>` : ''}
-    </div></div>`;
-}
-function renderCheck(check) {
-  const done = !check.needsGoal && check.value >= check.target;
-  const label = t(check.key, { n: check.target, percent: Math.round((check.ratio || 0) * 100) });
-  const value = check.money ? check.needsGoal ? t('setGoal') : `${cash(check.value)} / ${cash(check.target)}` : check.target > 1 ? `${check.value} / ${check.target}` : '';
-  return `<div class="quest-check ${done ? 'done' : ''}"><span class="check-circle">${done ? icon('check') : ''}</span><span>${esc(label)}</span><span class="quest-check-value">${esc(value)}</span></div>`;
-}
-function empty(title, description, symbol = 'leaf', action = '') {
-  return `<div class="empty-state">${icon(symbol)}<h3>${esc(t(title))}</h3><p>${esc(t(description))}</p>${action}</div>`;
+  $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) =>
+    `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
+  $('#adventure-view').innerHTML = adventureHTML(state, { reaction, reactionActive, previous: reactionPrevious, type: quickType, month });
+  if (draft) for (const [name, value] of Object.entries(draft)) { const input = $('#quick-entry-form').elements.namedItem(name); if (input) input.value = value; }
+  renderLedger(total); renderSaveStatus();
+  const current = goalSummary(state);
+  if (current) requestAnimationFrame(() => {
+    const position = companionPosition(current.ratio), map = $('.reactive-map');
+    if (!map) return;
+    // Establish the previous frame before changing the newly rendered world.
+    map.getBoundingClientRect();
+    map.style.setProperty('--unrevealed', `${Math.max(0, 100 - Math.min(100, position.x + 12))}%`);
+    $('.path-progress').style.strokeDashoffset = String(100 - pathLengthAt(current.ratio));
+    const companion = $('#companion-button');
+    companion.style.left = `${position.x}%`; companion.style.top = `max(90px, ${position.y}%)`;
+    companion.classList.toggle('at-start', position.x < 20); companion.classList.toggle('at-end', position.x > 80);
+    $('.goal-progress span').style.width = `${current.ratio * 100}%`;
+  });
 }
 function renderLedger(total) {
-  const filtered = total.entries.filter(e => ledgerFilter === 'all' || e.type === ledgerFilter);
-  const groups = Object.entries(total.categories).sort((a, b) => b[1] - a[1]);
-  let start = 0;
-  const segments = groups.map(([id, amount]) => { const end = start + (amount / total.expense) * 100; const result = `${CATEGORIES[id].color} ${start}% ${end}%`; start = end; return result; }).join(',');
-  $('#ledger-view').innerHTML = `<div class="view-heading"><div><h2>${esc(t('transactions'))}</h2><p>${esc(t('transactionsBody'))}</p></div><button class="button button-small button-outline" data-action="csv">${icon('download')}${esc(t('downloadCsv'))}</button></div>
-    <div class="ledger-grid"><section class="ledger-list panel"><div class="ledger-filter"><select id="entry-filter" aria-label="${esc(t('allTypes'))}">${['all', 'income', 'expense', 'saving'].map(id => `<option value="${id}" ${id === ledgerFilter ? 'selected' : ''}>${esc(t(id === 'all' ? 'allTypes' : id))}</option>`).join('')}</select><span>${esc(monthLabel(month))} · ${filtered.length}</span></div>
-      ${total.entries.length === 0 ? empty('emptyEntries', 'emptyEntriesBody', 'wallet', `<button class="button button-small" data-entry="income">${esc(t('addIncome'))}</button>`) : filtered.length === 0 ? `<div class="empty-state"><p>${esc(t('noFiltered'))}</p></div>` : filtered.slice(0, ledgerLimit).map(e => `<button class="entry-row" data-edit="${e.id}" aria-label="${esc(`${t('editEntry')}: ${e.note || t(e.type === 'expense' ? e.category : e.type)}, ${cash(e.amount)}`)}"><span class="entry-symbol ${e.type}">${icon(e.type === 'expense' ? 'coins' : e.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(e.note || t(e.type === 'expense' ? e.category : e.type))}</span><span class="entry-meta">${esc(dateLabel(e.date))} · ${esc(t(e.type === 'expense' ? e.category : e.type))}${e.type === 'expense' ? ` · ${esc(t(e.essential ? 'essentialsLabel' : 'flexibleLabel'))}` : ''}</span></span><span class="entry-amount ${e.type}">${e.type === 'income' ? '+' : e.type === 'expense' ? '−' : '↗ '}${esc(cash(e.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`).join('')}
-      ${filtered.length > ledgerLimit ? `<button class="button button-small button-quiet button-full" data-action="more-entries">${esc(t('showMore'))}</button>` : ''}</section>
-      <aside class="breakdown-panel panel"><h3>${esc(t('breakdown'))}</h3><div class="donut" style="background:${groups.length ? `conic-gradient(${segments})` : '#e7e9de'}"><span>${esc(cash(total.expense))}</span></div><div class="category-legend">${groups.map(([id, amount]) => `<div class="category-line"><span class="category-dot" style="background:${CATEGORIES[id].color}"></span><span>${esc(t(id))}<span class="category-percent">${Math.round(amount / total.expense * 100)}%</span></span><strong>${esc(cash(amount))}</strong></div>`).join('')}</div></aside></div>`;
+  const filtered = total.entries.filter(entry => ledgerFilter === 'all' || entry.type === ledgerFilter);
+  const options = ['all', 'income', 'expense', ...(state.entries.some(entry => entry.type === 'saving') ? ['saving'] : [])];
+  $('#ledger-view').innerHTML = `<div class="ledger-filter"><select id="entry-filter" aria-label="${esc(t('allTypes'))}">${options.map(id => `<option value="${id}" ${id === ledgerFilter ? 'selected' : ''}>${esc(t(id === 'all' ? 'allTypes' : id === 'saving' ? 'legacyTransfer' : id))}</option>`).join('')}</select><span>${esc(monthLabel(month))} · ${filtered.length}</span><button class="button button-small button-outline" data-action="csv">${icon('download')}${esc(t('downloadCsv'))}</button></div>
+    <div class="ledger-list">${total.entries.length === 0 ? `<div class="empty-state">${icon('wallet')}<h3>${esc(t('emptyEntries'))}</h3><p>${esc(t('emptyEntriesBody'))}</p></div>` : filtered.length === 0 ? `<div class="empty-state"><p>${esc(t('noFiltered'))}</p></div>` : filtered.slice(0, ledgerLimit).map(entry => {
+      const name = entry.note || t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income');
+      return `<button class="entry-row" data-edit="${entry.id}" aria-label="${esc(`${t('editEntry')}: ${name}, ${cash(entry.amount)}`)}"><span class="entry-symbol ${entry.type}">${icon(entry.type === 'expense' ? 'coins' : entry.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(name)}</span><span class="entry-meta">${esc(dateLabel(entry.date))} · ${esc(t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income'))}</span></span><span class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : entry.type === 'expense' ? '−' : ''}${esc(cash(entry.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`;
+    }).join('')}</div>${filtered.length > ledgerLimit ? `<button class="button button-small button-outline button-full" data-action="more-entries">${esc(t('showMore'))}</button>` : ''}`;
 }
-function renderJournal() {
-  const game = progress(state);
-  const claims = [...state.claims].reverse();
-  $('#journal-view').innerHTML = `<div class="view-heading"><div><h2>${esc(t('journalTitle'))}</h2><p>${esc(t('journalBody'))}</p></div><span class="level-pill">${esc(t('level', { n: game.level }))}</span></div>
-    <div class="journal-stats">${[[game.kindness, 'kindness'], [game.courage, 'courage'], [streak(state), 'careStreak'], [game.loggedDays, 'savedDays']].map(([value, label]) => `<article class="journal-stat"><strong>${value}</strong><span>${esc(t(label))}</span></article>`).join('')}</div>
-    <div class="journal-grid"><section class="journal-list panel">${claims.length === 0 ? empty('journalEmpty', 'journalEmptyBody', 'book') : claims.map(claim => {
-      const narrative = story(claim.quest), quest = QUESTS.find(q => q.id === claim.quest);
-      return `<article class="journal-entry"><span class="tiny-label">${esc(monthLabel(claim.month))} · ${esc(t(claim.choice === 'kind' ? 'kind' : 'bold'))}</span><h3>${esc(narrative.title)}</h3><p>${esc(narrative[claim.choice])}</p><div class="journal-reward"><span>+${quest.xp} XP</span><span>+${quest.gold} ${esc(t('gold', { n: '' }).trim())}</span></div></article>`;
-    }).join('')}</section>
-    <aside class="shop-panel panel"><h3>${esc(t('shopTitle'))}</h3><p>${esc(t('shopBody'))}</p><div class="shop-gold">${icon('coins')}${esc(t('gold', { n: game.gold }))}</div><div class="shop-items">${ITEMS.map(item => {
-      const owned = state.items.includes(item.id), equipped = state.equipped.includes(item.id);
-      return `<article class="shop-item">${icon(item.icon)}<div><strong>${esc(t(item.id))}</strong><p>${esc(t(`${item.id}Body`))}</p><button class="button button-small button-outline" data-action="${owned ? 'equip' : 'buy'}" data-id="${item.id}" ${!owned && game.gold < item.cost ? 'disabled' : ''}>${esc(t(owned ? equipped ? 'unequip' : 'equip' : 'buy', { n: item.cost }))}</button></div></article>`;
-    }).join('')}</div></aside></div>`;
+function selectQuickType(type) {
+  quickType = type === 'expense' ? 'expense' : 'income';
+  const form = $('#quick-entry-form'); form.dataset.type = quickType;
+  document.querySelectorAll('[data-quick-type]').forEach(button => {
+    const active = button.dataset.quickType === quickType;
+    button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active));
+  });
+  $('.quick-category').hidden = quickType !== 'expense';
+  $('.entry-hint').textContent = t(quickType === 'income' ? 'quickIncomeHint' : 'quickExpenseHint');
+  $('#quick-submit').innerHTML = `${icon(quickType === 'income' ? 'plus' : 'coins')}<span>${esc(t(quickType === 'income' ? 'recordIncomeNow' : 'recordExpenseNow'))}</span>`;
+  $('#quick-error').hidden = true; $('#quick-amount').focus();
+}
+function revealReaction() {
+  if (!reactionActive) return;
+  const map = $('.reactive-map'), box = map.getBoundingClientRect();
+  if (box.bottom < 100 || box.top > innerHeight - 120) {
+    map.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  }
 }
 
 // One native dialog keeps keyboard focus inside each form and returns it to the
@@ -220,53 +205,49 @@ function openModal(content, { closeable = true, onClose } = {}) {
 }
 function closeModal() { modalEpoch++; const cleanup = modalCleanup; modalCleanup = null; if (cleanup) cleanup(); modal.close(); }
 function formError(message) {
-  const target = $('#form-error');
+  const target = modal.open ? $('#form-error') : $('#quick-error');
   if (target) { target.textContent = message; target.hidden = false; target.focus(); }
   else toast(message);
 }
 const errorField = '<p id="form-error" class="form-error" role="alert" tabindex="-1" hidden></p>';
-function onboarding() {
-  if (damagedSave || recoverAccount) return;
-  openModal(`<img class="modal-art" src="/dev/nest-quest/art/ember-young.webp" alt="Ember"><p class="eyebrow">${esc(t('onboardKicker'))}</p><h2>${esc(t('onboardTitle'))}</h2><p class="modal-description">${esc(t('onboardBody'))}</p>
-    <form id="onboard-form"><div class="form-grid"><div class="field"><label for="companion-name">${esc(t('companionName'))}</label><input id="companion-name" name="name" value="${language() === 'bg' ? 'Ембър' : 'Ember'}" maxlength="24" required autocomplete="off" autofocus></div><div class="field"><label for="currency">${esc(t('currency'))}</label><select name="currency" id="currency">${CURRENCIES.map(c => `<option>${c}</option>`).join('')}</select></div></div>
-    <div class="field" style="margin-top:18px"><label for="initial-income">${esc(t('initialIncome'))}</label><input id="initial-income" name="income" inputmode="decimal" value="0" maxlength="11" required><small>${esc(t('optionalIncome'))}</small></div>
-    <div class="field"><label for="initial-goal">${esc(t('savingsGoal'))}</label><input id="initial-goal" name="goal" inputmode="decimal" value="100" maxlength="11" required></div>${errorField}<button class="button button-full" type="submit">${esc(t('begin'))}${icon('arrow')}</button></form><p class="onboard-foot"><a href="./play.html?demo=1&lang=${language()}">${esc(t('demo'))}</a></p>`, { closeable: false });
+function ensureGoal() {
+  if (!damagedSave && !recoverAccount && (!state.profile.started || !state.goal)) goalModal({ required: true });
 }
-function entryModal(type, id = null) {
-  if (!state.profile.started) { onboarding(); return; }
-  const existing = id ? state.entries.find(e => e.id === id) : null;
-  if (id && !existing) return;
-  type = existing?.type || type;
-  const today = localDate(), defaultDate = month === today.slice(0, 7) ? today : `${month}-01`;
-  openModal(`<p class="eyebrow">${esc(t('ledger'))} · ${esc(state.profile.currency)}</p><h2>${esc(t(existing ? 'editEntry' : type === 'income' ? 'addIncome' : type === 'saving' ? 'addSaving' : 'addExpense'))}</h2>
-    ${type === 'saving' ? `<p class="modal-description">${esc(t('savingExplain'))}</p>` : '<div style="height:20px"></div>'}
-    <form id="entry-form" data-type="${type}" data-id="${id || ''}"><div class="form-grid"><div class="field"><label for="entry-amount">${esc(t('amount'))} (${state.profile.currency})</label><input name="amount" id="entry-amount" value="${existing ? (existing.amount / 100).toFixed(2) : ''}" inputmode="decimal" maxlength="11" required autofocus placeholder="0.00"></div><div class="field"><label for="entry-date">${esc(t('date'))}</label><input name="date" id="entry-date" type="date" value="${existing?.date || defaultDate}" min="2000-01-01" max="${today}" required></div></div>
-    ${type === 'expense' ? `<div class="field" style="margin-top:17px"><label for="entry-category">${esc(t('category'))}</label><select name="category" id="entry-category">${Object.keys(CATEGORIES).map(c => `<option value="${c}" ${c === (existing?.category || 'groceries') ? 'selected' : ''}>${esc(t(c))}</option>`).join('')}</select></div>` : '<div style="height:16px"></div>'}
-    <div class="field"><label for="entry-note">${esc(t('note'))}</label><input name="note" id="entry-note" value="${esc(existing?.note || '')}" maxlength="160" placeholder="${esc(t('notePlaceholder'))}" autocomplete="off"></div>
-    ${type === 'expense' ? `<div class="checkbox-field"><input id="entry-essential" name="essential" type="checkbox" ${existing ? existing.essential ? 'checked' : '' : 'checked'}><label for="entry-essential">${esc(t('essential'))}<small>${esc(t('essentialHelp'))}</small></label></div>` : ''}${errorField}
-    <div class="form-actions"><button type="button" class="button button-outline" data-action="close">${esc(t('cancel'))}</button><button class="button" type="submit">${esc(t('saveEntry'))}</button></div>
-    ${id ? `<button type="button" class="modal-link danger" data-action="delete-entry" data-id="${id}">${esc(t('deleteEntry'))}</button>` : ''}</form>`);
+function onboarding() { ensureGoal(); }
+function goalModal({ required = false } = {}) {
+  const first = !state.profile.started, goal = state.goal;
+  const preset = GOAL_PRESETS.find(item => item.kind === (goal?.kind || 'car'));
+  const currency = state.profile.currency;
+  const goalIcons = { car: 'car', wedding: 'rings', house: 'home', emergency: 'shield', travel: 'plane', custom: 'flag' };
+  openModal(`<p class="eyebrow">${esc(t('adventure'))}</p><h2>${esc(t('chooseGoal'))}</h2><p class="modal-description">${esc(t(!first && !goal ? 'oldSave' : 'goalSetup'))}</p>
+    <form id="goal-form" data-first="${first}" data-kind="${preset.kind}">
+    <fieldset class="goal-presets"><legend>${esc(t('goalPresets'))}</legend>${GOAL_PRESETS.map(item => `<button type="button" class="goal-preset ${item.kind === preset.kind ? 'selected' : ''}" data-preset="${item.kind}" aria-pressed="${item.kind === preset.kind}">${icon(goalIcons[item.kind])}<strong>${esc(goalName(item.kind))}</strong><small>${item.kind === 'custom' ? esc(t('goalCustom')) : esc(money(item.target, currency))}</small></button>`).join('')}</fieldset><p class="fine-print">${esc(t('presetHint'))}</p>
+    ${first ? `<div class="form-grid"><div class="field"><label for="companion-name">${esc(t('companionName'))}</label><input id="companion-name" name="name" value="${esc(state.profile.name === 'Ember' && language() === 'bg' ? 'Ембър' : state.profile.name)}" maxlength="24" required autocomplete="off"></div><div class="field"><label for="currency">${esc(t('currency'))}</label><select id="currency" name="currency" ${state.entries.length ? 'disabled' : ''}>${CURRENCIES.map(value => `<option ${value === currency ? 'selected' : ''}>${value}</option>`).join('')}</select></div></div>` : ''}
+    <div class="field"><label for="goal-name">${esc(t('goalName'))}</label><input id="goal-name" name="title" value="${esc(goal?.title || goalName(preset.kind))}" maxlength="64" required autocomplete="off" autofocus></div>
+    <div class="form-grid"><div class="field"><label for="goal-target">${esc(t('goalTarget'))} (${currency})</label><input id="goal-target" name="target" value="${((goal?.target || preset.target) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div><div class="field"><label for="goal-opening">${esc(t('openingFund'))} (${currency})</label><input id="goal-opening" name="opening" value="${((goal?.opening || 0) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div></div><p class="fine-print">${esc(t('openingHint'))}</p>${state.entries.length ? `<p class="fine-print">${esc(t('goalKeep'))}</p>` : ''}${errorField}<button class="button button-full" type="submit">${esc(t(first ? 'begin' : 'saveGoal'))}${icon('arrow')}</button></form>
+    ${first ? `<div class="onboard-foot"><button class="modal-link" data-action="import">${esc(t('import'))}</button>${!isDemo ? `<button class="modal-link" data-action="login-first">${esc(t('connect'))}</button>` : ''}</div>` : ''}`, { closeable: !required });
 }
-function planModal() {
-  const plan = state.plans[month] || { goal: 0, flex: null };
-  openModal(`<p class="eyebrow">${esc(monthLabel(month))}</p><h2>${esc(t('planTitle'))}</h2><p class="modal-description">${esc(t('planBody'))}</p><form id="plan-form"><div class="field"><label for="plan-goal">${esc(t('savingsGoal'))} (${state.profile.currency})</label><input name="goal" id="plan-goal" inputmode="decimal" maxlength="11" value="${(plan.goal / 100).toFixed(2)}" required autofocus></div><div class="field"><label for="plan-flex">${esc(t('flexLimit'))} (${state.profile.currency})</label><input name="flex" id="plan-flex" inputmode="decimal" maxlength="11" value="${plan.flex === null ? '' : (plan.flex / 100).toFixed(2)}" placeholder="${esc(t('flexOptional'))}"><small>${esc(t('autoFlex'))}</small></div>${errorField}<div class="form-actions"><button type="button" class="button button-outline" data-action="close">${esc(t('cancel'))}</button><button class="button" type="submit">${esc(t('savePlan'))}</button></div></form>`);
+function choosePreset(kind) {
+  const preset = GOAL_PRESETS.find(item => item.kind === kind); if (!preset) return;
+  const form = $('#goal-form'); form.dataset.kind = kind;
+  $('#goal-name').value = goalName(kind); $('#goal-target').value = (preset.target / 100).toFixed(2);
+  form.querySelectorAll('[data-preset]').forEach(button => { const active = button.dataset.preset === kind; button.classList.toggle('selected', active); button.setAttribute('aria-pressed', String(active)); });
+  if (kind === 'custom') { $('#goal-name').focus(); $('#goal-name').select(); }
 }
-function questModal(id) {
-  const q = questStatus(state, month, QUESTS.findIndex(q => q.id === id)), narrative = story(id);
-  if (q.complete) {
-    const claim = state.claims.find(c => c.month === month && c.quest === id);
-    showStoryResult(narrative, claim.choice, q); return;
-  }
-  if (!q.ready) { toast(t('questNotReady')); return; }
-  openModal(`<p class="eyebrow">${esc(t('chapter', { n: QUESTS.findIndex(quest => quest.id === id) + 1 }))}</p><h2>${esc(narrative.title)}</h2><p class="modal-description">${esc(narrative.intro)}</p><p class="field-label">${esc(t('choosePath'))}</p>
-    ${['kind', 'bold'].map(choice => `<button class="story-choice" data-action="claim" data-id="${id}" data-choice="${choice}">${icon(choice === 'kind' ? 'heart' : 'sparkles')}<span><strong>${esc(t(choice))}</strong><small>${esc(t(`${choice}Hint`))}</small></span><span class="arrow" aria-hidden="true">→</span></button>`).join('')}${errorField}`);
+function entryModal(id) {
+  const existing = state.entries.find(entry => entry.id === id); if (!existing) return;
+  openModal(`<p class="eyebrow">${esc(t(existing.type === 'saving' ? 'legacyTransfer' : existing.type))} · ${state.profile.currency}</p><h2>${esc(t('editEntry'))}</h2>${existing.type === 'saving' ? `<p class="modal-description">${esc(t('legacyHint'))}</p>` : '<div style="height:20px"></div>'}
+    <form id="entry-form" data-type="${existing.type}" data-id="${id}"><div class="form-grid"><div class="field"><label for="entry-amount">${esc(t('amount'))} (${state.profile.currency})</label><input name="amount" id="entry-amount" value="${(existing.amount / 100).toFixed(2)}" inputmode="decimal" maxlength="11" required autofocus></div><div class="field"><label for="entry-date">${esc(t('date'))}</label><input name="date" id="entry-date" type="date" value="${existing.date}" min="2000-01-01" max="${localDate()}" required></div></div>
+    ${existing.type === 'expense' ? `<div class="field"><label for="entry-category">${esc(t('category'))}</label><select name="category" id="entry-category">${Object.keys(CATEGORIES).map(category => `<option value="${category}" ${category === existing.category ? 'selected' : ''}>${esc(t(category))}</option>`).join('')}</select></div>` : ''}<div class="field"><label for="entry-note">${esc(t('note'))}</label><input name="note" id="entry-note" value="${esc(existing.note)}" maxlength="160" autocomplete="off"></div>${errorField}<div class="form-actions"><button type="button" class="button button-outline" data-action="close">${esc(t('cancel'))}</button><button class="button" type="submit">${esc(t('saveEntry'))}</button></div><button type="button" class="modal-link danger" data-action="delete-entry" data-id="${id}">${esc(t('deleteEntry'))}</button></form>`);
 }
-function showStoryResult(narrative, choice, q) {
-  openModal(`<div class="story-result"><img class="modal-art" src="/dev/nest-quest/art/ember-${progress(state).stage}.webp" alt="${esc(state.profile.name)}"><p class="eyebrow">${esc(t('questComplete'))}</p><h2>${esc(narrative.title)}</h2><p class="modal-description">${esc(narrative[choice])}</p><p class="story-reward">${icon('sparkles')}${esc(t('storyFinish', { name: state.profile.name, xp: q.xp, gold: q.gold }))}</p><button class="button button-full" data-action="close">${esc(t('continue'))}${icon('arrow')}</button></div>`);
+function landmarkModal(index) {
+  const total = goalSummary(state); if (!total || !Number.isInteger(index) || index < 0 || index > 5) return;
+  const open = index <= total.milestone;
+  openModal(`<img class="modal-art" src="/dev/nest-quest/art/ember-${total.stage}.webp" alt="${esc(state.profile.name)}"><p class="eyebrow">${Math.round(GOAL_MILESTONES[index] * 100)}% · ${esc(t(open ? 'checkpointBuilt' : 'checkpointLocked'))}</p><h2>${esc(t(`landmark${index}`))}</h2><p class="modal-description">${esc(t(`landmarkStory${index}`))}</p>${open ? '' : `<p class="checkpoint-needed">${esc(t('checkpointNeed', { amount: cash(Math.ceil(total.target * GOAL_MILESTONES[index])) }))}</p>`}<p class="fine-print">${esc(t('checkpointRule'))}</p><button class="button button-full" data-action="close">${esc(t('continue'))}</button>`);
 }
 function settingsModal() {
   openModal(`<p class="eyebrow">${esc(t('settings'))}</p><h2>${esc(t('backupTitle'))}</h2><p class="modal-description">${esc(t('backupBody'))}</p><div class="field"><label for="rename-companion">${esc(t('companionName'))}</label><form id="rename-form" class="form-grid"><input name="name" id="rename-companion" value="${esc(state.profile.name)}" maxlength="24" required><button class="button button-small" type="submit">${esc(t('savePlan'))}</button></form></div><p class="fine-print">${esc(state.profile.currency)} · ${esc(t('noCurrencyChange'))}</p><div class="form-divider"></div>
-    <div class="settings-buttons"><button class="button button-outline" data-action="export">${icon('download')}${esc(t('export'))}</button><button class="button button-outline" data-action="import">${icon('upload')}${esc(t('import'))}</button><button class="button button-outline" data-action="plan">${icon('jar')}${esc(t('editPlan'))}</button></div>
+    <div class="settings-buttons"><button class="button button-outline" data-action="export">${icon('download')}${esc(t('export'))}</button><button class="button button-outline" data-action="import">${icon('upload')}${esc(t('import'))}</button><button class="button button-outline" data-action="goal">${icon('jar')}${esc(t('changeGoal'))}</button></div>
     ${account || recoverAccount ? `<div class="settings-account"><span class="tiny-label">${esc(t('cloud'))}</span><p>${esc(account?.email || t('cloudPaused'))}</p><button class="button button-small button-outline" data-action="sign-out">${esc(t('signOut'))}</button>${account ? `<br><button class="modal-link danger" data-action="remove-cloud">${esc(t('removeCloud'))}</button>` : ''}</div>` : `<div class="form-divider"></div><button class="modal-link danger" data-action="reset">${esc(t('reset'))}</button>`}
     <p class="onboard-foot"><a href="./privacy.html?lang=${language()}" target="_blank" rel="noopener">${esc(t('privacy'))}</a></p>${errorField}`);
 }
@@ -289,7 +270,7 @@ async function importSave(file) {
     const imported = validateState(JSON.parse(await file.text()));
     confirmAction('importAsk', t('importBody', { name: imported.profile.name, n: imported.entries.length, currency: imported.profile.currency }), 'continue', () => {
       mutate(next => { Object.assign(next, structuredClone(imported)); });
-      month = localDate().slice(0, 7); selectedQuest = null; closeModal(); render(); toast(t('restored'));
+      month = localDate().slice(0, 7); closeModal(); render(); ensureGoal(); toast(t('restored'));
     });
   } catch { toast(t('invalidSave')); }
 }
@@ -321,15 +302,20 @@ async function prepareAccount(auth, epoch = modalEpoch) {
   const old = pendingAccount;
   if (old) old.close();
   pendingAccount = nextAccount;
-  const remoteSummary = remote ? t('cloudSummary', { name: remote.profile.name, level: progress(remote).level, entries: remote.entries.length }) : '';
-  const ownSummary = t('cloudSummary', { name: state.profile.name, level: progress(state).level, entries: state.entries.length });
+  const remoteSummary = remote ? copySummary(remote) : '';
+  const ownSummary = copySummary(state);
   openModal(`<p class="eyebrow">${esc(t('cloud'))}</p><h2>${esc(t(remote ? 'cloudChoiceTitle' : 'signInTitle'))}</h2><p class="modal-description">${esc(t(remote ? 'cloudChoiceBody' : 'cloudEmpty'))}</p>
     ${remote ? `<div class="cloud-option"><span class="tiny-label">${esc(t('cloud'))}</span><p class="cloud-detail">${esc(remoteSummary)}</p><button class="button button-small" id="use-cloud">${esc(t('useCloud'))}</button></div>` : ''}
     <div class="cloud-option"><span class="tiny-label">${esc(t('local'))}</span><p class="cloud-detail">${esc(ownSummary)}</p><button class="button button-small ${remote ? 'button-outline' : ''}" id="use-device">${esc(t(remote ? 'useDevice' : 'enableCloud'))}</button></div><button class="modal-link" data-action="export">${esc(t('export'))}</button>${errorField}`, { onClose: () => { if (pendingAccount === nextAccount) { nextAccount.close(); pendingAccount = null; } } });
   const enable = async useRemote => {
     $('#use-device').disabled = true; if ($('#use-cloud')) $('#use-cloud').disabled = true;
+    const choiceEpoch = modalEpoch, snapshot = structuredClone(state);
+    modal.dataset.closeable = 'false';
+    const closeButton = modal.querySelector('.modal-close'); if (closeButton) closeButton.disabled = true;
     try {
-      if (!useRemote) await nextAccount.repository.save(state);
+      if (!useRemote) await nextAccount.repository.save(snapshot);
+      if (!modal.open || modalEpoch !== choiceEpoch || pendingAccount !== nextAccount) { nextAccount.close(); return; }
+      if (!useRemote && state.revision !== snapshot.revision) throw new Error('cloudConflict');
       const previous = account;
       const previousId = previous?.userId || recoverAccount?.id;
       if (previous) previous.close();
@@ -337,9 +323,13 @@ async function prepareAccount(auth, epoch = modalEpoch) {
       account = nextAccount; pendingAccount = null; recoverAccount = null;
       if (useRemote) state = structuredClone(remote);
       lastSyncedRevision = state.revision; syncEnabled = true; syncPaused = false; cloudErrorKey = null; saveQueued = false;
-      storeDevice(); selectedQuest = null; closeModal(); render(); toast(t('cloudLoaded'));
-      if (!state.profile.started) onboarding();
-    } catch (error) { formError(errorText(error)); $('#use-device').disabled = false; if ($('#use-cloud')) $('#use-cloud').disabled = false; }
+      clearReaction(); storeDevice(); closeModal(); render(); toast(t('cloudLoaded'));
+      ensureGoal();
+    } catch (error) {
+      if (modalEpoch !== choiceEpoch || pendingAccount !== nextAccount) return;
+      modal.dataset.closeable = 'true'; if (closeButton) closeButton.disabled = false;
+      formError(errorText(error)); $('#use-device').disabled = false; if ($('#use-cloud')) $('#use-cloud').disabled = false;
+    }
   };
   $('#use-device').addEventListener('click', () => { void enable(false); });
   $('#use-cloud')?.addEventListener('click', () => { void enable(true); });
@@ -358,7 +348,7 @@ async function restoreAccount() {
       syncPaused = true; cloudErrorKey = 'cloudConflict';
     } else if (dirty) { syncEnabled = true; scheduleCloudSave(); }
     else { state = structuredClone(remote); syncEnabled = true; lastSyncedRevision = state.revision; }
-    storeDevice(); render();
+    clearReaction(); storeDevice(); render(); ensureGoal();
   } catch (error) { restored?.close(); if (recoverAccount === saved) { syncPaused = true; cloudErrorKey = error.message === 'sessionEnded' ? 'sessionEnded' : 'cloudError'; render(); } }
 }
 async function disconnect({ signOut = true } = {}) {
@@ -367,14 +357,18 @@ async function disconnect({ signOut = true } = {}) {
   account?.close(); account = null; recoverAccount = null; syncEnabled = false; syncPaused = false; cloudErrorKey = null;
   if (id) { try { sessionStorage.removeItem(`nestquest:account:${id}`); sessionStorage.removeItem('nestquest:active'); } catch { /* No durable account copy was made. */ } }
   if (signOut) (await getCloudModule()).signOut();
-  state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; selectedQuest = null; closeModal(); render();
-  if (!state.profile.started) onboarding();
+  state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; clearReaction(); closeModal(); render();
+  ensureGoal();
 }
 
+function copySummary(copy) {
+  const total = goalSummary(copy);
+  return t('cloudSummary', { name: copy.profile.name, goal: copy.goal ? goalTitle(copy.goal) : t('noGoalYet'), fund: money(total?.balance || 0, copy.profile.currency), entries: copy.entries.length });
+}
 document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
 $('#month').addEventListener('change', event => {
   if (!validMonth(event.target.value) || event.target.value > localDate().slice(0, 7)) { event.target.value = month; return; }
-  month = event.target.value; selectedQuest = null; ledgerLimit = 40; render();
+  month = event.target.value; ledgerLimit = 12; render();
 });
 $('#settings-button').addEventListener('click', settingsModal);
 $('#account-button').addEventListener('click', () => { void accountModal(); });
@@ -383,36 +377,39 @@ modal.addEventListener('cancel', event => { if (modal.dataset.closeable === 'fal
 modal.addEventListener('close', () => { const cleanup = modalCleanup; modalCleanup = null; if (cleanup) cleanup(); });
 modal.addEventListener('click', event => { if (event.target === modal && modal.dataset.closeable !== 'false') closeModal(); });
 document.addEventListener('change', event => {
-  if (event.target.id === 'entry-filter') { ledgerFilter = event.target.value; ledgerLimit = 40; renderLedger(summarize(state, month)); }
-  if (event.target.id === 'entry-category') $('#entry-essential').checked = CATEGORIES[event.target.value].essential;
+  if (event.target.id === 'entry-filter') { ledgerFilter = event.target.value; ledgerLimit = 12; renderLedger(summarize(state, month)); }
+  if (event.target.id === 'currency') {
+    const currency = event.target.value;
+    document.querySelectorAll('.goal-preset small').forEach((el, index) => { if (GOAL_PRESETS[index].kind !== 'custom') el.textContent = money(GOAL_PRESETS[index].target, currency); });
+    $('#goal-target').previousElementSibling.textContent = `${t('goalTarget')} (${currency})`;
+    $('#goal-opening').previousElementSibling.textContent = `${t('openingFund')} (${currency})`;
+  }
 });
 document.addEventListener('click', async event => {
   const target = event.target.closest('button'); if (!target) return;
   if (target.dataset.lang) {
+    // Keep an unfinished entry when switching language.
+    const draft = $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : null;
+    const goalDraft = modal.open && $('#goal-form') ? Object.fromEntries(new FormData($('#goal-form'))) : null;
+    const goalKind = $('#goal-form')?.dataset.kind;
     setLanguage(target.dataset.lang); render();
-    if (modal.open) { const form = modal.querySelector('form')?.id; if (form === 'onboard-form') onboarding(); else if (form === 'plan-form') planModal(); else closeModal(); }
+    if (draft) for (const [name, value] of Object.entries(draft)) { const input = $('#quick-entry-form').elements.namedItem(name); if (input) input.value = value; }
+    if (modal.open) {
+      if (goalDraft) { goalModal({ required: !state.goal }); $('#goal-form').dataset.kind = goalKind; for (const [name, value] of Object.entries(goalDraft)) { const input = $('#goal-form').elements.namedItem(name); if (input) input.value = value; } }
+      else closeModal();
+    }
     return;
   }
-  if (target.dataset.view) { view = target.dataset.view; render(); $('#main').focus({ preventScroll: true }); return; }
-  if (target.dataset.entry) { entryModal(target.dataset.entry); return; }
-  if (target.dataset.edit) { entryModal(null, target.dataset.edit); return; }
-  if (target.dataset.quest !== undefined) { selectedQuest = Number(target.dataset.quest); renderAdventure(summarize(state, month)); return; }
-  const action = target.dataset.action, id = target.dataset.id;
-  if (!action) return;
+  if (target.dataset.quickType) { selectQuickType(target.dataset.quickType); return; }
+  if (target.dataset.preset) { choosePreset(target.dataset.preset); return; }
+  if (target.dataset.edit) { entryModal(target.dataset.edit); return; }
+  const action = target.dataset.action, id = target.dataset.id; if (!action) return;
   try {
     if (action === 'close') closeModal();
-    if (action === 'care') {
-      if (state.checkins.includes(localDate())) toast(t('careAlready', { name: state.profile.name }));
-      else { mutate(next => { next.checkins.push(localDate()); }); toast(t('careReaction', { name: state.profile.name })); }
-    }
-    if (action === 'plan') planModal();
-    if (action === 'explore' || action === 'read-story') questModal(id);
-    if (action === 'claim') {
-      mutate(next => { claimQuest(next, month, id, target.dataset.choice); }); selectedQuest = null; render();
-      showStoryResult(story(id), target.dataset.choice, QUESTS.find(q => q.id === id));
-    }
-    if (action === 'buy') { mutate(next => { buyItem(next, id); }); toast(t('itemBought', { name: state.profile.name })); }
-    if (action === 'equip') mutate(next => { next.equipped = next.equipped.includes(id) ? next.equipped.filter(v => v !== id) : [...next.equipped, id]; });
+    if (action === 'goal') goalModal({ required: !state.goal });
+    if (action === 'login-first') { closeModal(); await accountModal(); }
+    if (action === 'landmark') landmarkModal(Number(id));
+    if (action === 'pet') { setReaction({ pet: true, delta: 0, direction: 'steady' }, goalSummary(state)); render({ keepDraft: true }); }
     if (action === 'more-entries') { ledgerLimit += 40; renderLedger(summarize(state, month)); }
     if (action === 'csv') download(`\ufeff${csv(state, month)}`, `nest-quest-${month}.csv`, 'text/csv;charset=utf-8');
     if (action === 'export') exportSave();
@@ -421,12 +418,12 @@ document.addEventListener('click', async event => {
     if (action === 'reload') location.reload();
     if (action === 'reconnect') await accountModal();
     if (action === 'delete-entry') confirmAction('deleteEntryAsk', t('deleteEntryBody'), 'deleteEntry', () => {
-      mutate(next => { next.entries = next.entries.filter(e => e.id !== id); }); closeModal(); toast(t('entryDeleted'));
+      mutate(next => { next.entries = next.entries.filter(entry => entry.id !== id); }); closeModal(); revealReaction(); toast(t('entryDeleted'));
     }, true);
     if (action === 'reset') confirmAction('resetAsk', t('resetBody'), 'reset', () => {
       if (account || recoverAccount) throw new Error('cloudConflict');
       localStore.removeItem(localKey); damagedSave = null; staleTab = false; state = isDemo ? demoState() : createState(); lastDeviceRevision = state.revision;
-      storeDevice(); selectedQuest = null; closeModal(); render(); if (!isDemo) onboarding();
+      clearReaction(); storeDevice(); closeModal(); render(); if (!isDemo) ensureGoal();
     }, true);
     if (action === 'sign-out') {
       if (syncBusy) throw new Error('waitSync');
@@ -437,43 +434,53 @@ document.addEventListener('click', async event => {
       } else { await disconnect(); toast(t('signedOut')); }
     }
     if (action === 'remove-cloud') confirmAction('removeCloudAsk', t('removeCloudBody'), 'removeCloud', async () => {
-      if (syncBusy) throw new Error('waitSync');
-      if (!account) throw new Error('cloudUnavailable');
+      if (syncBusy) throw new Error('waitSync'); if (!account) throw new Error('cloudUnavailable');
       syncEnabled = false;
       try { await account.repository.remove(); await disconnect(); toast(t('cloudRemoved')); }
       catch (error) { syncPaused = true; cloudErrorKey = 'cloudError'; throw error; }
     }, true);
-  } catch (error) { if (modal.open) formError(errorText(error)); else toast(errorText(error)); renderSaveStatus(); }
+  } catch (error) { formError(errorText(error)); renderSaveStatus(); }
 });
 document.addEventListener('submit', async event => {
   const form = event.target;
-  if (!['entry-form', 'plan-form', 'onboard-form', 'rename-form', 'login-form', 'new-password-form'].includes(form.id)) return;
+  if (!['quick-entry-form', 'entry-form', 'goal-form', 'rename-form', 'login-form', 'new-password-form'].includes(form.id)) return;
   event.preventDefault(); const data = new FormData(form);
   try {
-    if (form.id === 'entry-form') {
+    if (form.id === 'quick-entry-form' || form.id === 'entry-form') {
+      if (!state.goal || !state.profile.started) { ensureGoal(); return; }
       const date = data.get('date'); if (!validDate(date) || date > localDate()) { formError(t('futureDate')); return; }
       const type = form.dataset.type, id = form.dataset.id || uuid(), amount = parseMoney(data.get('amount'));
-      const entry = { id, type, amount, date, note: String(data.get('note') || '').trim(), category: type === 'expense' ? data.get('category') : type,
-        ...(type === 'expense' ? { essential: data.get('essential') === 'on' } : {}) };
+      const previous = state.entries.find(entry => entry.id === id);
+      const category = type === 'expense' ? data.get('category') : type;
+      const entry = { id, type, amount, date, note: String(data.get('note') || '').trim(), category,
+        ...(type === 'expense' ? { essential: previous?.essential ?? CATEGORIES[category]?.essential ?? false } : {}) };
       mutate(next => {
         if (!form.dataset.id && next.entries.length >= 10000) throw new Error('limitReached');
-        next.entries = next.entries.filter(e => e.id !== id); next.entries.push(entry);
+        next.entries = next.entries.filter(item => item.id !== id); next.entries.push(entry);
         if (!next.recordDays.includes(date)) next.recordDays.push(date);
       });
-      month = date.slice(0, 7); selectedQuest = null; closeModal(); render(); toast(t('entrySaved'));
+      // A dated edit may move into another month's trail, while the lifetime
+      // goal remains the same. Re-render only the trail in this case.
+      month = date.slice(0, 7); $('#month').value = month;
+      $('#quick-date').value = month === localDate().slice(0, 7) ? localDate() : `${month}-01`;
+      const total = summarize(state, month);
+      renderLedger(total);
+      $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) => `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
+      if (modal.open) closeModal(); revealReaction();
+      if (!reaction?.delta) toast(t('entrySaved'));
     }
-    if (form.id === 'plan-form') {
-      const goal = parseMoney(data.get('goal'), true), text = String(data.get('flex')).trim(), flex = text ? parseMoney(text, true) : null;
-      mutate(next => { next.plans[month] = { goal, flex }; }); closeModal(); toast(t('planSaved'));
-    }
-    if (form.id === 'onboard-form') {
-      const name = String(data.get('name')).trim(), currency = data.get('currency'), income = parseMoney(data.get('income'), true), goal = parseMoney(data.get('goal'), true);
+    if (form.id === 'goal-form') {
+      const title = String(data.get('title')).trim(); if (!title || title.length > 64) throw new Error('goalError');
+      const target = parseMoney(data.get('target')), opening = parseMoney(data.get('opening'), true), kind = form.dataset.kind;
+      const old = state.goal;
+      const id = old && old.kind === kind && old.title === title && old.target === target ? old.id : uuid();
       mutate(next => {
-        next.profile = { name, currency, started: true }; next.plans[month] = { goal, flex: null };
-        if (income > 0) { next.entries.push({ id: uuid(), type: 'income', category: 'income', amount: income, date: localDate(), note: '' }); next.recordDays.push(localDate()); }
-      }); closeModal();
+        next.goal = { id, kind, title, target, opening };
+        if (form.dataset.first === 'true') next.profile = { name: String(data.get('name')).trim(), currency: data.get('currency') || next.profile.currency, started: true };
+      }); closeModal(); revealReaction(); if (!reaction?.delta) toast(t('goalUpdated'));
+      $('#quick-amount').focus({ preventScroll: true });
     }
-    if (form.id === 'rename-form') { mutate(next => { next.profile.name = String(data.get('name')).trim(); }); closeModal(); }
+    if (form.id === 'rename-form') { mutate(next => { next.profile.name = String(data.get('name')).trim(); }, { animate: false }); closeModal(); }
     if (form.id === 'login-form') {
       const epoch = modalEpoch;
       const button = form.querySelector('[type="submit"]'); button.disabled = true; button.textContent = t('loggingIn');
@@ -506,5 +513,5 @@ window.addEventListener('pageshow', () => { if (!account && !recoverAccount) { t
 
 render();
 if (recoverAccount) void restoreAccount();
-else if (!state.profile.started && !damagedSave) onboarding();
+else if ((!state.profile.started || !state.goal) && !damagedSave) ensureGoal();
 else if (isDemo && !damagedSave) storeDevice();

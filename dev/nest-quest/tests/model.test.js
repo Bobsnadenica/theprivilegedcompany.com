@@ -84,7 +84,7 @@ test('care streak uses local calendar dates and allows today to remain unfinishe
 test('invalid backups cannot replace a valid adventure', () => {
   const s = demoState(date); validateState(s);
   for (const change of [
-    x => { x.version = 2; }, x => { x.entries[0].amount = 1.1; }, x => { x.entries[0].amount = -3; },
+    x => { x.version = 3; }, x => { x.entries[0].amount = 1.1; }, x => { x.entries[0].amount = -3; },
     x => { x.entries.push({ ...x.entries[0] }); }, x => { x.claims.push({ ...x.claims[0] }); },
     x => { x.checkins.push(x.checkins[0]); }, x => { x.recordDays.push(x.recordDays[0]); },
     x => { x.profile.currency = 'BTC'; }, x => { x.entries[1].category = '__proto__'; },

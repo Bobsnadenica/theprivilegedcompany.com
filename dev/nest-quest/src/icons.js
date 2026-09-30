@@ -1,4 +1,9 @@
 const paths = {
+  car: '<path d="m5 7 2-4h10l2 4 2 3v8H3v-8Zm0 0h14M3 11h18M5 18v3m14-3v3"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/>',
+  rings: '<circle cx="8" cy="14" r="6"/><circle cx="16" cy="14" r="6"/><path d="m12 7-3-3 3-3 3 3Z"/>',
+  plane: '<path d="m2 12 8-2 3-8h3l-1 8 7 3v2l-8-1-3 7H9l1-8-8 1Z"/>',
+  flag: '<path d="M5 22V3m0 0c5-4 9 4 15 0v11c-6 4-10-4-15 0"/>',
+  bridge: '<path d="M2 16h20M5 16V7m14 9V7M5 7q7 9 14 0M9 10v6m6-6v6M2 20h20"/>',
   leaf: '<path d="M20 4c-8-2-16 2-15 9 1 7 10 7 13 1 2-3 2-6 2-10Z"/><path d="M4 21 15 10"/>',
   arrow: '<path d="M4 12h15m-6-6 6 6-6 6"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
