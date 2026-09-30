@@ -6,8 +6,15 @@ adventure is `play.html?demo=1`. `privacy.html` explains saves and removal.
 
 ## The game
 
-The game has one Adventure page: Ember and the illustrated Willowmere valley,
-the goal fund, inline income and expense entry, and editable entry history.
+The game has one Adventure page, led by a full Willowmere scene and a large,
+interactive Ember. A compact goal display shows the fund, target, and progress.
+Income and expense actions open a native entry dialog on desktop or a bottom
+sheet on mobile. Expense entry needs only an amount and a tap on one of eleven
+visual categories. Date and note sit under optional details; new entries default
+to today even when the history is filtered to another month. A fixed mobile dock
+keeps both actions within reach. Editable history and monthly totals are in the
+collapsed money trail, keeping the main view focused on the adventure.
+
 Choose a suggested goal or set a custom name and target. Suggestions are a new
 car (30,000), a wedding (50,000), a new home (100,000), a safety fund (10,000),
 and a dream trip (2,000), in the adventure's chosen currency. Every suggestion
@@ -21,8 +28,9 @@ without resetting the fund. Editing or deleting an entry recalculates the fund
 and the adventure immediately. Changing the goal keeps the existing entries.
 
 Every increase or decrease prompts an animated response from Ember, changes the
-visible map and path, and moves the companion forward or back. Six checkpoints
-open at 0%, 10%, 25%, 50%, 75%, and 100% of the target: camp, lantern village,
+visible map and path, and moves a route marker forward or back. Ember remains
+large in the foreground rather than moving between tiny map positions. Six
+checkpoints open at 0%, 10%, 25%, 50%, 75%, and 100% of the target: camp, lantern village,
 bridge, forest, Princess Iris, and sanctuary. Spending below a checkpoint closes
 it again. Ember grows from the young form into an adventurer at 25%, then a
 guardian at 75%; falling below those amounts also reverses the form. Tapping
@@ -112,9 +120,16 @@ conflicts, lost responses, read failures, and cloud removal.
 
 Browser QA must verify the single-page entry loop, visible responses in both
 directions, every checkpoint and form boundary, keyboard interaction, reduced
-motion, and English/Bulgarian mobile and desktop layouts. Recheck backups and
-local-save recovery after changing the schema. These requirements do not imply
-that the current build has passed production verification.
+motion, and English/Bulgarian mobile and desktop layouts. Verify category taps,
+amount entry, optional details, today's default date, native dialog focus, the
+mobile dock, and collapsed history. Recheck backups and local-save recovery after
+changing the schema. Local validation passed 37 core checks and 69 play-through
+assertions covering exact amounts, category tiles and sheets, draft preservation,
+reversible forms and goal completion, dated edits/deletion, backups, migration,
+and reduced motion. Sixty EN/BG layout cases passed at 320, 390, 768, and
+1440 pixels, including short viewports, entry sheets, expanded history, and
+maximum goal values. Production verification is a separate release gate: check
+the exact Pages revision, public bytes, and live account round trips.
 
 Use fictional entries and dedicated temporary accounts for account QA, without
 email invitations. Verify real Cognito sign-in and first-password setup, real S3

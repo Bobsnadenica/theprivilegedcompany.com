@@ -10,15 +10,21 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
 - Original Ember character stages and the Willowmere map use the built-in
   imagegen tool. Original PNGs and exact prompts are in `art-source/`; the packaging
   script preserves character alpha. No new paid tool or infrastructure was added.
-- The current experience is one Adventure page with inline income/expense entry,
-  editable history, an original companion, and a reactive map. Goal suggestions
+- The current experience is one Adventure page with a cinematic Willowmere scene,
+  a large interactive Ember, and a compact goal display. Income/expense actions
+  open a native desktop dialog or mobile bottom sheet. Expense entry uses an
+  amount and eleven visual category tiles; date/note are optional details and
+  default to today regardless of the history month filter. A fixed mobile dock
+  keeps actions reachable; history and monthly totals remain collapsed until
+  opened. Goal suggestions
   are car 30,000, wedding 50,000, home 100,000, safety fund 10,000, and trip 2,000;
   names and targets are editable, with a custom option. Money uses integer minor
   units and one fixed currency per adventure.
 - Goal fund equals opening money plus all income minus all expenses, across
   months and every expense category. The month selector filters summaries and
-  history, not goal progress. Entries, edits, and deletion prompt reactions and
-  move the map/path/companion forward or back. Checkpoints are 0%, 10%, 25%, 50%,
+  history, not goal progress. Entries, edits, and deletion prompt Ember reactions,
+  change map color and path progress, and move the route marker forward or back.
+  Large Ember stays in the foreground. Checkpoints are 0%, 10%, 25%, 50%,
   75%, and 100%; forms change at 25% and 75% and reverse below those boundaries.
   Current play has no care, XP, shop, or manual chapter-claim gates.
 - Save schema version 2 adds a goal. Version 1 records and metadata migrate
@@ -43,9 +49,13 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
   deletion, local-tab conflicts, blocked storage, invalid saves, and reduced
   motion were also checked. Temporary test accounts/identities/object versions
   are removed after live release verification; never retain their credentials.
-- The goal-driven revision needs its own completed model, migration, browser,
-  and production-origin verification. The earlier results do not certify this
-  revision or establish that it has been published.
+- The goal-driven revision passed 37 local core checks and 69 local play-through
+  assertions covering exact amounts, category tiles and sheets, draft preservation,
+  reversible forms/completion, dated edits/deletion, backups, migration, and
+  reduced motion. Sixty EN/BG layout cases passed down to 320 pixels, including
+  short viewports, entry sheets, expanded history, and maximum goal values.
+  Publication still requires exact-revision Pages, public-byte comparison, and
+  production-origin account verification; local evidence is a separate gate.
 - Release verification must still follow each publication: wait for Pages,
   compare changed deployable bytes, inspect live UI, and test account operations
   on the production origin. See the game README for commands and source research.

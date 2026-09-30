@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#f6f3ea">
   <meta name="description" content="Play Nest & Quest: your budget, your fox-dragon companion, and a little adventure in Willowmere Valley.">
   <meta name="robots" content="noindex, nofollow">
@@ -21,13 +21,14 @@
   </header>
   <div id="demo-banner" class="demo-banner page-width" hidden><span data-i18n="demoBanner">You are exploring a sample adventure. All amounts are fictional.</span><a href="./play.html" data-language-link data-i18n="startOwn">Start my own</a></div>
   <main id="main" class="game-main page-width" tabindex="-1">
-    <div class="dashboard-heading"><div><p class="eyebrow" data-i18n="dashboardKicker">Your goal. Your adventure.</p><h1 id="page-title" data-i18n="dashboardTitle">Make your dream grow.</h1></div><p class="adventure-intro" data-i18n="adventureIntro">Income builds your world. Every expense takes a little back.</p></div>
+    <h1 id="page-title" class="sr-only" data-i18n="dashboardTitle">Make your dream grow.</h1>
     <div id="save-banner" class="notice" role="status" hidden></div>
-    <div class="topline"><span id="save-status" class="save-status"></span><span class="fine-print" data-i18n="allMonths">Goal fund carries across months.</span></div>
+    <div class="topline"><span id="save-status" class="save-status"></span></div>
     <section id="adventure-view" class="view-panel"></section>
-    <section class="activity-panel panel" aria-labelledby="activity-title"><div class="activity-heading"><div><h2 id="activity-title" data-i18n="activity">Your money trail</h2><p data-i18n="activityHint">Edit any entry. Your world reacts to the correction.</p></div><div class="month-control"><label for="month" data-i18n="month">Activity month</label><input id="month" type="month" min="2000-01" max="2099-12" required></div></div><section id="summary" class="monthly-strip" aria-label="Monthly budget summary"></section><div id="ledger-view"></div></section>
+    <details class="activity-panel panel"><summary class="activity-toggle"><span data-icon="wallet"></span><span id="activity-title" data-i18n="activity">Your money trail</span><span id="activity-count" class="activity-count"></span><span data-icon="arrow" class="activity-chevron"></span></summary><div class="activity-content"><div class="activity-heading"><div class="month-control"><label for="month" data-i18n="month">Activity month</label><input id="month" type="month" min="2000-01" max="2099-12" required></div></div><section id="summary" class="monthly-strip" aria-label="Monthly budget summary"></section><div id="ledger-view"></div></div></details>
   </main>
   <footer class="site-footer game-footer page-width"><div><a href="/" data-i18n="company">A little experiment by The Privileged Company</a><p data-i18n="gameNote">A personal budgeting game. No money is moved by the game.</p></div><div class="footer-links"><a href="./" data-language-link data-i18n="how">How it works</a><a href="./privacy.html" data-language-link data-i18n="privacy">Privacy & saves</a></div></footer>
+  <dialog id="entry-sheet" class="entry-sheet" aria-labelledby="entry-title"></dialog>
   <dialog id="modal" class="modal"><div id="modal-content"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <input id="import-file" type="file" accept=".json,application/json" hidden>

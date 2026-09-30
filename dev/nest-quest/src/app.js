@@ -5,6 +5,7 @@ import { GOAL_PRESETS, GOAL_MILESTONES, goalSummary, goalReaction } from './goal
 import { adventureHTML, goalName, goalTitle, companionPosition, pathLengthAt } from './adventure.js';
 import { t, money, locale, language, setLanguage, applyLanguage } from './i18n.js';
 import { icon } from './icons.js';
+import { entryHTML } from './entry.js';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -14,12 +15,13 @@ let localStore;
 try { localStore = isDemo ? sessionStorage : localStorage; } catch { /* Report inaccessible storage below. */ }
 let damagedSave = null, storageWarning = false, staleTab = false;
 let state = readLocal();
-let month = localDate().slice(0, 7), quickType = 'income', ledgerFilter = 'all', ledgerLimit = 12;
+let month = localDate().slice(0, 7), quickType = 'expense', ledgerFilter = 'all', ledgerLimit = 12;
 let reaction = null, reactionActive = false, reactionPrevious = null, reactionTimer;
 let account = null, syncEnabled = false, syncPaused = false, syncBusy = false, saveQueued = false, cloudErrorKey = null;
 let lastSyncedRevision = null, lastDeviceRevision = state.revision;
 let pendingAccount = null, cloudModule = null, modalCleanup = null, toastTimer, modalEpoch = 0;
-const modal = $('#modal');
+const modal = $('#modal'), entrySheet = $('#entry-sheet');
+let quickCategory = 'groceries', entryDraft = null;
 let recoverAccount = null;
 if (!isDemo) {
   try {
@@ -136,8 +138,7 @@ function setReaction(next, previous) {
     $('.floating-amount')?.replaceChildren();
   }, 4200);
 }
-function render({ keepDraft = false } = {}) {
-  const draft = keepDraft && $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : null;
+function render() {
   applyLanguage(); document.title = `Nest & Quest — ${t('adventure')}`;
   $('#page-title').textContent = t('dashboardTitle');
   $('#month').value = month; $('#month').max = localDate().slice(0, 7);
@@ -146,7 +147,7 @@ function render({ keepDraft = false } = {}) {
   $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) =>
     `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
   $('#adventure-view').innerHTML = adventureHTML(state, { reaction, reactionActive, previous: reactionPrevious, type: quickType, month });
-  if (draft) for (const [name, value] of Object.entries(draft)) { const input = $('#quick-entry-form').elements.namedItem(name); if (input) input.value = value; }
+  $('#activity-count').textContent = String(total.entries.length);
   renderLedger(total); renderSaveStatus();
   const current = goalSummary(state);
   if (current) requestAnimationFrame(() => {
@@ -156,9 +157,8 @@ function render({ keepDraft = false } = {}) {
     map.getBoundingClientRect();
     map.style.setProperty('--unrevealed', `${Math.max(0, 100 - Math.min(100, position.x + 12))}%`);
     $('.path-progress').style.strokeDashoffset = String(100 - pathLengthAt(current.ratio));
-    const companion = $('#companion-button');
-    companion.style.left = `${position.x}%`; companion.style.top = `max(90px, ${position.y}%)`;
-    companion.classList.toggle('at-start', position.x < 20); companion.classList.toggle('at-end', position.x > 80);
+    const traveller = $('#route-traveller');
+    traveller.style.left = `${position.x}%`; traveller.style.top = `${position.y}%`;
     $('.goal-progress span').style.width = `${current.ratio * 100}%`;
   });
 }
@@ -168,23 +168,62 @@ function renderLedger(total) {
   $('#ledger-view').innerHTML = `<div class="ledger-filter"><select id="entry-filter" aria-label="${esc(t('allTypes'))}">${options.map(id => `<option value="${id}" ${id === ledgerFilter ? 'selected' : ''}>${esc(t(id === 'all' ? 'allTypes' : id === 'saving' ? 'legacyTransfer' : id))}</option>`).join('')}</select><span>${esc(monthLabel(month))} · ${filtered.length}</span><button class="button button-small button-outline" data-action="csv">${icon('download')}${esc(t('downloadCsv'))}</button></div>
     <div class="ledger-list">${total.entries.length === 0 ? `<div class="empty-state">${icon('wallet')}<h3>${esc(t('emptyEntries'))}</h3><p>${esc(t('emptyEntriesBody'))}</p></div>` : filtered.length === 0 ? `<div class="empty-state"><p>${esc(t('noFiltered'))}</p></div>` : filtered.slice(0, ledgerLimit).map(entry => {
       const name = entry.note || t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income');
-      return `<button class="entry-row" data-edit="${entry.id}" aria-label="${esc(`${t('editEntry')}: ${name}, ${cash(entry.amount)}`)}"><span class="entry-symbol ${entry.type}">${icon(entry.type === 'expense' ? 'coins' : entry.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(name)}</span><span class="entry-meta">${esc(dateLabel(entry.date))} · ${esc(t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income'))}</span></span><span class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : entry.type === 'expense' ? '−' : ''}${esc(cash(entry.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`;
+      return `<button class="entry-row" data-edit="${entry.id}" aria-label="${esc(`${t('editEntry')}: ${name}, ${cash(entry.amount)}`)}"><span class="entry-symbol ${entry.type}">${icon(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(name)}</span><span class="entry-meta">${esc(dateLabel(entry.date))} · ${esc(t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income'))}</span></span><span class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : entry.type === 'expense' ? '−' : ''}${esc(cash(entry.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`;
     }).join('')}</div>${filtered.length > ledgerLimit ? `<button class="button button-small button-outline button-full" data-action="more-entries">${esc(t('showMore'))}</button>` : ''}`;
 }
+function quickValues() {
+  return $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : entryDraft;
+}
+function openEntry(type = quickType) {
+  if (!state.goal || !state.profile.started) { ensureGoal(); return; }
+  quickType = type === 'income' ? 'income' : 'expense';
+  entrySheet.innerHTML = entryHTML(state, { type: quickType, category: quickCategory, draft: entryDraft });
+  if (!entrySheet.open) entrySheet.showModal();
+  syncEntryViewport(); updateEntryImpact();
+  // Let touch users choose a category before opening the numeric keyboard.
+  if (matchMedia('(pointer: fine)').matches) $('#quick-amount').focus();
+}
+function syncEntryViewport() {
+  if (!entrySheet.open) return;
+  const view = window.visualViewport;
+  entrySheet.style.setProperty('--sheet-height', `${view?.height || innerHeight}px`);
+  entrySheet.style.setProperty('--sheet-offset', `${Math.max(0, innerHeight - (view?.height || innerHeight) - (view?.offsetTop || 0))}px`);
+}
+window.visualViewport?.addEventListener('resize', syncEntryViewport);
+window.visualViewport?.addEventListener('scroll', syncEntryViewport);
+function closeEntry({ discard = false } = {}) {
+  entryDraft = discard ? null : quickValues();
+  entrySheet.close();
+}
+function resetEntryDraft() {
+  if (entrySheet.open) entrySheet.close();
+  entryDraft = null; quickCategory = 'groceries'; entrySheet.replaceChildren();
+}
 function selectQuickType(type) {
-  quickType = type === 'expense' ? 'expense' : 'income';
-  const form = $('#quick-entry-form'); form.dataset.type = quickType;
-  document.querySelectorAll('[data-quick-type]').forEach(button => {
-    const active = button.dataset.quickType === quickType;
+  entryDraft = quickValues();
+  const detailsOpen = $('.entry-details')?.open;
+  openEntry(type);
+  $('.entry-details').open = !!detailsOpen;
+}
+function selectCategory(category) {
+  if (!Object.hasOwn(CATEGORIES, category)) return;
+  quickCategory = category; $('#quick-category').value = category;
+  document.querySelectorAll('[data-category]').forEach(button => {
+    const active = button.dataset.category === category;
     button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active));
   });
-  $('.quick-category').hidden = quickType !== 'expense';
-  $('.entry-hint').textContent = t(quickType === 'income' ? 'quickIncomeHint' : 'quickExpenseHint');
-  $('#quick-submit').innerHTML = `${icon(quickType === 'income' ? 'plus' : 'coins')}<span>${esc(t(quickType === 'income' ? 'recordIncomeNow' : 'recordExpenseNow'))}</span>`;
-  $('#quick-error').hidden = true; $('#quick-amount').focus();
+  updateEntryImpact();
+}
+function updateEntryImpact() {
+  const target = $('#entry-impact'); if (!target) return;
+  let amount;
+  try { amount = parseMoney($('#quick-amount').value); } catch { /* Empty amounts keep the short instruction. */ }
+  target.textContent = amount ? t(quickType === 'income' ? 'incomeAdds' : 'expenseReduces', { amount: cash(amount) }) : t(quickType === 'income' ? 'quickIncomeHint' : 'quickExpenseHint');
 }
 function revealReaction() {
   if (!reactionActive) return;
+  $('#companion-button').focus({ preventScroll: true });
+  const speech = $('#companion-speech'); speech.textContent = speech.textContent;
   const map = $('.reactive-map'), box = map.getBoundingClientRect();
   if (box.bottom < 100 || box.top > innerHeight - 120) {
     map.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
@@ -194,6 +233,7 @@ function revealReaction() {
 // One native dialog keeps keyboard focus inside each form and returns it to the
 // invoking control. Financial text is escaped on every render.
 function openModal(content, { closeable = true, onClose } = {}) {
+  if (entrySheet.open) closeEntry();
   modalEpoch++;
   const previousCleanup = modalCleanup; modalCleanup = null;
   if (previousCleanup) previousCleanup();
@@ -205,7 +245,7 @@ function openModal(content, { closeable = true, onClose } = {}) {
 }
 function closeModal() { modalEpoch++; const cleanup = modalCleanup; modalCleanup = null; if (cleanup) cleanup(); modal.close(); }
 function formError(message) {
-  const target = modal.open ? $('#form-error') : $('#quick-error');
+  const target = entrySheet.open ? $('#quick-error') : modal.open ? $('#form-error') : null;
   if (target) { target.textContent = message; target.hidden = false; target.focus(); }
   else toast(message);
 }
@@ -222,9 +262,9 @@ function goalModal({ required = false } = {}) {
   openModal(`<p class="eyebrow">${esc(t('adventure'))}</p><h2>${esc(t('chooseGoal'))}</h2><p class="modal-description">${esc(t(!first && !goal ? 'oldSave' : 'goalSetup'))}</p>
     <form id="goal-form" data-first="${first}" data-kind="${preset.kind}">
     <fieldset class="goal-presets"><legend>${esc(t('goalPresets'))}</legend>${GOAL_PRESETS.map(item => `<button type="button" class="goal-preset ${item.kind === preset.kind ? 'selected' : ''}" data-preset="${item.kind}" aria-pressed="${item.kind === preset.kind}">${icon(goalIcons[item.kind])}<strong>${esc(goalName(item.kind))}</strong><small>${item.kind === 'custom' ? esc(t('goalCustom')) : esc(money(item.target, currency))}</small></button>`).join('')}</fieldset><p class="fine-print">${esc(t('presetHint'))}</p>
-    ${first ? `<div class="form-grid"><div class="field"><label for="companion-name">${esc(t('companionName'))}</label><input id="companion-name" name="name" value="${esc(state.profile.name === 'Ember' && language() === 'bg' ? 'Ембър' : state.profile.name)}" maxlength="24" required autocomplete="off"></div><div class="field"><label for="currency">${esc(t('currency'))}</label><select id="currency" name="currency" ${state.entries.length ? 'disabled' : ''}>${CURRENCIES.map(value => `<option ${value === currency ? 'selected' : ''}>${value}</option>`).join('')}</select></div></div>` : ''}
-    <div class="field"><label for="goal-name">${esc(t('goalName'))}</label><input id="goal-name" name="title" value="${esc(goal?.title || goalName(preset.kind))}" maxlength="64" required autocomplete="off" autofocus></div>
-    <div class="form-grid"><div class="field"><label for="goal-target">${esc(t('goalTarget'))} (${currency})</label><input id="goal-target" name="target" value="${((goal?.target || preset.target) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div><div class="field"><label for="goal-opening">${esc(t('openingFund'))} (${currency})</label><input id="goal-opening" name="opening" value="${((goal?.opening || 0) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div></div><p class="fine-print">${esc(t('openingHint'))}</p>${state.entries.length ? `<p class="fine-print">${esc(t('goalKeep'))}</p>` : ''}${errorField}<button class="button button-full" type="submit">${esc(t(first ? 'begin' : 'saveGoal'))}${icon('arrow')}</button></form>
+    ${first ? `<details class="profile-details"><summary>${esc(t('personalize'))}</summary><div class="form-grid"><div class="field"><label for="companion-name">${esc(t('companionName'))}</label><input id="companion-name" name="name" value="${esc(state.profile.name === 'Ember' && language() === 'bg' ? 'Ембър' : state.profile.name)}" maxlength="24" required autocomplete="off"></div><div class="field"><label for="currency">${esc(t('currency'))}</label><select id="currency" name="currency" ${state.entries.length ? 'disabled' : ''}>${CURRENCIES.map(value => `<option ${value === currency ? 'selected' : ''}>${value}</option>`).join('')}</select></div></div></details>` : ''}
+    <div class="field"><label for="goal-name">${esc(t('goalName'))}</label><input id="goal-name" name="title" value="${esc(goal?.title || goalName(preset.kind))}" maxlength="64" required autocomplete="off"></div>
+    <div class="form-grid"><div class="field"><label for="goal-target">${esc(t('goalTarget'))} (${currency})</label><input id="goal-target" name="target" value="${((goal?.target || preset.target) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div><div class="field"><label for="goal-opening">${esc(t('openingFund'))} (${currency})</label><input id="goal-opening" name="opening" value="${((goal?.opening || 0) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div></div><p class="fine-print">${esc(t('openingHint'))}</p>${state.entries.length ? `<p class="fine-print">${esc(t('goalKeep'))}</p>` : ''}<details class="fund-explanation"><summary>${esc(t('howFund'))}</summary><p>${esc(t('fundRule'))}</p><p>${esc(t('fundOnly'))}</p>${state.entries.some(entry => entry.type === 'saving') ? `<p>${esc(t('legacyHint'))}</p>` : ''}</details>${errorField}<button class="button button-full" type="submit">${esc(t(first ? 'begin' : 'saveGoal'))}${icon('arrow')}</button></form>
     ${first ? `<div class="onboard-foot"><button class="modal-link" data-action="import">${esc(t('import'))}</button>${!isDemo ? `<button class="modal-link" data-action="login-first">${esc(t('connect'))}</button>` : ''}</div>` : ''}`, { closeable: !required });
 }
 function choosePreset(kind) {
@@ -269,7 +309,7 @@ async function importSave(file) {
     if (file.size > 2000000) throw new Error('invalidSave');
     const imported = validateState(JSON.parse(await file.text()));
     confirmAction('importAsk', t('importBody', { name: imported.profile.name, n: imported.entries.length, currency: imported.profile.currency }), 'continue', () => {
-      mutate(next => { Object.assign(next, structuredClone(imported)); });
+      mutate(next => { Object.assign(next, structuredClone(imported)); }); resetEntryDraft();
       month = localDate().slice(0, 7); closeModal(); render(); ensureGoal(); toast(t('restored'));
     });
   } catch { toast(t('invalidSave')); }
@@ -320,7 +360,7 @@ async function prepareAccount(auth, epoch = modalEpoch) {
       const previousId = previous?.userId || recoverAccount?.id;
       if (previous) previous.close();
       if (previousId && previousId !== nextAccount.userId) { try { sessionStorage.removeItem(`nestquest:account:${previousId}`); } catch { /* Optional session cache. */ } }
-      account = nextAccount; pendingAccount = null; recoverAccount = null;
+      account = nextAccount; pendingAccount = null; recoverAccount = null; resetEntryDraft();
       if (useRemote) state = structuredClone(remote);
       lastSyncedRevision = state.revision; syncEnabled = true; syncPaused = false; cloudErrorKey = null; saveQueued = false;
       clearReaction(); storeDevice(); closeModal(); render(); toast(t('cloudLoaded'));
@@ -343,11 +383,11 @@ async function restoreAccount() {
     restored = await cloud.connectAccount(auth); const remote = await restored.repository.load();
     if (recoverAccount !== saved) { restored.close(); return; }
     account = restored; recoverAccount = null; lastSyncedRevision = saved.lastSyncedRevision;
-    const dirty = saved.cached.revision !== saved.lastSyncedRevision;
+    const dirty = state.revision !== saved.lastSyncedRevision;
     if (!remote || dirty && remote.revision !== saved.lastSyncedRevision) {
       syncPaused = true; cloudErrorKey = 'cloudConflict';
     } else if (dirty) { syncEnabled = true; scheduleCloudSave(); }
-    else { state = structuredClone(remote); syncEnabled = true; lastSyncedRevision = state.revision; }
+    else { if (remote.revision !== state.revision) resetEntryDraft(); state = structuredClone(remote); syncEnabled = true; lastSyncedRevision = state.revision; }
     clearReaction(); storeDevice(); render(); ensureGoal();
   } catch (error) { restored?.close(); if (recoverAccount === saved) { syncPaused = true; cloudErrorKey = error.message === 'sessionEnded' ? 'sessionEnded' : 'cloudError'; render(); } }
 }
@@ -357,7 +397,7 @@ async function disconnect({ signOut = true } = {}) {
   account?.close(); account = null; recoverAccount = null; syncEnabled = false; syncPaused = false; cloudErrorKey = null;
   if (id) { try { sessionStorage.removeItem(`nestquest:account:${id}`); sessionStorage.removeItem('nestquest:active'); } catch { /* No durable account copy was made. */ } }
   if (signOut) (await getCloudModule()).signOut();
-  state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; clearReaction(); closeModal(); render();
+  resetEntryDraft(); state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; clearReaction(); closeModal(); render();
   ensureGoal();
 }
 
@@ -371,6 +411,10 @@ $('#month').addEventListener('change', event => {
   month = event.target.value; ledgerLimit = 12; render();
 });
 $('#settings-button').addEventListener('click', settingsModal);
+entrySheet.addEventListener('cancel', event => { event.preventDefault(); closeEntry(); });
+entrySheet.addEventListener('click', event => { if (event.target === entrySheet) closeEntry(); });
+document.addEventListener('input', event => { if (event.target.id === 'quick-amount') updateEntryImpact(); });
+document.addEventListener('invalid', event => { const details = event.target.closest('details'); if (details) details.open = true; }, true);
 $('#account-button').addEventListener('click', () => { void accountModal(); });
 $('#import-file').addEventListener('change', event => { const file = event.target.files[0]; event.target.value = ''; void importSave(file); });
 modal.addEventListener('cancel', event => { if (modal.dataset.closeable === 'false') event.preventDefault(); });
@@ -389,11 +433,10 @@ document.addEventListener('click', async event => {
   const target = event.target.closest('button'); if (!target) return;
   if (target.dataset.lang) {
     // Keep an unfinished entry when switching language.
-    const draft = $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : null;
+    if (entrySheet.open) entryDraft = quickValues();
     const goalDraft = modal.open && $('#goal-form') ? Object.fromEntries(new FormData($('#goal-form'))) : null;
     const goalKind = $('#goal-form')?.dataset.kind;
     setLanguage(target.dataset.lang); render();
-    if (draft) for (const [name, value] of Object.entries(draft)) { const input = $('#quick-entry-form').elements.namedItem(name); if (input) input.value = value; }
     if (modal.open) {
       if (goalDraft) { goalModal({ required: !state.goal }); $('#goal-form').dataset.kind = goalKind; for (const [name, value] of Object.entries(goalDraft)) { const input = $('#goal-form').elements.namedItem(name); if (input) input.value = value; } }
       else closeModal();
@@ -401,15 +444,19 @@ document.addEventListener('click', async event => {
     return;
   }
   if (target.dataset.quickType) { selectQuickType(target.dataset.quickType); return; }
+  if (target.dataset.category) { selectCategory(target.dataset.category); return; }
   if (target.dataset.preset) { choosePreset(target.dataset.preset); return; }
   if (target.dataset.edit) { entryModal(target.dataset.edit); return; }
   const action = target.dataset.action, id = target.dataset.id; if (!action) return;
   try {
     if (action === 'close') closeModal();
+    if (action === 'close-entry') closeEntry();
+    if (action === 'add-expense') openEntry('expense');
+    if (action === 'add-income') openEntry('income');
     if (action === 'goal') goalModal({ required: !state.goal });
     if (action === 'login-first') { closeModal(); await accountModal(); }
     if (action === 'landmark') landmarkModal(Number(id));
-    if (action === 'pet') { setReaction({ pet: true, delta: 0, direction: 'steady' }, goalSummary(state)); render({ keepDraft: true }); }
+    if (action === 'pet') { setReaction({ pet: true, delta: 0, direction: 'steady' }, goalSummary(state)); render(); }
     if (action === 'more-entries') { ledgerLimit += 40; renderLedger(summarize(state, month)); }
     if (action === 'csv') download(`\ufeff${csv(state, month)}`, `nest-quest-${month}.csv`, 'text/csv;charset=utf-8');
     if (action === 'export') exportSave();
@@ -422,7 +469,7 @@ document.addEventListener('click', async event => {
     }, true);
     if (action === 'reset') confirmAction('resetAsk', t('resetBody'), 'reset', () => {
       if (account || recoverAccount) throw new Error('cloudConflict');
-      localStore.removeItem(localKey); damagedSave = null; staleTab = false; state = isDemo ? demoState() : createState(); lastDeviceRevision = state.revision;
+      resetEntryDraft(); localStore.removeItem(localKey); damagedSave = null; staleTab = false; state = isDemo ? demoState() : createState(); lastDeviceRevision = state.revision;
       clearReaction(); storeDevice(); closeModal(); render(); if (!isDemo) ensureGoal();
     }, true);
     if (action === 'sign-out') {
@@ -462,10 +509,11 @@ document.addEventListener('submit', async event => {
       // A dated edit may move into another month's trail, while the lifetime
       // goal remains the same. Re-render only the trail in this case.
       month = date.slice(0, 7); $('#month').value = month;
-      $('#quick-date').value = month === localDate().slice(0, 7) ? localDate() : `${month}-01`;
+      $('#activity-count').textContent = String(summarize(state, month).entries.length);
       const total = summarize(state, month);
       renderLedger(total);
       $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) => `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
+      if (entrySheet.open) closeEntry({ discard: true });
       if (modal.open) closeModal(); revealReaction();
       if (!reaction?.delta) toast(t('entrySaved'));
     }
@@ -478,7 +526,7 @@ document.addEventListener('submit', async event => {
         next.goal = { id, kind, title, target, opening };
         if (form.dataset.first === 'true') next.profile = { name: String(data.get('name')).trim(), currency: data.get('currency') || next.profile.currency, started: true };
       }); closeModal(); revealReaction(); if (!reaction?.delta) toast(t('goalUpdated'));
-      $('#quick-amount').focus({ preventScroll: true });
+      $('#companion-button').focus({ preventScroll: true });
     }
     if (form.id === 'rename-form') { mutate(next => { next.profile.name = String(data.get('name')).trim(); }, { animate: false }); closeModal(); }
     if (form.id === 'login-form') {
@@ -511,6 +559,12 @@ window.addEventListener('beforeunload', event => { if (storageWarning || ((accou
 window.addEventListener('online', () => { if (cloudErrorKey === 'cloudError' && account) { syncPaused = false; cloudErrorKey = null; scheduleCloudSave(); } });
 window.addEventListener('pageshow', () => { if (!account && !recoverAccount) { try { checkOtherTab(); } catch { renderSaveStatus(); } } });
 
+// Load the other small forms after the initial scene, so an evolution stays visible.
+window.addEventListener('load', () => {
+  for (const stage of ['young', 'adventurer', 'guardian']) {
+    const image = new Image(); image.fetchPriority = 'low'; image.src = `/dev/nest-quest/art/ember-${stage}.webp`;
+  }
+}, { once: true });
 render();
 if (recoverAccount) void restoreAccount();
 else if ((!state.profile.started || !state.goal) && !damagedSave) ensureGoal();

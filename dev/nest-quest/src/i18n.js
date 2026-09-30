@@ -223,3 +223,27 @@ export function setLanguage(next) {
   applyLanguage();
 }
 export const translationKeys = Object.keys(copy);
+
+Object.assign(copy, {
+  addExpense: ['Add expense', 'Добави разход'], addIncome: ['Income', 'Приход'],
+  personalize: ['Name & currency', 'Име и валута'],
+  goalSetup: ['Choose a goal. Your money brings the valley to life.', 'Избери цел. Парите ти оживяват долината.'],
+  newExpense: ['New expense', 'Нов разход'], newIncome: ['New income', 'Нов приход'],
+  entryDetails: ['More details', 'Още детайли'],
+  incomeAdds: ['Adds {amount} to your goal', 'Добавя {amount} към целта'],
+  expenseReduces: ['Takes {amount} from your goal', 'Изважда {amount} от целта'],
+  recordExpenseNow: ['Save expense', 'Запиши разход'], recordIncomeNow: ['Save income', 'Запиши приход'],
+  quickNote: ['Note (optional)', 'Бележка (по избор)'],
+  quickIncomeHint: ['Your world grows with every income.', 'Всеки приход развива твоя свят.'],
+  quickExpenseHint: ['Every expense updates your adventure.', 'Всеки разход променя приключението.'],
+  housing: ['Home & rent', 'Дом и наем'], groceries: ['Groceries', 'Храна'], dining: ['Eating out', 'Заведения'],
+  bills: ['Bills', 'Сметки'], health: ['Health', 'Здраве'], fun: ['Fun', 'Забавления'],
+  shopping: ['Shopping', 'Покупки'], monthNet: ['Net this month', 'Баланс за месеца'],
+  idleSpeech: ['Saving for {goal}.', 'Спестяваме за {goal}.'],
+  reactionUp: ['Closer to {goal}!', 'По-близо до {goal}!'],
+  reactionDown: ['A step back. We can rebuild.', 'Стъпка назад. Ще възстановим фонда.'],
+  reactionUnlock: ['{place} is open!', 'Мястото „{place}“ е отворено!'],
+  reactionRelock: ['{place} needs a little more again.', 'Отново ни трябва още за „{place}“.'],
+  reactionComplete: ['Goal reached! The valley celebrates.', 'Целта е постигната! Долината празнува.'],
+  petSpeech: ['Small steps count. I’m with you.', 'Малките стъпки се броят. С теб съм.'],
+});
