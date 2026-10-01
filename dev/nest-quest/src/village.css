@@ -1,6 +1,6 @@
 .village-card{overflow:hidden;border:1px solid #cbd8b5;border-radius:20px;background:#f9f9ee;box-shadow:0 14px 46px #3d532515}
 .village-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 24px 17px}
-.village-heading .tiny-label{margin-bottom:5px;color:#71845b;font-size:9px;letter-spacing:.12em}
+.village-heading .tiny-label{margin-bottom:5px;color:#596b45;font-size:9px;letter-spacing:.12em}
 .village-heading h2{color:#3c5734;font-size:30px}
 .village-level{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 11px;border:1px solid #d0ddb9;border-radius:30px;background:#eef3dd;color:#496335;font-size:12px;white-space:nowrap}
 .village-level .icon{width:16px;height:16px}
@@ -33,8 +33,8 @@
 .village-blueprints{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;margin:15px 24px 0}
 .village-blueprints button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:44px;padding:5px 3px;border:1px solid #dfe5cb;border-radius:8px;background:#f4f6e8;color:#667453;font-size:12px}
 .village-blueprints .icon{width:14px;height:14px}
-.village-blueprints .built{color:#637e43;border-color:#c7d7ae;background:#eaf0da}
-.village-blueprints .current{color:#8f7133;border-color:#d8c68b;background:#f9efcf}
+.village-blueprints .built{color:#4f6833;border-color:#c7d7ae;background:#eaf0da}
+.village-blueprints .current{color:#7c6129;border-color:#d8c68b;background:#f9efcf}
 .village-blueprints button:hover{background:#fff8dd;border-color:#cbb670;color:#84672c}
 .village-inspector{min-height:20px;padding:12px 24px 18px;color:#60734d;font-size:12px;text-align:center;line-height:1.6}
 @keyframes village-notice-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
