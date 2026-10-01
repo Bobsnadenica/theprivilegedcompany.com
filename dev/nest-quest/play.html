@@ -4,22 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#f6f3ea">
-  <meta name="description" content="Play Nest & Quest: your budget, your fox-dragon companion, and a little adventure in Willowmere Valley.">
+  <meta name="description" content="Play Nest & Quest: track monthly spending, savings, stocks and crypto, and grow a living 3D village with Ember.">
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://cognito-idp.eu-west-1.amazonaws.com https://cognito-identity.eu-west-1.amazonaws.com https://s3.eu-west-1.amazonaws.com https://*.s3.eu-west-1.amazonaws.com; base-uri 'self'; form-action 'self'; object-src 'none'">
   <link rel="icon" type="image/svg+xml" href="/dev/nest-quest/art/leaf.svg">
   <title>Play Nest & Quest</title>
   <script src="/portal/config.js"></script>
-  <script type="module" crossorigin src="/dev/nest-quest/assets/play-B54_6EqN.js"></script>
-  <link rel="modulepreload" crossorigin href="/dev/nest-quest/assets/icons-D-41ZjcR.js">
+  <script type="module" crossorigin src="/dev/nest-quest/assets/play-2AjTZapE.js"></script>
+  <link rel="modulepreload" crossorigin href="/dev/nest-quest/assets/icons-eabko-jV.js">
   <link rel="stylesheet" crossorigin href="/dev/nest-quest/assets/icons-DrQ9w6UC.css">
-  <link rel="stylesheet" crossorigin href="/dev/nest-quest/assets/play-C4KLevVL.css">
+  <link rel="stylesheet" crossorigin href="/dev/nest-quest/assets/play-DnmTT2oM.css">
 </head>
 <body class="game">
   <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
   <header class="game-header page-width">
     <a class="brand" href="./" data-language-link data-i18n-label="home" aria-label="Nest & Quest home"><span class="brand-mark" aria-hidden="true">n<span>q</span></span><span>Nest <i>&</i> Quest</span></a>
-    <span class="adventure-label"><span data-icon="map"></span><span data-i18n="adventure">Adventure</span></span>
     <div class="header-actions"><div class="language-switch" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="bg" aria-pressed="false">BG</button></div><button type="button" class="icon-button" id="settings-button" data-i18n-label="settings" aria-label="Settings & backup"><span data-icon="settings"></span></button><button type="button" class="button button-small button-outline" id="account-button"><span data-icon="cloud"></span><span id="account-label" data-i18n="connect">Connect account</span></button></div>
   </header>
   <div id="demo-banner" class="demo-banner page-width" hidden><span data-i18n="demoBanner">You are exploring a sample adventure. All amounts are fictional.</span><a href="./play.html" data-language-link data-i18n="startOwn">Start my own</a></div>
@@ -27,8 +26,10 @@
     <h1 id="page-title" class="sr-only" data-i18n="dashboardTitle">Make your dream grow.</h1>
     <div id="save-banner" class="notice" role="status" hidden></div>
     <div class="topline"><span id="save-status" class="save-status"></span></div>
-    <section id="adventure-view" class="view-panel"></section>
-    <details class="activity-panel panel"><summary class="activity-toggle"><span data-icon="wallet"></span><span id="activity-title" data-i18n="activity">Your money trail</span><span id="activity-count" class="activity-count"></span><span data-icon="arrow" class="activity-chevron"></span></summary><div class="activity-content"><div class="activity-heading"><div class="month-control"><label for="month" data-i18n="month">Activity month</label><input id="month" type="month" min="2000-01" max="2099-12" required></div></div><section id="summary" class="monthly-strip" aria-label="Monthly budget summary"></section><section id="spending-view"></section><div id="ledger-view"></div></div></details>
+    <nav class="game-tabs" role="tablist" aria-label="Budget and savings"><button id="budget-tab" type="button" role="tab" data-view="budget" aria-controls="budget-view" aria-selected="true"><span data-icon="wallet"></span><span data-i18n="budgetView">Monthly budget</span></button><button id="wealth-tab" type="button" role="tab" data-view="wealth" aria-controls="wealth-view" aria-selected="false" tabindex="-1"><span data-icon="leaf"></span><span data-i18n="savingsView">Savings & net worth</span></button></nav>
+    <section id="budget-view" role="tabpanel" aria-labelledby="budget-tab"><section class="budget-overview panel"><div class="budget-heading"><h2 data-i18n="budgetView">Monthly budget</h2><div class="month-control"><label for="month" data-i18n="month">Activity month</label><input id="month" type="month" min="2000-01" max="2099-12" required></div></div><section id="summary" class="monthly-strip" aria-label="Monthly budget summary"></section><section id="spending-view"></section></section><details class="activity-panel panel"><summary class="activity-toggle"><span data-icon="wallet"></span><span id="activity-title" data-i18n="activity">Your money trail</span><span id="activity-count" class="activity-count"></span><span data-icon="arrow" class="activity-chevron"></span></summary><div class="activity-content"><div id="ledger-view"></div></div></details></section>
+    <section id="wealth-view" role="tabpanel" aria-labelledby="wealth-tab" hidden><section id="wealth-summary-view"></section><section id="adventure-view" class="view-panel"></section><section id="networth-view"></section></section>
+    <div id="money-actions"></div>
   </main>
   <footer class="site-footer game-footer page-width"><div><a href="/" data-i18n="company">A little experiment by The Privileged Company</a><p data-i18n="gameNote">A personal budgeting game. No money is moved by the game.</p></div><div class="footer-links"><a href="./" data-language-link data-i18n="how">How it works</a><a href="./privacy.html" data-language-link data-i18n="privacy">Privacy & saves</a></div></footer>
   <dialog id="entry-sheet" class="entry-sheet" aria-labelledby="entry-title"></dialog>

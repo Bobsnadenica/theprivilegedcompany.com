@@ -2,25 +2,29 @@
 
 The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Discuss your project.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
 
-This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
+This guide was updated on **2026-10-01**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 
 ## Nest & Quest budgeting RPG (2026-10-01)
 
 [Nest & Quest](dev/nest-quest/) is a new English/Bulgarian game in the Dev hub’s
 Games & Fun section. Its landing page explains local play and optional existing
-company-account saving. One Adventure page features a large original fox-dragon
-companion, illustrated valley, and compact shared-fund display. A mobile action
+company-account saving. Monthly budget opens first with income, spending, and
+category graphs. Savings & net worth combines cash, manually valued stocks and
+crypto, optional debts, an interactive 3D village, and the original fox-dragon
+companion. The illustrated journey opens below the goal cards. A mobile action
 dock opens easy income/expense entry with built-in or custom categories; date and
-note are optional details. Collapsed history includes monthly category graphs.
+note are optional details. The editable ledger stays in collapsed history.
 Choose up to 12 goals together, including car, wedding, home, safety-fund, trip,
-or custom goals. Opening money plus all income minus all expenses forms one fund
-across months, allocated exactly between goals by target size. Every change makes
-Ember react and moves the route marker forward or back; six checkpoints and three
-character forms follow the combined funded percentage. A procedural Three.js
-village adds twelve levels tied to the fund, with animated builds, residents,
-and a visible next reward. Version 1/2 saves migrate to schema 3 without losing records.
+or custom goals. Opening cash plus income minus expenses and investment purchases,
+plus sales, forms one cash fund across months, allocated exactly by target size.
+Cash changes make Ember react and move the route marker forward or back; six checkpoints and three
+character forms follow the combined funded percentage. The procedural Three.js
+village has twelve reversible levels tied to net worth, with animated builds, residents,
+and a visible next reward. Goals use cash savings. Existing holdings declarations
+and price changes do not create income; purchases and sales are cash transfers
+excluded from spending graphs. Version 1/2/3 saves migrate losslessly to schema 4.
 Earlier savings transfers remain neutral to avoid counting money twice. It adds
-no bank integration or paid service.
+no bank integration, price feed, currency conversion, or paid service.
 
 The optional account save uses the existing Cognito/Identity Pool/S3 backend and
 an isolated `.nestquest/` application document, hidden from the portal Files list.

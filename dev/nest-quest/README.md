@@ -6,16 +6,19 @@ adventure is `play.html?demo=1`. `privacy.html` explains saves and removal.
 
 ## The game
 
-The game has one Adventure page, led by a full Willowmere scene and a large,
-interactive Ember. A compact display shows the shared fund, combined target,
-and progress; individual goal cards show their allocated amounts.
+The game has two views on one route. Monthly budget opens first, with income,
+spending, and category graphs for the selected month. Savings & net worth combines
+a manual wealth summary, an interactive 3D village, Ember, and cash-based goal
+cards. The illustrated Willowmere journey and its checkpoints remain available
+in a closed disclosure below the cards. On phones, cash and investment actions
+remain easy to reach; larger panels stack without opening another page.
 Income and expense actions open a native entry dialog on desktop or a bottom
 sheet on mobile. Expense entry needs only an amount and a category tap. Eleven
 built-in categories can be extended with up to 30 named custom categories, each
 with an icon and color. Date and note sit under optional details; new entries
 default to today even when the history is filtered to another month. A fixed
-mobile dock keeps both actions within reach. The collapsed money trail contains editable
-history, monthly totals, and a category breakdown. The graph shows each category's
+mobile dock keeps both actions within reach. The money trail contains editable
+history. The visible budget graph shows each category's
 amount and share of that month's expenses, sorted largest first. Six categories
 are visible initially; the rest expand on demand.
 
@@ -24,8 +27,9 @@ Suggestions are a new car (30,000), a wedding (50,000), a new home (100,000),
 a safety fund (10,000), and a dream trip (2,000), in the adventure's chosen currency. Every suggestion
 can be edited; the amounts are examples rather than financial recommendations.
 
-The fund equals opening money plus all recorded income minus all recorded
-expenses. Every expense category counts. Enter only money belonging to this
+Goal cash equals opening money plus all recorded income minus all recorded
+expenses, minus investment purchases and plus investment sales. Every expense
+category counts; investment trades remain separate transfers. Enter only cash belonging to this
 fund, and do not include already recorded income in the opening amount. The
 shared fund carries across months; the month selector filters summaries, category
 graphs, and history without resetting the fund. Editing or deleting an entry
@@ -41,9 +45,9 @@ Allocations stop at the combined target; any extra money appears as a surplus.
 Negative funds retain their real balance while individual allocations stay at
 zero. Progress, checkpoints, and Ember's form follow the combined funded ratio.
 
-Every increase or decrease prompts an animated response from Ember, changes the
-visible map and path, and moves a route marker forward or back. Ember remains
-large in the foreground rather than moving between tiny map positions. Six
+Cash progress prompts a response from Ember. In the illustrated journey, it changes
+the map and path and moves
+a route marker forward or back. Ember stays large beside the village. Six
 checkpoints open at 0%, 10%, 25%, 50%, 75%, and 100% of the combined target: camp,
 lantern village, bridge, forest, Princess Iris, and sanctuary. Spending below a
 checkpoint closes it again. Ember grows from the young form into an adventurer
@@ -62,21 +66,47 @@ without treating ordinary life costs as moral failure.
 This is a manual personal tracker. The game does not access banks, move money,
 send entries to AI/analytics, or verify the amounts someone enters.
 
-The procedural Three.js village has twelve levels driven by the shared fund,
+Net worth equals cash plus the current marked value of holdings minus declared
+debts. Stocks and crypto use manually entered quantities and unit prices in the
+adventure's one currency; there are no quote requests or currency conversions.
+Declaring something already owned adds its value without creating income or
+changing cash. A new purchase records actual cash paid and the quantity acquired;
+a sale records cash received and quantity sold. These linked transfers do not
+enter monthly income, spending, or category totals. Current prices can be updated
+independently of the amount originally paid.
+
+Quantities and prices retain up to eight decimal places, including prices below
+one cent. Each holding is rounded once to a displayed cent using exact integer
+arithmetic; net worth sums those same displayed values. Goals use cash only,
+so unrealized investment values never fill a goal. Optional debts record the
+remaining amount owed and reduce net worth without recording a payment. Used
+holdings stay in history; trade edits and removal recalculate cash and quantities
+and reject changes that would leave a later sale uncovered. The collapsed
+transfer list pages twelve records at a time.
+
+The procedural Three.js village has twelve levels driven by net worth,
 rather than the chosen target size. Level thresholds are
 0, 100, 400, 900, 1,600, 2,500, 3,600, 4,900, 6,400, 8,100, 10,000, and 12,100
 currency units. Each level adds a building and resident, from a meadow camp to
-a hilltop castle. Villagers wander, a waterwheel turns, and chimneys emit smoke.
+a hilltop castle. Villagers wander among gardens and market stalls; a waterwheel
+turns beside the river and waterfall, and chimneys emit smoke.
 Crossing a level builds or removes its additions, with a short visual response.
-Drag horizontally to rotate the scene, tap buildings to inspect them, or use the
-blueprint buttons. The next reward and remaining amount stay visible.
+Drag horizontally to rotate the scene, zoom in or out, and reset the view.
+Tapping a building focuses it and opens its reward card. A collapsed village
+journal provides twelve keyboard-accessible blueprint buttons, including locked
+rewards and their remaining amounts. Day and dusk change the lighting, lit
+windows, and fireflies; this cosmetic choice does not affect finances. The next
+reward and remaining amount stay visible.
 
 Three.js loads only when the village approaches the viewport. Rendering uses
 procedural geometry rather than purchased models or remote textures. Reduced
 motion disables continuous animation; an unavailable WebGL renderer leaves the
 illustrated fallback and budgeting controls available. Village state is derived
-from the ledger, not stored separately. These implementation details are
-verified locally; publication follows the separate release procedure below.
+from the ledger, not stored separately. `src/village.js` mounts once and updates
+its existing scene after ledger and language changes. Its lazy
+`src/village-scene.js` renderer preserves geometry, camera position, and cosmetic
+time across updates; `src/village-model.js` holds the pure level calculations.
+Publication follows the separate validation and release procedure below.
 
 ## Development and publication
 
@@ -114,10 +144,12 @@ live landing page and game at mobile and desktop widths.
 - Local adventures use `nestquest:local:v1` in localStorage. Demo adventures use
   a separate sessionStorage key. Corrupt or unsupported saves are preserved for
   original-file export until the player explicitly resets them.
-- Save schema version 3 adds multiple goals, one shared opening amount, and
-  custom categories. Version 1 saves keep their entries, metadata, and revision
+- Save schema version 4 adds holdings, investment trades, and liabilities to
+  the existing multiple goals, shared opening cash, and custom categories.
+  Version 1 saves keep their entries, metadata, and revision
   and open with no goals. Version 2's single goal becomes a one-item goal list;
-  its opening amount moves once into the shared fund. Migration does not change
+  its opening amount moves once into the shared fund. Version 3 adds empty wealth
+  collections without changing its existing budget or goals. Migration does not change
   entries or the optimistic-lock revision, and does not rewrite the cloud on read.
   Earlier savings-transfer entries remain editable in history but are neutral
   to the fund, preventing the same money from being counted twice. Old plans,
@@ -160,12 +192,15 @@ motion, and English/Bulgarian mobile and desktop layouts. Verify category taps,
 amount entry, optional details, today's default date, native dialog focus, the
 mobile dock, collapsed history, category graphs, multiple goals, and the village
 at each level boundary. Recheck backups and local-save recovery after changing
-the schema. The schema 3 upgrade passed 58 automated checks, 45 local entry and
-portfolio assertions, 68 English/Bulgarian layout cases, 60 rendered village
-assertions, and 17 real Cognito/S3 account assertions. These include all twelve
-village levels, camera interaction, offscreen rendering pause, reduced motion,
-WebGL fallback, legacy migration, custom categories, and stale modal invalidation
-during account restoration. Production verification is a separate release
+the schema. The current build passed 84 automated checks, 116 English/Bulgarian
+layout cases, 150 contrast checks, 150 scene assertions, and 10 real Cognito/S3
+account assertions for version 4. The suite covers exact marks and transfers,
+lossless migration, oversell rejection, unchanged monthly spending, escaped
+renderers, and scene disposal when the active owner changes. Scene checks cover
+all twelve levels, persistent updates, camera interaction, offscreen pause,
+reduced motion, and WebGL fallback. Another 136 wealth-flow browser assertions
+passed for holdings, transfers, debts, exact previews, recovery, and isolation.
+Production verification is a separate release
 gate: check the exact Pages revision, public bytes, and live account round trips.
 
 Use fictional entries and dedicated temporary accounts for account QA, without

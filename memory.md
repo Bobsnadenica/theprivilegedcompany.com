@@ -10,13 +10,18 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
 - Original Ember character stages and the Willowmere map use the built-in
   imagegen tool. Original PNGs and exact prompts are in `art-source/`; the packaging
   script preserves character alpha. No new paid tool or infrastructure was added.
-- The current experience is one Adventure page with a cinematic Willowmere scene,
-  a large interactive Ember, and a compact goal display. Income/expense actions
+- The current experience has two views on one route. Monthly budget opens first
+  with monthly income, spending, and category graphs. Savings & net worth has a
+  manual wealth summary, a primary interactive 3D village,
+  a large interactive Ember, and a compact cash-goal display. The sidebar sits
+  beside the village on desktop; mobile stacks the fund, village, and companion.
+  The illustrated Willowmere journey starts closed below the individual goal cards.
+  Income/expense actions
   open a native desktop dialog or mobile bottom sheet. Expense entry uses an
   amount and visual category tiles; date/note are optional details and
   default to today regardless of the history month filter. A fixed mobile dock
-  keeps actions reachable; history and monthly totals remain collapsed until
-  opened, including sorted category graphs with amounts and percentages. Eleven
+  keeps actions reachable; editable history remains collapsed until opened.
+  The budget's category graph shows sorted amounts and percentages. Eleven
   built-in categories can be extended with up to 30 custom names, icons, and colors.
   Used custom categories can be renamed but not removed while entries reference
   them. Goal suggestions are car 30,000, wedding 50,000, home 100,000,
@@ -26,18 +31,35 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
   target, using exact integer rounding. Allocations never duplicate money or
   exceed targets; extra funds remain a surplus. Money uses integer minor units
   and one fixed currency per adventure.
-- Goal fund equals opening money plus all income minus all expenses, across
-  months and every expense category. The month selector filters summaries and
-  history, not goal progress. Entries, edits, and deletion prompt Ember reactions,
-  change map color and path progress, and move the route marker forward or back.
-  Large Ember stays in the foreground. Checkpoints are 0%, 10%, 25%, 50%,
+- Goal cash equals opening money plus income minus expenses and investment
+  purchases, plus investment sales, across months and every expense category.
+  The month selector filters summaries and
+  history, not goal progress. Cash changes prompt Ember reactions,
+  change the illustrated map and path, and move the route marker
+  forward or back. Large Ember stays beside the village. Checkpoints are 0%, 10%, 25%, 50%,
   75%, and 100% of the combined target; forms change at 25% and 75% and reverse
   below those boundaries.
   Current play has no care, XP, shop, or manual chapter-claim gates.
-- Save schema version 3 adds `goals`, shared `opening`, and `customCategories`.
+- `src/wealth-model.js` holds manual investment/debt arithmetic; `wealth.js`
+  and `wealth.css` render the overview, holding cards, native forms, optional debt
+  section, and paged transfer history. Net worth is cash plus marked holdings
+  minus declared debts. Stocks/crypto have quantities and current unit prices
+  with up to eight decimals; exact integer arithmetic rounds each marked position
+  once to cents, then sums the displayed values. No quote API or currency
+  conversion exists. Declared existing holdings and price changes do not create
+  income or change cash. Actual buys/sells link cash settlements to quantities
+  and remain excluded from monthly income, expense totals, and category graphs.
+  Goals use cash; net-worth changes grow or reverse the village. Debt declarations do not record
+  payments. Trades support dated edits/removal and reject uncovered later sales;
+  holdings referenced by trade history cannot be removed. Limits are 100 holdings,
+  100 debts, and 10,000 trades. The transfer list starts with twelve records and
+  pages on demand. Cash and adding holdings are reachable from the top summary.
+- Save schema version 4 adds `holdings`, `investmentTrades`, and `liabilities`
+  to `goals`, shared `opening`, and `customCategories`.
   Version 1 records and metadata migrate losslessly with no selected goals.
   Version 2's single goal becomes one list item, moving its opening amount into
-  the shared fund once. Migration retains the save revision and never writes the
+  the shared fund once. Version 3 gains empty wealth collections while preserving
+  existing records and goals. Migration retains the save revision and never writes the
   cloud merely on read. Earlier savings transfers remain editable in history
   but do not add to or reduce the goal fund. Legacy plans, choices, care, and
   rewards remain stored for compatibility only. JSON
@@ -64,19 +86,31 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
   reversible forms/completion, dated edits/deletion, backups, migration, and
   reduced motion. Sixty EN/BG layout cases passed down to 320 pixels, including
   short viewports, entry sheets, expanded history, and maximum goal values.
-  Those results do not certify the current schema 3 upgrade.
-- The procedural Three.js village in `src/village.js` and `src/village-model.js` has twelve fund-based level
+  Those results do not certify the current version 4 upgrade.
+- The procedural Three.js village in `src/village.js`, lazy `src/village-scene.js`,
+  and `src/village-model.js` has twelve net-worth level
   thresholds: 0, 100, 400, 900, 1,600, 2,500, 3,600, 4,900, 6,400, 8,100, 10,000,
-  and 12,100 currency units. Each level adds a building/resident; spending below
+  and 12,100 currency units. Each level adds a building/resident; falling below
   its threshold reverses additions. The scene has horizontal rotation, building
-  inspection, blueprint buttons, and a visible next reward. Three.js loads near
+  inspection with camera focus and a reward card, zoom/reset controls, a collapsed
+  keyboard-accessible blueprint journal, and a visible next reward. Day/dusk
+  lighting, windows, and fireflies are cosmetic and do not change the save.
+  The mount returns cleanup with an `update` method: financial and language
+  renders retain the canvas, geometry, camera, and current cosmetic time.
+  Three.js loads near
   the viewport; geometry is procedural, reduced motion stops continuous animation,
   and unavailable WebGL leaves an illustrated fallback. No separate village save
-  state exists. Current local validation passed 58 automated checks, 45 entry/goal
-  assertions, 68 EN/BG layouts, 60 rendered village assertions, and 17 real
-  Cognito/S3 account assertions. Newer remote revisions invalidate cached modal
+  state exists. Current version 4 validation passed 84 automated checks, 116 EN/BG
+  layouts, 150 contrast checks, 150 scene assertions, 136 wealth-flow browser
+  assertions, and 10 real Cognito/S3 account assertions. Newer remote revisions invalidate cached modal
   drafts before adoption; newly entered expenses during reconnect still sync.
-  Production verification remains a separate gate before release claims.
+  Account changes dispose of the previous owner's scene. Six rendered-HTML checks
+  within the automated suite pass for the primary village, unique fund and
+  companion, closed journey, exact balances, escaped names, and keyboard controls.
+  `src/polish.css` refines the cream/moss/gold financial surfaces, goal cards,
+  native dialogs, focus states, and touch controls. Design review covered desktop
+  day/dusk, EN/BG phones down to 320 pixels, and financial dialogs. Production verification remains a
+  separate gate before release claims.
 - Release verification must still follow each publication: wait for Pages,
   compare changed deployable bytes, inspect live UI, and test account operations
   on the production origin. See the game README for commands and source research.

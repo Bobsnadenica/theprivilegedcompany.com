@@ -84,12 +84,15 @@ test('care streak uses local calendar dates and allows today to remain unfinishe
 test('invalid backups cannot replace a valid adventure', () => {
   const s = demoState(date); validateState(s);
   for (const change of [
-    x => { x.version = 4; }, x => { x.entries[0].amount = 1.1; }, x => { x.entries[0].amount = -3; },
+    x => { x.version = 5; }, x => { x.entries[0].amount = 1.1; }, x => { x.entries[0].amount = -3; },
     x => { x.entries.push({ ...x.entries[0] }); }, x => { x.claims.push({ ...x.claims[0] }); },
     x => { x.checkins.push(x.checkins[0]); }, x => { x.recordDays.push(x.recordDays[0]); },
     x => { x.profile.currency = 'BTC'; }, x => { x.entries[1].category = '__proto__'; },
     x => { x.plans['wrong'] = { goal: 1, flex: null }; }, x => { x.equipped.push('lantern'); },
     x => { x.entries[0].note = 'x'.repeat(161); }, x => { x.createdAt = 'yesterday'; },
+    x => { delete x.holdings; }, x => { x.holdings = null; },
+    x => { delete x.investmentTrades; }, x => { x.investmentTrades = {}; },
+    x => { delete x.liabilities; }, x => { x.liabilities = '0'; },
   ]) { const copy = structuredClone(s); change(copy); assert.throws(() => validateState(copy)); }
 });
 test('CSV exports only the selected month and neutralizes formulas in notes', () => {

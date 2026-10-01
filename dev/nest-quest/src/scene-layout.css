@@ -1,0 +1,113 @@
+/* The living village is the adventure; the painted journey is its journal. */
+.game .page-width { width: min(1240px, calc(100% - 64px)); }
+.adventure-hero { display: grid; grid-template-columns: minmax(0, 1fr) 302px; gap: 20px; align-items: stretch; min-width: 0; }
+.adventure-hero #village-view { min-width: 0; }
+.adventure-hero .village-card { height: 100%; }
+.adventure-hero .village-canvas-host { height: 450px; }
+.hero-sidebar { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.adventure-hero:has(.village-journal[open]) .hero-sidebar,
+.adventure-hero:has(.village-inspect-card:not([hidden])) .hero-sidebar { align-self: start; }
+.hero-sidebar .goal-hud { position: relative; inset: auto; width: 100%; margin: 0; padding: 23px; border: 1px solid #d5ddc7; background: linear-gradient(155deg, #fffdf2, #f3f2e3); box-shadow: 0 12px 36px #3b512b0d, inset 0 1px #fff; }
+.hero-sidebar .goal-heading h3 { font-size: 24px; }
+.hero-sidebar .goal-heading .tiny-label { font-size: 12px; letter-spacing: .02em; }
+.hero-sidebar .goal-numbers { flex-wrap: wrap; gap: 6px 10px; }
+.hero-sidebar .goal-balance { font-size: 36px; }
+.hero-sidebar .goal-percentage { color: #576b42; font-size: 12px; }
+.hero-sidebar .goal-total, .hero-sidebar .goal-meta { font-size: 12px; line-height: 1.5; }
+.hero-sidebar .goal-edit { width: 44px; height: 44px; }
+.ember-sanctuary { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-end; min-height: 330px; overflow: hidden; border: 1px solid #d1dcbc; border-radius: 20px; background: radial-gradient(ellipse at 50% 54%, #fff5cd 0%, #f1f2dc 42%, #e5ebd4 100%); box-shadow: 0 14px 40px #3e512613, inset 0 1px #fff; }
+.ember-sanctuary::before { content: ''; position: absolute; width: 180px; height: 180px; border: 1px solid #a6b88555; border-radius: 50%; top: 45px; left: 50%; transform: translateX(-50%); box-shadow: 0 0 0 17px #b6c59713, 0 0 0 34px #b6c5970d; }
+.ember-stage { position: relative; z-index: 3; display: flex; align-items: center; gap: 6px; align-self: flex-start; margin: 16px 20px 0; color: #546745; font-size: 12px; }
+.ember-stage .icon { width: 15px; height: 15px; }
+.ember-sanctuary .map-companion { position: relative; inset: auto; width: 180px; margin: 4px auto 0; flex: 1; display: grid; align-items: end; }
+.ember-sanctuary .map-companion > img { width: 100%; max-height: 265px; object-fit: contain; filter: drop-shadow(0 12px 9px #48573535); }
+.ember-sanctuary .map-companion:focus-visible { outline-color: #536f3c; }
+.ember-sanctuary .world-message { position: relative; inset: auto; width: calc(100% - 30px); margin: 6px 15px 15px; padding: 13px 15px; border-color: #d4ddc1; background: #fffcefec; box-shadow: 0 7px 24px #536c2d12; }
+.ember-sanctuary .world-message > strong { font-size: 21px; }
+.ember-sanctuary .world-message > p { display: block; color: #546348; font-size: 13px; line-height: 1.55; }
+.ember-sanctuary .reaction-delta { font-size: 12px; max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
+.journey-journal { overflow: hidden; }
+.journey-toggle { display: flex; align-items: center; gap: 13px; padding: 20px 24px; cursor: pointer; list-style: none; min-height: 72px; color: #405a35; }
+.journey-toggle::-webkit-details-marker { display: none; }
+.journey-toggle > span:nth-child(2) { flex: 1; }
+.journey-toggle strong { display: block; font-size: 16px; }
+.journey-toggle small { display: block; margin-top: 4px; color: #657256; font-size: 12px; }
+.journey-symbol { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #d9dfca; border-radius: 12px; background: #edf0df; }
+.journey-symbol .icon { width: 21px; height: 21px; }
+.journey-chevron { width: 18px; height: 18px; transform: rotate(90deg); transition: transform .2s; }
+.journey-journal[open] .journey-chevron { transform: rotate(-90deg); }
+.journey-journal .world-heading { border-top: 1px solid #e0e4d3; }
+.journey-journal .reactive-map { aspect-ratio: 2 / 1; }
+.journey-journal .map-pin { min-width: 36px; min-height: 36px; }
+.journey-journal .milestone { min-height: 44px; }
+.journey-journal .next-checkpoint, .journey-journal .milestone small, .journey-journal .realm-status { font-size: 12px; }
+.journey-journal .map-caption { font-size: 12px; }
+@media (max-width: 1000px) {
+  .adventure-hero { grid-template-columns: minmax(0, 1fr) 270px; gap: 14px; }
+  .hero-sidebar .goal-hud { padding: 18px; }
+  .hero-sidebar .goal-balance { font-size: 32px; }
+  .adventure-hero .village-canvas-host { height: 430px; }
+}
+@media (max-width: 760px) {
+  .game .page-width { width: calc(100% - 32px); }
+  .adventure-hero { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .hero-sidebar { display: contents; }
+  .hero-sidebar .goal-hud { grid-row: 1; padding: 16px 18px; }
+  .adventure-hero #village-view { grid-row: 2; }
+  .hero-sidebar .goal-heading { margin-bottom: 8px; }
+  .hero-sidebar .goal-heading h3 { font-size: 22px; }
+  .hero-sidebar .goal-balance { font-size: 34px; }
+  .hero-sidebar .goal-total { margin-top: 2px; }
+  .hero-sidebar .goal-progress { margin-top: 9px; }
+  .hero-sidebar .goal-meta { margin-top: 5px; }
+  .adventure-hero .village-canvas-host { height: 350px; }
+  .ember-sanctuary { display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-row: 3; min-height: 130px; padding: 9px 10px 9px 5px; border-radius: 17px; }
+  .ember-sanctuary::before { width: 100px; height: 100px; top: 18px; left: 58px; box-shadow: 0 0 0 12px #b6c59713; }
+  .ember-stage { display: none; }
+  .ember-sanctuary .map-companion { width: 105px; height: 124px; margin: 0; }
+  .ember-sanctuary .map-companion > img { height: 126px; }
+  .ember-sanctuary .world-message { width: 100%; margin: 0; padding: 12px; border-radius: 13px; gap: 5px 8px; }
+  .ember-sanctuary .world-message > strong { font-size: 20px; }
+  .ember-sanctuary .world-message > p { font-size: 12px; }
+  .ember-sanctuary .floating-amount { max-width: 170px; top: 8%; left: 60%; font-size: 12px; padding: 6px 9px; }
+  .journey-toggle { padding: 15px 17px; }
+  .journey-journal .reactive-map { aspect-ratio: 3 / 2; }
+}
+@media (max-width: 380px) {
+  .game .page-width { width: calc(100% - 24px); }
+  .adventure-hero .village-canvas-host { height: 310px; }
+  .hero-sidebar .goal-balance { font-size: 30px; }
+  .ember-sanctuary { grid-template-columns: 90px minmax(0, 1fr); }
+  .ember-sanctuary .map-companion { width: 88px; height: 112px; }
+  .ember-sanctuary .map-companion > img { height: 112px; }
+  .ember-sanctuary .world-message { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .journey-chevron { transition: none; } }
+/* Monthly cash flow and longer-term wealth each have a clear home. */
+.game-tabs { display: flex; gap: 6px; width: fit-content; max-width: 100%; margin: 0 0 20px; padding: 5px; border: 1px solid #d4dec3; border-radius: 16px; background: #f0f2e5; }
+.game-tabs button { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 10px 23px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: #566b45; font-size: 13px; line-height: 1.4; }
+.game-tabs button[aria-selected=true] { border-color: #d1dbc1; background: #fffdf3; color: #35512f; box-shadow: 0 3px 12px #3c512b0d, inset 0 1px #fff; }
+.game-tabs button .icon { width: 19px; height: 19px; }
+.budget-overview { padding: 28px; border-color: #d5ddc7; background: #fffdf5; border-radius: 22px; box-shadow: 0 16px 50px #3c512b0c; }
+.budget-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+.budget-heading h2 { font-size: 31px; color: #3b5632; }
+.budget-heading .month-control { display: grid; gap: 6px; }
+.budget-heading .month-control label { font-size: 12px; color: #596c4b; }
+.budget-heading .month-control input { width: 180px; min-height: 44px; padding: 9px 11px; border: 1px solid #d4ddc4; border-radius: 10px; background: #f5f7eb; color: #496138; font-size: 14px; }
+.budget-overview .monthly-strip { margin-top: 0; }
+.budget-overview .monthly-spending { margin-top: 26px; }
+#wealth-summary-view:not(:empty) { margin-bottom: 20px; }
+#networth-view { margin-top: 22px; }
+@media (max-width: 760px) {
+  .game-tabs { width: 100%; margin-bottom: 15px; }
+  .game-tabs button { flex: 1; min-width: 0; gap: 6px; padding-inline: 10px; font-size: 12px; }
+  .game-tabs button .icon { width: 17px; height: 17px; }
+  .budget-overview { padding: 20px 16px; border-radius: 18px; }
+  .budget-heading { align-items: flex-start; flex-direction: column; gap: 15px; margin-bottom: 18px; }
+  .budget-heading h2 { font-size: 28px; }
+  .budget-heading .month-control { width: 100%; grid-template-columns: 1fr auto; align-items: center; }
+  .budget-heading .month-control input { width: 165px; }
+  #wealth-summary-view:not(:empty) { margin-bottom: 15px; }
+  #networth-view { margin-top: 15px; }
+}
+@media (max-width: 380px) { .game-tabs button { padding-inline: 7px; } .game-tabs button .icon { display: none; } .budget-heading .month-control input { width: 155px; } }

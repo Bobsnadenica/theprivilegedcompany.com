@@ -3,6 +3,9 @@ import './adventure.css';
 import './upgrades.css';
 import './spending.css';
 import './village.css';
+import './scene-layout.css';
+import './polish.css';
+import './wealth.css';
 import { createState, validateState, summarize, demoState, parseMoney, validDate, validMonth, localDate, uuid, csv } from './model.js';
 import { GOAL_MILESTONES, goalSummary, goalReaction } from './goals.js';
 import { adventureHTML, portfolioTitle, companionPosition, pathLengthAt } from './adventure.js';
@@ -13,6 +16,8 @@ import { CATEGORY_ICONS, categoryOptions, categoryById, normalizeCategoryName } 
 import { goalDraft, readGoalDraft, goalEditorHTML, newGoal } from './goal-editor.js';
 import { spendingHTML } from './spending.js';
 import { mountVillage } from './village.js';
+import { wealthSummary, createHolding, updateHolding, removeHolding, recordTrade, updateTrade, removeTrade, createLiability, updateLiability, removeLiability } from './wealth-model.js';
+import { wealthHTML, wealthOverviewHTML, holdingFormHTML, liabilityFormHTML, holdingPreviewHTML } from './wealth.js';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -22,14 +27,16 @@ let localStore;
 try { localStore = isDemo ? sessionStorage : localStorage; } catch { /* Report inaccessible storage below. */ }
 let damagedSave = null, storageWarning = false, staleTab = false;
 let state = readLocal();
-let month = localDate().slice(0, 7), quickType = 'expense', ledgerFilter = 'all', ledgerLimit = 12;
-let reaction = null, reactionActive = false, reactionPrevious = null, reactionTimer;
+let month = localDate().slice(0, 7), quickType = 'expense', ledgerFilter = 'all', ledgerLimit = 12, tradeLimit = 12;
+let reaction = null, villageReaction = null, reactionActive = false, reactionPrevious = null, reactionTimer;
 let account = null, syncEnabled = false, syncPaused = false, syncBusy = false, saveQueued = false, cloudErrorKey = null;
 let lastSyncedRevision = null, lastDeviceRevision = state.revision;
 let pendingAccount = null, cloudModule = null, modalCleanup = null, toastTimer, modalEpoch = 0;
 const modal = $('#modal'), entrySheet = $('#entry-sheet');
-let quickCategory = 'groceries', entryDraft = null, entryOwnerEpoch = 0, villageCleanup = null;
+let quickCategory = 'groceries', entryDraft = null, entryOwnerEpoch = 0, villageCleanup = null, villageOwnerEpoch = 0;
 let recoverAccount = null;
+let activeView = ['#wealth', '#village-view'].includes(location.hash) ? 'wealth' : 'budget';
+try { if (!location.hash && sessionStorage.getItem('nestquest:view') === 'wealth') activeView = 'wealth'; } catch { /* Navigation works without storage. */ }
 if (!isDemo) {
   try {
     const savedAccount = JSON.parse(sessionStorage.getItem('nestquest:active') || 'null');
@@ -78,7 +85,11 @@ function mutate(change, { animate = true } = {}) {
   change(next);
   next.revision = uuid(); next.updatedAt = new Date().toISOString();
   validateState(next);
-  if (animate) setReaction(goalReaction(state, next), goalSummary(state));
+  if (animate) {
+    const change = goalReaction(state, next), wealthDelta = wealthSummary(next).netWorth - wealthSummary(state).netWorth;
+    const investmentChanged = JSON.stringify(state.holdings) !== JSON.stringify(next.holdings) || JSON.stringify(state.investmentTrades) !== JSON.stringify(next.investmentTrades) || JSON.stringify(state.liabilities) !== JSON.stringify(next.liabilities);
+    setReaction({ ...change, wealthDelta, valuation: investmentChanged && !change.transfer }, goalSummary(state));
+  }
   else clearReaction();
   state = next; storeDevice(); render();
   if (syncEnabled && account && !syncPaused) scheduleCloudSave();
@@ -110,7 +121,7 @@ async function flushCloudSave() {
 }
 function errorText(error) {
   const key = error?.message;
-  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError', 'goalsRequired', 'goalLimit', 'categoryError', 'categoryDuplicate', 'categoryUsed', 'categoryLimit'];
+  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError', 'goalsRequired', 'goalLimit', 'categoryError', 'categoryDuplicate', 'categoryUsed', 'categoryLimit', 'wealthNameError', 'wealthSymbolError', 'futureDate', 'holdingMissing', 'holdingUsed', 'tradeMissing', 'tradeOversell', 'liabilityMissing'];
   return t(key === 'amount' ? 'amountError' : known.includes(key) ? key : 'cloudError');
 }
 function toast(message) {
@@ -133,15 +144,15 @@ function renderSaveStatus() {
   }
 }
 function clearReaction() {
-  clearTimeout(reactionTimer); reaction = null; reactionActive = false; reactionPrevious = null;
+  clearTimeout(reactionTimer); reaction = null; villageReaction = null; reactionActive = false; reactionPrevious = null;
 }
 function setReaction(next, previous) {
   clearTimeout(reactionTimer);
-  reaction = next; reactionActive = !!(next.delta || next.pet); reactionPrevious = previous;
+  reaction = next; reactionActive = !!(next.delta || next.wealthDelta || next.pet || next.transfer || next.valuation); reactionPrevious = previous;
+  villageReaction = { ...next, delta: next.wealthDelta ?? next.delta };
   if (reactionActive) reactionTimer = setTimeout(() => {
     reactionActive = false; reactionPrevious = null;
-    const map = $('.reactive-map');
-    if (map) map.classList.remove('reacting-up', 'reacting-down', 'reacting-complete', 'reacting-pet');
+    document.querySelectorAll('.reactive-map, .hero-sidebar').forEach(element => element.classList.remove('reacting-up', 'reacting-down', 'reacting-complete', 'reacting-pet'));
     $('.floating-amount')?.replaceChildren();
   }, 4200);
 }
@@ -153,25 +164,59 @@ function render() {
   const total = summarize(state, month);
   $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) =>
     `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
-  villageCleanup?.(); villageCleanup = null;
+  const journeyOpen = $('.journey-journal')?.open || false;
+  const debtsOpen = $('.wealth-debts')?.open || false, tradesOpen = $('.wealth-transfers')?.open || false;
+  const current = goalSummary(state);
+  // Keep the entire scene root: its observers and input handlers belong to it.
+  // Account/import changes invalidate the view as well as any open entry draft.
+  let retainedVillage = villageCleanup?.update && current && villageOwnerEpoch === entryOwnerEpoch ? $('#village-view') : null;
+  if (retainedVillage) retainedVillage.remove();
+  else { villageCleanup?.(); villageCleanup = null; }
   $('#adventure-view').innerHTML = adventureHTML(state, { reaction, reactionActive, previous: reactionPrevious, type: quickType, month });
+  $('#money-actions').replaceChildren(...$('#adventure-view').querySelectorAll('.adventure-actions, .mobile-dock'));
+  $('.journey-journal').open = journeyOpen;
+  if (retainedVillage) $('#village-view').replaceWith(retainedVillage);
   $('#activity-count').textContent = String(total.entries.length);
   $('#spending-view').innerHTML = spendingHTML(state, total);
+  $('#wealth-summary-view').innerHTML = wealthOverviewHTML(state);
+  $('#networth-view').innerHTML = wealthHTML(state, { overview: false, tradeLimit });
+  if ($('.wealth-debts')) $('.wealth-debts').open = debtsOpen;
+  if ($('.wealth-transfers')) $('.wealth-transfers').open = tradesOpen;
   renderLedger(total); renderSaveStatus();
-  const current = goalSummary(state);
   const village = $('#village-view');
-  if (current && village) villageCleanup = mountVillage(village, { ...current, currency: state.profile.currency }, { reaction, reactionActive, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches });
+  const villageTotal = { ...current, balance: wealthSummary(state).netWorth, currency: state.profile.currency };
+  const options = { reaction: villageReaction, reactionActive, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches };
+  if (current && village) {
+    if (retainedVillage) villageCleanup.update(villageTotal, options);
+    else villageCleanup = mountVillage(village, villageTotal, options);
+    villageOwnerEpoch = entryOwnerEpoch;
+  }
+  renderView();
   if (current) requestAnimationFrame(() => {
     const position = companionPosition(current.ratio), map = $('.reactive-map');
     if (!map) return;
     // Establish the previous frame before changing the newly rendered world.
-    map.getBoundingClientRect();
+    $('.goal-hud').getBoundingClientRect();
     map.style.setProperty('--unrevealed', `${Math.max(0, 100 - Math.min(100, position.x + 12))}%`);
     $('.path-progress').style.strokeDashoffset = String(100 - pathLengthAt(current.ratio));
     const traveller = $('#route-traveller');
     traveller.style.left = `${position.x}%`; traveller.style.top = `${position.y}%`;
     $('.goal-progress span').style.width = `${current.ratio * 100}%`;
+    for (const goal of current.goals) {
+      const progress = $(`[data-goal-id="${goal.id}"] .portfolio-progress span`);
+      if (progress) progress.style.width = `${goal.ratio * 100}%`;
+    }
   });
+}
+function renderView() {
+  $('#budget-view').hidden = activeView !== 'budget'; $('#wealth-view').hidden = activeView !== 'wealth';
+  document.querySelectorAll('[data-view]').forEach(button => { const selected = button.dataset.view === activeView; button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1; });
+}
+function selectView(next, { focus = false } = {}) {
+  activeView = next === 'wealth' ? 'wealth' : 'budget'; renderView();
+  try { sessionStorage.setItem('nestquest:view', activeView); } catch { /* Keep the view in memory. */ }
+  history.replaceState(null, '', `${location.pathname}${location.search}#${activeView}`);
+  if (focus) $(`#${activeView}-tab`).focus();
 }
 function renderLedger(total) {
   const filtered = total.entries.filter(entry => ledgerFilter === 'all' || entry.type === ledgerFilter);
@@ -209,7 +254,7 @@ function closeEntry({ discard = false } = {}) {
   entrySheet.close();
 }
 function resetEntryDraft() {
-  entryOwnerEpoch++;
+  entryOwnerEpoch++; tradeLimit = 12;
   if (entrySheet.open) entrySheet.close();
   entryDraft = null; quickCategory = 'groceries'; entrySheet.replaceChildren();
 }
@@ -236,9 +281,10 @@ function updateEntryImpact() {
 }
 function revealReaction() {
   if (!reactionActive) return;
+  if (activeView === 'budget') { toast(t('entrySaved')); return; }
   $('#companion-button').focus({ preventScroll: true });
   const speech = $('#companion-speech'); speech.textContent = speech.textContent;
-  const map = $('.reactive-map'), box = map.getBoundingClientRect();
+  const map = $('.adventure-hero'), box = map.getBoundingClientRect();
   if (box.bottom < 100 || box.top > innerHeight - 120) {
     map.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   }
@@ -273,6 +319,9 @@ function goalModal({ required = false, draft = null } = {}) {
   openModal(goalEditorHTML(state, value, isDemo), { closeable: !required });
   $('#goal-form').goalDraft = value;
 }
+function holdingModal(options = {}) { openModal(holdingFormHTML(state, options)); }
+function liabilityModal(id = '') { openModal(liabilityFormHTML(state, { id })); }
+function wealthSaved(key) { closeModal(); toast(t(key)); }
 function choosePreset(kind) {
   const form = $('#goal-form'); if (!form) return;
   const draft = readGoalDraft(form);
@@ -441,7 +490,7 @@ async function disconnect({ signOut = true } = {}) {
 
 function copySummary(copy) {
   const total = goalSummary(copy);
-  return t('cloudSummary', { name: copy.profile.name, goal: copy.goals.length ? portfolioTitle(copy) : t('noGoalYet'), fund: money(total?.balance || 0, copy.profile.currency), entries: copy.entries.length });
+  return `${t('cloudSummary', { name: copy.profile.name, goal: copy.goals.length ? portfolioTitle(copy) : t('noGoalYet'), fund: money(total?.balance || 0, copy.profile.currency), entries: copy.entries.length })} · ${t('wealthSnapshotSummary', { netWorth: money(wealthSummary(copy).netWorth, copy.profile.currency), n: copy.holdings.length })}`;
 }
 document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
 $('#month').addEventListener('change', event => {
@@ -451,7 +500,15 @@ $('#month').addEventListener('change', event => {
 $('#settings-button').addEventListener('click', settingsModal);
 entrySheet.addEventListener('cancel', event => { event.preventDefault(); closeEntry(); });
 entrySheet.addEventListener('click', event => { if (event.target === entrySheet) closeEntry(); });
-document.addEventListener('input', event => { if (event.target.id === 'quick-amount') updateEntryImpact(); });
+document.addEventListener('input', event => {
+  if (event.target.id === 'quick-amount') updateEntryImpact();
+  const form = event.target.closest('#holding-form');
+  if (form && $('#holding-value-preview')) { const values = Object.fromEntries(new FormData(form)); $('#holding-value-preview').innerHTML = holdingPreviewHTML(state, { quantity: values.quantity, price: values.price, id: form.dataset.id, mode: form.dataset.mode }); }
+});
+$('.game-tabs').addEventListener('keydown', event => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault(); selectView(event.key === 'Home' ? 'budget' : event.key === 'End' ? 'wealth' : activeView === 'budget' ? 'wealth' : 'budget', { focus: true });
+});
 document.addEventListener('invalid', event => { const details = event.target.closest('details'); if (details) details.open = true; }, true);
 $('#account-button').addEventListener('click', () => { void accountModal(); });
 $('#import-file').addEventListener('change', event => { const file = event.target.files[0]; event.target.value = ''; void importSave(file); });
@@ -468,6 +525,7 @@ document.addEventListener('change', event => {
 });
 document.addEventListener('click', async event => {
   const target = event.target.closest('button'); if (!target) return;
+  if (target.dataset.view) { selectView(target.dataset.view); return; }
   if (target.dataset.lang) {
     // Keep an unfinished entry when switching language.
     if (entrySheet.open) entryDraft = quickValues();
@@ -507,7 +565,22 @@ document.addEventListener('click', async event => {
       if (entryDraft?.category === id) { entryDraft.category = 'groceries'; quickCategory = 'groceries'; }
       categoriesModal({ returnToEntry });
     }
-    if (action === 'goal') goalModal({ required: !state.goals.length });
+    if (action === 'goal' || action === 'wealth-cash') { goalModal({ required: !state.goals.length }); if (action === 'wealth-cash') $('#goal-opening').focus(); }
+    if (action === 'holding-owned') holdingModal({ mode: 'owned' });
+    if (action === 'holding-purchase') holdingModal({ mode: 'purchase' });
+    if (['holding-edit', 'holding-buy', 'holding-sell'].includes(action)) holdingModal({ id, mode: action.slice(8) });
+    if (action === 'trade-edit') holdingModal({ tradeId: id });
+    if (action === 'liability-add' || action === 'liability-edit') liabilityModal(id);
+    if (action === 'trade-more') { tradeLimit += 40; render(); }
+    if (action === 'holding-remove') confirmAction('wealthRemoveHoldingAsk', t('wealthRemoveHoldingBody'), 'wealthRemove', () => {
+      mutate(next => removeHolding(next, id)); wealthSaved('wealthRemoved');
+    }, true);
+    if (action === 'trade-remove') confirmAction('wealthRemoveTransferAsk', t('wealthRemoveTransferBody'), 'wealthRemove', () => {
+      mutate(next => removeTrade(next, id)); wealthSaved('wealthRemoved');
+    }, true);
+    if (action === 'liability-remove') confirmAction('wealthRemoveDebtAsk', t('wealthRemoveDebtBody'), 'wealthRemove', () => {
+      mutate(next => removeLiability(next, id)); wealthSaved('wealthRemoved');
+    }, true);
     if (action === 'login-first') { closeModal(); await accountModal(); }
     if (action === 'landmark') landmarkModal(Number(id));
     if (action === 'pet') { setReaction({ pet: true, delta: 0, direction: 'steady' }, goalSummary(state)); render(); }
@@ -544,7 +617,7 @@ document.addEventListener('click', async event => {
 });
 document.addEventListener('submit', async event => {
   const form = event.target;
-  if (!['quick-entry-form', 'entry-form', 'goal-form', 'rename-form', 'category-form', 'login-form', 'new-password-form'].includes(form.id)) return;
+  if (!['quick-entry-form', 'entry-form', 'goal-form', 'rename-form', 'category-form', 'login-form', 'new-password-form', 'holding-form', 'liability-form'].includes(form.id)) return;
   event.preventDefault(); const data = new FormData(form);
   try {
     if (form.id === 'quick-entry-form' || form.id === 'entry-form') {
@@ -571,6 +644,37 @@ document.addEventListener('submit', async event => {
       if (modal.open) closeModal(); revealReaction();
       if (!reaction?.delta) toast(t('entrySaved'));
     }
+    if (form.id === 'holding-form') {
+      const mode = form.dataset.mode, id = form.dataset.id, tradeId = form.dataset.tradeId;
+      const date = data.get('date');
+      if (!validDate(date) || date > localDate()) throw new Error('futureDate');
+      const quantity = String(data.get('quantity'));
+      if (mode === 'buy' || mode === 'sell') {
+        const input = { holdingId: id, side: mode, quantity, amount: parseMoney(data.get('amount')), date };
+        mutate(next => tradeId ? updateTrade(next, tradeId, input) : recordTrade(next, input));
+        wealthSaved('wealthTradeSaved');
+      } else {
+        const name = String(data.get('name') || '').trim(), symbol = String(data.get('symbol') || '').trim();
+        if (!name || name.length > 64) throw new Error('wealthNameError');
+        if (!/^[A-Za-z0-9._:/-]{0,20}$/.test(symbol)) throw new Error('wealthSymbolError');
+        const input = { kind: data.get('kind'), name, symbol,
+          openingQuantity: mode === 'purchase' ? '0' : quantity, price: String(data.get('price')), valuedAt: date };
+        const amount = mode === 'purchase' ? parseMoney(data.get('amount')) : null;
+        // One cloned state commits both legs; invalid trades never leave a position behind.
+        mutate(next => {
+          const holding = mode === 'edit' ? updateHolding(next, id, input) : createHolding(next, input);
+          if (mode === 'purchase') recordTrade(next, { holdingId: holding.id, side: 'buy', quantity, amount, date });
+        });
+        wealthSaved(mode === 'purchase' ? 'wealthTradeSaved' : 'wealthHoldingSaved');
+      }
+    }
+    if (form.id === 'liability-form') {
+      const name = String(data.get('name') || '').trim();
+      if (!name || name.length > 64) throw new Error('wealthNameError');
+      const input = { name, amount: parseMoney(data.get('amount'), true) };
+      mutate(next => form.dataset.id ? updateLiability(next, form.dataset.id, input) : createLiability(next, input));
+      wealthSaved('wealthDebtSaved');
+    }
     if (form.id === 'goal-form') {
       const draft = readGoalDraft(form);
       if (!draft.goals.length) throw new Error('goalsRequired');
@@ -581,9 +685,10 @@ document.addEventListener('submit', async event => {
       const opening = parseMoney(draft.opening, true);
       mutate(next => {
         next.goals = goals; next.opening = opening;
+        if (form.dataset.first === 'true' && draft.currency !== next.profile.currency && (next.entries.length || next.holdings.length || next.investmentTrades.length || next.liabilities.length)) throw new Error('goalError');
         if (form.dataset.first === 'true') next.profile = { name: String(draft.name).trim(), currency: draft.currency, started: true };
       }); closeModal(); revealReaction(); if (!reaction?.delta) toast(t('goalUpdated'));
-      $('#companion-button').focus({ preventScroll: true });
+      if (activeView === 'wealth') $('#companion-button').focus({ preventScroll: true });
     }
     if (form.id === 'category-form') {
       const name = String(data.get('name')).trim(), id = form.dataset.id || `custom-${uuid()}`;
@@ -615,12 +720,13 @@ document.addEventListener('submit', async event => {
         await prepareAccount(auth);
       } catch { formError(t('signInError')); button.disabled = false; }
     }
-  } catch (error) { formError(errorText(error)); renderSaveStatus(); }
+  } catch (error) { formError(['holding-form', 'liability-form'].includes(form.id) && error.message === 'amount' ? t('wealthNumberError') : errorText(error)); renderSaveStatus(); }
 });
 function newPasswordModal(auth) {
   openModal(`<h2>${esc(t('newPasswordTitle'))}</h2><p class="modal-description">${esc(t('newPasswordHelp'))}</p><form id="new-password-form"><div class="field"><label for="new-password">${esc(t('password'))}</label><input id="new-password" name="password" type="password" autocomplete="new-password" minlength="8" required autofocus></div><div class="field"><label for="confirm-password">${esc(t('confirmPassword'))}</label><input id="confirm-password" name="confirm" type="password" autocomplete="new-password" minlength="8" required></div>${errorField}<button type="submit" class="button button-full">${esc(t('continue'))}</button></form>`);
   $('#new-password-form').pendingAuth = auth;
 }
+window.addEventListener('hashchange', () => { activeView = ['#wealth', '#village-view'].includes(location.hash) ? 'wealth' : 'budget'; renderView(); });
 window.addEventListener('storage', event => { if (!account && !recoverAccount && event.key === localKey && event.newValue !== JSON.stringify(state)) { staleTab = true; renderSaveStatus(); } });
 window.addEventListener('beforeunload', event => { if (storageWarning || ((account || recoverAccount) && state.revision !== (lastSyncedRevision || recoverAccount?.lastSyncedRevision))) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('online', () => { if (cloudErrorKey === 'cloudError' && account) { syncPaused = false; cloudErrorKey = null; scheduleCloudSave(); } });

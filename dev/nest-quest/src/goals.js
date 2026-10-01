@@ -1,5 +1,6 @@
 // Every goal shares one real ledger balance. Allocations divide that money;
 // moving the same money into savings never creates another contribution.
+import { cashBalance, tradeCashMovement } from './wealth-model.js';
 export const GOAL_PRESETS = [
   { kind: 'car', target: 3000000 },
   { kind: 'wedding', target: 5000000 },
@@ -63,7 +64,7 @@ export function goalSummary(state) {
     if (entry.type === 'expense') expense = checked(expense + entry.amount);
   }
   const target = state.goals.reduce((sum, goal) => checked(sum + goal.target), 0);
-  const balance = checked(checked(state.opening + income) - expense);
+  const balance = cashBalance(state);
   const fields = progressFields(balance, target), { ratio } = fields;
   const milestone = GOAL_MILESTONES.reduce((index, threshold, current) => ratio >= threshold ? current : index, 0);
   return { ...fields, stage: ratio >= .75 ? 'guardian' : ratio >= .25 ? 'adventurer' : 'young',
@@ -80,6 +81,7 @@ export function goalReaction(previous, next) {
   const delta = !goalChanged && before && after ? checked(after.balance - before.balance) : 0;
   return {
     delta, direction: delta > 0 ? 'up' : delta < 0 ? 'down' : 'steady', goalChanged,
+    transfer: tradeCashMovement(previous) !== tradeCashMovement(next),
     milestoneUp: !goalChanged && !!before && !!after && after.milestone > before.milestone,
     milestoneDown: !goalChanged && !!before && !!after && after.milestone < before.milestone,
     completed: !goalChanged && !!before && !!after && !before.completed && after.completed,

@@ -1,0 +1,295 @@
+/* Financial controls stay quiet beside the village, with clear touch feedback. */
+body.game {
+  --surface-border: #d7ddcb;
+  --surface-shadow: 0 12px 32px #283b300b, 0 2px 5px #283b3005;
+  --control-focus: #aa8141;
+}
+.game .tiny-label, .game .fine-print, .game .save-status { font-size: 12px; }
+.game .tiny-label { letter-spacing: .065em; }
+.game .save-status { color: #58654e; line-height: 1.5; }
+.game .game-header .language-switch button { min-width: 44px; min-height: 44px; font-size: 12px; }
+.game .demo-banner, .game .demo-banner a, .game .game-footer, .game .game-footer p { font-size: 12px; }
+.game .button {
+  min-height: 46px;
+  border-radius: 12px;
+  font-size: 13px;
+  box-shadow: inset 0 1px 0 #ffffff1a, 0 3px 7px #283b3009;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.game .button-outline { box-shadow: inset 0 1px 0 #fff8, 0 2px 4px #283b3004; }
+.game .button:active { transform: translateY(1px); box-shadow: inset 0 2px 4px #283b3014; }
+.game .button:disabled { transform: none; }
+.game .button:focus-visible,
+.game .icon-button:focus-visible,
+.game .category-button:focus-visible,
+.game .goal-preset:focus-visible,
+.game summary:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 4px;
+}
+.game .icon-button { min-width: 44px; min-height: 44px; border-radius: 12px; }
+.game .modal-link { min-height: 44px; font-size: 12px; line-height: 1.5; }
+.game .portfolio.panel {
+  padding: 28px;
+  border-color: var(--surface-border);
+  border-radius: 22px;
+  background: #fffdf6;
+  box-shadow: var(--surface-shadow);
+}
+.game .portfolio-heading { margin-bottom: 22px; align-items: center; }
+.game .portfolio-heading h2 { margin-top: 5px; font-size: 29px; }
+.game .portfolio-heading .tiny-label { color: #68745b; }
+.game .portfolio-grid { gap: 16px; }
+.game .portfolio-goal {
+  position: relative;
+  gap: 14px;
+  padding: 22px 18px;
+  border-color: #dde2d1;
+  border-radius: 18px;
+  background: #f8f7ef;
+  box-shadow: inset 0 1px 0 #fffffff0, 0 3px 7px #283b3004;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.game .portfolio-icon {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #d5debd;
+  border-radius: 14px;
+  color: #577145;
+  background: #eaf0dc;
+  box-shadow: inset 0 1px 0 #fff9;
+}
+.game .portfolio-body h3 { margin-bottom: 13px; font-size: 21px; line-height: 1.25; }
+.game .portfolio-amount { gap: 5px 9px; }
+.game .portfolio-amount strong {
+  max-width: 100%;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -.035em;
+  color: #355132;
+}
+.game .portfolio-amount > span { font-size: 13px; color: #67705e; }
+.game .portfolio-progress { height: 7px; margin-block: 15px 9px; background: #e0e5d5; }
+.game .portfolio-progress > span {
+  background: #799567;
+  box-shadow: inset 0 1px 0 #fff4;
+  transition: width .5s cubic-bezier(.2,.65,.3,1), background-color .3s ease;
+}
+.game .portfolio-goal:has(.portfolio-progress[aria-valuenow="100"]) {
+  border-color: #b8c9a3;
+  background: #f1f5e8;
+}
+.game .portfolio-goal:has(.portfolio-progress[aria-valuenow="100"]) .portfolio-icon {
+  border-color: #b7c999;
+  background: #e1eccf;
+}
+.game .portfolio-body small, .game .portfolio-note { font-size: 12px; line-height: 1.6; }
+.game .portfolio-note { margin-top: 20px; color: #627057; }
+
+.game .modal {
+  width: min(600px, calc(100% - 28px));
+  border-color: #d4dcc4;
+  border-radius: 24px;
+  background: #fffdf6;
+  box-shadow: 0 26px 80px #1f352f30, 0 3px 10px #1f352f12;
+}
+.game .modal::backdrop, .game .entry-sheet::backdrop {
+  background: #21392e75;
+  backdrop-filter: blur(8px);
+}
+.game .modal-shell { padding: 34px 32px 28px; }
+.game .modal-shell > .modal-close {
+  width: 44px;
+  height: 44px;
+  top: 14px;
+  right: 14px;
+  border: 1px solid #dde4d0;
+  background: #f1f4e8;
+}
+.game .modal-shell h2 { margin-right: 30px; font-size: 32px; }
+.game .modal-description { font-size: 13px; line-height: 1.65; }
+.game .field label, .game .field-label, .game .field small { font-size: 12px; }
+.game .field input, .game .field select, .game .field textarea {
+  min-height: 46px;
+  padding: 12px;
+  border-color: #d6ddca;
+  border-radius: 10px;
+  background: #fffef9;
+  font-size: 15px;
+  box-shadow: inset 0 1px 2px #283b3004;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.game .field input::placeholder, .game .field textarea::placeholder { font-size: 13px; }
+.game .field input:focus, .game .field select:focus, .game .field textarea:focus {
+  border-color: #7f9767;
+  box-shadow: 0 0 0 3px #7f97671a;
+}
+.game .form-error { font-size: 12px; line-height: 1.6; }
+.game .goal-editor-row {
+  padding: 16px;
+  border-color: #dce2d0;
+  border-radius: 16px;
+  background: #f6f6ec;
+  box-shadow: inset 0 1px 0 #fff9;
+}
+.game .goal-row-heading { margin-bottom: 12px; font-size: 14px; }
+.game .goal-row-heading .icon-button { flex: 0 0 44px; }
+.game .goal-preset { min-height: 108px; border-radius: 14px; }
+.game .goal-preset strong { font-size: 13px; line-height: 1.4; }
+.game .goal-preset small { font-size: 12px; color: #657653; }
+.game .goal-presets > legend { font-size: 12px; }
+.game .goal-preset.selected, .game .goal-preset[aria-pressed="true"] {
+  border-color: #829d64;
+  background: #e9f0da;
+  box-shadow: inset 0 0 0 1px #adc294;
+}
+.game .profile-details > summary,
+.game .fund-explanation > summary,
+.game .entry-details > summary { min-height: 44px; padding-block: 11px; font-size: 12px; }
+.game .fund-explanation { color: #5e6d53; font-size: 12px; line-height: 1.65; }
+.game .fund-math { padding: 12px; border-radius: 10px; background: #eef3e2; }
+.game .icon-choice, .game .color-choice { min-width: 44px; min-height: 44px; }
+.game .category-icon-picker > div { gap: 9px; }
+.game .custom-category-row { padding-block: 11px; }
+.game .custom-category-row .icon-button { flex: 0 0 44px; }
+.game .settings-account, .game .cloud-option { border: 1px solid #d8e1ca; border-radius: 14px; }
+.game .settings-account { background: #eff4e4; padding: 18px; }
+.game .cloud-option { background: #f8f9f0; }
+.game .cloud-option p { font-size: 12px; line-height: 1.65; }
+
+.game .entry-sheet {
+  border-color: #d4ddc2;
+  background: #fffdf6;
+  box-shadow: 0 26px 80px #1f352f36, 0 3px 10px #1f352f12;
+}
+.game .entry-sheet .quick-entry { padding: 25px; }
+.game .sheet-heading h2 { color: #354f32; font-size: 30px; }
+.game .sheet-heading .icon-button { width: 44px; height: 44px; background: #f0f4e5; }
+.game .entry-switch { padding: 4px; margin-block: 18px 16px; border-radius: 13px; }
+.game .entry-switch button { min-height: 44px; border-radius: 9px; font-size: 12px; }
+.game .amount-entry { padding-bottom: 18px; margin-bottom: 18px; }
+.game .amount-entry > label { font-size: 12px; margin-bottom: 5px; }
+.game .amount-currency { color: #70805b; font-size: 14px; }
+.game .amount-control > input { font-size: 60px; color: #355132; caret-color: #7d925b; }
+.game .quick-category > legend { margin-bottom: 11px; font-size: 12px; }
+.game .category-grid { gap: 9px; }
+.game .category-button {
+  min-height: 70px;
+  padding: 9px 6px;
+  border-color: #dce4ce;
+  border-radius: 13px;
+  background: #f6f8ed;
+  box-shadow: inset 0 1px 0 #fff9;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.game .category-button > span { font-size: 12px; line-height: 1.4; }
+.game .category-button > .icon { width: 23px; height: 23px; }
+.game .category-button.active, .game .category-button[aria-pressed="true"] {
+  border-color: #829d64;
+  background: #e5efd6;
+  color: #395b2e;
+  box-shadow: inset 0 0 0 1px #b2c796;
+}
+.game .category-button:active { transform: scale(.97); }
+.game .category-add { border-style: dashed; }
+.game .entry-detail-fields .field label { font-size: 12px; }
+.game .entry-detail-fields .field input { min-height: 46px; font-size: 14px; }
+.game .entry-impact { font-size: 12px; line-height: 1.5; margin-block: 5px 15px; }
+.game .entry-sheet #quick-submit {
+  min-height: 50px;
+  border-radius: 13px;
+  background: #456336;
+  font-size: 14px;
+  box-shadow: inset 0 1px 0 #fff2, 0 5px 12px #31472b16;
+}
+.game .entry-sheet .form-error { font-size: 12px; }
+
+.game .activity-panel.panel {
+  border-color: var(--surface-border);
+  border-radius: 18px;
+  background: #fffdf6;
+  box-shadow: var(--surface-shadow);
+}
+.game .activity-toggle { padding: 18px 22px; }
+.game .activity-toggle #activity-title { font-size: 14px; }
+.game .activity-count { font-size: 12px; color: #61724f; }
+.game .monthly-stat { padding: 15px; border-radius: 12px; background: #f2f5e9; }
+.game .monthly-stat > span { color: #647457; font-size: 12px; }
+.game .monthly-stat > strong { margin-top: 6px; font-size: 24px; overflow-wrap: anywhere; white-space: normal; }
+.game .month-control label { font-size: 12px; }
+.game .activity-heading .month-control input { min-height: 44px; font-size: 14px; border-radius: 9px; }
+.game .activity-content .ledger-filter > select {
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.game .activity-content .ledger-filter > span { font-size: 12px; color: #657359; }
+.game .activity-content .ledger-filter > .button { min-height: 44px; font-size: 12px; }
+.game .activity-content .entry-row { min-height: 72px; padding-block: 17px; }
+.game .activity-content .entry-name { font-size: 13px; line-height: 1.5; color: #425b37; }
+.game .activity-content .entry-meta { font-size: 12px; line-height: 1.5; color: #6f7c61; }
+.game .activity-content .entry-amount { font-size: 14px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .game .portfolio-goal:hover { border-color: #c3cfae; box-shadow: inset 0 1px 0 #fff, 0 6px 14px #283b3009; }
+  .game .category-button:hover { background: #edf3e1; border-color: #a4b887; }
+  .game .category-button.active:hover { background: #e1ebd0; border-color: #819c62; }
+}
+@media (max-width: 680px) {
+  .game .game-header .icon-button, .game .game-header #account-button {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+  .game .portfolio.panel { padding: 21px 16px; border-radius: 18px; }
+  .game .portfolio-heading h2 { font-size: 26px; }
+  .game .portfolio-heading .button { min-height: 44px; padding-inline: 11px; }
+  .game .portfolio-grid { gap: 11px; }
+  .game .portfolio-goal { gap: 12px; padding: 18px 14px; }
+  .game .portfolio-body h3 { font-size: 20px; margin-bottom: 9px; }
+  .game .portfolio-amount strong { font-size: 23px; }
+  .game .modal { width: calc(100% - 24px); border-radius: 21px; }
+  .game .modal-shell { padding: 30px 20px 24px; }
+  .game .modal-shell h2 { font-size: 29px; margin-right: 28px; }
+  .game .field input, .game .field select, .game .field textarea { font-size: 16px; }
+  .game .goal-presets { gap: 9px; }
+  .game .goal-preset { padding: 14px 12px; }
+  .game .category-icon-picker > div { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .game .entry-sheet .quick-entry { padding: 21px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .game .sheet-heading h2 { font-size: 28px; }
+  .game .amount-control > input { font-size: 54px; }
+  .game .category-grid { gap: 8px; }
+  .game .category-button { min-height: 66px; border-radius: 11px; }
+  .game .entry-detail-fields { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .game .entry-detail-fields .field input { font-size: 16px; }
+  .game .entry-sheet #quick-submit { box-shadow: 0 0 0 10px #fffdf6, inset 0 1px 0 #fff2, 0 5px 12px #31472b16; }
+  .game .activity-toggle { padding: 16px; }
+  .game .monthly-strip { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .game .monthly-stat { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .game .monthly-stat > strong { margin-top: 0; font-size: 22px; max-width: 65%; text-align: right; }
+  .game .activity-content .entry-amount { max-width: 120px; }
+  .game .mobile-dock > .button { min-height: 50px; font-size: 13px; border-radius: 13px; }
+}
+@media (max-width: 380px) {
+  .game .game-header .brand > span:last-child { display: none; }
+  .game .portfolio-heading { align-items: flex-start; }
+  .game .portfolio-heading h2 { font-size: 24px; }
+  .game .portfolio-heading .button { max-width: 46%; }
+  .game .modal-shell { padding-inline: 16px; }
+  .game .goal-editor-row { padding: 13px; }
+  .game .category-icon-picker > div { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .game .entry-sheet .quick-entry { padding-inline: 16px; }
+  .game .category-button { padding-inline: 4px; }
+  .game .amount-control > input { font-size: 49px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game .button, .game .portfolio-goal, .game .portfolio-progress > span,
+  .game .category-button, .game .field input, .game .field select, .game .field textarea {
+    transition: none;
+  }
+  .game .button:active, .game .category-button:active { transform: none; }
+}

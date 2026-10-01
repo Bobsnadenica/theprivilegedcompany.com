@@ -1,9 +1,11 @@
 import { isValidGoal, goalSummary } from './goals.js';
 import { CATEGORIES, isValidCustomCategory, normalizeCategoryName } from './categories.js';
+import { validateWealth } from './wealth-model.js';
 export { CATEGORIES } from './categories.js';
 
 // Money is stored in integer minor units. Version 1 savings remain transfers;
-// version 3 goals share income minus expenses. This is separate from portal Budget.
+// Goals use available cash; investment trades move assets, not monthly income
+// or expenses. This remains separate from the company portal's Budget.
 export const CURRENCIES = ['EUR', 'USD', 'GBP', 'BGN'];
 export const QUESTS = [
   { id: 'cottage', x: 10, y: 67, xp: 50, gold: 10 },
@@ -37,13 +39,13 @@ export const validMonth = value => typeof value === 'string' && /^20\d{2}-(0[1-9
 const amountValid = n => Number.isSafeInteger(n) && n >= 0 && n <= 9999999999;
 const idValid = s => typeof s === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(s);
 export function createState(date = localDate()) {
-  return { version: 3, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(), goals: [], opening: 0, customCategories: [],
+  return { version: 4, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(), goals: [], opening: 0, customCategories: [], holdings: [], investmentTrades: [], liabilities: [],
     profile: { name: 'Ember', currency: 'EUR', started: false },
     entries: [], plans: {}, claims: [], checkins: [], recordDays: [], items: [], equipped: [] };
 }
 export function validateState(s) {
   const fail = () => { throw new Error('invalidSave'); };
-  if (!s || ![1, 2, 3].includes(s.version)) fail();
+  if (!s || ![1, 2, 3, 4].includes(s.version)) fail();
   // Migration preserves every ledger record, reward, date, and lock revision.
   // Version 2's opening money belongs to the shared fund, never to each goal.
   if (s.version < 3) {
@@ -52,6 +54,7 @@ export function validateState(s) {
     const goals = s.version === 2 && goal ? [{ id: goal.id, kind: goal.kind, title: goal.title, target: goal.target }] : [];
     s = { ...legacy, version: 3, goals, opening: s.version === 2 && goal ? goal.opening : 0, customCategories: [] };
   }
+  if (s.version === 3) s = { ...s, version: 4, holdings: s.holdings ?? [], investmentTrades: s.investmentTrades ?? [], liabilities: s.liabilities ?? [] };
   if (Object.hasOwn(s, 'goal') || !Array.isArray(s.goals) || s.goals.length > 12 || s.goals.some(goal => !isValidGoal(goal))
     || new Set(s.goals.map(goal => goal.id)).size !== s.goals.length || !amountValid(s.opening)
     || !Array.isArray(s.customCategories) || s.customCategories.length > 30
@@ -91,6 +94,7 @@ export function validateState(s) {
   if (new Set(s.items).size !== s.items.length || new Set(s.equipped).size !== s.equipped.length
     || s.items.some(id => !ITEMS.some(item => item.id === id)) || s.equipped.some(id => !s.items.includes(id))) fail();
   if (progress(s).gold < 0) fail();
+  try { validateWealth(s); } catch { fail(); }
   goalSummary(s);
   if (new TextEncoder().encode(JSON.stringify(s)).byteLength > 2000000) fail();
   return s;
