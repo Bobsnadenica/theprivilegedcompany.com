@@ -1,0 +1,120 @@
+.monthly-spending {
+  min-width: 0;
+  padding-block: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+.monthly-spending h3 {
+  margin-bottom: 14px;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.spending-distribution {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--sage);
+}
+.spending-distribution > span {
+  flex-basis: 0;
+  min-width: 1px;
+  background: var(--category-color);
+}
+.spending-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.spending-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.spending-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--category-color);
+  background: var(--paper);
+}
+.spending-icon .icon { width: 21px; height: 21px; }
+.spending-category { flex: 1; min-width: 0; }
+.spending-row-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.spending-name { min-width: 0; overflow-wrap: anywhere; }
+.spending-amount {
+  flex: none;
+  max-width: 55%;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.spending-row-chart { display: flex; align-items: center; gap: 10px; }
+.spending-track {
+  display: block;
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--sage);
+}
+.spending-track i {
+  display: block;
+  min-width: 2px;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--category-color);
+}
+.spending-percent {
+  min-width: 44px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.spending-more { margin-top: 18px; }
+.spending-more > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding-block: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--green);
+  font-size: 13px;
+  list-style: none;
+  cursor: pointer;
+}
+.spending-more > summary::-webkit-details-marker { display: none; }
+.spending-more > summary .icon { width: 18px; height: 18px; transform: rotate(90deg); }
+.spending-more[open] > summary .icon { transform: rotate(-90deg); }
+.spending-more > summary:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.spending-more[open] > .spending-list { padding-top: 10px; }
+.spending-empty { color: var(--muted); font-size: 13px; }
+@media (max-width: 380px) {
+  .monthly-spending h3 { font-size: 20px; }
+  .spending-row { gap: 8px; }
+  .spending-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .spending-icon .icon { width: 18px; height: 18px; }
+  .spending-row-heading { gap: 8px; font-size: 12px; }
+  .spending-row-chart { gap: 8px; }
+}

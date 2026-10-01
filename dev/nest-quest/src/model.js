@@ -1,21 +1,10 @@
 import { isValidGoal, goalSummary } from './goals.js';
+import { CATEGORIES, isValidCustomCategory, normalizeCategoryName } from './categories.js';
+export { CATEGORIES } from './categories.js';
 
 // Money is stored in integer minor units. Version 1 savings remain transfers;
-// version 2 goals use income minus expenses. This is separate from portal Budget.
+// version 3 goals share income minus expenses. This is separate from portal Budget.
 export const CURRENCIES = ['EUR', 'USD', 'GBP', 'BGN'];
-export const CATEGORIES = {
-  housing: { essential: true, color: '#b79977' },
-  groceries: { essential: true, color: '#729573' },
-  bills: { essential: true, color: '#b9ae77' },
-  transport: { essential: true, color: '#7caaa6' },
-  health: { essential: true, color: '#a98ab0' },
-  dining: { essential: false, color: '#df9d66' },
-  shopping: { essential: false, color: '#c08076' },
-  fun: { essential: false, color: '#c5a658' },
-  subscriptions: { essential: false, color: '#8292b5' },
-  gifts: { essential: false, color: '#ca8ca5' },
-  other: { essential: false, color: '#98a18b' },
-};
 export const QUESTS = [
   { id: 'cottage', x: 10, y: 67, xp: 50, gold: 10 },
   { id: 'lanterns', x: 25, y: 39, xp: 70, gold: 15 },
@@ -48,17 +37,27 @@ export const validMonth = value => typeof value === 'string' && /^20\d{2}-(0[1-9
 const amountValid = n => Number.isSafeInteger(n) && n >= 0 && n <= 9999999999;
 const idValid = s => typeof s === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(s);
 export function createState(date = localDate()) {
-  return { version: 2, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(), goal: null,
+  return { version: 3, revision: uuid(), createdAt: date, updatedAt: new Date().toISOString(), goals: [], opening: 0, customCategories: [],
     profile: { name: 'Ember', currency: 'EUR', started: false },
     entries: [], plans: {}, claims: [], checkins: [], recordDays: [], items: [], equipped: [] };
 }
 export function validateState(s) {
   const fail = () => { throw new Error('invalidSave'); };
-  if (!s || ![1, 2].includes(s.version)) fail();
-  // Migration changes only the schema version and adds the goal selector.
-  // Existing money, story rewards, dates, and optimistic-lock revision survive.
-  if (s.version === 1) s = { ...s, version: 2, goal: null };
-  if (!Object.hasOwn(s, 'goal') || (s.goal !== null && !isValidGoal(s.goal))
+  if (!s || ![1, 2, 3].includes(s.version)) fail();
+  // Migration preserves every ledger record, reward, date, and lock revision.
+  // Version 2's opening money belongs to the shared fund, never to each goal.
+  if (s.version < 3) {
+    if (s.version === 2 && (!Object.hasOwn(s, 'goal') || (s.goal !== null && (!isValidGoal(s.goal) || !amountValid(s.goal.opening))))) fail();
+    const { goal, ...legacy } = s;
+    const goals = s.version === 2 && goal ? [{ id: goal.id, kind: goal.kind, title: goal.title, target: goal.target }] : [];
+    s = { ...legacy, version: 3, goals, opening: s.version === 2 && goal ? goal.opening : 0, customCategories: [] };
+  }
+  if (Object.hasOwn(s, 'goal') || !Array.isArray(s.goals) || s.goals.length > 12 || s.goals.some(goal => !isValidGoal(goal))
+    || new Set(s.goals.map(goal => goal.id)).size !== s.goals.length || !amountValid(s.opening)
+    || !Array.isArray(s.customCategories) || s.customCategories.length > 30
+    || s.customCategories.some(category => !isValidCustomCategory(category))
+    || new Set(s.customCategories.map(category => category.id)).size !== s.customCategories.length
+    || new Set(s.customCategories.map(category => normalizeCategoryName(category.name))).size !== s.customCategories.length
     || !idValid(s.revision) || !validDate(s.createdAt)
     || typeof s.updatedAt !== 'string' || !Number.isFinite(Date.parse(s.updatedAt))
     || !s.profile || typeof s.profile.name !== 'string' || !s.profile.name.trim() || s.profile.name.length > 24
@@ -69,12 +68,13 @@ export function validateState(s) {
     || !Array.isArray(s.checkins) || s.checkins.length > 10000 || !Array.isArray(s.recordDays) || s.recordDays.length > 10000
     || !Array.isArray(s.items) || !Array.isArray(s.equipped)) fail();
   const ids = new Set();
+  const categoryIds = new Set([...Object.keys(CATEGORIES), ...s.customCategories.map(category => category.id)]);
   let total = 0;
   for (const e of s.entries) {
     if (!e || !idValid(e.id) || ids.has(e.id) || !validDate(e.date)
       || !['income', 'expense', 'saving'].includes(e.type) || !amountValid(e.amount) || e.amount === 0
       || typeof e.note !== 'string' || e.note.length > 160
-      || (e.type === 'expense' ? !Object.hasOwn(CATEGORIES, e.category) || typeof e.essential !== 'boolean' : e.category !== e.type)) fail();
+      || (e.type === 'expense' ? !categoryIds.has(e.category) || typeof e.essential !== 'boolean' : e.category !== e.type)) fail();
     ids.add(e.id); total += e.amount;
     if (!Number.isSafeInteger(total)) fail();
   }
@@ -170,7 +170,12 @@ export function streak(state, today = localDate()) {
 export function demoState(today = localDate()) {
   const s = createState(today), month = today.slice(0, 7);
   s.profile = { name: 'Ember', currency: 'EUR', started: true };
-  s.goal = { id: uuid(), kind: 'car', title: 'New car', target: 3000000, opening: 730000 };
+  s.goals = [
+    { id: uuid(), kind: 'car', title: 'New car', target: 3000000 },
+    { id: uuid(), kind: 'wedding', title: 'Wedding', target: 5000000 },
+    { id: uuid(), kind: 'house', title: 'New home', target: 10000000 },
+  ];
+  s.opening = 730000;
   s.plans[month] = { goal: 30000, flex: 55000 };
   const entry = (type, amount, category, note, essential = true) => ({ id: uuid(), date: `${month}-01`, type, amount, category, note, ...(type === 'expense' ? { essential } : {}) });
   s.entries = [entry('income', 240000, 'income', 'Monthly salary'), entry('expense', 75000, 'housing', 'A cozy place to live'),

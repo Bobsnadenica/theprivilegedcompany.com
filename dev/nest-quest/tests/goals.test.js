@@ -6,7 +6,8 @@ import { GOAL_PRESETS, GOAL_MILESTONES, goalSummary, goalReaction } from '../src
 const date = '2026-10-01';
 function stateWithGoal(target = 3000000, opening = 0) {
   const state = createState(date);
-  state.goal = { id: uuid(), kind: 'car', title: 'New car', target, opening };
+  state.goals = [{ id: uuid(), kind: 'car', title: 'New car', target }];
+  state.opening = opening;
   return state;
 }
 function entry(type, amount, entryDate = date) {
@@ -16,7 +17,8 @@ function entry(type, amount, entryDate = date) {
 
 test('new adventures wait for a goal and expose the requested preset amounts', () => {
   const state = createState(date);
-  assert.equal(state.version, 2); assert.equal(state.goal, null); assert.equal(goalSummary(state), null);
+  assert.equal(state.version, 3); assert.deepEqual(state.goals, []); assert.equal(state.opening, 0);
+  assert.deepEqual(state.customCategories, []); assert.equal(goalSummary(state), null);
   assert.deepEqual(GOAL_PRESETS.map(goal => [goal.kind, goal.target]), [
     ['car', 3000000], ['wedding', 5000000], ['house', 10000000],
     ['emergency', 1000000], ['travel', 200000], ['custom', 1000000],
@@ -71,8 +73,8 @@ test('negative balances and overfunded goals retain their real amount while clam
 
 test('changing a goal does not invent an income reaction or completion', () => {
   const before = stateWithGoal(100000, 25000), after = structuredClone(before);
-  after.goal = { ...after.goal, id: uuid(), kind: 'travel', title: 'Summer trip', target: 10000 };
-  assert.equal(after.goal.opening, 25000, 'Changing the goal preserves opening money');
+  after.goals[0] = { ...after.goals[0], id: uuid(), kind: 'travel', title: 'Summer trip', target: 10000 };
+  assert.equal(after.opening, 25000, 'Changing the goal preserves opening money');
   assert.equal(goalSummary(after).completed, true);
   assert.deepEqual(goalReaction(before, after), { delta: 0, direction: 'steady', goalChanged: true,
     milestoneUp: false, milestoneDown: false, completed: false, reopened: false });
@@ -80,10 +82,12 @@ test('changing a goal does not invent an income reaction or completion', () => {
 });
 
 test('version 1 saves migrate without changing ledger, plans, rewards, or lock revision', () => {
-  const legacy = demoState(date); legacy.version = 1; delete legacy.goal;
+  const { goals: oldGoals, opening: oldOpening, customCategories: oldCategories, ...legacy } = demoState(date);
+  legacy.version = 1;
   const original = structuredClone(legacy), migrated = validateState(legacy);
-  assert.equal(migrated.version, 2); assert.equal(migrated.goal, null);
-  const { version, goal, ...preserved } = migrated;
+  assert.equal(migrated.version, 3); assert.deepEqual(migrated.goals, []); assert.equal(migrated.opening, 0);
+  assert.deepEqual(migrated.customCategories, []); assert.equal(Object.hasOwn(migrated, 'goal'), false);
+  const { version, goals, opening, customCategories, ...preserved } = migrated;
   const { version: oldVersion, ...expected } = original;
   assert.deepEqual(preserved, expected);
   assert.deepEqual(legacy, original, 'Validation does not rewrite the input save');
@@ -94,12 +98,14 @@ test('version 1 saves migrate without changing ledger, plans, rewards, or lock r
 test('goal validation rejects missing fields, malformed amounts, and unsupported goal types', () => {
   const original = stateWithGoal(); validateState(original);
   for (const change of [
-    s => { delete s.goal; }, s => { s.goal = []; }, s => { s.goal.id = 'invalid id'; },
-    s => { s.goal.title = ' '; }, s => { s.goal.title = 'x'.repeat(65); },
-    s => { s.goal.kind = 'investment'; }, s => { s.goal.target = 0; },
-    s => { s.goal.target = 10000000000; }, s => { s.goal.target = 1.5; },
-    s => { s.goal.opening = -1; }, s => { s.goal.opening = Number.MAX_SAFE_INTEGER; },
-    s => { s.goal.opening = NaN; }, s => { delete s.goal.opening; },
+    s => { delete s.goals; }, s => { s.goals = null; }, s => { s.goals[0].id = 'invalid id'; },
+    s => { s.goals[0].title = ' '; }, s => { s.goals[0].title = 'x'.repeat(65); },
+    s => { s.goals[0].kind = 'investment'; }, s => { s.goals[0].target = 0; },
+    s => { s.goals[0].target = 10000000000; }, s => { s.goals[0].target = 1.5; },
+    s => { s.opening = -1; }, s => { s.opening = Number.MAX_SAFE_INTEGER; },
+    s => { s.opening = NaN; }, s => { delete s.opening; },
+    s => { s.goal = null; }, s => { s.goals.push({ ...s.goals[0] }); },
+    s => { s.goals = Array.from({ length: 13 }, () => ({ ...s.goals[0], id: uuid() })); },
   ]) {
     const state = structuredClone(original); change(state);
     assert.throws(() => validateState(state), /invalidSave/);
@@ -117,10 +123,121 @@ test('goal totals reject unsafe inputs and remain exact at supported save limits
   assert.throws(() => goalSummary(state), /invalidSave/);
 });
 
-test('demo starts with a car goal and keeps legacy money records intact', () => {
+test('demo shares its single fund across car, wedding, and home goals', () => {
   const state = demoState(date), summary = goalSummary(state);
-  assert.equal(state.version, 2); assert.equal(state.goal.kind, 'car');
-  assert.equal(state.goal.opening, 730000); assert.equal(summary.target, 3000000);
-  assert.equal(summary.balance, 853200); assert.equal(summary.percent, 28); assert.equal(summary.stage, 'adventurer');
+  assert.equal(state.version, 3); assert.deepEqual(state.goals.map(goal => goal.kind), ['car', 'wedding', 'house']);
+  assert.equal(state.opening, 730000); assert.equal(summary.target, 18000000);
+  assert.equal(summary.balance, 853200); assert.equal(summary.percent, 4); assert.equal(summary.stage, 'young');
+  assert.deepEqual(summary.goals.map(goal => goal.balance), [142200, 237000, 474000]);
   validateState(state);
+});
+
+test('version 2 migration moves one opening balance to the shared fund without rewriting history', () => {
+  const { goals, opening, customCategories, ...legacy } = demoState(date);
+  legacy.version = 2; legacy.goal = { ...goals[0], opening };
+  legacy.extraMetadata = { importedBy: 'owner', labels: ['Keep this'] };
+  const original = structuredClone(legacy), migrated = validateState(legacy);
+  assert.equal(migrated.version, 3); assert.equal(Object.hasOwn(migrated, 'goal'), false);
+  assert.equal(migrated.opening, opening); assert.deepEqual(migrated.goals, [goals[0]]);
+  assert.equal(Object.hasOwn(migrated.goals[0], 'opening'), false);
+  assert.deepEqual(migrated.customCategories, []);
+  const { version, goal, ...before } = original;
+  const { version: nextVersion, goals: nextGoals, opening: nextOpening, customCategories: nextCategories, ...after } = migrated;
+  assert.deepEqual(after, before); assert.deepEqual(legacy, original);
+  assert.equal(goalSummary(migrated).balance, 853200);
+  const emptyLegacy = { ...original, goal: null };
+  assert.deepEqual(validateState(emptyLegacy).goals, []); assert.equal(validateState(emptyLegacy).opening, 0);
+  for (const goalChange of [
+    value => { delete value.opening; }, value => { value.opening = -1; },
+    value => { value.opening = Number.MAX_SAFE_INTEGER; }, value => { value.target = 0; },
+  ]) {
+    const invalid = structuredClone(original); goalChange(invalid.goal);
+    assert.throws(() => validateState(invalid), /invalidSave/);
+  }
+});
+
+test('multiple goals allocate each cent once with exact largest remainders', () => {
+  const state = stateWithGoal(2, 7);
+  state.goals = [
+    { id: 'goal-a', kind: 'car', title: 'Car', target: 2 },
+    { id: 'goal-b', kind: 'wedding', title: 'Wedding', target: 3 },
+    { id: 'goal-c', kind: 'house', title: 'Home', target: 5 },
+  ];
+  const summary = goalSummary(state);
+  assert.equal(summary.balance, 7); assert.equal(summary.target, 10); assert.equal(summary.surplus, 0);
+  assert.deepEqual(summary.goals.map(goal => goal.balance), [1, 2, 4]);
+  assert.equal(summary.goals.reduce((sum, goal) => sum + goal.balance, 0), summary.balance);
+  assert.deepEqual(summary.goals.map(goal => goal.remaining), [1, 1, 1]);
+  validateState(state);
+});
+
+test('equal allocation remainders break ties by id and never depend on display order', () => {
+  const state = stateWithGoal(1, 2);
+  state.goals = ['goal-c', 'goal-b', 'goal-a'].map(id => ({ id, kind: 'custom', title: id, target: 1 }));
+  const before = structuredClone(state);
+  const balances = summary => Object.fromEntries(summary.goals.map(goal => [goal.id, goal.balance]));
+  assert.deepEqual(balances(goalSummary(state)), { 'goal-c': 0, 'goal-b': 1, 'goal-a': 1 });
+  state.goals.reverse();
+  assert.deepEqual(balances(goalSummary(state)), balances(goalSummary(before)));
+  assert.equal(goalReaction(before, state).goalChanged, false);
+});
+
+test('surplus is separate, allocations cap at each target, and deficits never create negative goal contributions', () => {
+  const state = stateWithGoal(100, 350);
+  state.goals.push({ id: uuid(), kind: 'wedding', title: 'Wedding', target: 200 });
+  let summary = goalSummary(state);
+  assert.equal(summary.balance, 350); assert.equal(summary.surplus, 50);
+  assert.deepEqual(summary.goals.map(goal => [goal.balance, goal.completed]), [[100, true], [200, true]]);
+  state.entries.push(entry('expense', 400)); summary = goalSummary(state);
+  assert.equal(summary.balance, -50); assert.equal(summary.surplus, 0); assert.equal(summary.remaining, 350);
+  assert.deepEqual(summary.goals.map(goal => goal.balance), [0, 0]);
+  assert.equal(summary.ratio, 0); assert.equal(summary.completed, false);
+});
+
+test('adding, removing, or retargeting goals changes allocation but never invents a money reward', () => {
+  const before = stateWithGoal(100, 50);
+  for (const change of [
+    state => { state.goals.push({ id: uuid(), kind: 'custom', title: 'Another goal', target: 100 }); },
+    state => { state.goals = []; },
+    state => { state.goals[0].target = 25; },
+  ]) {
+    const after = structuredClone(before); change(after);
+    assert.deepEqual(goalReaction(before, after), { delta: 0, direction: 'steady', goalChanged: true,
+      milestoneUp: false, milestoneDown: false, completed: false, reopened: false });
+  }
+  const renamed = structuredClone(before); renamed.goals[0].title = 'Same target, better name';
+  renamed.entries.push(entry('income', 10));
+  assert.equal(goalReaction(before, renamed).delta, 10, 'Renaming does not hide a real income change');
+});
+
+test('multiple maximum-size goals use exact integer multiplication rather than rounded floating products', () => {
+  const state = stateWithGoal(9999999999, 0);
+  state.goals = Array.from({ length: 12 }, (_, index) => ({ id: `goal-${String(index).padStart(2, '0')}`,
+    kind: 'custom', title: `Goal ${index}`, target: 9999999999 - index }));
+  state.entries = [entry('income', 9999999999), entry('income', 9999999998), entry('expense', 1)];
+  const summary = goalSummary(state);
+  assert.equal(summary.target, 119999999922); assert.equal(summary.balance, 19999999996);
+  assert.equal(summary.goals.reduce((sum, goal) => sum + goal.balance, 0), 19999999996);
+  assert.ok(summary.goals.every(goal => Number.isSafeInteger(goal.balance) && goal.balance <= goal.target));
+  const fund = BigInt(summary.balance), total = BigInt(summary.target);
+  for (const goal of summary.goals) {
+    const floor = Number(fund * BigInt(goal.target) / total);
+    assert.ok(goal.balance === floor || goal.balance === floor + 1);
+  }
+  validateState(state);
+});
+
+test('goal allocation conserves money across a deterministic range of expenses and income', () => {
+  const state = stateWithGoal(101, 0);
+  state.goals.push({ id: 'goal-b', kind: 'wedding', title: 'Wedding', target: 203 },
+    { id: 'goal-c', kind: 'house', title: 'Home', target: 307 });
+  for (let cents = 1; cents <= 700; cents += 7) {
+    state.entries = [entry('income', cents)];
+    const summary = goalSummary(state), allocated = summary.goals.reduce((sum, goal) => sum + goal.balance, 0);
+    assert.equal(allocated + summary.surplus, cents);
+    assert.ok(summary.goals.every(goal => goal.balance >= 0 && goal.balance <= goal.target));
+    state.entries.push(entry('expense', cents + 1));
+    assert.equal(goalSummary(state).balance, -1);
+    assert.ok(goalSummary(state).goals.every(goal => goal.balance === 0));
+  }
 });

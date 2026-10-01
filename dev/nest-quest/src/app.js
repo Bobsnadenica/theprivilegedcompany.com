@@ -1,11 +1,18 @@
 import './styles.css';
 import './adventure.css';
-import { CURRENCIES, CATEGORIES, createState, validateState, summarize, demoState, parseMoney, validDate, validMonth, localDate, uuid, csv } from './model.js';
-import { GOAL_PRESETS, GOAL_MILESTONES, goalSummary, goalReaction } from './goals.js';
-import { adventureHTML, goalName, goalTitle, companionPosition, pathLengthAt } from './adventure.js';
+import './upgrades.css';
+import './spending.css';
+import './village.css';
+import { createState, validateState, summarize, demoState, parseMoney, validDate, validMonth, localDate, uuid, csv } from './model.js';
+import { GOAL_MILESTONES, goalSummary, goalReaction } from './goals.js';
+import { adventureHTML, portfolioTitle, companionPosition, pathLengthAt } from './adventure.js';
 import { t, money, locale, language, setLanguage, applyLanguage } from './i18n.js';
 import { icon } from './icons.js';
 import { entryHTML } from './entry.js';
+import { CATEGORY_ICONS, categoryOptions, categoryById, normalizeCategoryName } from './categories.js';
+import { goalDraft, readGoalDraft, goalEditorHTML, newGoal } from './goal-editor.js';
+import { spendingHTML } from './spending.js';
+import { mountVillage } from './village.js';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -21,7 +28,7 @@ let account = null, syncEnabled = false, syncPaused = false, syncBusy = false, s
 let lastSyncedRevision = null, lastDeviceRevision = state.revision;
 let pendingAccount = null, cloudModule = null, modalCleanup = null, toastTimer, modalEpoch = 0;
 const modal = $('#modal'), entrySheet = $('#entry-sheet');
-let quickCategory = 'groceries', entryDraft = null;
+let quickCategory = 'groceries', entryDraft = null, entryOwnerEpoch = 0, villageCleanup = null;
 let recoverAccount = null;
 if (!isDemo) {
   try {
@@ -103,7 +110,7 @@ async function flushCloudSave() {
 }
 function errorText(error) {
   const key = error?.message;
-  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError'];
+  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError', 'goalsRequired', 'goalLimit', 'categoryError', 'categoryDuplicate', 'categoryUsed', 'categoryLimit'];
   return t(key === 'amount' ? 'amountError' : known.includes(key) ? key : 'cloudError');
 }
 function toast(message) {
@@ -146,10 +153,14 @@ function render() {
   const total = summarize(state, month);
   $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) =>
     `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
+  villageCleanup?.(); villageCleanup = null;
   $('#adventure-view').innerHTML = adventureHTML(state, { reaction, reactionActive, previous: reactionPrevious, type: quickType, month });
   $('#activity-count').textContent = String(total.entries.length);
+  $('#spending-view').innerHTML = spendingHTML(state, total);
   renderLedger(total); renderSaveStatus();
   const current = goalSummary(state);
+  const village = $('#village-view');
+  if (current && village) villageCleanup = mountVillage(village, { ...current, currency: state.profile.currency }, { reaction, reactionActive, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches });
   if (current) requestAnimationFrame(() => {
     const position = companionPosition(current.ratio), map = $('.reactive-map');
     if (!map) return;
@@ -167,15 +178,17 @@ function renderLedger(total) {
   const options = ['all', 'income', 'expense', ...(state.entries.some(entry => entry.type === 'saving') ? ['saving'] : [])];
   $('#ledger-view').innerHTML = `<div class="ledger-filter"><select id="entry-filter" aria-label="${esc(t('allTypes'))}">${options.map(id => `<option value="${id}" ${id === ledgerFilter ? 'selected' : ''}>${esc(t(id === 'all' ? 'allTypes' : id === 'saving' ? 'legacyTransfer' : id))}</option>`).join('')}</select><span>${esc(monthLabel(month))} · ${filtered.length}</span><button class="button button-small button-outline" data-action="csv">${icon('download')}${esc(t('downloadCsv'))}</button></div>
     <div class="ledger-list">${total.entries.length === 0 ? `<div class="empty-state">${icon('wallet')}<h3>${esc(t('emptyEntries'))}</h3><p>${esc(t('emptyEntriesBody'))}</p></div>` : filtered.length === 0 ? `<div class="empty-state"><p>${esc(t('noFiltered'))}</p></div>` : filtered.slice(0, ledgerLimit).map(entry => {
-      const name = entry.note || t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income');
-      return `<button class="entry-row" data-edit="${entry.id}" aria-label="${esc(`${t('editEntry')}: ${name}, ${cash(entry.amount)}`)}"><span class="entry-symbol ${entry.type}">${icon(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(name)}</span><span class="entry-meta">${esc(dateLabel(entry.date))} · ${esc(t(entry.type === 'expense' ? entry.category : entry.type === 'saving' ? 'legacyTransfer' : 'income'))}</span></span><span class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : entry.type === 'expense' ? '−' : ''}${esc(cash(entry.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`;
+      const category = categoryById(state, entry.category);
+      const label = entry.type === 'expense' ? category?.name || t(category?.id || 'other') : t(entry.type === 'saving' ? 'legacyTransfer' : 'income');
+      const name = entry.note || label;
+      return `<button class="entry-row" data-edit="${entry.id}" aria-label="${esc(`${t('editEntry')}: ${name}, ${cash(entry.amount)}`)}"><span class="entry-symbol ${entry.type}">${icon(entry.type === 'expense' ? category?.icon : entry.type === 'saving' ? 'jar' : 'wallet')}</span><span class="entry-info"><span class="entry-name">${esc(name)}</span><span class="entry-meta">${esc(dateLabel(entry.date))} · ${esc(label)}</span></span><span class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : entry.type === 'expense' ? '−' : ''}${esc(cash(entry.amount))}</span>${icon('edit', 'entry-edit-icon')}</button>`;
     }).join('')}</div>${filtered.length > ledgerLimit ? `<button class="button button-small button-outline button-full" data-action="more-entries">${esc(t('showMore'))}</button>` : ''}`;
 }
 function quickValues() {
   return $('#quick-entry-form') ? Object.fromEntries(new FormData($('#quick-entry-form'))) : entryDraft;
 }
 function openEntry(type = quickType) {
-  if (!state.goal || !state.profile.started) { ensureGoal(); return; }
+  if (!state.goals.length || !state.profile.started) { ensureGoal(); return; }
   quickType = type === 'income' ? 'income' : 'expense';
   entrySheet.innerHTML = entryHTML(state, { type: quickType, category: quickCategory, draft: entryDraft });
   if (!entrySheet.open) entrySheet.showModal();
@@ -196,6 +209,7 @@ function closeEntry({ discard = false } = {}) {
   entrySheet.close();
 }
 function resetEntryDraft() {
+  entryOwnerEpoch++;
   if (entrySheet.open) entrySheet.close();
   entryDraft = null; quickCategory = 'groceries'; entrySheet.replaceChildren();
 }
@@ -206,7 +220,7 @@ function selectQuickType(type) {
   $('.entry-details').open = !!detailsOpen;
 }
 function selectCategory(category) {
-  if (!Object.hasOwn(CATEGORIES, category)) return;
+  if (!categoryById(state, category)) return;
   quickCategory = category; $('#quick-category').value = category;
   document.querySelectorAll('[data-category]').forEach(button => {
     const active = button.dataset.category === category;
@@ -251,34 +265,53 @@ function formError(message) {
 }
 const errorField = '<p id="form-error" class="form-error" role="alert" tabindex="-1" hidden></p>';
 function ensureGoal() {
-  if (!damagedSave && !recoverAccount && (!state.profile.started || !state.goal)) goalModal({ required: true });
+  if (!damagedSave && !recoverAccount && (!state.profile.started || !state.goals.length)) goalModal({ required: true });
 }
 function onboarding() { ensureGoal(); }
-function goalModal({ required = false } = {}) {
-  const first = !state.profile.started, goal = state.goal;
-  const preset = GOAL_PRESETS.find(item => item.kind === (goal?.kind || 'car'));
-  const currency = state.profile.currency;
-  const goalIcons = { car: 'car', wedding: 'rings', house: 'home', emergency: 'shield', travel: 'plane', custom: 'flag' };
-  openModal(`<p class="eyebrow">${esc(t('adventure'))}</p><h2>${esc(t('chooseGoal'))}</h2><p class="modal-description">${esc(t(!first && !goal ? 'oldSave' : 'goalSetup'))}</p>
-    <form id="goal-form" data-first="${first}" data-kind="${preset.kind}">
-    <fieldset class="goal-presets"><legend>${esc(t('goalPresets'))}</legend>${GOAL_PRESETS.map(item => `<button type="button" class="goal-preset ${item.kind === preset.kind ? 'selected' : ''}" data-preset="${item.kind}" aria-pressed="${item.kind === preset.kind}">${icon(goalIcons[item.kind])}<strong>${esc(goalName(item.kind))}</strong><small>${item.kind === 'custom' ? esc(t('goalCustom')) : esc(money(item.target, currency))}</small></button>`).join('')}</fieldset><p class="fine-print">${esc(t('presetHint'))}</p>
-    ${first ? `<details class="profile-details"><summary>${esc(t('personalize'))}</summary><div class="form-grid"><div class="field"><label for="companion-name">${esc(t('companionName'))}</label><input id="companion-name" name="name" value="${esc(state.profile.name === 'Ember' && language() === 'bg' ? 'Ембър' : state.profile.name)}" maxlength="24" required autocomplete="off"></div><div class="field"><label for="currency">${esc(t('currency'))}</label><select id="currency" name="currency" ${state.entries.length ? 'disabled' : ''}>${CURRENCIES.map(value => `<option ${value === currency ? 'selected' : ''}>${value}</option>`).join('')}</select></div></div></details>` : ''}
-    <div class="field"><label for="goal-name">${esc(t('goalName'))}</label><input id="goal-name" name="title" value="${esc(goal?.title || goalName(preset.kind))}" maxlength="64" required autocomplete="off"></div>
-    <div class="form-grid"><div class="field"><label for="goal-target">${esc(t('goalTarget'))} (${currency})</label><input id="goal-target" name="target" value="${((goal?.target || preset.target) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div><div class="field"><label for="goal-opening">${esc(t('openingFund'))} (${currency})</label><input id="goal-opening" name="opening" value="${((goal?.opening || 0) / 100).toFixed(2)}" maxlength="11" required inputmode="decimal"></div></div><p class="fine-print">${esc(t('openingHint'))}</p>${state.entries.length ? `<p class="fine-print">${esc(t('goalKeep'))}</p>` : ''}<details class="fund-explanation"><summary>${esc(t('howFund'))}</summary><p>${esc(t('fundRule'))}</p><p>${esc(t('fundOnly'))}</p>${state.entries.some(entry => entry.type === 'saving') ? `<p>${esc(t('legacyHint'))}</p>` : ''}</details>${errorField}<button class="button button-full" type="submit">${esc(t(first ? 'begin' : 'saveGoal'))}${icon('arrow')}</button></form>
-    ${first ? `<div class="onboard-foot"><button class="modal-link" data-action="import">${esc(t('import'))}</button>${!isDemo ? `<button class="modal-link" data-action="login-first">${esc(t('connect'))}</button>` : ''}</div>` : ''}`, { closeable: !required });
+function goalModal({ required = false, draft = null } = {}) {
+  const value = draft || goalDraft(state);
+  openModal(goalEditorHTML(state, value, isDemo), { closeable: !required });
+  $('#goal-form').goalDraft = value;
 }
 function choosePreset(kind) {
-  const preset = GOAL_PRESETS.find(item => item.kind === kind); if (!preset) return;
-  const form = $('#goal-form'); form.dataset.kind = kind;
-  $('#goal-name').value = goalName(kind); $('#goal-target').value = (preset.target / 100).toFixed(2);
-  form.querySelectorAll('[data-preset]').forEach(button => { const active = button.dataset.preset === kind; button.classList.toggle('selected', active); button.setAttribute('aria-pressed', String(active)); });
-  if (kind === 'custom') { $('#goal-name').focus(); $('#goal-name').select(); }
+  const form = $('#goal-form'); if (!form) return;
+  const draft = readGoalDraft(form);
+  const existing = kind !== 'custom' && draft.goals.find(goal => goal.kind === kind);
+  if (existing) draft.goals = draft.goals.filter(goal => goal.id !== existing.id);
+  else {
+    if (draft.goals.length >= 12) { formError(t('goalLimit')); return; }
+    draft.goals.push(newGoal(kind));
+  }
+  goalModal({ required: !state.goals.length, draft });
+  if (kind === 'custom') modal.querySelector('.goal-editor-row:last-child input').focus();
+}
+function removeGoal(id) {
+  const draft = readGoalDraft($('#goal-form'));
+  draft.goals = draft.goals.filter(goal => goal.id !== id);
+  goalModal({ required: !state.goals.length, draft });
+}
+function categoriesModal({ returnToEntry = false, editId = null } = {}) {
+  const category = state.customCategories.find(item => item.id === editId);
+  const ownerEpoch = entryOwnerEpoch;
+  const colors = ['#729573', '#df9d66', '#8292b5', '#a98ab0', '#ca8ca5', '#7caaa6'];
+  const used = id => state.entries.some(entry => entry.category === id);
+  openModal(`<p class="eyebrow">${esc(t('category'))}</p><h2>${esc(t(category ? 'editCategory' : 'addCategory'))}</h2>
+    <form id="category-form" data-id="${category?.id || ''}"><div class="field"><label for="category-name">${esc(t('categoryName'))}</label><input id="category-name" name="name" value="${esc(category?.name || '')}" maxlength="32" required autocomplete="off" placeholder="${esc(t('categoryExample'))}"></div>
+    <fieldset class="category-icon-picker"><legend>${esc(t('categoryIcon'))}</legend><div>${CATEGORY_ICONS.map(id => `<button type="button" data-category-icon="${id}" class="icon-choice ${(category?.icon || 'other') === id ? 'selected' : ''}" aria-pressed="${(category?.icon || 'other') === id}" aria-label="${esc(t(id))}">${icon(id)}</button>`).join('')}</div><input name="icon" id="category-icon" type="hidden" value="${category?.icon || 'other'}"></fieldset>
+    <fieldset class="category-color-picker"><legend>${esc(t('categoryColor'))}</legend><div>${[...new Set([category?.color, ...colors].filter(Boolean))].map((color, i) => `<button type="button" class="color-choice ${(category?.color || colors[0]) === color ? 'selected' : ''}" style="--swatch:${color}" data-category-color="${color}" aria-pressed="${(category?.color || colors[0]) === color}" aria-label="${esc(t('colorChoice', { n: i + 1 }))}">${icon('check')}</button>`).join('')}</div><input name="color" id="category-color" type="hidden" value="${category?.color || colors[0]}"></fieldset>
+    ${errorField}<button class="button button-full" type="submit">${esc(t(category ? 'saveCategory' : 'addCategory'))}${icon('plus')}</button></form>
+    ${state.customCategories.length ? `<div class="custom-category-list"><h3>${esc(t('yourCategories'))}</h3>${state.customCategories.map(item => `<div class="custom-category-row"><span style="color:${item.color}">${icon(item.icon)}</span><strong>${esc(item.name)}</strong><button type="button" class="icon-button" data-action="edit-category" data-id="${item.id}" aria-label="${esc(t('editCategoryName', { name: item.name }))}">${icon('edit')}</button><button type="button" class="icon-button" data-action="remove-category" data-id="${item.id}" ${used(item.id) ? 'disabled' : ''} aria-label="${esc(t('removeCategoryName', { name: item.name }))}" title="${esc(t(used(item.id) ? 'categoryUsed' : 'removeCategoryName', { name: item.name }))}">${icon('close')}</button></div>`).join('')}<p class="fine-print">${esc(t('categoryKeepHistory'))}</p></div>` : ''}`, {
+      onClose: returnToEntry ? () => queueMicrotask(() => {
+        if (!modal.open && entryOwnerEpoch === ownerEpoch) openEntry(quickType);
+      }) : undefined,
+    });
+  $('#category-form').returnToEntry = returnToEntry;
 }
 function entryModal(id) {
   const existing = state.entries.find(entry => entry.id === id); if (!existing) return;
   openModal(`<p class="eyebrow">${esc(t(existing.type === 'saving' ? 'legacyTransfer' : existing.type))} · ${state.profile.currency}</p><h2>${esc(t('editEntry'))}</h2>${existing.type === 'saving' ? `<p class="modal-description">${esc(t('legacyHint'))}</p>` : '<div style="height:20px"></div>'}
     <form id="entry-form" data-type="${existing.type}" data-id="${id}"><div class="form-grid"><div class="field"><label for="entry-amount">${esc(t('amount'))} (${state.profile.currency})</label><input name="amount" id="entry-amount" value="${(existing.amount / 100).toFixed(2)}" inputmode="decimal" maxlength="11" required autofocus></div><div class="field"><label for="entry-date">${esc(t('date'))}</label><input name="date" id="entry-date" type="date" value="${existing.date}" min="2000-01-01" max="${localDate()}" required></div></div>
-    ${existing.type === 'expense' ? `<div class="field"><label for="entry-category">${esc(t('category'))}</label><select name="category" id="entry-category">${Object.keys(CATEGORIES).map(category => `<option value="${category}" ${category === existing.category ? 'selected' : ''}>${esc(t(category))}</option>`).join('')}</select></div>` : ''}<div class="field"><label for="entry-note">${esc(t('note'))}</label><input name="note" id="entry-note" value="${esc(existing.note)}" maxlength="160" autocomplete="off"></div>${errorField}<div class="form-actions"><button type="button" class="button button-outline" data-action="close">${esc(t('cancel'))}</button><button class="button" type="submit">${esc(t('saveEntry'))}</button></div><button type="button" class="modal-link danger" data-action="delete-entry" data-id="${id}">${esc(t('deleteEntry'))}</button></form>`);
+    ${existing.type === 'expense' ? `<div class="field"><label for="entry-category">${esc(t('category'))}</label><select name="category" id="entry-category">${categoryOptions(state).map(category => `<option value="${category.id}" ${category.id === existing.category ? 'selected' : ''}>${esc(category.name || t(category.id))}</option>`).join('')}</select></div>` : ''}<div class="field"><label for="entry-note">${esc(t('note'))}</label><input name="note" id="entry-note" value="${esc(existing.note)}" maxlength="160" autocomplete="off"></div>${errorField}<div class="form-actions"><button type="button" class="button button-outline" data-action="close">${esc(t('cancel'))}</button><button class="button" type="submit">${esc(t('saveEntry'))}</button></div><button type="button" class="modal-link danger" data-action="delete-entry" data-id="${id}">${esc(t('deleteEntry'))}</button></form>`);
 }
 function landmarkModal(index) {
   const total = goalSummary(state); if (!total || !Number.isInteger(index) || index < 0 || index > 5) return;
@@ -287,7 +320,7 @@ function landmarkModal(index) {
 }
 function settingsModal() {
   openModal(`<p class="eyebrow">${esc(t('settings'))}</p><h2>${esc(t('backupTitle'))}</h2><p class="modal-description">${esc(t('backupBody'))}</p><div class="field"><label for="rename-companion">${esc(t('companionName'))}</label><form id="rename-form" class="form-grid"><input name="name" id="rename-companion" value="${esc(state.profile.name)}" maxlength="24" required><button class="button button-small" type="submit">${esc(t('savePlan'))}</button></form></div><p class="fine-print">${esc(state.profile.currency)} · ${esc(t('noCurrencyChange'))}</p><div class="form-divider"></div>
-    <div class="settings-buttons"><button class="button button-outline" data-action="export">${icon('download')}${esc(t('export'))}</button><button class="button button-outline" data-action="import">${icon('upload')}${esc(t('import'))}</button><button class="button button-outline" data-action="goal">${icon('jar')}${esc(t('changeGoal'))}</button></div>
+    <div class="settings-buttons"><button class="button button-outline" data-action="export">${icon('download')}${esc(t('export'))}</button><button class="button button-outline" data-action="import">${icon('upload')}${esc(t('import'))}</button><button class="button button-outline" data-action="goal">${icon('jar')}${esc(t('manageGoals'))}</button><button class="button button-outline" data-action="categories">${icon('other')}${esc(t('yourCategories'))}</button></div>
     ${account || recoverAccount ? `<div class="settings-account"><span class="tiny-label">${esc(t('cloud'))}</span><p>${esc(account?.email || t('cloudPaused'))}</p><button class="button button-small button-outline" data-action="sign-out">${esc(t('signOut'))}</button>${account ? `<br><button class="modal-link danger" data-action="remove-cloud">${esc(t('removeCloud'))}</button>` : ''}</div>` : `<div class="form-divider"></div><button class="modal-link danger" data-action="reset">${esc(t('reset'))}</button>`}
     <p class="onboard-foot"><a href="./privacy.html?lang=${language()}" target="_blank" rel="noopener">${esc(t('privacy'))}</a></p>${errorField}`);
 }
@@ -387,7 +420,12 @@ async function restoreAccount() {
     if (!remote || dirty && remote.revision !== saved.lastSyncedRevision) {
       syncPaused = true; cloudErrorKey = 'cloudConflict';
     } else if (dirty) { syncEnabled = true; scheduleCloudSave(); }
-    else { if (remote.revision !== state.revision) resetEntryDraft(); state = structuredClone(remote); syncEnabled = true; lastSyncedRevision = state.revision; }
+    else {
+      if (remote.revision !== state.revision) {
+        resetEntryDraft(); if (modal.open) closeModal();
+      }
+      state = structuredClone(remote); syncEnabled = true; lastSyncedRevision = state.revision;
+    }
     clearReaction(); storeDevice(); render(); ensureGoal();
   } catch (error) { restored?.close(); if (recoverAccount === saved) { syncPaused = true; cloudErrorKey = error.message === 'sessionEnded' ? 'sessionEnded' : 'cloudError'; render(); } }
 }
@@ -403,7 +441,7 @@ async function disconnect({ signOut = true } = {}) {
 
 function copySummary(copy) {
   const total = goalSummary(copy);
-  return t('cloudSummary', { name: copy.profile.name, goal: copy.goal ? goalTitle(copy.goal) : t('noGoalYet'), fund: money(total?.balance || 0, copy.profile.currency), entries: copy.entries.length });
+  return t('cloudSummary', { name: copy.profile.name, goal: copy.goals.length ? portfolioTitle(copy) : t('noGoalYet'), fund: money(total?.balance || 0, copy.profile.currency), entries: copy.entries.length });
 }
 document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
 $('#month').addEventListener('change', event => {
@@ -423,10 +461,9 @@ modal.addEventListener('click', event => { if (event.target === modal && modal.d
 document.addEventListener('change', event => {
   if (event.target.id === 'entry-filter') { ledgerFilter = event.target.value; ledgerLimit = 12; renderLedger(summarize(state, month)); }
   if (event.target.id === 'currency') {
-    const currency = event.target.value;
-    document.querySelectorAll('.goal-preset small').forEach((el, index) => { if (GOAL_PRESETS[index].kind !== 'custom') el.textContent = money(GOAL_PRESETS[index].target, currency); });
-    $('#goal-target').previousElementSibling.textContent = `${t('goalTarget')} (${currency})`;
-    $('#goal-opening').previousElementSibling.textContent = `${t('openingFund')} (${currency})`;
+    const draft = readGoalDraft($('#goal-form'));
+    goalModal({ required: !state.goals.length, draft });
+    $('#currency').focus();
   }
 });
 document.addEventListener('click', async event => {
@@ -434,17 +471,24 @@ document.addEventListener('click', async event => {
   if (target.dataset.lang) {
     // Keep an unfinished entry when switching language.
     if (entrySheet.open) entryDraft = quickValues();
-    const goalDraft = modal.open && $('#goal-form') ? Object.fromEntries(new FormData($('#goal-form'))) : null;
-    const goalKind = $('#goal-form')?.dataset.kind;
+    const draft = modal.open && $('#goal-form') ? readGoalDraft($('#goal-form')) : null;
     setLanguage(target.dataset.lang); render();
+    if (entrySheet.open) openEntry(quickType);
     if (modal.open) {
-      if (goalDraft) { goalModal({ required: !state.goal }); $('#goal-form').dataset.kind = goalKind; for (const [name, value] of Object.entries(goalDraft)) { const input = $('#goal-form').elements.namedItem(name); if (input) input.value = value; } }
+      if (draft) goalModal({ required: !state.goals.length, draft });
       else closeModal();
     }
     return;
   }
   if (target.dataset.quickType) { selectQuickType(target.dataset.quickType); return; }
   if (target.dataset.category) { selectCategory(target.dataset.category); return; }
+  if (target.dataset.categoryIcon || target.dataset.categoryColor) {
+    const attribute = target.dataset.categoryIcon ? 'categoryIcon' : 'categoryColor';
+    const value = target.dataset[attribute];
+    $(attribute === 'categoryIcon' ? '#category-icon' : '#category-color').value = value;
+    target.parentElement.querySelectorAll('button').forEach(button => { const selected = button.dataset[attribute] === value; button.classList.toggle('selected', selected); button.setAttribute('aria-pressed', String(selected)); });
+    return;
+  }
   if (target.dataset.preset) { choosePreset(target.dataset.preset); return; }
   if (target.dataset.edit) { entryModal(target.dataset.edit); return; }
   const action = target.dataset.action, id = target.dataset.id; if (!action) return;
@@ -453,7 +497,17 @@ document.addEventListener('click', async event => {
     if (action === 'close-entry') closeEntry();
     if (action === 'add-expense') openEntry('expense');
     if (action === 'add-income') openEntry('income');
-    if (action === 'goal') goalModal({ required: !state.goal });
+    if (action === 'remove-goal') removeGoal(id);
+    if (action === 'categories') categoriesModal({ returnToEntry: entrySheet.open });
+    if (action === 'edit-category') categoriesModal({ returnToEntry: $('#category-form')?.returnToEntry, editId: id });
+    if (action === 'remove-category') {
+      if (state.entries.some(entry => entry.category === id)) throw new Error('categoryUsed');
+      const returnToEntry = $('#category-form')?.returnToEntry;
+      mutate(next => { next.customCategories = next.customCategories.filter(item => item.id !== id); }, { animate: false });
+      if (entryDraft?.category === id) { entryDraft.category = 'groceries'; quickCategory = 'groceries'; }
+      categoriesModal({ returnToEntry });
+    }
+    if (action === 'goal') goalModal({ required: !state.goals.length });
     if (action === 'login-first') { closeModal(); await accountModal(); }
     if (action === 'landmark') landmarkModal(Number(id));
     if (action === 'pet') { setReaction({ pet: true, delta: 0, direction: 'steady' }, goalSummary(state)); render(); }
@@ -490,17 +544,17 @@ document.addEventListener('click', async event => {
 });
 document.addEventListener('submit', async event => {
   const form = event.target;
-  if (!['quick-entry-form', 'entry-form', 'goal-form', 'rename-form', 'login-form', 'new-password-form'].includes(form.id)) return;
+  if (!['quick-entry-form', 'entry-form', 'goal-form', 'rename-form', 'category-form', 'login-form', 'new-password-form'].includes(form.id)) return;
   event.preventDefault(); const data = new FormData(form);
   try {
     if (form.id === 'quick-entry-form' || form.id === 'entry-form') {
-      if (!state.goal || !state.profile.started) { ensureGoal(); return; }
+      if (!state.goals.length || !state.profile.started) { ensureGoal(); return; }
       const date = data.get('date'); if (!validDate(date) || date > localDate()) { formError(t('futureDate')); return; }
       const type = form.dataset.type, id = form.dataset.id || uuid(), amount = parseMoney(data.get('amount'));
       const previous = state.entries.find(entry => entry.id === id);
       const category = type === 'expense' ? data.get('category') : type;
       const entry = { id, type, amount, date, note: String(data.get('note') || '').trim(), category,
-        ...(type === 'expense' ? { essential: previous?.essential ?? CATEGORIES[category]?.essential ?? false } : {}) };
+        ...(type === 'expense' ? { essential: previous?.essential ?? categoryById(state, category)?.essential ?? false } : {}) };
       mutate(next => {
         if (!form.dataset.id && next.entries.length >= 10000) throw new Error('limitReached');
         next.entries = next.entries.filter(item => item.id !== id); next.entries.push(entry);
@@ -511,22 +565,35 @@ document.addEventListener('submit', async event => {
       month = date.slice(0, 7); $('#month').value = month;
       $('#activity-count').textContent = String(summarize(state, month).entries.length);
       const total = summarize(state, month);
-      renderLedger(total);
+      renderLedger(total); $('#spending-view').innerHTML = spendingHTML(state, total);
       $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) => `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
       if (entrySheet.open) closeEntry({ discard: true });
       if (modal.open) closeModal(); revealReaction();
       if (!reaction?.delta) toast(t('entrySaved'));
     }
     if (form.id === 'goal-form') {
-      const title = String(data.get('title')).trim(); if (!title || title.length > 64) throw new Error('goalError');
-      const target = parseMoney(data.get('target')), opening = parseMoney(data.get('opening'), true), kind = form.dataset.kind;
-      const old = state.goal;
-      const id = old && old.kind === kind && old.title === title && old.target === target ? old.id : uuid();
+      const draft = readGoalDraft(form);
+      if (!draft.goals.length) throw new Error('goalsRequired');
+      const goals = draft.goals.map(goal => {
+        const title = String(goal.title).trim(); if (!title || title.length > 64) throw new Error('goalError');
+        return { id: goal.id, kind: goal.kind, title, target: parseMoney(goal.amount) };
+      });
+      const opening = parseMoney(draft.opening, true);
       mutate(next => {
-        next.goal = { id, kind, title, target, opening };
-        if (form.dataset.first === 'true') next.profile = { name: String(data.get('name')).trim(), currency: data.get('currency') || next.profile.currency, started: true };
+        next.goals = goals; next.opening = opening;
+        if (form.dataset.first === 'true') next.profile = { name: String(draft.name).trim(), currency: draft.currency, started: true };
       }); closeModal(); revealReaction(); if (!reaction?.delta) toast(t('goalUpdated'));
       $('#companion-button').focus({ preventScroll: true });
+    }
+    if (form.id === 'category-form') {
+      const name = String(data.get('name')).trim(), id = form.dataset.id || `custom-${uuid()}`;
+      if (!name || name.length > 32) throw new Error('categoryError');
+      if (categoryOptions(state).some(item => item.id !== id && normalizeCategoryName(item.name || t(item.id)) === normalizeCategoryName(name))) throw new Error('categoryDuplicate');
+      if (!form.dataset.id && state.customCategories.length >= 30) throw new Error('categoryLimit');
+      const category = { id, name, icon: data.get('icon'), color: data.get('color') };
+      mutate(next => { const index = next.customCategories.findIndex(item => item.id === id); if (index >= 0) next.customCategories[index] = category; else next.customCategories.push(category); }, { animate: false });
+      if (form.returnToEntry) { quickCategory = id; if (entryDraft) entryDraft.category = id; }
+      closeModal(); toast(t('categorySaved'));
     }
     if (form.id === 'rename-form') { mutate(next => { next.profile.name = String(data.get('name')).trim(); }, { animate: false }); closeModal(); }
     if (form.id === 'login-form') {
@@ -567,5 +634,5 @@ window.addEventListener('load', () => {
 }, { once: true });
 render();
 if (recoverAccount) void restoreAccount();
-else if ((!state.profile.started || !state.goal) && !damagedSave) ensureGoal();
+else if ((!state.profile.started || !state.goals.length) && !damagedSave) ensureGoal();
 else if (isDemo && !damagedSave) storeDevice();

@@ -9,16 +9,18 @@ This guide was updated on **2026-09-27**. See [memory.md](memory.md) for durable
 [Nest & Quest](dev/nest-quest/) is a new English/Bulgarian game in the Dev hub’s
 Games & Fun section. Its landing page explains local play and optional existing
 company-account saving. One Adventure page features a large original fox-dragon
-companion, illustrated valley, and compact goal display. A mobile action dock
-opens easy income/expense entry with visual expense categories; date and note
-are optional details. Editable history stays in a collapsed money trail.
-Choose a suggested car, wedding, home, safety-fund, or trip goal, or set a custom
-name and target. Opening money plus all income minus all expenses funds the goal
-across months. Every change makes Ember react and moves the route marker forward
-or back; six checkpoints and three character forms follow the funded percentage.
-Version 1 saves migrate without losing records, and earlier savings transfers
-remain neutral to avoid counting money twice. It adds no bank integration or
-paid service.
+companion, illustrated valley, and compact shared-fund display. A mobile action
+dock opens easy income/expense entry with built-in or custom categories; date and
+note are optional details. Collapsed history includes monthly category graphs.
+Choose up to 12 goals together, including car, wedding, home, safety-fund, trip,
+or custom goals. Opening money plus all income minus all expenses forms one fund
+across months, allocated exactly between goals by target size. Every change makes
+Ember react and moves the route marker forward or back; six checkpoints and three
+character forms follow the combined funded percentage. A procedural Three.js
+village adds twelve levels tied to the fund, with animated builds, residents,
+and a visible next reward. Version 1/2 saves migrate to schema 3 without losing records.
+Earlier savings transfers remain neutral to avoid counting money twice. It adds
+no bank integration or paid service.
 
 The optional account save uses the existing Cognito/Identity Pool/S3 backend and
 an isolated `.nestquest/` application document, hidden from the portal Files list.

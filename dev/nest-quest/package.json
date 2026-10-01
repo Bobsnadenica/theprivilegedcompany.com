@@ -12,7 +12,10 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity": "^3.658.0",
     "@aws-sdk/client-s3": "^3.658.0",
-    "amazon-cognito-identity-js": "^6.3.12"
+    "amazon-cognito-identity-js": "^6.3.12",
+    "three": "0.186.1"
   },
-  "devDependencies": { "vite": "^5.4.0" }
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
 }

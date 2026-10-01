@@ -1,0 +1,44 @@
+.village-card{overflow:hidden;border:1px solid #cbd8b5;border-radius:20px;background:#f9f9ee;box-shadow:0 14px 46px #3d532515}
+.village-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 24px 17px}
+.village-heading .tiny-label{margin-bottom:5px;color:#71845b;font-size:9px;letter-spacing:.12em}
+.village-heading h2{color:#3c5734;font-size:30px}
+.village-level{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 11px;border:1px solid #d0ddb9;border-radius:30px;background:#eef3dd;color:#496335;font-size:12px;white-space:nowrap}
+.village-level .icon{width:16px;height:16px}
+.village-canvas-host{position:relative;height:550px;isolation:isolate;background:radial-gradient(ellipse at 50% 38%,#fff9e9 0%,#edf2d8 53%,#dbe8c4 100%);overflow:hidden}
+.village-canvas-host:after{content:"";position:absolute;inset:0;z-index:1;box-shadow:inset 0 0 45px #c3d5a529;pointer-events:none}
+.village-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;z-index:2;touch-action:pan-y;cursor:grab;outline:none}
+.village-canvas:active{cursor:grabbing}
+.village-fallback-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;filter:saturate(.9)}
+[data-village-ready=true] .village-fallback-art{display:none}
+[data-village-fallback=true] .village-canvas{display:none}
+[data-village-fallback=true] .village-fallback-art{display:block;opacity:.85}
+[data-village-fallback=true] [data-village-reset]{display:none}
+.village-loading{position:absolute;z-index:3;left:50%;top:48%;transform:translate(-50%,-50%);width:max-content;max-width:calc(100% - 48px);padding:11px 15px;border:1px solid #e1e8c9;border-radius:10px;background:#fffbeded;color:#526747;font-size:12px;text-align:center;box-shadow:0 5px 24px #4155301c}
+.village-scene-tools{position:absolute;z-index:4;top:16px;right:18px;left:18px;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+.village-population{padding:6px 10px;border:1px solid #d6e0b9;border-radius:30px;background:#fffbebcc;color:#526d3d;font-size:12px;backdrop-filter:blur(8px)}
+.village-scene-tools button{display:grid;place-items:center;pointer-events:auto;width:44px;height:44px;border:1px solid #d0dcb4;border-radius:10px;background:#fffbebdc;color:#68834e;box-shadow:0 3px 13px #556b2c13}
+.village-scene-tools button .icon{width:18px;height:18px}
+.village-scene-tools button:disabled{opacity:.45;cursor:default}
+.village-notice{position:absolute;z-index:5;bottom:22px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);padding:10px 15px;border:1px solid #d4b963;border-radius:30px;background:#fff1bddf;color:#7c6129;box-shadow:0 6px 22px #70532220;font-size:12px;text-align:center;opacity:0;pointer-events:none}
+.village-notice.show{animation:village-notice-in .5s ease-out both}
+.village-next{display:flex;align-items:center;gap:13px;padding:19px 24px 14px;background:#fbfaed}
+.village-reward-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border:1px solid #d8dcb6;border-radius:12px;background:#f2edd4;color:#957a40}
+.village-reward-icon .icon{width:23px;height:23px}
+.village-next>div{min-width:0;flex:1}
+.village-next strong{display:block;color:#526c3c;font-size:13px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.village-next>div>span{display:block;margin-top:3px;color:#60714c;font-size:12px}
+.village-next-level{color:#60774a;font-size:12px;white-space:nowrap}
+.village-progress{height:5px;margin:0 24px;background:#e4ead3;border-radius:8px;overflow:hidden}
+.village-progress>span{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#8eaa5e,#c6b674);transition:width .8s ease}
+.village-blueprints{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px;margin:15px 24px 0}
+.village-blueprints button{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:44px;padding:5px 3px;border:1px solid #dfe5cb;border-radius:8px;background:#f4f6e8;color:#667453;font-size:12px}
+.village-blueprints .icon{width:14px;height:14px}
+.village-blueprints .built{color:#637e43;border-color:#c7d7ae;background:#eaf0da}
+.village-blueprints .current{color:#8f7133;border-color:#d8c68b;background:#f9efcf}
+.village-blueprints button:hover{background:#fff8dd;border-color:#cbb670;color:#84672c}
+.village-inspector{min-height:20px;padding:12px 24px 18px;color:#60734d;font-size:12px;text-align:center;line-height:1.6}
+@keyframes village-notice-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:850px){.village-canvas-host{height:470px}.village-heading{padding-inline:20px}.village-heading h2{font-size:27px}.village-blueprints{gap:4px;margin-inline:20px}.village-blueprints button{flex-direction:column;gap:3px}.village-next{padding-inline:20px}.village-progress{margin-inline:20px}}
+@media(max-width:680px){.village-card{border-radius:17px}.village-heading{padding:16px 15px;gap:10px}.village-heading h2{font-size:24px}.village-heading .tiny-label{font-size:9px;letter-spacing:.07em}.village-level{padding:6px 8px;gap:5px}.village-level .icon{width:14px;height:14px}.village-canvas-host{height:380px}.village-scene-tools{top:12px;left:13px;right:13px}.village-population{padding:5px 8px}.village-next{padding:16px 15px 12px;gap:10px}.village-reward-icon{width:36px;height:36px;border-radius:10px}.village-reward-icon .icon{width:20px;height:20px}.village-next strong{font-size:13px}.village-next-level{display:none}.village-progress{margin-inline:15px;height:5px}.village-blueprints{grid-template-columns:repeat(6,minmax(0,1fr));margin:13px 15px 0;gap:6px}.village-blueprints button{flex-direction:row;gap:6px}.village-blueprints .icon{width:15px;height:15px}.village-inspector{padding:11px 15px 16px}.village-notice{bottom:18px;padding:9px 12px}}
+@media(max-width:380px){.village-heading h2{font-size:22px}.village-level{padding:6px 7px}.village-canvas-host{height:345px}.village-blueprints{gap:5px}}
+@media(prefers-reduced-motion:reduce){.village-notice.show{animation:none;opacity:1}.village-progress>span{transition:none}}

@@ -2,6 +2,7 @@ import { QUESTS } from './model.js';
 import { GOAL_MILESTONES, goalSummary } from './goals.js';
 import { t, money } from './i18n.js';
 import { icon } from './icons.js';
+import { villageHTML, villageSummary } from './village.js';
 
 export const escapeText = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 export const goalName = kind => t(`goal${kind.charAt(0).toUpperCase()}${kind.slice(1)}`);
@@ -12,6 +13,15 @@ export function goalTitle(goal) {
     emergency: ['Safety fund', 'Резервен фонд'], travel: ['Dream trip', 'Мечтано пътуване'],
   };
   return defaults[goal.kind]?.includes(goal.title) ? goalName(goal.kind) : goal.title;
+}
+export function portfolioTitle(state) {
+  return state.goals.length === 1 ? goalTitle(state.goals[0]) : state.goals.length ? t('goalsCount', { n: state.goals.length }) : t('chooseGoals');
+}
+const goalIcons = { car: 'car', wedding: 'rings', house: 'home', emergency: 'shield', travel: 'plane', custom: 'flag' };
+function goalsHTML(state, total) {
+  const esc = escapeText;
+  if (!total.goals?.length) return '';
+  return `<section class="portfolio panel" aria-label="${esc(t('yourGoals'))}"><div class="portfolio-heading"><div><span class="tiny-label">${esc(t('sharedFund'))}</span><h2>${esc(t('yourGoals'))}</h2></div><button type="button" class="button button-small button-outline" data-action="goal">${icon('plus')}${esc(t('manageGoals'))}</button></div><div class="portfolio-grid">${total.goals.map(goal => `<article class="portfolio-goal" data-goal-id="${goal.id}"><span class="portfolio-icon">${icon(goalIcons[goal.kind])}</span><div class="portfolio-body"><h3>${esc(goalTitle(goal))}</h3><div class="portfolio-amount"><strong>${esc(money(goal.balance, state.profile.currency))}</strong><span>${esc(money(goal.target, state.profile.currency))}</span></div><div class="portfolio-progress" role="progressbar" aria-label="${esc(goalTitle(goal))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${goal.percent}"><span style="width:${goal.ratio * 100}%"></span></div><small>${esc(goal.completed ? t('goalReached') : t('goalLeft', { amount: money(goal.remaining, state.profile.currency) }))}</small></div></article>`).join('')}</div><p class="portfolio-note">${esc(t('allocationShort'))}${total.surplus ? ` <strong>${esc(t('goalSurplus', { amount: money(total.surplus, state.profile.currency) }))}</strong>` : ''}</p></section>`;
 }
 const symbols = ['home', 'lantern', 'bridge', 'flower', 'shield', 'flag'];
 
@@ -27,18 +37,21 @@ export function companionPosition(ratio) {
 export function reactionSpeech(state, reaction) {
   const total = goalSummary(state);
   if (!total) return t('goalSetup');
-  const values = { goal: goalTitle(state.goal), amount: money(Math.abs(reaction?.delta || 0), state.profile.currency),
+  const values = { goal: portfolioTitle(state), amount: money(Math.abs(reaction?.delta || 0), state.profile.currency),
     place: t(`landmark${Math.min(5, total.milestone + (reaction?.milestoneDown ? 1 : 0))}`) };
   if (reaction?.pet) return t('petSpeech');
   if (reaction?.completed) return t('reactionComplete', values);
   if (reaction?.reopened) return t('reactionReopen', values);
+  const village = villageSummary(total), previousVillage = villageSummary({ balance: total.balance - (reaction?.delta || 0) });
+  if (reaction?.delta && village.index > previousVillage.index) return t('villageUnlock', { name: t(`villageBuild${village.index}`) });
+  if (reaction?.delta && village.index < previousVillage.index) return t('villageReturn', { name: t(`villageBuild${previousVillage.index}`) });
   if (reaction?.milestoneUp) return t('reactionUnlock', values);
   if (reaction?.milestoneDown) return t('reactionRelock', values);
   if (reaction?.direction === 'up') return t('reactionUp', values);
   if (reaction?.direction === 'down') return t('reactionDown', values);
   if (total.balance < 0) return t('negativeSpeech');
   if (total.completed) return t('completeSpeech', values);
-  return t('idleSpeech', { goal: goalTitle(state.goal), amount: money(total.remaining, state.profile.currency) });
+  return t('idleSpeech', { goal: portfolioTitle(state), amount: money(total.remaining, state.profile.currency) });
 }
 
 export function adventureHTML(state, { reaction = null, reactionActive = false, previous = null } = {}) {
@@ -72,13 +85,13 @@ export function adventureHTML(state, { reaction = null, reactionActive = false, 
         <span class="map-caption">${esc(t(total.stage))} · ${total.percent}%</span>
         <div class="celebration" aria-hidden="true">${Array.from({ length: 12 }, (_, index) => `<i style="--i:${index}"></i>`).join('')}</div>
       </div>
-      <section class="goal-card goal-hud" aria-label="${esc(t('goalFund'))}"><div class="goal-heading"><span class="goal-symbol" aria-hidden="true">${icon(({car:'car',wedding:'rings',house:'home',emergency:'shield',travel:'plane',custom:'flag'})[state.goal?.kind] || 'flag')}</span><div><span class="tiny-label">${esc(t('savingFor'))}</span><h3>${esc(goalTitle(state.goal))}</h3></div><button type="button" class="goal-edit" data-action="goal" aria-label="${esc(t('changeGoal'))}">${icon('edit')}</button></div><div class="goal-numbers"><strong class="goal-balance ${total.balance < 0 ? 'negative' : ''}" id="goal-balance">${esc(cash(total.balance))}</strong><span class="goal-percentage" id="goal-percent">${total.percent}%</span></div><p class="goal-total">${esc(t('goalTargetOf', { amount: cash(total.target) }))}</p><div class="goal-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${total.percent}" aria-label="${esc(goalTitle(state.goal))}"><span style="width:${before.ratio * 100}%"></span></div><div class="goal-meta"><span>${esc(total.completed ? t('goalReached') : t('goalLeft', { amount: cash(total.remaining) }))}</span></div></section>
+      <section class="goal-card goal-hud" aria-label="${esc(t('goalFund'))}"><div class="goal-heading"><span class="goal-symbol" aria-hidden="true">${icon(state.goals.length === 1 ? goalIcons[state.goals[0].kind] : 'jar')}</span><div><span class="tiny-label">${esc(t('savingFor'))}</span><h3>${esc(portfolioTitle(state))}</h3></div><button type="button" class="goal-edit" data-action="goal" aria-label="${esc(t('manageGoals'))}">${icon('edit')}</button></div><div class="goal-numbers"><strong class="goal-balance ${total.balance < 0 ? 'negative' : ''}" id="goal-balance">${esc(cash(total.balance))}</strong><span class="goal-percentage" id="goal-percent">${total.percent}%</span></div><p class="goal-total">${esc(t('goalTargetOf', { amount: cash(total.target) }))}</p><div class="goal-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${total.percent}" aria-label="${esc(portfolioTitle(state))}"><span style="width:${before.ratio * 100}%"></span></div><div class="goal-meta"><span>${esc(total.completed ? t('goalReached') : t('goalLeft', { amount: cash(total.remaining) }))}</span></div></section>
       <div class="companion-reaction world-message" role="status" aria-live="polite" aria-atomic="true"><strong>${esc(state.profile.name)}</strong>${signed ? `<span class="reaction-delta ${reaction.delta < 0 ? 'negative' : ''}">${esc(signed)}</span>` : ''}<p id="companion-speech">${esc(reactionSpeech(state, reaction))}</p></div>
       </div>
       <div class="milestone-rail" aria-label="${esc(t('adventure'))}">${rail}</div>
       <p class="next-checkpoint">${esc(total.completed ? t('goalReached') : t('nextCheckpoint', { place: t(`landmark${next}`), amount: cash(Math.ceil(total.target * GOAL_MILESTONES[next])) }))}</p>
     </section>
-    </div><div class="adventure-actions"><button class="button expense-action" type="button" data-action="add-expense">${icon('plus')}<span>${esc(t('addExpense'))}</span></button><button class="button button-outline income-action" type="button" data-action="add-income">${icon('wallet')}<span>${esc(t('addIncome'))}</span></button></div><div class="mobile-dock"><button type="button" class="button expense-action" data-action="add-expense">${icon('plus')}<span>${esc(t('addExpense'))}</span></button><button type="button" class="button button-outline income-action" data-action="add-income">${icon('wallet')}<span>${esc(t('addIncome'))}</span></button></div>`;
+    ${goalsHTML(state, total)}<div id="village-view">${villageHTML({ ...total, currency: state.profile.currency }, { reaction, reactionActive })}</div></div><div class="adventure-actions"><button class="button expense-action" type="button" data-action="add-expense">${icon('plus')}<span>${esc(t('addExpense'))}</span></button><button class="button button-outline income-action" type="button" data-action="add-income">${icon('wallet')}<span>${esc(t('addIncome'))}</span></button></div><div class="mobile-dock"><button type="button" class="button expense-action" data-action="add-expense">${icon('plus')}<span>${esc(t('addExpense'))}</span></button><button type="button" class="button button-outline income-action" data-action="add-income">${icon('wallet')}<span>${esc(t('addIncome'))}</span></button></div>`;
 
 }
 

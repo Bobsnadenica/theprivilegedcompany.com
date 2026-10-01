@@ -13,24 +13,34 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
 - The current experience is one Adventure page with a cinematic Willowmere scene,
   a large interactive Ember, and a compact goal display. Income/expense actions
   open a native desktop dialog or mobile bottom sheet. Expense entry uses an
-  amount and eleven visual category tiles; date/note are optional details and
+  amount and visual category tiles; date/note are optional details and
   default to today regardless of the history month filter. A fixed mobile dock
   keeps actions reachable; history and monthly totals remain collapsed until
-  opened. Goal suggestions
-  are car 30,000, wedding 50,000, home 100,000, safety fund 10,000, and trip 2,000;
-  names and targets are editable, with a custom option. Money uses integer minor
-  units and one fixed currency per adventure.
+  opened, including sorted category graphs with amounts and percentages. Eleven
+  built-in categories can be extended with up to 30 custom names, icons, and colors.
+  Used custom categories can be renamed but not removed while entries reference
+  them. Goal suggestions are car 30,000, wedding 50,000, home 100,000,
+  safety fund 10,000, and trip 2,000;
+  names and targets are editable, with a custom option and up to 12 goals together.
+  One fund allocates positive money by each target's proportion of the combined
+  target, using exact integer rounding. Allocations never duplicate money or
+  exceed targets; extra funds remain a surplus. Money uses integer minor units
+  and one fixed currency per adventure.
 - Goal fund equals opening money plus all income minus all expenses, across
   months and every expense category. The month selector filters summaries and
   history, not goal progress. Entries, edits, and deletion prompt Ember reactions,
   change map color and path progress, and move the route marker forward or back.
   Large Ember stays in the foreground. Checkpoints are 0%, 10%, 25%, 50%,
-  75%, and 100%; forms change at 25% and 75% and reverse below those boundaries.
+  75%, and 100% of the combined target; forms change at 25% and 75% and reverse
+  below those boundaries.
   Current play has no care, XP, shop, or manual chapter-claim gates.
-- Save schema version 2 adds a goal. Version 1 records and metadata migrate
-  losslessly with `goal: null`, prompting goal selection. Earlier savings transfers
-  remain editable in history but do not add to or reduce the goal fund. Legacy
-  plans, choices, care, and rewards remain stored for compatibility only. JSON
+- Save schema version 3 adds `goals`, shared `opening`, and `customCategories`.
+  Version 1 records and metadata migrate losslessly with no selected goals.
+  Version 2's single goal becomes one list item, moving its opening amount into
+  the shared fund once. Migration retains the save revision and never writes the
+  cloud merely on read. Earlier savings transfers remain editable in history
+  but do not add to or reduce the goal fund. Legacy plans, choices, care, and
+  rewards remain stored for compatibility only. JSON
   backups and monthly CSV remain available.
 - Guest saves use localStorage; the fictional demo uses a separate session key.
   Optional saves reuse existing Cognito SRP/first-password login and IAM-scoped S3
@@ -49,13 +59,24 @@ Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier publi
   deletion, local-tab conflicts, blocked storage, invalid saves, and reduced
   motion were also checked. Temporary test accounts/identities/object versions
   are removed after live release verification; never retain their credentials.
-- The goal-driven revision passed 37 local core checks and 69 local play-through
+- The earlier single-goal revision passed 37 local core checks and 69 local play-through
   assertions covering exact amounts, category tiles and sheets, draft preservation,
   reversible forms/completion, dated edits/deletion, backups, migration, and
   reduced motion. Sixty EN/BG layout cases passed down to 320 pixels, including
   short viewports, entry sheets, expanded history, and maximum goal values.
-  Publication still requires exact-revision Pages, public-byte comparison, and
-  production-origin account verification; local evidence is a separate gate.
+  Those results do not certify the current schema 3 upgrade.
+- The procedural Three.js village in `src/village.js` and `src/village-model.js` has twelve fund-based level
+  thresholds: 0, 100, 400, 900, 1,600, 2,500, 3,600, 4,900, 6,400, 8,100, 10,000,
+  and 12,100 currency units. Each level adds a building/resident; spending below
+  its threshold reverses additions. The scene has horizontal rotation, building
+  inspection, blueprint buttons, and a visible next reward. Three.js loads near
+  the viewport; geometry is procedural, reduced motion stops continuous animation,
+  and unavailable WebGL leaves an illustrated fallback. No separate village save
+  state exists. Current local validation passed 58 automated checks, 45 entry/goal
+  assertions, 68 EN/BG layouts, 60 rendered village assertions, and 17 real
+  Cognito/S3 account assertions. Newer remote revisions invalidate cached modal
+  drafts before adoption; newly entered expenses during reconnect still sync.
+  Production verification remains a separate gate before release claims.
 - Release verification must still follow each publication: wait for Pages,
   compare changed deployable bytes, inspect live UI, and test account operations
   on the production origin. See the game README for commands and source research.
