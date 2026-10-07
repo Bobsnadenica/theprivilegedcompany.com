@@ -1,35 +1,10 @@
 <section class="monolith-view contact-view">
+    <header class="view-header reveal-mask">
+        <span class="label">Get in touch</span>
+        <h1 class="display-huge" data-scramble>Let’s take the next step.</h1>
+        <p class="view-lead">Request a 1:1 or tell us about your project. We agree the scope, price and a suitable time by email.</p>
+    </header>
     <div class="contact-layout">
-        <div class="contact-intro">
-            <header class="view-header reveal-mask">
-                <span class="label">Get in touch</span>
-                <h1 class="display-huge" data-scramble>What can we help with?</h1>
-                <p class="view-lead">A question, a personal project, or a business challenge — tell us what you need. Get 1:1 consultations, mentoring, and practical technical help from a certified senior cloud architect.</p>
-            </header>
-
-            <aside class="contact-person" aria-label="Your first point of contact">
-                <img src="/dev/soroya/assets/soroya-company-desk-2026-09-27.png" alt="Soroya at her desk" width="1122" height="1402" loading="lazy" decoding="async">
-                <div>
-                    <h2>Soroya</h2>
-                    <p class="company-role">Head of HR &amp; Operations</p>
-                    <p>Our AI-created contact persona. Our team replies personally.</p>
-                    <a href="/dev/soroya/index.html" data-soroya-link>About Soroya</a>
-                </div>
-            </aside>
-
-            <ul class="contact-assurances reveal-mask" aria-label="What to expect">
-                <li>Your enquiry is read by a senior engineer.</li>
-                <li>We reply by email to talk through scope and next steps.</li>
-                <li>No obligation, and your details are only used to respond to you.</li>
-            </ul>
-            <div class="contact-direct">
-                <a class="contact-email" href="mailto:contactus@theprivilegedcompany.com">contactus@theprivilegedcompany.com</a>
-                <button id="contact-copy-address" class="btn-hud" type="button" disabled>Copy email address</button>
-                <input id="contact-address-value" type="text" value="contactus@theprivilegedcompany.com" aria-label="Email address" readonly hidden>
-                <p id="contact-address-status" aria-live="polite"></p>
-            </div>
-        </div>
-
         <div class="contact-shell reveal-mask">
         <p class="contact-form-kicker">A few details are enough to start.</p>
         <form class="contact-form" id="contact-form" method="post">
@@ -51,24 +26,33 @@
                 </label>
             </div>
 
-            <div class="field-grid">
-                <label>
-                    <span>How can we help? <small>Required</small></span>
-                    <select name="requestType" required>
-                        <option value="">Select one</option>
-                        <option value="Company data or market intelligence">Company data or market intelligence</option>
-                        <option value="Systems / process audit">Systems / process audit</option>
-                        <option value="Consulting or advisory">Consulting or advisory</option>
-                        <option value="Website or app build">Website or app build</option>
-                        <option value="Business automation or custom tools">Business automation or custom tools</option>
-                        <option value="SEO and performance">SEO and performance</option>
-                        <option value="Marketing or social media">Marketing or social media</option>
-                        <option value="Training / academy">Training / academy</option>
-                        <option value="Career consulting">Career consulting</option>
-                        <option value="Scam or fraud awareness">Scam or fraud awareness</option>
-                        <option value="Something unusual">Something unusual</option>
-                    </select>
-                </label>
+            <label>
+                <span>How can we help? <small>Required</small></span>
+                <select name="requestType" required>
+                    <option value="">Select one</option>
+                    <option value="1:1 consultation">1:1 consultation</option>
+                    <option value="Company data or market intelligence">Company data or market intelligence</option>
+                    <option value="Systems / process audit">Systems / process audit</option>
+                    <option value="Consulting or advisory">Consulting or advisory</option>
+                    <option value="Website or app build">Website or app build</option>
+                    <option value="Business automation or custom tools">Business automation or custom tools</option>
+                    <option value="SEO and performance">SEO and performance</option>
+                    <option value="Marketing or social media">Marketing or social media</option>
+                    <option value="Training / academy">1:1 AI / IT mentoring</option>
+                    <option value="Career consulting">Career consulting</option>
+                    <option value="Scam or fraud awareness">Scam or fraud awareness</option>
+                    <option value="Something unusual">Something unusual</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Details <small>Required</small></span>
+                <textarea name="details" maxlength="20000" required rows="4" placeholder="What would you like to learn, solve or build?"></textarea>
+            </label>
+
+            <details class="contact-options">
+                <summary>Add project details <small>Optional</small></summary>
+                <div class="field-grid">
                 <label>
                     <span>Budget <small>Optional</small></span>
                     <select name="budget">
@@ -80,9 +64,7 @@
                         <option value="Need guidance">Need guidance</option>
                     </select>
                 </label>
-            </div>
 
-            <div class="field-grid">
                 <label>
                     <span>Timeline <small>Optional</small></span>
                     <select name="timeline">
@@ -98,17 +80,13 @@
                     <span>Phone Number <small>Optional</small></span>
                     <input name="phone" type="tel" maxlength="80" autocomplete="tel" placeholder="+1 555 0100">
                 </label>
-            </div>
-
-            <label>
-                <span>Details <small>Required</small></span>
-                <textarea name="details" maxlength="20000" required rows="7" placeholder="Describe your goal, any challenges, and the outcome you have in mind."></textarea>
-            </label>
+                </div>
+            </details>
 
             <div class="contact-actions">
                 <button class="btn-hud contact-submit" type="submit" disabled>Prepare email</button>
                 <div class="contact-secondary">
-                    <span>Review your message, then open your email app to send it.</span>
+                    <span>This prepares a draft. Send it from your email app to request your session or quote.</span>
                 </div>
             </div>
             <p class="contact-form-status" id="contact-form-status" aria-live="polite"></p>
@@ -125,14 +103,38 @@
             </div>
         </form>
         </div>
+        <div class="contact-intro">
+            <aside class="contact-person" aria-label="Your first point of contact">
+                <img src="/dev/soroya/assets/soroya-company-desk-2026-09-27.png" alt="Soroya at her desk" width="1122" height="1402" loading="lazy" decoding="async">
+                <div>
+                    <h2>Soroya</h2>
+                    <p class="company-role">Head of HR &amp; Operations</p>
+                    <p>Our AI-created contact persona. Our team replies personally.</p>
+                    <a href="/dev/soroya/index.html" data-soroya-link>About Soroya</a>
+                </div>
+            </aside>
+
+            <ul class="contact-assurances reveal-mask" aria-label="What to expect">
+                <li>Your enquiry is read by a senior engineer.</li>
+                <li>We agree the scope, price and time before you book.</li>
+                <li>No obligation to book. Your details are only used to respond to you.</li>
+            </ul>
+            <div class="contact-direct">
+                <a class="contact-email" href="mailto:contactus@theprivilegedcompany.com">contactus@theprivilegedcompany.com</a>
+                <button id="contact-copy-address" class="btn-hud" type="button" disabled>Copy email address</button>
+                <input id="contact-address-value" type="text" value="contactus@theprivilegedcompany.com" aria-label="Email address" readonly hidden>
+                <p id="contact-address-status" aria-live="polite"></p>
+            </div>
+        </div>
+
     </div>
 </section>
 
 <style>
-    .contact-layout { display: grid; grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr); gap: clamp(3rem, 7vw, 6rem); align-items: start; text-align: left; }
+    .contact-layout { display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(260px, 0.78fr); gap: clamp(2rem, 5vw, 5rem); align-items: start; text-align: left; }
     .contact-intro { position: sticky; top: 9rem; }
-    #dynamic-view .contact-view .view-header { margin: 0 0 2.25rem; text-align: left; }
-    #dynamic-view .contact-view .display-huge { font-size: clamp(2.65rem, 5vw, 4.5rem); }
+    #dynamic-view .contact-view .view-header { margin: 0 0 2.25rem; max-width: 850px; text-align: left; }
+    #dynamic-view .contact-view .display-huge { font-size: clamp(2.35rem, 4vw, 3.65rem); }
     #dynamic-view .contact-view .view-lead { margin: 1.5rem 0 0; font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
     .contact-assurances { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.9rem; text-align: left; }
     .contact-assurances li { position: relative; padding-left: 1.7rem; color: var(--c-muted); font-size: 0.95rem; font-weight: 400; line-height: 1.6; }
@@ -143,12 +145,14 @@
     .contact-form { display: grid; gap: 1.25rem; text-align: left; }
     .contact-honey { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-    @media (min-width: 721px) {
-        .field-grid label > span { min-height: 2.8em; }
-    }
-    .contact-service-context { border: 1px solid rgba(var(--c-accent-rgb), 0.3); border-radius: 8px; background: rgba(var(--c-accent-rgb), 0.06); padding: 1rem 1.1rem; }
+    .contact-options { border-top: 1px solid var(--border-soft); padding-top: 1rem; }
+    .contact-options summary { cursor: pointer; color: var(--c-muted); padding-block: .4rem; line-height: 1.6; }
+    .contact-options summary small { margin-left: .5rem; }
+    .contact-options[open] .field-grid { margin-top: 1rem; }
+    .contact-options summary:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 4px; }
+    .contact-service-context { border-bottom: 1px solid var(--border-soft); padding-bottom: .85rem; }
     .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.35rem; }
-    .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: clamp(1.35rem, 3vw, 1.85rem); line-height: 1.1; }
+    .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: 1.15rem; line-height: 1.4; }
     .contact-form label { display: grid; gap: 0.6rem; }
     .contact-form label span { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--c-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
     .contact-form label small { flex-shrink: 0; color: var(--c-muted); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; }
@@ -167,7 +171,7 @@
     .contact-form button { cursor: pointer; font: inherit; text-transform: uppercase; letter-spacing: 0.08em; }
     .contact-submit { min-width: 10rem; border-color: var(--c-accent); background: var(--c-accent); color: var(--c-on-accent); font-weight: 800 !important; }
     .contact-submit:not(:disabled):hover { background: var(--c-accent-strong); border-color: var(--c-accent-strong); }
-    .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: right; }
+    .contact-secondary { display: grid; gap: 0.3rem; color: var(--c-muted); font-size: 0.78rem; text-align: left; max-width: 26rem; }
     .contact-email { color: var(--c-muted); font-size: 0.9rem; text-decoration: none; }
     .contact-email:hover { color: var(--c-accent); }
     .contact-direct { display: grid; justify-items: start; gap: .8rem; margin-top: 2rem; }
@@ -190,7 +194,7 @@
 
     @media (max-width: 720px) {
         .contact-layout { gap: 1.5rem; }
-        .contact-view .display-huge { font-size: clamp(2.65rem, 13vw, 3.2rem); }
+        .contact-view .display-huge { font-size: clamp(2.2rem, 10vw, 3.2rem); }
         #dynamic-view .contact-view .view-lead { margin-top: 1.1rem; font-size: 1rem; }
         .contact-assurances { gap: 0.5rem; }
         .contact-assurances li { font-size: 0.9rem; line-height: 1.5; }

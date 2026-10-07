@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20260927i';
+import { languageMeta, translations } from './translations.js?v=20261007b';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20260927i';
+const assetVersion = '20261007b';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -107,7 +107,7 @@ const serviceRequestTypes = {
     'Website Building': 'Website or app build',
     'App Building': 'Website or app build',
     'Career Consulting': 'Career consulting',
-    '1:1 Tech Consultations': 'Consulting or advisory',
+    '1:1 Tech Consultations': '1:1 consultation',
     'Tech Training': 'Training / academy',
     'Learn Any Tech Topic': 'Training / academy',
     'Social Media Management': 'Marketing or social media',
@@ -285,6 +285,8 @@ const setLanguage = lang => {
         // Storage can be blocked; the page still switches for the current session.
     }
     applyTranslations();
+    // Hide a stale draft so the visitor can prepare it in the new language; keep inputs.
+    document.getElementById('contact-form')?.dispatchEvent(new Event('input'));
     const { key, route } = getCurrentRoute();
     updateSeo(key, route);
     initServiceCards();
@@ -488,6 +490,17 @@ const initContactForm = () => {
         const requestType = serviceRequestTypes[selectedService];
         if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
     }
+
+    form.addEventListener('change', event => {
+        if (event.target.name !== 'requestType' || !serviceInput) return;
+        if (serviceRequestTypes[serviceInput.value] === event.target.value) return;
+        // A visitor can change their mind after following a service-specific link.
+        serviceInput.value = '';
+        serviceContext.hidden = true;
+        draftTools.hidden = true;
+        status.textContent = '';
+        status.classList.remove('is-visible');
+    });
 
     form.addEventListener('submit', event => {
         event.preventDefault();
@@ -1666,6 +1679,10 @@ document.addEventListener('DOMContentLoaded', () => {
         main.scrollIntoView();
     });
     new QuantumWeb('bg-canvas');
+    // Decorative enhancement is isolated from navigation and the enquiry form.
+    import('./hero-sculpture.js?v=20261007b')
+        .then(({ initHeroSculpture }) => initHeroSculpture(t))
+        .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();
     initThemeSwitcher();
     initLanguageSwitcher();

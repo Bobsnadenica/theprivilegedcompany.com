@@ -1,6 +1,39 @@
 # ThePrivilegedCompany website
 
-The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Discuss your project.” This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
+The company website presents app and website development, automation, technical SEO, AI tools, cloud engineering, training, and private IT advisory. Its main call to action is “Request a 1:1,” with services available as a second route. This repository also contains a client budget and file portal, AWS infrastructure, and independent tools and experiments.
+
+## Consultation journey (2026-10-07)
+
+The English/Bulgarian homepage leads with individual guidance from a certified
+senior cloud architect, then explains the enquiry, agreement and session steps.
+The primary action opens Contact with the consultation selected. The form appears
+before supporting contact information on mobile; optional project fields stay in
+a native expandable section. Changing the request type clears an incompatible
+selected service, and changing language hides a stale draft without losing inputs.
+The FAQ leads with how to request and confirm a session.
+
+Requests still use the visitor's prepared email. Sending an enquiry does not book
+a session: scope, price and time must be agreed by email. No booking service,
+payment integration, analytics, new dependency or paid tool was added.
+
+## Homepage light sculpture (2026-10-07)
+
+The hero contains an original Canvas sculpture with three forms: Weave, Orbit and
+Bloom. Reshape morphs between them; pointer movement gently changes the viewing
+angle. It retains the existing particle background and page transitions. The
+caption and controls follow the English/Bulgarian language selection and both
+themes. Mobile places the first enquiry action before the sculpture.
+
+`hero-sculpture.js` loads independently of essential navigation and forms. It
+uses bounded geometry and canvas resolution, pauses offscreen and in hidden tabs,
+and offers a pause control. Reduced-motion preferences show static forms. An SVG
+fallback remains when Canvas or the module is unavailable. No library or external
+asset service is required. The reusable `tpc-visual-direction` skill guides future
+visual work around the same identity and enquiry flow.
+
+Validate with `node scripts/check-hero-sculpture.mjs` and
+`node scripts/check-public-site.mjs`. After shared shell changes, run
+`node scripts/sync-route-pages.mjs` before checking generated pages.
 
 This guide was updated on **2026-10-01**. See [memory.md](memory.md) for durable project context, review findings, and things to verify before future changes.
 

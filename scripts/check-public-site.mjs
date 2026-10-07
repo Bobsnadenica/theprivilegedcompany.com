@@ -179,12 +179,17 @@ console.log('Navigation QA passed: exact routes, offline fallback, modifier keys
 const formSource = source.slice(source.indexOf('const initContactForm ='), source.indexOf('/**\n * Architecture Canvas'));
 const translationSource = await readFile(new URL('../translations.js', import.meta.url), 'utf8');
 const bgText = vm.runInNewContext(translationSource.replace(/export const /g, 'const ') + '; translations.bg.text;');
-const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false) => {
+const serviceRequestTypes = vm.runInNewContext(source.slice(source.indexOf('const serviceRequestTypes ='), source.indexOf('const knownServiceNames =')) + '; serviceRequestTypes;');
+const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false, selectedService = '') => {
     let copyHandler, addressHandler, focused, copied, selected = false;
     const handlers = {};
     const button = { disabled: true };
     const data = new Map(Object.entries({ name: 'QA Test', email: 'qa@example.test', phone: '', details: 'Test brief', requestType: 'Website or app build' }));
     const elements = Object.fromEntries(Object.entries({ name: 120, email: 254, phone: 80, details: 20000 }).map(([key, maxLength]) => [key, { required: key !== 'phone', maxLength, focus() { focused = key; } }]));
+    elements.requestType = { get value() { return data.get('requestType'); }, set value(value) { data.set('requestType', value); } };
+    const serviceContext = { hidden: true };
+    const serviceValue = { dataset: {}, textContent: '' };
+    const serviceInput = { get value() { return data.get('serviceName') || ''; }, set value(value) { data.set('serviceName', value); } };
     const form = {
         elements, checkValidity: () => true, reportValidity() {},
         addEventListener: (event, callback) => { handlers[event] = callback; }, querySelector: () => button,
@@ -200,8 +205,8 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
     const addressStatus = { textContent: '' };
     const location = { pathname: '/contact', search: '?fbclid=private-click-id&email=private@example.test', href: '' };
     vm.runInNewContext(formSource + '; initContactForm();', {
-        document: { getElementById: id => ({ 'contact-form': form, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton, 'contact-copy-address': addressButton, 'contact-address-value': addressValue, 'contact-address-status': addressStatus }[id] || null) },
-        getSelectedServiceName: () => '', FormData: class { get(key) { return data.get(key); } },
+        document: { getElementById: id => ({ 'contact-form': form, 'contact-service-context': serviceContext, 'contact-service-value': serviceValue, 'contact-service-name': serviceInput, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton, 'contact-copy-address': addressButton, 'contact-address-value': addressValue, 'contact-address-status': addressStatus }[id] || null) },
+        getSelectedServiceName: () => selectedService, serviceRequestTypes, FormData: class { get(key) { return data.get(key); } },
         t: text => language === 'bg' ? (bgText[text] || text) : text,
         campaignAttribution, window: { location },
         navigator: { clipboard: { async writeText(value) { if (clipboardBlocked) throw new Error('blocked'); copied = value; } } },
@@ -209,7 +214,8 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
     });
     assert.equal(button.disabled, false);
     assert.equal(addressButton.disabled, false);
-    return { data, status, button, location, draftTools, draftText, draftLink, addressValue, addressStatus,
+    return { data, status, button, location, draftTools, draftText, draftLink, addressValue, addressStatus, serviceContext,
+        changeRequest(value) { data.set('requestType', value); handlers.change({ target: { name: 'requestType', value } }); },
         submit: () => handlers.submit({ preventDefault() {} }), edit: () => handlers.input(), copy: () => copyHandler(), copyAddress: () => addressHandler(),
         get focused() { return focused; }, get copied() { return copied; }, get selected() { return selected; } };
 };
@@ -254,7 +260,20 @@ assert.match(longDraft.addressStatus.textContent, /Копирайте/);
 const honeypot = formHarness(); honeypot.data.set('_honey', 'spam'); honeypot.submit();
 assert.equal(honeypot.location.href, ''); assert.equal(honeypot.draftTools.hidden, true);
 assert.doesNotMatch(source, /putBriefInInbox|fetchGuestCredentials|amazonaws\.com|AWS4-HMAC/);
-console.log('Email draft checks passed: explicit native link, no automatic redirect, validation, preserved input, stale-draft invalidation, long Bulgarian enquiry, enquiry/address copy fallbacks, no upload or false delivery claim.');
+for (const language of ['en', 'bg']) {
+    const consultation = formHarness(null, language, false, '1:1 Tech Consultations');
+    assert.equal(consultation.data.get('requestType'), '1:1 consultation');
+    consultation.submit();
+    assert.match(consultation.draftText.value, language === 'en' ? /1:1 consultation/ : /Индивидуална консултация/);
+    consultation.changeRequest('Website or app build');
+    assert.equal(consultation.data.get('serviceName'), '');
+    assert.equal(consultation.serviceContext.hidden, true);
+    assert.equal(consultation.draftTools.hidden, true);
+    consultation.submit();
+    assert.doesNotMatch(consultation.draftText.value, /1:1 Tech Consultations|Индивидуални IT консултации/);
+    assert.equal(consultation.data.get('details'), 'Test brief');
+}
+console.log('Email draft checks passed: EN/BG consultation selection, changed-service reset, explicit native link, validation, preserved input, stale-draft invalidation, long draft and copy fallbacks, no upload or false delivery claim.');
 
 // Only known public campaign labels may enter a draft; arbitrary query data is discarded.
 const campaignFor = vm.runInNewContext(
