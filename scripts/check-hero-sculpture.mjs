@@ -17,9 +17,9 @@ function element() {
     };
 }
 const selectors = ['.sculpture-stage', '#sculpture-form', '#sculpture-pause',
-    '#sculpture-pause-label', '#sculpture-reshape', '.sculpture-controls'];
+    '#sculpture-pause-label', '#sculpture-reshape', '#sculpture-spark', '.sculpture-controls'];
 const nodes = Object.fromEntries(selectors.map(selector => [selector, element()]));
-const context2d = Object.fromEntries(['setTransform', 'moveTo', 'lineTo', 'arc'].map(name =>
+const context2d = Object.fromEntries(['setTransform', 'moveTo', 'lineTo', 'arc', 'ellipse'].map(name =>
     [name, (...values) => assert.ok(values.every(Number.isFinite), `${name} receives finite coordinates`)]));
 Object.assign(context2d, { clearRect() { paints++; }, beginPath() {}, stroke() {}, fill() {} });
 const canvas = { getContext: () => context2d };
@@ -38,8 +38,12 @@ const browser = {
 };
 browser.window = browser;
 const context = vm.createContext(browser);
-vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { sculpturePoint, initHeroSculpture };', context);
-const { sculpturePoint, initHeroSculpture } = context.api;
+vm.runInContext(source.replaceAll('export ', '') + '\nthis.api = { sculpturePoint, scatterPoint, initHeroSculpture };', context);
+const { sculpturePoint, scatterPoint, initHeroSculpture } = context.api;
+for (let i = 0; i < 400; i++) {
+    const point = scatterPoint(i, 400);
+    assert.ok(point.every(Number.isFinite) && Math.hypot(...point) <= 1.04, 'Released particles stay within the stage');
+}
 
 for (let form = 0; form < 3; form++) {
     for (let i = 0; i <= 48; i++) {
@@ -121,7 +125,29 @@ assert.equal(paints, offscreenPaints);
 intersection([{ isIntersecting: true }]);
 assert.equal(frames.size, 1, 'Returning to the sculpture resumes one loop');
 
+advance(200);
+for (let time = 264; time <= 3000; time += 64) advance(time);
+assert.ok(sculpture.energy < .001, 'Arrival settles into a calm, fully connected sculpture');
+nodes['#sculpture-spark'].events.click();
+assert.equal(root.dataset.effect, 'spark');
+for (let time = 3064; time <= 4600; time += 64) advance(time);
+assert.ok(sculpture.energy > .9, 'Spark opens the geometry into a particle cloud');
+const pulseAge = sculpture.sparkAge;
+nodes['#sculpture-spark'].events.click();
+assert.equal(sculpture.sparkAge, pulseAge, 'Repeated taps do not restart or stack a running burst');
+assert.equal(frames.size, 1);
+for (let time = 4664; time <= 6900; time += 64) advance(time);
+assert.ok(sculpture.energy < .001, 'The burst reforms automatically');
+nodes['#sculpture-spark'].events.click();
+motion.matches = true;
+motion.events.change();
+assert.equal(frames.size, 0);
+assert.equal(sculpture.energy, 0, 'Changing the motion preference cancels a burst immediately');
+assert.equal(nodes['#sculpture-spark'].hidden, true);
+nodes['#sculpture-spark'].events.click();
+assert.equal(sculpture.energy, 0, 'No animated burst bypasses reduced motion');
+
 root.classList.values.clear();
 canvas.getContext = () => null;
 assert.equal(initHeroSculpture(), undefined, 'Unavailable Canvas leaves the static fallback intact');
-console.log('PASS: sculpture geometry, interpolation, rapid interaction, lifecycle, reduced motion, pause, DPI cap and fallback');
+console.log('PASS: sculpture geometry, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, pause, DPI cap and fallback');

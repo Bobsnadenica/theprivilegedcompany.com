@@ -1726,9 +1726,10 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 .sculpture-copy { display: grid; gap: .4rem; }
 .sculpture-kicker { font-size: .72rem; line-height: 1.5; color: var(--c-muted); }
 .sculpture-form { font: 700 1.6rem/1.2 var(--f-display); color: var(--c-fg); }
-.sculpture-controls { display: flex; align-items: center; gap: .5rem; }
+.sculpture-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
 .sculpture-controls button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: .65rem .85rem; border: 1px solid var(--border-soft); border-radius: 999px; background: rgba(var(--c-bg-rgb), .65); color: var(--c-accent-strong); cursor: pointer; font: 500 .72rem/1.2 var(--f-logic); transition: background .2s, border-color .2s; }
 .sculpture-controls button:hover { background: var(--c-accent-soft); border-color: var(--c-accent); }
+.sculpture-controls button:disabled { opacity: .4; cursor: default; }
 .sculpture-controls button svg { width: 18px; height: 18px; flex-shrink: 0; }
 .sculpture-controls .sculpture-pause { width: 44px; padding: .65rem; }
 .sculpture-controls[hidden], .sculpture-controls button[hidden], .sculpture-play-icon { display: none; }
@@ -1756,10 +1757,13 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 .home-section-heading p { color: var(--c-muted); margin-top: 1.2rem; line-height: 1.7; }
 .home-service-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 .home-service-grid article { display: flex; flex-direction: column; align-items: flex-start; padding: 2rem; border: 1px solid var(--border-soft); border-radius: var(--radius-surface); background: var(--c-surface); }
-.home-service-grid article { transition: border-color .25s, transform .25s; }
+.home-service-grid article { position: relative; isolation: isolate; overflow: hidden; transition: border-color .25s, transform .25s; }
+.home-service-grid article::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; border-radius: inherit; background: radial-gradient(350px circle at var(--light-x, 50%) var(--light-y, 50%), rgba(var(--c-accent-rgb), .15), transparent 75%); transition: opacity .35s; }
+.home-service-grid article:focus-within::before { opacity: 1; }
 .home-service-grid article:focus-within { border-color: var(--c-accent); }
 @media (hover: hover) {
     .home-service-grid article:hover { border-color: var(--c-accent); transform: translateY(-3px); }
+    .home-service-grid article:hover::before { opacity: 1; }
 }
 .home-service-grid h3, .project-copy h3 { font: 700 clamp(1.5rem, 2.2vw, 2rem)/1.2 var(--f-display); margin: 1.1rem 0; }
 .home-service-grid p, .project-copy p { color: var(--c-muted); font-size: .95rem; line-height: 1.7; margin-bottom: 1.5rem; }

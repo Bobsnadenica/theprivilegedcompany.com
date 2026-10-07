@@ -31,6 +31,12 @@ fallback remains when Canvas or the module is unavailable. No library or externa
 asset service is required. The reusable `tpc-visual-direction` skill guides future
 visual work around the same identity and enquiry flow.
 
+The homepage motion includes a brief particle-to-sculpture arrival,
+a Spark button that opens and reforms the light, travelling highlights, and a
+pointer-following glow on service cards. Bursts share the existing animation loop,
+ignore repeated taps while active and cancel for reduced motion or pause. These
+effects do not gate the consultation action or take control of page scrolling.
+
 Validate with `node scripts/check-hero-sculpture.mjs` and
 `node scripts/check-public-site.mjs`. After shared shell changes, run
 `node scripts/sync-route-pages.mjs` before checking generated pages.

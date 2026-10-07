@@ -17,6 +17,7 @@ export const translations = {
             "Orbit": "Орбита",
             "Bloom": "Разцвет",
             "Reshape": "Нова форма",
+            "Spark": "Искра",
             "Pause sculpture animation": "Спрете движението на скулптурата",
             "Resume sculpture animation": "Продължете движението на скулптурата",
             "An interactive sculpture of light": "Интерактивна скулптура от светлина",

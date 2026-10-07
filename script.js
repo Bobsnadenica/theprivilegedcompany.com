@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261007b';
+import { languageMeta, translations } from './translations.js?v=20261007c';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20261007b';
+const assetVersion = '20261007c';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -1680,8 +1680,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     new QuantumWeb('bg-canvas');
     // Decorative enhancement is isolated from navigation and the enquiry form.
-    import('./hero-sculpture.js?v=20261007b')
-        .then(({ initHeroSculpture }) => initHeroSculpture(t))
+    import('./hero-sculpture.js?v=20261007c')
+        .then(({ initHeroSculpture, initServiceLight }) => { initHeroSculpture(t); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();
     initThemeSwitcher();

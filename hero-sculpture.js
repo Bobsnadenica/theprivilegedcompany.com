@@ -1,6 +1,16 @@
 // A small, dependency-free light sculpture. The website works without this module.
 const TAU = Math.PI * 2;
 const forms = ['Weave', 'Orbit', 'Bloom'];
+const sparkDuration = 3400;
+
+export function scatterPoint(index, count) {
+    // A deterministic, evenly distributed cloud; no random allocations during paint.
+    const y = 1 - 2 * (index + .5) / count;
+    const angle = index * Math.PI * (3 - Math.sqrt(5));
+    const radius = .72 + .32 * ((index * .61803398875) % 1);
+    const ring = Math.sqrt(1 - y * y) * radius;
+    return [Math.cos(angle) * ring, y * radius, Math.sin(angle) * ring];
+}
 
 export function sculpturePoint(form, u, v) {
     if (form === 1) {
@@ -35,6 +45,7 @@ export class LightSculpture {
         this.name = root.querySelector('#sculpture-form');
         this.pauseButton = root.querySelector('#sculpture-pause');
         this.pauseLabel = root.querySelector('#sculpture-pause-label');
+        this.sparkButton = root.querySelector('#sculpture-spark');
         this.motion = matchMedia('(prefers-reduced-motion: reduce)');
         this.compact = matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
         this.bands = this.compact ? 16 : 24;
@@ -52,10 +63,18 @@ export class LightSculpture {
         this.vertices = this.geometry[0].slice();
         this.from = this.vertices.slice();
         this.projected = this.vertices.slice();
+        this.threadProjected = this.vertices.slice();
+        this.cloud = new Float32Array(this.vertices.length);
+        for (let i = 0; i < this.cloud.length / 3; i++) {
+            this.cloud.set(scatterPoint(i, this.cloud.length / 3), i * 3);
+        }
         this.order = Array.from({ length: this.bands }, (_, band) => ({ band, depth: 0 }));
         this.form = 0;
         this.morph = 1;
         this.phase = .4;
+        this.arrival = 1;
+        this.sparkAge = sparkDuration;
+        this.energy = 1;
         this.pointer = { x: 0, y: 0 };
         this.visible = false;
         this.paused = false;
@@ -66,6 +85,8 @@ export class LightSculpture {
         this.resize();
 
         root.querySelector('#sculpture-reshape').addEventListener('click', () => this.reshape());
+        this.sparkButton.addEventListener('click', () => this.spark());
+        this.stage.addEventListener('click', () => this.spark());
         this.pauseButton.addEventListener('click', () => {
             this.paused = !this.paused;
             this.pauseButton.setAttribute('aria-pressed', String(this.paused));
@@ -128,15 +149,29 @@ export class LightSculpture {
         return this.visible && !document.hidden && !this.motion.matches && !this.paused;
     }
 
+    spark() {
+        if (!this.canAnimate()) return;
+        // Repeated taps never stack bursts or create another animation loop.
+        if (this.sparkAge < sparkDuration) return;
+        this.sparkAge = 0;
+        this.arrival = 0;
+        this.root.dataset.effect = 'spark';
+    }
+
     syncMotion() {
         cancelAnimationFrame(this.frame);
         this.frame = 0;
         this.lastPaint = null;
         this.pauseButton.hidden = this.motion.matches;
+        this.sparkButton.hidden = this.motion.matches;
+        this.sparkButton.disabled = this.paused;
         this.root.dataset.motion = this.motion.matches ? 'reduced' : this.paused ? 'paused' : 'idle';
         if (this.motion.matches || this.paused) {
             this.vertices.set(this.geometry[this.form]);
             this.morph = 1;
+            this.arrival = this.energy = 0;
+            this.sparkAge = sparkDuration;
+            this.root.dataset.effect = 'rest';
             this.pointer.x = this.pointer.y = 0;
         }
         if (!this.visible || document.hidden || !this.width) return;
@@ -156,7 +191,13 @@ export class LightSculpture {
             const delta = Math.min(elapsed, 64);
             this.lastPaint = timestamp;
             this.phase += delta * .00012;
+            this.arrival = Math.max(0, this.arrival - delta / 2200);
+            this.sparkAge = Math.min(sparkDuration, this.sparkAge + delta);
             this.morph = Math.min(1, this.morph + delta / 1100);
+            const pulse = this.sparkAge < sparkDuration ? Math.pow(Math.sin(this.sparkAge / sparkDuration * Math.PI), .8) : 0;
+            this.energy = Math.max(this.arrival * this.arrival * (3 - 2 * this.arrival), pulse,
+                Math.sin(this.morph * Math.PI) * .25);
+            this.root.dataset.effect = this.arrival > 0 ? 'arrival' : pulse > 0 ? 'spark' : 'rest';
             const ease = this.morph * this.morph * (3 - 2 * this.morph);
             const target = this.geometry[this.form];
             if (this.morph < 1) {
@@ -179,49 +220,83 @@ export class LightSculpture {
         const sx = Math.sin(ax), cx = Math.cos(ax), sy = Math.sin(ay), cy = Math.cos(ay);
         const sz = Math.sin(az), cz = Math.cos(az);
         const stride = (this.samples + 1) * 3;
+        const releasing = this.energy > .001;
+        const threads = releasing ? this.threadProjected : this.projected;
+        const project = (x, y, z, target, i) => {
+            const rx = x * cy + z * sy;
+            const rz = z * cy - x * sy;
+            const ry = y * cx - rz * sx;
+            const depth = y * sx + rz * cx;
+            const perspective = 3.8 / (3.8 + depth);
+            target[i] = this.width / 2 + (rx * cz - ry * sz) * scale * perspective;
+            target[i + 1] = this.height / 2 + (ry * cz + rx * sz) * scale * perspective;
+            target[i + 2] = depth;
+        };
         for (const layer of this.order) {
             layer.depth = 0;
             for (let step = 0; step <= this.samples; step++) {
                 const i = layer.band * stride + step * 3;
                 const x = this.vertices[i], y = this.vertices[i + 1], z = this.vertices[i + 2];
-                const rx = x * cy + z * sy;
-                const rz = z * cy - x * sy;
-                const ry = y * cx - rz * sx;
-                const depth = y * sx + rz * cx;
-                const perspective = 3.8 / (3.8 + depth);
-                this.projected[i] = this.width / 2 + (rx * cz - ry * sz) * scale * perspective;
-                this.projected[i + 1] = this.height / 2 + (ry * cz + rx * sz) * scale * perspective;
-                this.projected[i + 2] = depth;
-                layer.depth += depth / (this.samples + 1);
+                project(x, y, z, threads, i);
+                if (releasing) project(x + (this.cloud[i] - x) * this.energy,
+                    y + (this.cloud[i + 1] - y) * this.energy,
+                    z + (this.cloud[i + 2] - z) * this.energy, this.projected, i);
+                layer.depth += threads[i + 2] / (this.samples + 1);
             }
         }
         this.order.sort((a, b) => b.depth - a.depth);
         ctx.lineJoin = 'round';
+        const threadOpacity = Math.pow(1 - this.energy, 8);
         for (const layer of this.order) {
             const start = layer.band * stride;
             const near = Math.max(.1, Math.min(1, .55 - layer.depth * .65));
             ctx.beginPath();
             for (let step = 0; step <= this.samples; step++) {
                 const i = start + step * 3;
-                if (step === 0) ctx.moveTo(this.projected[i], this.projected[i + 1]);
-                else ctx.lineTo(this.projected[i], this.projected[i + 1]);
+                if (step === 0) ctx.moveTo(threads[i], threads[i + 1]);
+                else ctx.lineTo(threads[i], threads[i + 1]);
             }
             if (!this.compact && !this.light) {
                 ctx.lineWidth = 3;
-                ctx.strokeStyle = `rgba(${this.accent}, ${near * .06})`;
+                ctx.strokeStyle = `rgba(${this.accent}, ${near * .06 * threadOpacity})`;
                 ctx.stroke();
             }
             ctx.lineWidth = .55 + near * .65;
-            ctx.strokeStyle = `rgba(${layer.band % 4 === 0 ? this.highlight : this.accent}, ${.16 + near * .64})`;
+            ctx.strokeStyle = `rgba(${layer.band % 4 === 0 ? this.highlight : this.accent}, ${(.16 + near * .64) * threadOpacity})`;
             ctx.stroke();
-            for (let step = (layer.band * 7 + Math.floor(this.phase * 12)) % 15; step < this.samples; step += 15) {
+            const spacing = this.energy > .05 ? 4 : 15;
+            for (let step = layer.band % spacing; step < this.samples; step += spacing) {
                 const i = start + step * 3;
                 const alpha = Math.max(.12, Math.min(.9, .5 - this.projected[i + 2] * .45));
                 ctx.fillStyle = `rgba(${this.highlight}, ${alpha})`;
                 ctx.beginPath();
-                ctx.arc(this.projected[i], this.projected[i + 1], .65 + alpha * .75, 0, TAU);
+                ctx.arc(this.projected[i], this.projected[i + 1], .65 + alpha * (.75 + this.energy * .85), 0, TAU);
                 ctx.fill();
             }
+            // A little light travels along each thread, continuously rather than in steps.
+            if (threadOpacity > .1 && layer.band % 3 === 0) {
+                const position = (this.phase * 15 + layer.band * 5) % this.samples;
+                const step = Math.floor(position), fraction = position - step;
+                const i = start + step * 3, next = i + 3;
+                const x = threads[i] + (threads[next] - threads[i]) * fraction;
+                const y = threads[i + 1] + (threads[next + 1] - threads[i + 1]) * fraction;
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(${this.highlight}, ${threadOpacity * .95})`;
+                ctx.arc(x, y, 2, 0, TAU);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(${this.accent}, ${threadOpacity * .09})`;
+                ctx.arc(x, y, 7, 0, TAU);
+                ctx.fill();
+            }
+        }
+        if (this.energy > .02) {
+            ctx.strokeStyle = `rgba(${this.highlight}, ${this.energy * .28})`;
+            ctx.lineWidth = .8;
+            ctx.beginPath();
+            ctx.ellipse(this.width / 2, this.height / 2, scale * (1 + this.energy * .05),
+                scale * .33, -.45 + this.phase * .1, this.phase, this.phase + TAU * .78);
+            ctx.stroke();
         }
     }
 }
@@ -233,4 +308,19 @@ export function initHeroSculpture(translate = value => value) {
     const ctx = canvas?.getContext('2d');
     if (!ctx || !window.ResizeObserver || !window.IntersectionObserver) return;
     return new LightSculpture(root, canvas, ctx, translate);
+}
+
+export function initServiceLight() {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    document.querySelectorAll('.home-service-grid article').forEach(card => {
+        let lastMove = -Infinity;
+        card.addEventListener('pointermove', event => {
+            if (reduced.matches || event.timeStamp - lastMove < 32) return;
+            lastMove = event.timeStamp;
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--light-x', `${event.clientX - rect.left}px`);
+            card.style.setProperty('--light-y', `${event.clientY - rect.top}px`);
+        }, { passive: true });
+    });
 }
