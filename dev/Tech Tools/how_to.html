@@ -1083,6 +1083,7 @@
       return visible[0];
     }
 
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
     function renderTabs() {
       document.getElementById("techTabs").innerHTML = stacks
         .map((stack) => `
@@ -1110,14 +1111,14 @@
         const meta = getMeta(item);
         if (meta.phaseLabel !== currentPhase) {
           currentPhase = meta.phaseLabel;
-          html.push(`<div class="phase-heading">${meta.phaseLabel}</div>`);
+          html.push(`<div class="phase-heading">${escapeHtml(meta.phaseLabel)}</div>`);
         }
 
         html.push(`
           <button class="command-item ${selected && item.command === selected.command ? "active" : ""}" type="button" data-command="${encodeURIComponent(item.command)}">
-            <span class="step-pill">${meta.stepLabel}</span>
-            <span class="command-title">${item.title}</span>
-            <span class="command-code">${item.command}</span>
+            <span class="step-pill">${escapeHtml(meta.stepLabel)}</span>
+            <span class="command-title">${escapeHtml(item.title)}</span>
+            <span class="command-code">${escapeHtml(item.command)}</span>
           </button>
         `);
       });
@@ -1152,6 +1153,7 @@
         activeStack = tab.dataset.stack;
         activeCommandKey = commands.find((item) => item.stack === activeStack)?.command || "";
         renderAll();
+        [...document.querySelectorAll('.tech-tab')].find(button => button.dataset.stack === activeStack)?.focus({ preventScroll: true });
         return;
       }
 
@@ -1160,6 +1162,7 @@
         activeCommandKey = decodeURIComponent(commandItem.dataset.command);
         renderCommandList();
         renderOutput();
+        [...document.querySelectorAll('.command-item')].find(button => decodeURIComponent(button.dataset.command) === activeCommandKey)?.focus({ preventScroll: true });
       }
     });
 

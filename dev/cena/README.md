@@ -1,6 +1,6 @@
 # Spesti v3 — Smart Grocery Comparison Bulgaria
 
-Compare grocery prices across 7 major supermarket chains in Bulgaria. Build a weekly shopping list, find the cheapest stores, and save money with smart trip planning.
+A grocery-planning prototype using a bundled price sample. Build a shopping list and explore estimated basket comparisons. Collection dates are not available in the bundled records, so these are not verified current store offers.
 
 ## Stores Tracked
 
@@ -8,10 +8,10 @@ Kaufland, Lidl, Billa, Fantastico, CBA, T Market, Metro
 
 ## Features
 
-- **Price Comparison** — 12,700+ products compared across all stores in real time
-- **Smart Trip Planner** — Choose 1, 2, 3 stores or all — see exactly how much each option costs
-- **Comparable Products** — When your item isn't at a store, Spesti suggests a similar alternative with honest pricing
-- **Weekly Deals** — 1,700+ sale items auto-detected from product data, sorted by discount
+- **Price Comparison** — 12,700+ products in the bundled sample; not a live comparison
+- **Smart Trip Planner** — Choose 1, 2, 3 stores or all — compare estimated costs in the sample
+- **Comparable Products** — When your item isn't at a store, Spesti suggests a similar alternative using sample prices
+- **Saved Promotions** — 1,700+ sale items auto-detected from product data, sorted by discount
 - **Savings Calculator** — See how much you save vs buying everything at the most expensive store
 - **Convenience Cost** — Know exactly how much extra you pay for fewer store trips
 
@@ -29,11 +29,11 @@ Kaufland, Lidl, Billa, Fantastico, CBA, T Market, Metro
 - Single-file React app (no build step)
 - Static JSON data files (products, deals, trends)
 - Hosted on GitHub Pages
-- PWA-ready (installable on mobile)
+- Responsive web prototype with a web manifest; offline operation is not implemented
 
 ## Data Source
 
-Prices sourced from kolkostruva.bg (Bulgarian government price transparency portal). Updated weekly.
+The original project notes attribute the imported sample to kolkostruva.bg. The bundled product records do not include observation dates or per-price source references. A live refresh schedule and current promotion validity have not been verified. The UI labels these limitations; do not promote this as a live price-comparison service until collection provenance, dates, validity and refresh checks are available.
 
 ## Deploy
 

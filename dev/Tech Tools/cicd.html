@@ -113,7 +113,10 @@
 
     @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
 
-  </style>
+      .tool-item { font: inherit; color: inherit; text-align: left; min-height: 44px; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -146,10 +149,10 @@
       
       <div class="toolbox">
         <div style="font-size:0.8rem; color:#8b949e; margin-bottom:5px;">ADD STAGES:</div>
-        <div class="tool-item" onclick="addNode('build')">🔨 Build</div>
-        <div class="tool-item" onclick="addNode('test')">🧪 Test</div>
-        <div class="tool-item" onclick="addNode('deploy')">🚀 Deploy</div>
-        <div class="tool-item" style="margin-top:auto; border-color:var(--accent-fail); color:var(--accent-fail);" onclick="reset()">Reset</div>
+        <button type="button" class="tool-item" onclick="addNode('build')">🔨 Build</button>
+        <button type="button" class="tool-item" onclick="addNode('test')">🧪 Test</button>
+        <button type="button" class="tool-item" onclick="addNode('deploy')">🚀 Deploy</button>
+        <button type="button" class="tool-item" style="margin-top:auto; border-color:var(--accent-fail); color:var(--accent-fail);" onclick="reset()">Reset</button>
       </div>
 
       <div class="canvas" id="canvas">
@@ -160,7 +163,7 @@
       </div>
 
       <button class="btn-run" onclick="runPipeline()">Run Pipeline ▶</button>
-      <div class="status-log" id="log">> Ready to build pipeline...</div>
+      <div class="status-log" id="log" role="status">> Ready to build pipeline...</div>
 
     </div>
 
@@ -170,8 +173,10 @@
     const canvas = document.getElementById('canvas');
     const log = document.getElementById('log');
     let stages = [];
+    let runTimer = null;
 
     function addNode(type) {
+      if (runTimer !== null || !["build", "test", "deploy"].includes(type)) return;
       if (stages.length >= 4) {
         log.innerText = "> Pipeline full! Keep it simple.";
         return;
@@ -192,6 +197,7 @@
     }
 
     function runPipeline() {
+      if (runTimer !== null) return;
       if (stages.length === 0) {
         log.innerText = "> Error: Pipeline is empty!";
         return;
@@ -204,21 +210,23 @@
       let hasBuild = false;
       let hasTest = false;
       let failed = false;
+      let deployed = false;
+      const runStages = stages.slice();
 
       let i = 0;
-      const interval = setInterval(() => {
-        if (i >= stages.length) {
-          clearInterval(interval);
+      runTimer = setInterval(() => {
+        if (i >= runStages.length) {
+          clearInterval(runTimer); runTimer = null;
           if (!failed) {
-            log.innerText = "> ✅ SUCCESS: Code deployed to Production!";
+            log.innerText = deployed ? "> ✅ Demo complete: build, test and deploy finished." : "> Stages completed. Add a deploy stage to finish this demo.";
             log.style.color = "#2ea043";
           }
           return;
         }
 
-        const stage = stages[i];
+        const stage = runStages[i];
         
-        if (stage === 'build') hasBuild = true;
+        if (stage === 'build') { hasBuild = true; hasTest = false; }
         if (stage === 'test') hasTest = true;
 
         // Rules
@@ -226,23 +234,25 @@
           log.innerText = "> ❌ FAILED: Cannot Test before Building!";
           log.style.color = "#ff7b72";
           failed = true;
-          clearInterval(interval);
+          clearInterval(runTimer); runTimer = null;
           return;
         }
         if (stage === 'deploy' && !hasTest) {
           log.innerText = "> ⚠️ DANGER: You deployed without Testing! Production is broken.";
           log.style.color = "#ff7b72";
           failed = true;
-          clearInterval(interval);
+          clearInterval(runTimer); runTimer = null;
           return;
         }
 
+        if (stage === 'deploy') deployed = true;
         log.innerText = `> Running ${stage.toUpperCase()}... OK`;
         i++;
       }, 800);
     }
 
     function reset() {
+      clearInterval(runTimer); runTimer = null;
       canvas.innerHTML = `
         <div class="node node-source">
           <div style="font-weight:bold;">Code Commit</div>

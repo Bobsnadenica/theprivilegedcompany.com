@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { liquidPresets } from './liquids';
+import { makeCalibrationTable } from './calibration';
 import { loadWorkspaceState, saveWorkspaceState, WORKSPACE_STORAGE_KEY, type StoredWorkspace } from './workspace';
 
 function memoryStorage(initial?: string) {
@@ -46,5 +47,12 @@ describe('workspace storage', () => {
   it('handles unavailable storage without disrupting the calculator', () => {
     expect(loadWorkspaceState(undefined)).toBeNull();
     expect(saveWorkspaceState(workspace, undefined)).toBe(false);
+  });
+
+  it('rejects corrupted calibration rows instead of restoring an unusable workspace', () => {
+    const table = makeCalibrationTable('0,0\n1,10', { title: '', sourceReference: '', revision: '', certifiedBy: '' });
+    table.points.reverse();
+    const corrupted = { ...workspace, chambers: [{ ...workspace.chambers[0], shapeId: 'calibration-table', calibrationTable: table }] };
+    expect(loadWorkspaceState(memoryStorage(JSON.stringify(corrupted)))).toBeNull();
   });
 });

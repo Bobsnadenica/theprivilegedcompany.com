@@ -144,8 +144,10 @@
       }
     }
   </style>
+<link rel="stylesheet" href="archive.css?v=20261008a">
 </head>
 <body>
+<aside id="archive-notice" aria-label="About this experiment"><a href="index.html">← All design studies / Всички дизайни</a><p>Archived AI design experiment. Sample text contains unverified claims and is not factual reporting or advice.</p></aside>
 
   <header>
     <h1 class="glitch">Wildest Conspiracy Theories</h1>
@@ -171,7 +173,7 @@
       <button class="collapsible">More Info</button>
       <div class="content-hidden">
         <p>Bob Lazar claims to have worked on reverse-engineering alien propulsion at a secret base near Area 51. Mainstream scientists dispute this, but believers persist.</p>
-        <iframe src="https://www.youtube.com/embed/BEWz4GXkF2k" title="Bob Lazar Interview"></iframe>
+        <iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube-nocookie.com/embed/BEWz4GXkF2k" title="Bob Lazar Interview"></iframe>
       </div>
     </div>
 
@@ -224,10 +226,15 @@
   <script>
     // Collapsible logic
     const buttons = document.querySelectorAll('.collapsible');
-    buttons.forEach(button => {
+    buttons.forEach((button, index) => {
+      const panel = button.nextElementSibling;
+      panel.id = `theory-panel-${index}`;
+      button.setAttribute("aria-controls", panel.id);
+      button.setAttribute("aria-expanded", "false");
       button.addEventListener('click', () => {
         const content = button.nextElementSibling;
         content.classList.toggle('content-hidden');
+        button.setAttribute('aria-expanded', String(!content.classList.contains('content-hidden')));
       });
     });
 

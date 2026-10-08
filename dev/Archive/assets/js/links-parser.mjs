@@ -4,7 +4,7 @@ const COMMENT_PREFIXES = ["#", "//", "--"];
 function isHttpUrl(value) {
   try {
     const candidate = new URL(value);
-    return candidate.protocol === "http:" || candidate.protocol === "https:";
+    return ["http:", "https:"].includes(candidate.protocol) && !candidate.username && !candidate.password;
   } catch {
     return false;
   }
@@ -25,7 +25,7 @@ function isCategoryLine(line) {
 function slugify(value) {
   return value
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
 }
@@ -51,7 +51,9 @@ function buildTitleFromUrl(urlString) {
 function buildNoteFromUrl(urlString) {
   const url = new URL(urlString);
   const host = url.hostname.replace(/^www\./, "");
-  const path = decodeURIComponent(url.pathname).replace(/\/$/, "");
+  let path = url.pathname;
+  try { path = decodeURIComponent(path); } catch { /* Keep malformed percent escapes readable. */ }
+  path = path.replace(/\/$/, "");
   return path && path !== "" ? `${host}${path}` : host;
 }
 

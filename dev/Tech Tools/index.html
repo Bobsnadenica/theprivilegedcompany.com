@@ -399,7 +399,8 @@
         transition-duration: 0.01ms !important;
       }
     }
-  </style>
+  .learning-start{margin:0 0 42px;padding:26px;border:1px solid var(--border-color,#39342b);border-radius:18px;background:linear-gradient(120deg,#dba04b10,transparent)}.learning-start h2{font-size:28px;margin:7px 0 12px}.learning-start p{color:var(--text-secondary);max-width:760px;line-height:1.65}.learning-start .start-kicker{font-size:11px;letter-spacing:.2em;color:var(--accent,#e3b341)}.learning-start nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}.learning-start nav a{padding:16px;border:1px solid #6d573f;border-radius:12px;color:var(--text-primary);text-decoration:none;font-weight:600}.learning-start nav a:hover{background:#dba04b15}.learning-start nav span{display:block;color:var(--text-secondary);font-size:12px;font-weight:400;margin-top:8px}.learning-start .mentor-link{font-size:13px;margin-bottom:0}.mentor-link a{color:#e8b96f}.learning-start a:focus-visible{outline:2px solid #e8b96f;outline-offset:4px}@media(max-width:650px){.learning-start{padding:20px}.learning-start nav{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
 
@@ -435,6 +436,11 @@
   </header>
 
   <main class="container">
+    <section class="learning-start" aria-labelledby="start-heading">
+      <div><p class="start-kicker">LEARN · TRY · UNDERSTAND</p><h2 id="start-heading">Pick a starting point.</h2><p>Short visual guides and local browser simulations. Downloadable labs run on your machine and may need a disposable cluster. Guides are in English.</p></div>
+      <nav aria-label="Suggested learning paths"><a href="network_layers.html">Understand networks <span>Layers → DNS → HTTP</span></a><a href="containers.html">Build &amp; ship <span>Containers → Kubernetes → CI/CD</span></a><a href="how_to.html">Practise commands <span>Examples with simulated output</span></a></nav>
+      <p class="mentor-link">Prefer a guided start? <a href="/contact?service=1%3A1%20Tech%20Consultations">Book a 1:1 consultation with a certified senior cloud architect →</a></p>
+    </section>
 
     <section class="category-section">
       <div class="section-header">
@@ -445,7 +451,7 @@
         <a class="topic-card" href="labs.html" data-tags="labs interactive hands-on kubernetes networking affinity debugging">
           <span class="badge dev" style="background: rgba(90, 215, 160, 0.1); color: var(--success);">Hands-on</span>
           <h3>Scenario Labs</h3>
-          <p>Downloadable scripts that spin up "broken" environments. Learn by fixing real architectural problems.</p>
+          <p>Disposable Kubernetes exercises with explicit context and cleanup steps. Read the prerequisites before running a downloaded script.</p>
         </a>
       </div>
     </section>
@@ -465,7 +471,7 @@
         <a class="topic-card" href="scripts.html" data-tags="scripts code snippets bash python sql">
           <span class="badge extra">Tools</span>
           <h3>Script Vault</h3>
-          <p>Production-ready code snippets. Copy/paste Bash, Python, and SQL commands instantly.</p>
+          <p>Explained Bash, Python, and SQL examples. Review the context and practise in a disposable environment before adapting them.</p>
         </a>
       </div>
     </section>
@@ -728,7 +734,7 @@
         <a class="topic-card" href="First_setup.html" data-tags="dev macos setup automation installation check">
           <span class="badge dev">Setup</span>
           <h3>Mac First Setup</h3>
-          <p>Essential checklist, automation scripts, and software installations for a new Mac machine.</p>
+          <p>A reviewed Mac setup checklist with official install sources and opt-in steps.</p>
         </a>
 
         <a class="topic-card" href="rest-api.html" data-tags="dev api http json endpoint">
@@ -750,7 +756,7 @@
       
       <div id="ai-result-card" class="ai-card">
         <div class="ai-header">
-          <span class="ai-badge">Search Assistant</span>
+          <span class="ai-badge">Search tips</span>
           <span style="font-size: 0.85rem; color: var(--text-secondary)">Local guidance</span>
         </div>
         <div id="ai-content-body" class="ai-content"></div>
@@ -764,9 +770,6 @@
   </footer>
 
   <script>
-    // --- CONFIGURATION ---
-    const AI_ENDPOINT = (window.TPC_TOOL_AI_ENDPOINT || "").trim();
-    // ---------------------
 
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('searchInput');
@@ -780,7 +783,7 @@
       const aiCard = document.getElementById('ai-result-card');
       const aiContent = document.getElementById('ai-content-body');
       
-      let isSearchingAI = false;
+
 
       // Update badge counts dynamically on load
       sections.forEach(section => {
@@ -793,6 +796,7 @@
       const updateSearchResults = () => {
         const rawTerm = searchInput.value.trim();
         const term = rawTerm.toLowerCase();
+        const words = term.split(/\s+/).filter(Boolean);
         let hasLocalResults = false;
         let visibleCardCount = 0;
         let visibleSectionCount = 0;
@@ -800,7 +804,7 @@
         // Reset AI UI when typing
         if (aiCard) {
             aiCard.classList.remove('visible');
-            aiContent.innerHTML = '';
+            aiContent.textContent = '';
         }
 
         sections.forEach(section => {
@@ -812,7 +816,7 @@
             const desc = card.querySelector('p').textContent.toLowerCase();
             const tags = card.dataset.tags ? card.dataset.tags.toLowerCase() : '';
 
-            const isMatch = title.includes(term) || desc.includes(term) || tags.includes(term);
+            const isMatch = words.every(word => `${title} ${desc} ${tags}`.includes(word));
 
             if (isMatch) {
               card.classList.remove('hidden');
@@ -858,38 +862,10 @@
         searchInput.focus();
       });
 
-      const revealSearchTip = async () => {
-        if (isSearchingAI || noResults.classList.contains('hidden') || !searchInput.value.trim()) return;
-        isSearchingAI = true;
-
+      const revealSearchTip = () => {
+        if (noResults.classList.contains('hidden') || !searchInput.value.trim()) return;
         aiCard.classList.add('visible');
-        aiContent.innerHTML = '<span class="loading-pulse">Checking the local index...</span>';
-
-        if (!AI_ENDPOINT) {
-          aiContent.textContent = `No local topic matched "${searchInput.value.trim()}". Try a shorter keyword like DNS, API, cache, Linux, SQL, Docker, or security.`;
-          isSearchingAI = false;
-          return;
-        }
-
-        try {
-          const res = await fetch(AI_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: searchInput.value })
-          });
-
-          const data = await res.json();
-
-          if (data.answer) {
-            aiContent.textContent = data.answer;
-          } else {
-            aiContent.textContent = 'No assistant answer was returned.';
-          }
-        } catch (err) {
-          aiContent.textContent = 'Assistant connection failed. Local links remain available.';
-        } finally {
-          isSearchingAI = false;
-        }
+        aiContent.textContent = `Try a shorter keyword like DNS, API, cache, Linux, SQL, Docker, or security. Search stays in your browser; it does not call an AI service.`;
       };
 
       showSearchTip.addEventListener('click', revealSearchTip);

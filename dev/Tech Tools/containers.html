@@ -2328,9 +2328,13 @@ docker volume rm app-data</code></pre>
     const progressCopy = document.getElementById("progressCopy");
 
     function loadChecklist() {
-      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
+      let saved = {};
+      try {
+        const stored = JSON.parse(localStorage.getItem(progressKey) || "{}");
+        if (stored && typeof stored === "object" && !Array.isArray(stored)) saved = stored;
+      } catch (_) { /* A blocked or corrupt save must not disable the lesson. */ }
       checkpoints.forEach((checkbox) => {
-        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+        checkbox.checked = saved[checkbox.dataset.checkpoint] === true;
       });
       updateChecklist();
     }
@@ -2344,10 +2348,12 @@ docker volume rm app-data</code></pre>
         if (checkbox.checked) checkedCount += 1;
       });
 
-      localStorage.setItem(progressKey, JSON.stringify(saved));
-      const pct = (checkedCount / checkpoints.length) * 100;
+      let persisted = true;
+      try { localStorage.setItem(progressKey, JSON.stringify(saved)); }
+      catch (_) { persisted = false; }
+      const pct = checkpoints.length ? (checkedCount / checkpoints.length) * 100 : 0;
       progressFill.style.width = pct + "%";
-      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
+      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete" + (persisted ? "" : " · this visit only");
     }
 
     checkpoints.forEach((checkbox) => {

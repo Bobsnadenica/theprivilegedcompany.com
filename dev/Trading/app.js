@@ -204,6 +204,7 @@ function bindAssetButtons() {
 }
 
 function renderAssets() {
+    if (!state.data) return;
     const assets = getFilteredAssets();
     const crypto = sortAssets(assets.filter((asset) => asset.type === "crypto"));
     const stocks = sortAssets(assets.filter((asset) => asset.type === "stock"));
@@ -219,12 +220,13 @@ function renderAssets() {
 }
 
 function renderAll() {
+    if (!state.data) return;
     renderSummary();
     renderAssets();
 }
 
 function metricCard(label, value, tone = "neutral") {
-    return `<span class="metric-card metric-${tone}"><span>${label}</span><strong>${value}</strong></span>`;
+    return `<span class="metric-card metric-${tone}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></span>`;
 }
 
 function openAssetDialog(assetId) {
@@ -315,17 +317,25 @@ function validatePayload(data) {
     for (const asset of data.assets) {
         if (!asset.id || ids.has(asset.id)) throw new Error("Duplicate or missing asset id");
         ids.add(asset.id);
+        if (!["id", "symbol", "name", "exchange", "sector", "price_as_of"].every(key => typeof asset[key] === "string" && asset[key].length > 0)) throw new Error("Invalid asset text fields");
+        if (!["stock", "crypto"].includes(asset.type) || asset.currency !== "USD") throw new Error("Invalid asset type or currency");
+        if (!Number.isFinite(asset.change_pct)) throw new Error("Invalid price change");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(asset.price_as_of) || !Number.isFinite(Date.parse(`${asset.price_as_of}T00:00:00Z`))) throw new Error("Invalid observation date");
         if (!Number.isFinite(asset.price) || asset.price <= 0) throw new Error(`Invalid price for ${asset.symbol}`);
         if (!asset.indicators || !asset.metrics || !asset.signals) throw new Error(`Incomplete analysis for ${asset.symbol}`);
+        if (!["LOW", "MEDIUM", "HIGH"].includes(asset.indicators.volatility_risk)) throw new Error("Invalid volatility risk");
+        if (!["trend_regime", "macd", "bollinger"].every(key => typeof asset.indicators[key] === "string")) throw new Error("Invalid indicators");
+        if (!["rsi14", "return_1m", "return_1y", "max_drawdown_1y"].every(key => Number.isFinite(asset.metrics[key]))) throw new Error("Invalid metrics");
         for (const key of Object.keys(HORIZONS)) {
             const signal = asset.signals[key];
-            if (!signal || !["BUY", "HOLD", "SELL"].includes(signal.label)) {
+            if (!signal || !["BUY", "HOLD", "SELL"].includes(signal.label) || !Number.isFinite(signal.strength) || signal.strength < 0 || signal.strength > 100 || typeof signal.summary !== "string") {
                 throw new Error(`Invalid ${key} signal for ${asset.symbol}`);
             }
         }
     }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.latest_price_date || "") || !Number.isFinite(Date.parse(`${data.latest_price_date}T12:00:00Z`))) throw new Error("Invalid latest price date");
     const generated = new Date(data.generated_at);
-    if (Number.isNaN(generated.getTime())) throw new Error("Invalid generation timestamp");
+    if (Number.isNaN(generated.getTime()) || generated.getTime() > Date.now() + 300000) throw new Error("Invalid generation timestamp");
     return data;
 }
 
@@ -344,17 +354,18 @@ async function fetchJson(url, timeoutMs = 10000) {
 function renderHealth(data) {
     const generated = new Date(data.generated_at);
     const ageHours = Math.max(0, (Date.now() - generated.getTime()) / 3_600_000);
-    const isStale = ageHours > 72;
+    const staleObservations = data.assets.some(asset => (Date.now() - Date.parse(`${asset.price_as_of}T23:59:59Z`)) / 86400000 > (asset.type === "crypto" ? 3 : 7));
+    const isStale = ageHours > 72 || staleObservations;
     elements.freshnessBanner.hidden = !isStale;
     if (isStale) {
         elements.status.classList.add("is-warning");
-        elements.freshnessMessage.textContent = `The last successful analysis is ${Math.floor(ageHours / 24)} days old. Check the GitHub refresh workflow before relying on it.`;
+        elements.freshnessMessage.textContent = `Snapshot generated ${Math.floor(ageHours / 24)} days ago${staleObservations ? "; one or more price observations are outdated" : ""}. These are historical indicators. Check a current market source before making decisions.`;
     }
     elements.healthStatus.textContent = isStale ? "Refresh overdue" : "Healthy";
     elements.healthStatus.className = isStale ? "health-warning" : "health-good";
     elements.healthCoverage.textContent = `${data.data_health.asset_count}/${data.data_health.expected_asset_count} assets`;
     elements.modelVersion.textContent = "Trend + MACD v2";
-    elements.universeStatus.textContent = data.universe_selection === "dynamic_market_cap" ? "Live market-cap screen" : "Continuity fallback";
+    elements.universeStatus.textContent = data.universe_selection === "dynamic_market_cap" ? "Snapshot market-cap screen" : "Continuity fallback";
     return { generated, isStale };
 }
 
@@ -378,7 +389,7 @@ async function loadDashboard() {
         if (!data) throw lastError || new Error("No market data source available");
         state.data = data;
         const { generated, isStale } = renderHealth(data);
-        elements.snapshotDate.textContent = dateFormatter.format(generated);
+        elements.snapshotDate.textContent = dateFormatter.format(new Date(`${data.latest_price_date}T12:00:00Z`));
         elements.sourceLabel.textContent = data.source;
         elements.statusText.textContent = `${data.assets.length} assets · ${isStale ? "stale" : "updated"} ${dateFormatter.format(generated)}`;
         renderAll();
@@ -387,7 +398,7 @@ async function loadDashboard() {
         elements.status.classList.add("is-error");
         elements.statusText.textContent = "Market snapshot unavailable";
         elements.snapshotDate.textContent = "Update required";
-        elements.sourceLabel.textContent = "Run the refresh workflow";
+        elements.sourceLabel.textContent = "Please try again later";
         elements.healthStatus.textContent = "Unavailable";
         elements.healthStatus.className = "health-error";
         elements.healthCoverage.textContent = "0/22 assets";
@@ -397,7 +408,7 @@ async function loadDashboard() {
         elements.stockList.closest(".asset-section").hidden = true;
         elements.emptyState.hidden = false;
         elements.emptyState.querySelector("strong").textContent = "The market data file could not be loaded.";
-        elements.emptyState.querySelector("span").textContent = "Run the GitHub Actions refresh or the local update script.";
+        elements.emptyState.querySelector("span").textContent = "Please reload in a moment. No signals are shown while the snapshot is unavailable.";
     }
 }
 

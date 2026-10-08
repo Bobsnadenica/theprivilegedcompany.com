@@ -210,7 +210,7 @@
         <div style="font-weight:bold; color:#fff;">Request Builder</div>
         
         <div class="url-bar">
-          <select class="method-select" id="reqMethod" onchange="updateUI()">
+          <select class="method-select" aria-label="HTTP method" id="reqMethod" onchange="updateUI()">
             <option value="GET">GET</option>
             <option value="POST">POST</option>
             <option value="DELETE">DELETE</option>
@@ -218,18 +218,18 @@
           <div style="display:flex; align-items:center; padding:0 10px; background:#161b22; color:#8b949e; font-family:var(--font-mono); font-size:0.9rem;">
             https://api.app.com
           </div>
-          <input type="text" class="url-input" id="reqPath" value="/users">
+          <input type="text" class="url-input" aria-label="Request path" id="reqPath" value="/users">
         </div>
 
         <div id="bodyInputGroup" style="display:none;">
           <div class="editor-label">Request Body (JSON)</div>
-          <textarea class="json-editor" id="reqBody">{
+          <textarea class="json-editor" aria-label="JSON request body" id="reqBody">{
   "name": "New User",
   "role": "Developer"
 }</textarea>
         </div>
 
-        <button class="btn-send" onclick="sendRequest()">Send Request 🚀</button>
+        <p style="color:var(--text-secondary);font-size:.85rem">Local simulation. No requests are sent to a server; reload to reset the sample data.</p><button class="btn-send" onclick="sendRequest()">Send Request 🚀</button>
       </div>
 
       <div class="response-pane">
@@ -306,31 +306,22 @@
     }
 
     function renderDB() {
-      // Simple JSON syntax highlighting
-      let html = '[\n';
-      db.forEach((item, index) => {
-        html += '  {\n';
-        Object.keys(item).forEach(k => {
-          let val = item[k];
-          let valClass = typeof val === 'number' ? 'num' : 'str';
-          if (typeof val === 'string') val = `"${val}"`;
-          html += `    <span class="key">"${k}"</span>: <span class="${valClass}">${val}</span>,\n`;
-        });
-        html = html.replace(/,\n$/, '\n'); // remove last comma
-        html += `  }${index < db.length - 1 ? ',' : ''}\n`;
-      });
-      html += ']';
-      dbVisual.innerHTML = html;
+      dbVisual.textContent = JSON.stringify(db, null, 2);
     }
 
     function sendRequest() {
       const method = reqMethod.value;
       const path = reqPath.value.trim();
+      const rawBody = reqBody.value;
+      const sendButton = document.querySelector('.btn-send');
+      if (sendButton.disabled) return;
+      sendButton.disabled = true;
       
       resStatus.className = 'status-badge';
       resOutput.innerText = 'Processing...';
 
       setTimeout(() => {
+        sendButton.disabled = false;
         // --- ROUTING LOGIC ---
         
         // 1. GET /users
@@ -339,7 +330,7 @@
         }
         
         // 2. GET /users/:id
-        else if (method === 'GET' && path.startsWith('/users/')) {
+        else if (method === 'GET' && /^\/users\/[1-9]\d*$/.test(path)) {
           const id = parseInt(path.split('/')[2]);
           const user = db.find(u => u.id === id);
           if (user) {
@@ -352,10 +343,14 @@
         // 3. POST /users
         else if (method === 'POST' && path === '/users') {
           try {
-            const payload = JSON.parse(reqBody.value);
+            const payload = JSON.parse(rawBody);
+            if (!payload || Array.isArray(payload) || typeof payload !== 'object' || typeof payload.name !== 'string' || !payload.name.trim() || payload.name.length > 100 || (payload.role !== undefined && (typeof payload.role !== 'string' || payload.role.length > 50))) {
+              respond(400, { error: 'Use an object with a name (1–100 characters) and an optional role (up to 50 characters).' }); return;
+            }
+            if (db.length >= 100) { respond(409, { error: 'Demo limit reached. Delete an entry or reload to reset.' }); return; }
             const newUser = {
               id: db.length > 0 ? db[db.length - 1].id + 1 : 1,
-              name: payload.name || "Anon",
+              name: payload.name.trim(),
               role: payload.role || "Guest"
             };
             db.push(newUser);
@@ -367,7 +362,7 @@
         }
 
         // 4. DELETE /users/:id
-        else if (method === 'DELETE' && path.startsWith('/users/')) {
+        else if (method === 'DELETE' && /^\/users\/[1-9]\d*$/.test(path)) {
           const id = parseInt(path.split('/')[2]);
           const initialLen = db.length;
           db = db.filter(u => u.id !== id);

@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <meta name="theme-color" content="#0f172a" id="theme-color-meta" />
     <meta name="description" content="Explore our tools, experiments, browser games, and project demos." />
-    <meta property="og:title" content="ThePrivilegedCompany Dev Portal">
+    <meta property="og:title" content="Projects & experiments | The Privileged Company">
     <meta property="og:description" content="Explore our tools, experiments, browser games, and project demos.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/index.html">
-    <meta name="twitter:title" content="ThePrivilegedCompany Dev Portal">
+    <meta name="twitter:title" content="Projects & experiments | The Privileged Company">
     <meta name="twitter:description" content="Explore our tools, experiments, browser games, and project demos.">
     <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
     <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
@@ -21,21 +21,16 @@
     <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
     <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
     <meta name="robots" content="noindex, nofollow, noarchive" />
-    <title>ThePrivilegedCompany Dev Portal</title>
+    <title>Projects & experiments | The Privileged Company</title>
 
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20261008qa1">
 </head>
 <body class="bg-white dark:bg-slate-950 min-h-screen flex flex-col items-center justify-start p-4">
 
-<iframe class="video-bg"
-    src="https://www.youtube.com/embed/iYmvCUonukw?autoplay=1&mute=1&controls=0&loop=1&playlist=iYmvCUonukw&modestbranding=1&showinfo=0&playsinline=1"
-    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen loading="lazy">
-</iframe>
-<div class="video-overlay"></div>
+
 
 <div id="fade-wrapper">
     <div id="page-content" class="flex flex-col items-center w-full">
@@ -54,128 +49,140 @@
                     </svg>
                 </button>
 
+                <label class="language-control"><span class="sr-only">Language / Език</span><select id="language"><option value="en">English</option><option value="bg">Български</option></select></label>
                 <div class="portal-header">
-                    <p class="portal-kicker">Projects & experiments</p>
-                    <h1 class="portal-title">Dev Portal</h1>
-                    <p class="portal-intro">Explore our browser games, practical utilities, and independent projects, with a live stream backdrop and ISS tracking below.</p>
+                    <a class="portal-kicker" href="/" data-bg="← Начало">← Back to the company</a>
+                    <h1 class="portal-title" data-bg="Идеи, които можеш да изпробваш.">Ideas you can try.</h1>
+                    <p class="portal-intro" data-bg="Играй. Изпробвай инструмент. Виж как една идея оживява. Всеки проект посочва ограниченията на своята демонстрация или прототип.">Play a game. Explore a tool. See an idea take shape. Each project clearly identifies its demo or prototype limits.</p>
                 </div>
 
-                <div class="portal-sections">
+                <div class="portal-search">
+<label for="project-search" data-bg="Намери нещо интересно">Find your next rabbit hole</label>
+<div class="search-row"><input id="project-search" type="search" placeholder="Search games, tools, experiments…" autocomplete="off"><button id="clear-search" type="button" data-bg="Изчисти" hidden>Clear</button></div>
+<p id="search-status" role="status" aria-live="polite"></p>
+</div>
+<p id="no-results" hidden data-bg="Няма съвпадения. Опитай с друга дума или изчисти търсенето.">No matches. Try another word or clear your search.</p>
+<div class="portal-sections">
 
                   <section class="portal-section" aria-labelledby="games-heading">
-                    <h2 id="games-heading" class="portal-section-title">Games & Fun</h2>
+                    <h2 id="games-heading" class="portal-section-title" data-bg="Игри">Games</h2>
                     <div class="portal-grid">
                       <a href="nest-quest/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">Nest &amp; Quest</span>
-                        <span class="portal-tile-description">A cozy budgeting RPG. Track income and spending, grow a fox-dragon companion, and explore a story shaped by your savings. Play locally or connect an existing company account.</span>
-                        <span class="portal-tile-meta">Meet Ember &amp; start an adventure</span>
+                        <span class="portal-tile-description" data-bg="Ролева игра за личен бюджет с лисица-дракон. Следи приходи и разходи и развивай историята чрез спестяванията си.">A cozy budgeting RPG. Track income and spending, grow a fox-dragon companion, and explore a story shaped by your savings. Play locally or connect an existing company account.</span>
+                        <span class="portal-tile-meta" data-bg="Започни приключение">Meet Ember &amp; start an adventure</span>
                       </a>
                       <a href="Russian-roulette/play/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">Liar's Deck</span>
-                        <span class="portal-tile-description">A 3D bluffing card game. Play against bots in your browser or download it free to play with friends on the same network.</span>
-                        <span class="portal-tile-meta">Play solo demo</span>
+                        <span class="portal-tile-description" data-bg="3D игра с карти и блъфиране. Играй срещу ботове в браузъра или изтегли безплатно за игра с приятели в една мрежа.">A 3D bluffing card game. Play against bots in your browser or download it free to play with friends on the same network.</span>
+                        <span class="portal-tile-meta" data-bg="Играй демото">Play solo demo</span>
                       </a>
                       <a href="Candycrush/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">Sugarbox · The Hollow Orchard</span>
-                        <span class="portal-tile-description">An ASCII-first idle RPG with quests, riddles, crafting, brewing, exploration, and multiple endings.</span>
-                        <span class="portal-tile-meta">Enter the orchard</span>
+                        <span class="portal-tile-description" data-bg="Текстова ролева игра с мисии, загадки, изработка, отвари, изследване и различни финали.">An ASCII-first idle RPG with quests, riddles, crafting, brewing, exploration, and multiple endings.</span>
+                        <span class="portal-tile-meta" data-bg="Влез в градината">Enter the orchard</span>
                       </a>
                       <a href="perfect_circle/index.html" class="portal-tile">
                         <span class="portal-tile-title">Perfect Circle</span>
-                        <span class="portal-tile-description">Draw the cleanest circle you can and chase the accuracy score.</span>
-                        <span class="portal-tile-meta">Launch game</span>
+                        <span class="portal-tile-description" data-bg="Нарисувай възможно най-точен кръг и подобри резултата си.">Draw the cleanest circle you can and chase the accuracy score.</span>
+                        <span class="portal-tile-meta" data-bg="Играй">Launch game</span>
                       </a>
                       <a href="password_game/index.html" class="portal-tile">
                         <span class="portal-tile-title">Password Game</span>
-                        <span class="portal-tile-description">Create the ultimate password while the rules keep getting sharper.</span>
-                        <span class="portal-tile-meta">Try challenge</span>
+                        <span class="portal-tile-description" data-bg="Измисли парола, която покрива все по-трудните правила. Не използвай истинска парола.">Create the ultimate password while the rules keep getting sharper.</span>
+                        <span class="portal-tile-meta" data-bg="Приеми предизвикателството">Try challenge</span>
                       </a>
                       <a href="conspiracy/index.html" class="portal-tile">
-                        <span class="portal-tile-title">Random Conspiracy</span>
-                        <span class="portal-tile-description">A rotating generated page for weird theory-of-the-day luck.</span>
-                        <span class="portal-tile-meta">View today's page</span>
+                        <span class="portal-tile-title">AI Design Studies</span>
+                        <span class="portal-tile-description" data-bg="Архивни визуални експерименти с AI. Измислени дизайнерски примери, а не проучвания или фактически твърдения.">Archived AI-generated visual experiments. Fictional design samples, not research or factual reporting.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай примерите">Browse design studies</span>
                       </a>
                       <a href="isitgay/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">Is It Gay?</span>
-                        <span class="portal-tile-description">A swipe-based joke game built for quick laughs.</span>
-                        <span class="portal-tile-meta">Start swiping</span>
-                      </a>
-                      <a href="shorturl/index.html" class="portal-tile">
-                        <span class="portal-tile-title">Short URL</span>
-                        <span class="portal-tile-description">Turn a long URL into a cleaner short link.</span>
-                        <span class="portal-tile-meta">Open tool</span>
+                        <span class="portal-tile-description" data-bg="Кратка сатирична игра с плъзгане на карти. За смях, не за определяне на нечия идентичност.">A swipe-based joke game built for quick laughs.</span>
+                        <span class="portal-tile-meta" data-bg="Играй">Start swiping</span>
                       </a>
                     </div>
                   </section>
 
                   <section class="portal-section" aria-labelledby="tools-heading">
-                    <h2 id="tools-heading" class="portal-section-title">Tools & Utilities</h2>
+                    <h2 id="tools-heading" class="portal-section-title" data-bg="Практични инструменти">Tools & Utilities</h2>
                     <div class="portal-grid">
+                      <a href="shorturl/index.html" class="portal-tile">
+                        <span class="portal-tile-title">Short URL</span>
+                        <span class="portal-tile-description" data-bg="Съкрати публичен адрес чрез външна услуга. Не въвеждай лични или поверителни връзки.">Turn a long URL into a cleaner short link.</span>
+                        <span class="portal-tile-meta" data-bg="Отвори инструмента">Open tool</span>
+                      </a>
+                      <a href="Tech%20Tools/index.html" class="portal-tile portal-tile-special">
+                        <span class="portal-tile-title">Tech Tools</span>
+                        <span class="portal-tile-description" data-bg="Визуални ръководства и симулации за облачни услуги, мрежи, Linux, контейнери и API. Съдържанието е на английски.">Visual guides and browser simulations for cloud, networks, Linux, containers, and APIs. Start with a concept, then try it.</span>
+                        <span class="portal-tile-meta" data-bg="Отвори библиотеката">Explore the learning library</span>
+                      </a>
                       <a href="converter/index.html" class="portal-tile">
                         <span class="portal-tile-title">Converter</span>
-                        <span class="portal-tile-description">Convert common units and currencies from a compact utility page.</span>
-                        <span class="portal-tile-meta">Open utility</span>
+                        <span class="portal-tile-description" data-bg="Преобразувай мерни единици и валути с ясни източници и ограничения.">Convert common units and currencies from a compact utility page.</span>
+                        <span class="portal-tile-meta" data-bg="Отвори конвертора">Open utility</span>
                       </a>
                       <a href="whoami/whoami.html" class="portal-tile">
                         <span class="portal-tile-title">Who Am I</span>
-                        <span class="portal-tile-description">Check public IP and network information when permission is granted.</span>
-                        <span class="portal-tile-meta">Inspect network</span>
+                        <span class="portal-tile-description" data-bg="Огледало на поверителността по твой избор. Виж публичния IP адрес и данните за браузъра, видими за сайтовете.">An opt-in privacy mirror. See the public IP and browser information websites can observe.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай">Inspect network</span>
                       </a>
                       <a href="Cylinder/dist/index.html" class="portal-tile">
                         <span class="portal-tile-title">Tank Calculator</span>
-                        <span class="portal-tile-description">Formula-traceable tank volume &amp; fill calculator with certified tables and EN/BG UI.</span>
-                        <span class="portal-tile-meta">Open calculator</span>
+                        <span class="portal-tile-description" data-bg="Обем и ниво на резервоари, формули и импорт на калибровъчни таблици. На български и английски. Не е метрологичен сертификат.">Tank volume and fill estimates, formula explanations, and imported calibration tables. English and Bulgarian. Not a metrology certificate.</span>
+                        <span class="portal-tile-meta" data-bg="Отвори калкулатора">Open calculator</span>
                       </a>
                     </div>
                   </section>
 
                   <section class="portal-section" aria-labelledby="projects-heading">
-                    <h2 id="projects-heading" class="portal-section-title">Projects & Experiments</h2>
+                    <h2 id="projects-heading" class="portal-section-title" data-bg="Проекти и прототипи">Projects & prototypes</h2>
                     <div class="portal-grid">
                       <a href="bg/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">България в Данни</span>
-                        <span class="portal-tile-description">Eight national indicators with interactive charts, observation years, original sources, and downloadable data.</span>
-                        <span class="portal-tile-meta">Explore the data atlas</span>
+                        <span class="portal-tile-description" data-bg="Осем национални показателя с графики, години на наблюдение, първоизточници и данни за изтегляне.">Eight national indicators with interactive charts, observation years, original sources, and downloadable data.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай данните">Explore the data atlas</span>
                       </a>
                       <a href="aipost247/index.html" class="portal-tile portal-tile-special">
                         <span class="portal-tile-title">AIPost247</span>
-                        <span class="portal-tile-description">A local AI-assisted Facebook Page auto-poster with scheduled publishing, reusable business context, and a guided setup flow.</span>
-                        <span class="portal-tile-meta">Open setup guide</span>
+                        <span class="portal-tile-description" data-bg="Локален помощник за публикации във Facebook страници с AI, график и ръководство за настройка. Външните доставчици може да имат такси.">A local AI-assisted Facebook Page auto-poster with scheduled publishing, reusable business context, and a guided setup flow.</span>
+                        <span class="portal-tile-meta" data-bg="Виж ръководството">Open setup guide</span>
                       </a>
                       <a href="recipes/index.html" class="portal-tile">
                         <span class="portal-tile-title">Домашни рецепти</span>
-                        <span class="portal-tile-description">A recipe-book demo with search, favourites, and step-by-step cooking.</span>
-                        <span class="portal-tile-meta">Open recipes</span>
+                        <span class="portal-tile-description" data-bg="Демо на рецептурник с търсене, любими рецепти и последователни стъпки за готвене.">A recipe-book demo with search, favourites, and step-by-step cooking.</span>
+                        <span class="portal-tile-meta" data-bg="Отвори рецептите">Open recipes</span>
                       </a>
                       <a href="Mist_of_Atlas/index.html" class="portal-tile">
                         <span class="portal-tile-title">Map Adventure Prototype</span>
-                        <span class="portal-tile-description">A local landing page for a movement-based exploration demo.</span>
-                        <span class="portal-tile-meta">View prototype</span>
+                        <span class="portal-tile-description" data-bg="Визуален прототип на игра с карта и изследване. Показаните маршрути и статистики са примерни.">A local landing page for a movement-based exploration demo.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай прототипа">View prototype</span>
                       </a>
                       <a href="cena/index.html" class="portal-tile">
                         <span class="portal-tile-title">Spesti</span>
-                        <span class="portal-tile-description">A comparison page for checking prices more quickly.</span>
-                        <span class="portal-tile-meta">Compare prices</span>
+                        <span class="portal-tile-description" data-bg="Прототип на списък за пазаруване с примерни цени без дата. Демонстрира интерфейс, а не актуални оферти.">A shopping-list prototype with undated sample prices. Compare the interface, not current retailer offers.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай примерните данни">Explore sample data</span>
                       </a>
                       <a href="Archive/index.html" class="portal-tile">
                         <span class="portal-tile-title">Archive</span>
-                        <span class="portal-tile-description">A small archive area for saved links and references.</span>
-                        <span class="portal-tile-meta">Browse archive</span>
+                        <span class="portal-tile-description" data-bg="Подбрани публични връзки и полезни ресурси.">A small archive area for saved links and references.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай архива">Browse archive</span>
                       </a>
                       <a href="https://www.everydaylilly.com/everyday_stuff/howwenamethings/index.html" class="portal-tile">
                         <span class="portal-tile-title">How We Name Things</span>
-                        <span class="portal-tile-description">A kids game for matching names with everyday objects.</span>
-                        <span class="portal-tile-meta">External game</span>
+                        <span class="portal-tile-description" data-bg="Детска игра за назоваване на предмети. Отваря се във външен сайт.">A kids game for matching names with everyday objects.</span>
+                        <span class="portal-tile-meta" data-bg="Външна игра">External game</span>
                       </a>
                       <a href="https://www.everydaylilly.com/everyday_stuff/Who_Wants_to_be_smart/index.html" class="portal-tile">
                         <span class="portal-tile-title">Who Wants to Be a Millionaire</span>
-                        <span class="portal-tile-description">A kid-friendly quiz inspired by the classic game-show format.</span>
-                        <span class="portal-tile-meta">External quiz</span>
+                        <span class="portal-tile-description" data-bg="Детски куиз във формат на телевизионна викторина. Отваря се във външен сайт.">A kid-friendly quiz inspired by the classic game-show format.</span>
+                        <span class="portal-tile-meta" data-bg="Външен куиз">External quiz</span>
                       </a>
                       <a href="Trading/index.html" class="portal-tile">
-                        <span class="portal-tile-title">Trading Bot</span>
-                        <span class="portal-tile-description">A workspace for trading-bot experiments and notes.</span>
-                        <span class="portal-tile-meta">Open project</span>
+                        <span class="portal-tile-title">Trading Research</span>
+                        <span class="portal-tile-description" data-bg="Изследователски прототип с исторически пазарни данни и бележки за моделите. Без реална търговия или инвестиционни съвети.">A research prototype with historical market snapshots and model notes. No live trading or investment advice.</span>
+                        <span class="portal-tile-meta" data-bg="Разгледай прототипа">Open project</span>
                       </a>
                     </div>
                   </section>
@@ -183,25 +190,24 @@
                 </div>
             </div>
 
-            <div id="map-container" class="w-full max-w-3xl aspect-video rounded-xl overflow-hidden mt-6">
-                <div id="map" class="w-full h-full"></div>
-                <div class="map-label">Live ISS tracker</div>
-                <div class="map-buttons">
-                    <button id="user-location-btn" aria-label="Center map on my location" class="p-3 rounded-full bg-slate-300 dark:bg-slate-700 text-gray-800 dark:text-gray-200 shadow-lg hover:scale-110 transition-all">
-                        <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m12.364-6.364-1.414 1.414M8.05 15.95l-1.414 1.414m0-10.728L8.05 8.05m7.314 7.314 1.414 1.414M12 15a3 3 0 100-6 3 3 0 000 6z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            <aside class="portal-footer">
+                <h2 data-bg="От идея до работещ проект.">Your idea could be next.</h2>
+                <p data-bg="Учи с 1:1 консултация с сертифициран старши облачен архитект или ни възложи своя проект.">Learn in a 1:1 consultation with a certified senior cloud architect, or ask us to build your project.</p>
+                <a class="portal-cta" href="/contact?service=1%3A1%20Tech%20Consultations" data-bg="Нека поговорим →">Let’s talk →</a>
+            </aside>
+            <section class="iss-section" aria-labelledby="iss-title">
+              <h2 id="iss-title" data-bg="Малък поглед към космоса">A little perspective from space</h2>
+              <p data-bg="Картата се зарежда само по твой избор. Използва Leaflet, OpenStreetMap и Where the ISS at? Не изисква твоето местоположение.">The optional map uses Leaflet, OpenStreetMap and Where the ISS at? It does not request your location.</p>
+              <button id="load-map" type="button" data-bg="Зареди позицията на МКС">Load the ISS tracker</button>
+              <p id="map-status" role="status" aria-live="polite"></p>
+              <div id="map-container" hidden><div id="map" aria-label="International Space Station position"></div></div>
+            </section>
 
         </main>
     </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/@joergdietrich/leaflet.terminator@1.1.0/L.Terminator.js"></script>
-<script src="js/front_page_map.js"></script>
-<script src="js/explosion.js"></script>
+<script src="js/front_page_map.js?v=20261008qa1"></script>
+<script src="js/explosion.js?v=20261008qa1"></script>
 </body>
 </html>

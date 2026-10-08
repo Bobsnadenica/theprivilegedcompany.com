@@ -47,7 +47,11 @@
     .btn-query { margin-top: 10px; padding: 8px 16px; background: var(--accent-prom); color: #fff; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
     
     .alert-box { margin-top: 1rem; padding: 1rem; border: 1px solid #ff7b72; color: #ff7b72; background: rgba(255, 123, 114, 0.1); display: none; }
-  </style>
+      * { box-sizing: border-box; }
+    .panel { min-width: 0; }
+    @media (max-width: 650px) { body { padding: 1rem; } .monitor-grid { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
   <div class="container">
@@ -59,11 +63,11 @@
       <div class="panel">
         <div class="panel-header">
           <span>GRAFANA DASHBOARD</span>
-          <span style="color:var(--accent-graf)">Live</span>
+          <span style="color:var(--accent-graf)">Simulated</span>
         </div>
         <div class="graph-box" id="graph">
           </div>
-        <div style="font-size:0.8rem; margin-top:10px; color:#8b949e;">Metric: node_cpu_usage_seconds_total</div>
+        <div style="font-size:0.8rem; margin-top:10px; color:#8b949e;">Sample gauge: cpu_usage (%) — generated values</div>
       </div>
 
       <div class="panel">
@@ -71,11 +75,11 @@
           <span>PROMETHEUS (TSDB)</span>
           <span style="color:var(--accent-prom)">Query</span>
         </div>
-        <p style="font-size:0.9rem; color:#8b949e;">The dashboard is showing a spike! Write a PromQL query to find the culprit.</p>
-        <input type="text" class="prom-input" id="promQuery" placeholder="Try: topk(1, cpu_usage)">
+        <p style="font-size:0.9rem; color:#8b949e;">Generated sample data, not a live connection. This mock recognizes the example query only; it is not a PromQL engine.</p>
+        <label for="promQuery">Sample query</label><input type="text" class="prom-input" id="promQuery" placeholder="Try: topk(1, cpu_usage)">
         <button class="btn-query" onclick="runQuery()">Execute</button>
         
-        <div class="alert-box" id="alertResult">
+        <div class="alert-box" id="alertResult" role="status">
           <strong>RESULT:</strong> service="crypto-miner" cpu="99%"
         </div>
       </div>
@@ -90,6 +94,7 @@
 
     // Live Graph Simulation
     setInterval(() => {
+      if (document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const h = Math.random() * 50 + 20; // Normal height
       const isSpike = Math.random() > 0.8;
       const height = isSpike ? 180 : h;
@@ -116,12 +121,12 @@
 
     function runQuery() {
       const q = document.getElementById('promQuery').value;
-      if (q.includes('cpu')) {
+      if (/^topk\s*\(\s*1\s*,\s*cpu_usage\s*\)$/.test(q.trim())) {
         alertResult.style.display = 'block';
-        alertResult.innerHTML = `<strong>RESULT:</strong> {service="bitcoin-miner", pod="hacked-pod-1"} <strong>98%</strong>`;
+        alertResult.innerHTML = `<strong>RESULT:</strong> {service="demo-worker", pod="sample-pod-1"} <strong>98%</strong>`;
       } else {
         alertResult.style.display = 'block';
-        alertResult.innerHTML = `Error: No metric found.`;
+        alertResult.innerHTML = `This mock supports: topk(1, cpu_usage). No query was sent to a server.`;
       }
     }
   </script>

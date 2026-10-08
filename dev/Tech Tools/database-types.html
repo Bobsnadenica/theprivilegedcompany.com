@@ -163,7 +163,9 @@
       50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); }
     }
 
-  </style>
+      .data-block { overflow-wrap: anywhere; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -230,7 +232,7 @@
           </table>
         </div>
 
-        <div class="status-msg" id="sqlStatus" style="color:#8b949e;">Waiting...</div>
+        <div class="status-msg" id="sqlStatus" role="status" style="color:#8b949e;">Waiting...</div>
       </div>
 
       <div class="sim-half nosql">
@@ -252,21 +254,22 @@
 
         <div class="db-container" id="nosqlContainer">
            <div style="color:#666; font-size:0.8rem; margin-top:40%; text-align:center;">
-            Collection: Users<br>(Accepts Anything)
+            Collection: Users<br>(No validation configured in this demo)
           </div>
           <div class="nosql-docs" id="nosqlDocs">
             <div class="doc-item">{ "id": 2, "name": "Bob", "hobby": "Gaming" }</div>
           </div>
         </div>
 
-        <div class="status-msg" id="nosqlStatus" style="color:#8b949e;">Waiting...</div>
+        <div class="status-msg" id="nosqlStatus" role="status" style="color:#8b949e;">Waiting...</div>
       </div>
 
     </div>
 
+    <p>This compares one fixed SQL table with a MongoDB collection without validation. MongoDB documents can have different fields, and validation can enforce a schema. <a href="https://www.mongodb.com/docs/manual/data-modeling/">MongoDB data modeling</a>.</p>
     <h2 class="section-title" style="border-color: var(--accent-warn);">⚖️ When to use which?</h2>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+    <div class="comparison-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 2rem; margin-top: 2rem;">
       <div>
         <h3 style="color:var(--accent-sql); margin-bottom:1rem;">✅ Choose SQL if...</h3>
         <ul style="color:var(--text-secondary); line-height: 1.8;">
@@ -314,7 +317,7 @@
       if(placeholder) placeholder.style.display = 'none';
       docs.style.display = 'flex';
       
-      status.innerText = "✅ Success: Document inserted (Schema updated automatically).";
+      status.innerText = "✅ Success: Document inserted with an additional field. No schema validation is configured in this demo.";
       status.style.color = "#4db33d";
 
       setTimeout(() => {

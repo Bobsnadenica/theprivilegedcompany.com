@@ -3093,9 +3093,13 @@ brew list | grep tree</code></pre>
     const progressCopy = document.getElementById("progressCopy");
 
     function loadChecklist() {
-      const saved = JSON.parse(localStorage.getItem(progressKey) || "{}");
+      let saved = {};
+      try {
+        const stored = JSON.parse(localStorage.getItem(progressKey) || "{}");
+        if (stored && typeof stored === "object" && !Array.isArray(stored)) saved = stored;
+      } catch (_) { /* A blocked or corrupt save must not disable the lesson. */ }
       checkpoints.forEach((checkbox) => {
-        checkbox.checked = Boolean(saved[checkbox.dataset.checkpoint]);
+        checkbox.checked = saved[checkbox.dataset.checkpoint] === true;
       });
       updateChecklist();
     }
@@ -3109,10 +3113,12 @@ brew list | grep tree</code></pre>
         if (checkbox.checked) checkedCount += 1;
       });
 
-      localStorage.setItem(progressKey, JSON.stringify(saved));
-      const pct = (checkedCount / checkpoints.length) * 100;
+      let persisted = true;
+      try { localStorage.setItem(progressKey, JSON.stringify(saved)); }
+      catch (_) { persisted = false; }
+      const pct = checkpoints.length ? (checkedCount / checkpoints.length) * 100 : 0;
       progressFill.style.width = pct + "%";
-      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete";
+      progressCopy.textContent = checkedCount + " / " + checkpoints.length + " complete" + (persisted ? "" : " · this visit only");
     }
 
     checkpoints.forEach((checkbox) => {
@@ -3254,7 +3260,8 @@ brew list | grep tree</code></pre>
       const div = document.createElement("div");
       div.className = "term-line";
       div.style.color = color;
-      div.innerHTML = text;
+      div.textContent = text;
+      div.style.whiteSpace = "pre-wrap";
       termOutput.appendChild(div);
       termOutput.scrollTop = termOutput.scrollHeight;
     }
@@ -3270,7 +3277,7 @@ brew list | grep tree</code></pre>
       div.innerHTML = `
         <span class="prompt">➜</span>
         <span class="path">${currentPath}</span>
-        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" spellcheck="false" />
+        <input type="text" class="cmd-input" id="cmdInput" aria-label="Practice terminal command" autocomplete="off" spellcheck="false" />
       `;
       termOutput.appendChild(div);
       const input = div.querySelector("input");
@@ -3285,6 +3292,7 @@ brew list | grep tree</code></pre>
       const input = event.currentTarget;
       const raw = input.value.trim();
       input.disabled = true;
+      input.removeAttribute("id");
       processCommand(raw);
     }
 
@@ -3315,7 +3323,7 @@ brew list | grep tree</code></pre>
         appendOutput("  cat notes.txt");
         logSim("displayed the command list");
       } else if (cmd === "ls") {
-        appendOutput((fileSystem[currentPath] || []).join("&nbsp;&nbsp;&nbsp;"), "#b9dcff");
+        appendOutput((fileSystem[currentPath] || []).join("   "), "#b9dcff");
         logSim("listed files for " + currentPath);
       } else if (cmd === "pwd") {
         appendOutput("/Users/user/" + (currentPath === "~" ? "" : currentPath));
@@ -3382,9 +3390,9 @@ brew list | grep tree</code></pre>
       termOutput.innerHTML = "";
       simLog.innerHTML = "";
       appendOutput("Last login: Thu Apr 24 09:41:00 on ttys000", "#9cb6c7");
-      appendOutput('Welcome to <span style="color:#63d6a1;">Mac zsh simulator</span>');
-      appendOutput('Type <span style="color:#6fb7ff;">help</span> to see safe practice commands.');
-      appendOutput("<br>");
+      appendOutput('Welcome to Mac zsh simulator', '#63d6a1');
+      appendOutput('Type help to see safe practice commands.', '#6fb7ff');
+      appendOutput(" ");
       updateTerminalStats();
       logSim("simulator reset");
       createInputLine();

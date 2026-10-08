@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import yfinance as yf
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,6 +144,8 @@ def previous_snapshot_stocks(limit: int = 20) -> list[Asset]:
 
 def select_top_nyse_stocks(limit: int = 20) -> tuple[list[Asset], str]:
     """Select the largest NYSE listings by live screener market capitalization."""
+    import yfinance as yf
+
     last_error: Exception | None = None
     try:
         query = yf.EquityQuery("and", [
@@ -312,6 +313,8 @@ def extract_close(frame: pd.DataFrame, ticker: str) -> pd.Series:
 
 
 def download_history(tickers: list[str]) -> dict[str, pd.Series]:
+    import yfinance as yf
+
     last_error: Exception | None = None
     bulk = pd.DataFrame()
     for attempt in range(3):

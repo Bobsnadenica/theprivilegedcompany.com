@@ -194,7 +194,10 @@
     @keyframes spawn { from { transform: scale(0); } to { transform: scale(1); } }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-  </style>
+      button.pod { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -325,6 +328,8 @@
     const node2 = document.getElementById('node2');
 
     let desiredReplicas = 3;
+    let generation = 0;
+    let nextPodId = 0;
     let currentVersion = 'v1'; // v1 or v2
     let activePods = [];
 
@@ -337,6 +342,7 @@
       line.className = 'log-line';
       line.innerHTML = `> <span class="log-hl">[K8s-Master]</span> ${msg}`;
       logBox.prepend(line);
+      while (logBox.children.length > 60) logBox.lastElementChild.remove();
     }
 
     function updateDesiredState() {
@@ -361,10 +367,12 @@
     }
 
     function createPod() {
-      const podId = Math.floor(Math.random() * 9999);
+      const podId = ++nextPodId;
       const podVer = currentVersion;
       
-      const el = document.createElement('div');
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.setAttribute('aria-label', `Simulate failure of Pod-${podId} (${podVer})`);
       el.className = `pod ${podVer === 'v2' ? 'v2' : ''}`;
       el.innerText = "🐳";
       el.title = `Pod-${podId} (${podVer})`;
@@ -409,6 +417,7 @@
     function startRollingUpdate() {
       if (currentVersion === 'v2') return;
       currentVersion = 'v2';
+      const run = ++generation;
       log(`🚀 Deployment updated: Image set to MyApp:v2. Starting Rolling Update...`);
       
       // The reconcile loop creates new pods with currentVersion. 
@@ -417,7 +426,7 @@
       activePods.forEach((p, index) => {
         if (p.version === 'v1') {
           setTimeout(() => {
-            killPod(p.id); // Hack: We treat "update" as "killing old so new spawns"
+            if (run === generation) killPod(p.id); // Hack: We treat "update" as "killing old so new spawns"
           }, index * 1500); // Slow replace every 1.5s
         }
       });
@@ -426,12 +435,13 @@
     function rollback() {
       if (currentVersion === 'v1') return;
       currentVersion = 'v1';
+      const run = ++generation;
       log(`↩️ Rolling back to MyApp:v1...`);
       // Kill v2 pods slowly
       activePods.forEach((p, index) => {
         if (p.version === 'v2') {
           setTimeout(() => {
-            killPod(p.id);
+            if (run === generation) killPod(p.id);
           }, index * 1000);
         }
       });

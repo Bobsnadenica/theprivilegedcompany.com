@@ -1,5 +1,7 @@
 import type { Chamber, ShapeId } from './types';
 import type { LengthUnit, MassUnit, VolumeUnit } from './units';
+import { validateCalibrationPoints } from './calibration';
+import type { CalibrationPoint } from './types';
 
 export type WorkspaceLanguage = 'en' | 'bg';
 
@@ -53,8 +55,14 @@ function isString(value: unknown): value is string {
 function isCalibrationTable(value: unknown): boolean {
   if (!isRecord(value) || !Array.isArray(value.points) || value.points.length < 2) return false;
   const metadataKeys = ['id', 'title', 'sourceReference', 'revision', 'certifiedBy', 'checksum', 'importedAtIso'];
-  return metadataKeys.every((key) => isString(value[key]))
-    && value.points.every((point) => isRecord(point) && isFiniteNumber(point.heightM) && isFiniteNumber(point.volumeM3));
+  if (!metadataKeys.every((key) => isString(value[key]))
+    || !value.points.every((point) => isRecord(point) && isFiniteNumber(point.heightM) && isFiniteNumber(point.volumeM3))) return false;
+  try {
+    validateCalibrationPoints(value.points as CalibrationPoint[]);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function isChamber(value: unknown): value is Chamber {

@@ -20,124 +20,43 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
+  <link rel="stylesheet" href="tool.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .converter {
-      width: 100%;
-      max-width: 350px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-    button {
-      background: #0078d7;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #005a9e;
-    }
-    .result {
-      margin-top: 15px;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-    }
-    .back-btn {
-      margin-top: 20px;
-      background: #444;
-    }
+    .currency-fields { display: grid; gap: 1rem; }
+    .currency-fields input, .currency-fields select { width: 100%; min-height: 48px; padding: .8rem; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface-strong); }
+    .currency-submit { min-height: 48px; padding: .8rem; border: 0; border-radius: 12px; color: var(--accent-ink); background: var(--accent); cursor: pointer; font-weight: 700; }
+    .currency-submit:disabled { opacity: .65; cursor: wait; }
+    .currency-result { overflow-wrap: anywhere; font-size: 1.25rem; font-weight: 700; }
+    .currency-note { color: var(--muted); font-size: .85rem; line-height: 1.7; }
   </style>
 </head>
-<body>
-  <h1>Currency Converter</h1>
-  <div class="converter">
-    <input type="number" id="amount" placeholder="Enter amount" />
-
-    <select id="from">
-      <option value="BGN">BGN - Bulgarian Lev</option>
-      <option value="EUR">EUR - Euro</option>
-      <option value="USD">USD - US Dollar</option>
-    </select>
-
-    <select id="to">
-      <option value="EUR">EUR - Euro</option>
-      <option value="BGN">BGN - Bulgarian Lev</option>
-      <option value="USD">USD - US Dollar</option>
-    </select>
-
-    <button onclick="convert()">Convert</button>
-    <div class="result" id="result">Converted amount will appear here</div>
-
-    <button class="back-btn" onclick="location.href='index.html'">⬅ Back to Menu</button>
-  </div>
-
-  <script>
-    const API_KEY = "3868e61313d80de7a12a9b7b4dcdf8df"; // It's free API no need to protect it
- 
-    async function convert() {
-      const amount = parseFloat(document.getElementById("amount").value);
-      const from = document.getElementById("from").value;
-      const to = document.getElementById("to").value;
-
-      if (isNaN(amount)) {
-        document.getElementById("result").innerText = "Please enter a valid amount.";
-        return;
-      }
-
-      try {
-        // Fetch EUR-based rates (free plan)
-        const res = await fetch(`https://api.exchangeratesapi.io/v1/latest?access_key=${API_KEY}&symbols=BGN,USD,EUR`);
-        const data = await res.json();
-
-        if (data && data.rates) {
-          const rates = data.rates;
-          rates["EUR"] = 1; // base currency
-
-          // Conversion logic
-          let converted;
-          if (from === "EUR") {
-            converted = amount * rates[to];
-          } else if (to === "EUR") {
-            converted = amount / rates[from];
-          } else {
-            converted = amount / rates[from] * rates[to];
-          }
-
-          document.getElementById("result").innerText =
-            `${amount} ${from} = ${converted.toFixed(2)} ${to}`;
-        } else {
-          document.getElementById("result").innerText = "Conversion failed. Try again.";
-          console.error("API response:", data);
-        }
-      } catch (err) {
-        document.getElementById("result").innerText = "Error fetching live rates.";
-        console.error(err);
-      }
-    }
-  </script>
+<body class="accent-orange">
+  <header class="site-header shell">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">C↔</span><span class="brand-label">Converter Lab</span></a>
+    <a class="header-action" href="index.html">All converters</a>
+  </header>
+  <main class="tool-layout shell">
+    <section aria-labelledby="page-title">
+      <p class="eyebrow">A clear reference, before you exchange.</p>
+      <h1 id="page-title">Currency, made simple.</h1>
+      <p class="intro-copy">Convert euros, US dollars and historic Bulgarian lev amounts. Reference rates exclude bank fees and exchange spreads.</p>
+      <p class="currency-note">BGN is a historic currency. The official conversion is <strong>1 EUR = 1.95583 BGN</strong>. <a href="https://www.ecb.europa.eu/euro/changeover/bulgaria/html/index.en.html" target="_blank" rel="noopener noreferrer">ECB conversion reference ↗</a></p>
+    </section>
+    <section class="tool-card" aria-label="Currency converter">
+      <form class="currency-fields" id="currency-form">
+        <label class="field-label" for="amount">Amount</label>
+        <input type="number" id="amount" value="100" min="0" max="1000000000000" step="any" inputmode="decimal" required>
+        <label class="field-label" for="from">From</label>
+        <select id="from"><option value="EUR">EUR · Euro</option><option value="USD">USD · US dollar</option><option value="BGN">BGN · Historic lev</option></select>
+        <label class="field-label" for="to">To</label>
+        <select id="to"><option value="BGN">BGN · Historic lev</option><option value="EUR">EUR · Euro</option><option value="USD">USD · US dollar</option></select>
+        <button class="currency-submit" id="convert-button" type="submit">Convert</button>
+      </form>
+      <p class="currency-result" id="result" role="status" aria-live="polite">Choose an amount and currencies.</p>
+      <p class="currency-note" id="rate-date"></p>
+      <p class="currency-note">USD uses dated ECB reference rates via <a href="https://frankfurter.dev/v1/" target="_blank" rel="noopener noreferrer">Frankfurter ↗</a>. A USD conversion contacts that service; your amount stays in this browser.</p>
+    </section>
+  </main>
+  <script type="module" src="currency.mjs"></script>
 </body>
 </html>

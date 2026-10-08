@@ -299,13 +299,13 @@
                     <span class="domain-chip">go.theprivilegedcompany.com</span>
                 </div>
             </div>
-            <p class="subtitle">Branded short links with optional custom slugs, expiry, QR codes and click stats.</p>
+            <p class="subtitle">An access-key-protected company tool for short links, expiry, QR codes and click stats. Link creation is available to authorised users.</p>
         </header>
 
         <section class="form" aria-label="Create a short link">
             <div class="field">
                 <label for="longUrl">Destination URL</label>
-                <input type="text" id="longUrl" placeholder="https://example.com/some/long/path" autofocus>
+                <input type="text" id="longUrl" inputmode="url" autocomplete="url" maxlength="4096" placeholder="https://example.com/some/long/path" autofocus>
             </div>
 
             <div class="row-split">
@@ -334,10 +334,10 @@
                 <div class="keybox-body">
                     <p class="keybox-note">Creating links and reading stats requires the access key. It is remembered on this device only.</p>
                     <div class="row-2">
-                        <input type="password" id="createKey" placeholder="Paste the access key" autocomplete="off">
+                        <input type="password" id="createKey" aria-label="Access key" placeholder="Paste the access key" autocomplete="off">
                         <button class="ghost-btn" type="button" onclick="saveKey()">Save</button>
                     </div>
-                    <div class="message" id="keyStatus"></div>
+                    <div class="message" id="keyStatus" role="status"></div>
                 </div>
             </details>
 
@@ -364,8 +364,8 @@
     <section class="panel" aria-label="Link stats">
         <h2>Link stats</h2>
         <div class="row-2">
-            <input type="text" id="statsSlug" placeholder="Slug or full short link, e.g. contact" autocomplete="off" spellcheck="false">
-            <button class="ghost-btn" type="button" onclick="lookupStats()">Look up</button>
+            <input type="text" id="statsSlug" aria-label="Short link or slug" maxlength="256" placeholder="Slug or full short link, e.g. contact" autocomplete="off" spellcheck="false">
+            <button class="ghost-btn" type="button" id="statsButton" onclick="lookupStats()">Look up</button>
         </div>
         <div class="message" id="statsMessage" role="status"></div>
         <div class="stats-grid" id="statsGrid"></div>
@@ -382,17 +382,29 @@
     const $ = (id) => document.getElementById(id);
     let lastShortUrl = "";
 
-    function getKey() { return localStorage.getItem(KEY_STORAGE) || ""; }
+    function getKey() { try { return localStorage.getItem(KEY_STORAGE) || ""; } catch { return ""; } }
 
     function saveKey() {
         const val = $("createKey").value.trim();
-        if (!val) {
-            localStorage.removeItem(KEY_STORAGE);
-            setMsg($("keyStatus"), "Key cleared.", "ok");
-            return;
+        try {
+            if (val) localStorage.setItem(KEY_STORAGE, val);
+            else localStorage.removeItem(KEY_STORAGE);
+            setMsg($("keyStatus"), val ? "Key saved on this device. Do not save on shared devices." : "Key cleared.", "ok");
+        } catch {
+            setMsg($("keyStatus"), "This browser blocks storage. You can still use the key in this tab.", "error");
         }
-        localStorage.setItem(KEY_STORAGE, val);
-        setMsg($("keyStatus"), "Key saved on this device.", "ok");
+    }
+
+    function safeDestination(value) {
+        const url = new URL(value);
+        if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || !url.hostname || value.length > 4096) throw new Error("Use a full http:// or https:// URL without embedded credentials.");
+        return url.href;
+    }
+
+    function safeShortUrl(value) {
+        const url = new URL(value);
+        if (url.origin !== API_URL || url.username || url.password || !/^\/[A-Za-z0-9_-]+$/.test(url.pathname)) throw new Error("The service returned an invalid short link.");
+        return url.href;
     }
 
     function setMsg(el, text, kind) {
@@ -402,30 +414,38 @@
 
     async function api(path, options = {}) {
         const key = $("createKey").value.trim() || getKey();
-        const res = await fetch(API_URL + path, {
-            ...options,
-            headers: {
-                "Content-Type": "application/json",
-                "x-create-key": key,
-                ...(options.headers || {}),
-            },
-        });
-        let data = {};
-        try { data = await res.json(); } catch { /* non-JSON error body */ }
-        if (!res.ok) {
-            if (res.status === 401) $("keyBox").open = true;
-            throw new Error(data.error || `Request failed (${res.status})`);
-        }
-        return data;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        try {
+            const res = await fetch(API_URL + path, {
+                ...options,
+                signal: controller.signal,
+                credentials: "omit",
+                headers: { "Content-Type": "application/json", "x-create-key": key, ...(options.headers || {}) },
+            });
+            let data = {};
+            try { data = await res.json(); } catch { /* non-JSON error body */ }
+            if (!res.ok) {
+                if (res.status === 401) $("keyBox").open = true;
+                throw new Error(typeof data.error === "string" ? data.error : `Request failed (${res.status})`);
+            }
+            return data;
+        } catch (error) {
+            if (error.name === "AbortError") throw new Error(options.method === "POST" ? "Request timed out. A link may have been created; check your custom slug before trying again." : "The request timed out. Please try again.");
+            if (error instanceof TypeError) throw new Error("The short-link service could not be reached. Check your connection and try again.");
+            throw error;
+        } finally { clearTimeout(timeout); }
     }
 
     async function shorten() {
-        const url = $("longUrl").value.trim();
+        if ($("shortenBtn").disabled) return;
+        let url = $("longUrl").value.trim();
         setMsg($("message"), "");
         $("resultCard").classList.remove("visible");
         $("qrBox").classList.remove("visible");
 
         if (!url) { setMsg($("message"), "Please enter a destination URL.", "error"); return; }
+        try { url = safeDestination(url); } catch { setMsg($("message"), "Use a full http:// or https:// URL without embedded credentials.", "error"); return; }
         if (!(getKey() || $("createKey").value.trim())) {
             $("keyBox").open = true;
             setMsg($("message"), "Set the access key first.", "error");
@@ -435,6 +455,7 @@
         const body = { url };
         const slug = $("customSlug").value.trim();
         const ttl = $("ttlDays").value;
+        if (slug && !/^[A-Za-z0-9_-]{3,32}$/.test(slug)) { setMsg($("message"), "Use 3–32 letters, numbers, hyphens or underscores for the slug.", "error"); return; }
         if (slug) body.slug = slug;
         if (ttl) body.ttlDays = Number(ttl);
 
@@ -443,9 +464,9 @@
         btn.textContent = "Creating…";
         try {
             const data = await api("/api/links", { method: "POST", body: JSON.stringify(body) });
-            lastShortUrl = data.shortUrl;
-            $("shortLink").href = data.shortUrl;
-            $("shortLink").textContent = data.shortUrl.replace(/^https:\/\//, "");
+            lastShortUrl = safeShortUrl(data.shortUrl);
+            $("shortLink").href = lastShortUrl;
+            $("shortLink").textContent = lastShortUrl.replace(/^https:\/\//, "");
             $("resultMeta").textContent = data.expiresAt
                 ? "Expires " + new Date(data.expiresAt * 1000).toLocaleDateString()
                 : "Never expires";
@@ -460,13 +481,16 @@
         }
     }
 
-    function copyToClipboard() {
+    async function copyToClipboard() {
         if (!lastShortUrl) return;
-        navigator.clipboard.writeText(lastShortUrl).then(() => {
+        try {
+            await navigator.clipboard.writeText(lastShortUrl);
             const btn = $("copyBtn");
             btn.textContent = "Copied";
             setTimeout(() => { btn.textContent = "Copy"; }, 1600);
-        });
+        } catch {
+            setMsg($("message"), "Clipboard access is unavailable. Select and copy the short link above.", "error");
+        }
     }
 
     function toggleQr() {
@@ -484,13 +508,18 @@
     }
 
     async function lookupStats() {
+        if ($("statsButton").disabled) return;
         const raw = $("statsSlug").value.trim();
         const grid = $("statsGrid");
         grid.classList.remove("visible");
         setMsg($("statsMessage"), "");
         if (!raw) { setMsg($("statsMessage"), "Enter a slug or short link.", "error"); return; }
 
-        const slug = raw.replace(/^https?:\/\/[^/]+\//, "").replace(/\/+$/, "");
+        let slug = raw;
+        try { if (/^https?:/i.test(raw)) slug = new URL(safeShortUrl(raw)).pathname.slice(1); }
+        catch { setMsg($("statsMessage"), "Use a short link from go.theprivilegedcompany.com.", "error"); return; }
+        if (!/^[A-Za-z0-9_-]{1,32}$/.test(slug)) { setMsg($("statsMessage"), "Enter a valid short-link slug.", "error"); return; }
+        $("statsButton").disabled = true;
         try {
             const d = await api(`/api/links/${encodeURIComponent(slug)}/stats`);
             const rows = [
@@ -508,7 +537,7 @@
             grid.classList.add("visible");
         } catch (e) {
             setMsg($("statsMessage"), e.message, "error");
-        }
+        } finally { $("statsButton").disabled = false; }
     }
 
     document.addEventListener("DOMContentLoaded", () => {

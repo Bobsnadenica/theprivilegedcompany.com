@@ -140,7 +140,7 @@ const demoStates = {
   },
   party: {
     status: "Shared Realm 84%",
-    title: "Party Expedition Online",
+    title: "Party Expedition Preview",
     text: "Combine movement with friends and turn scattered paths into a single shared campaign.",
     routes: "412",
     landmarks: "83",
@@ -727,14 +727,14 @@ const renderChronicleScene = () => {
 
   if (chronicleNoteTitle) {
     chronicleNoteTitle.textContent = usingUserLocation
-      ? "Live route around your area loaded."
+      ? "Illustrative route around your area loaded."
       : "Sample downtown route loaded.";
   }
 
   if (chronicleNoteMeta) {
     chronicleNoteMeta.textContent = usingUserLocation
-      ? "Hover the map to reveal a live route laid over real streets near your current location."
-      : "Hover the map to reveal a live route on top of real streets. Use your location to switch the demo to your own area.";
+      ? "Reveal an illustrative route over the map near you. It is not recorded movement or navigation guidance."
+      : "Reveal an illustrative route over real map tiles. Use your location to move the demo to your area.";
   }
 };
 
@@ -766,12 +766,14 @@ const requestUserLocation = (silent = false) => {
     (position) => {
       applyCenter([position.coords.latitude, position.coords.longitude], {
         fromUserLocation: true,
-        statusMessage: "Using your current area for both live map demos.",
+        statusMessage: "Showing your area. Routes and statistics are illustrative; location is not recorded.",
       });
       setLocationButtonState("Location Loaded");
     },
-    () => {
-      setLocationMessage("Location permission was denied. Showing the sample city center instead.", true);
+    (error) => {
+      setLocationMessage(error.code === 1
+        ? "Location access was denied. The sample map is still available."
+        : "Could not determine your location. Try again or explore the sample map.", true);
       setLocationButtonState("Use My Location");
       renderChronicleScene();
       renderHeroScene(currentMode);
@@ -796,18 +798,6 @@ if (hasLeaflet && heroMapElement && chronicleMapElement) {
   renderHeroScene(currentMode);
   renderChronicleScene();
 
-  if (navigator.permissions && typeof navigator.permissions.query === "function") {
-    navigator.permissions
-      .query({ name: "geolocation" })
-      .then((result) => {
-        if (result.state === "granted") {
-          requestUserLocation(true);
-        }
-      })
-      .catch(() => {
-        // Ignore permission query failures and leave the sample map in place.
-      });
-  }
 } else if (!hasLeaflet) {
   setLocationMessage("The real map library could not load. Check the network connection on GitHub Pages.", true);
   setLocationButtonState("Map Unavailable", true);

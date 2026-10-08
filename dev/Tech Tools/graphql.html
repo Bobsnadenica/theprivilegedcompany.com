@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Level 30: GraphQL | Tech Knowledge Hub</title>
   <meta property="og:title" content="Level 30: GraphQL | Tech Knowledge Hub">
   <meta property="og:description" content="ThePrivilegedCompany project page.">
@@ -30,47 +31,56 @@
     .keyword { color: var(--accent-ql); font-weight: bold; }
     
     .btn { background: var(--accent-ql); border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-  </style>
+      * { box-sizing: border-box; }
+    textarea.editor { display: block; width: 100%; color: #f0f6fc; resize: vertical; font: 15px/1.6 monospace; }
+    .json-out { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 180px; }
+    :focus-visible { outline: 3px solid #e535ab; outline-offset: 3px; }
+    @media (max-width: 650px) { body { padding: 1rem; } .playground { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
   <div class="container">
     <div style="margin-bottom:1rem;"><a href="index.html" style="color:#8b949e; text-decoration:none;">← Back</a></div>
     <h1 style="color:var(--accent-ql)">GraphQL Playground</h1>
-    <p>Unlike REST where you get the whole object, in GraphQL you ask for exactly what you want.</p>
+    <p>Select response fields in a GraphQL-style query. This local teaching mock supports user(id: 1) with name, email, age and posts { title }; it does not connect to a server or execute arbitrary GraphQL.</p>
 
     <div class="playground">
       <div>
         <h3>Query</h3>
-        <div class="editor" contenteditable="true" id="queryInput">
-<span class="keyword">query</span> {
+        <label for="queryInput">Edit the sample query</label>
+        <textarea class="editor" id="queryInput" spellcheck="false" rows="9">query {
   user(id: 1) {
     name
     email
   }
-}
-        </div>
+}</textarea>
         <button class="btn" onclick="fetchData()">Run Query ▶</button>
       </div>
 
       <div>
         <h3>Response (JSON)</h3>
-        <div class="editor json-out" id="output">...</div>
+        <div class="editor json-out" id="output" role="status">...</div>
       </div>
     </div>
   </div>
 
   <script>
     function fetchData() {
-      const q = document.getElementById('queryInput').innerText;
-      let data = {};
-      
-      if (q.includes('name')) data.name = "Alice";
-      if (q.includes('email')) data.email = "alice@example.com";
-      if (q.includes('age')) data.age = 29;
-      if (q.includes('posts')) data.posts = [{title: "Hello World"}];
-
-      document.getElementById('output').innerText = JSON.stringify({ data: { user: data } }, null, 2);
+      const q = document.getElementById('queryInput').value.trim();
+      const output = document.getElementById('output');
+      const error = message => { output.textContent = JSON.stringify({ errors: [{ message }] }, null, 2); };
+      if (q.length > 2000) return error('Keep the sample query under 2,000 characters.');
+      const match = q.match(/^(?:query(?:\s+[A-Za-z_]\w*)?\s*)?\{\s*user\s*\(\s*id\s*:\s*1\s*\)\s*\{([\s\S]*?)\}\s*\}$/);
+      if (!match) return error('This mock supports only query { user(id: 1) { name email age posts { title } } }.');
+      const hasPosts = /\bposts\s*\{\s*title\s*\}/.test(match[1]);
+      const fields = match[1].replace(/\bposts\s*\{\s*title\s*\}/g, ' ').trim().split(/[\s,]+/).filter(Boolean);
+      if ((!fields.length && !hasPosts) || fields.some(field => !['name', 'email', 'age'].includes(field))) return error('Choose name, email, age or posts { title }. Other fields are not implemented in this mock.');
+      const sample = { name: 'Alice', email: 'alice@example.com', age: 29 };
+      const data = Object.fromEntries(fields.map(field => [field, sample[field]]));
+      if (hasPosts) data.posts = [{ title: 'Hello World' }];
+      output.textContent = JSON.stringify({ data: { user: data } }, null, 2);
     }
+
   </script>
 </body>
 </html>

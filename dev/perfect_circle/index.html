@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Perfect Circle Challenge 2.0</title>
 <meta property="og:title" content="Perfect Circle Challenge 2.0">
-<meta property="og:description" content="ThePrivilegedCompany project page.">
+<meta property="og:description" content="Draw one complete circle and see how close you can get. Free, with English and Bulgarian controls.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/perfect_circle/index.html">
 <meta name="twitter:title" content="Perfect Circle Challenge 2.0">
-<meta name="twitter:description" content="ThePrivilegedCompany project page.">
+<meta name="twitter:description" content="Draw one complete circle and see how close you can get. Free, with English and Bulgarian controls.">
 <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:type" content="image/png">
@@ -29,7 +29,7 @@
         font-family: 'Exo 2', sans-serif;
         color: white;
         user-select: none;
-        touch-action: none; /* Prevents scrolling on mobile */
+
     }
 
     #canvas {
@@ -40,6 +40,7 @@
         height: 100%;
         cursor: crosshair;
         z-index: 1;
+        touch-action: none;
     }
 
     #particles {
@@ -54,7 +55,7 @@
 
     #hud {
         position: fixed;
-        top: 20px;
+        top: 84px;
         left: 50%;
         transform: translateX(-50%);
         text-align: center;
@@ -82,7 +83,7 @@
     }
 
     @media (min-width: 768px) {
-        #hud { top: 40px; }
+        #hud { top: 90px; }
         #score { font-size: 64px; }
         #details { font-size: 18px; }
     }
@@ -128,15 +129,27 @@
         color: #ffd700 !important; /* Gold */
         text-shadow: 0 0 20px #ffd700;
     }
+    .toolbar { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .toolbar a, .toolbar button, .toolbar select { font: inherit; color: white; background: #14243c; border: 1px solid #718298; padding: 10px; border-radius: 12px; min-height: 44px; text-decoration: none; }
+    .toolbar select option { color: white; background: #14243c; }
+    .toolbar div { display: flex; gap: 6px; }
+    :focus-visible { outline: 3px solid #ffd700; outline-offset: 3px; }
+    #instructions { z-index: 3; width: calc(100% - 30px); }
+    #instructions[hidden] { display: none; }
+    #details { max-width: calc(100% - 28px); margin: 8px auto; }
+    .draw-note { position: fixed; z-index: 3; pointer-events: none; bottom: max(14px, env(safe-area-inset-bottom)); left: 16px; right: 16px; text-align: center; font-size: 13px; color: #c5d1e0; }
+    @media (max-height: 500px) { #hud { top: 68px; } #score { font-size: 36px; } #leaderboard { margin-top: 4px; padding: 5px 12px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 
 <body>
 
-<canvas id="canvas"></canvas>
-<canvas id="particles"></canvas>
+<nav class="toolbar" aria-label="Game controls"><a id="back" href="/dev">← Games</a><div><button id="sound" type="button" aria-pressed="false">Sound off</button><select id="language" aria-label="Language / Език"><option value="en">English</option><option value="bg">Български</option></select></div></nav>
+<canvas id="canvas" aria-label="Draw one circle using a mouse, pen or touch."></canvas>
+<canvas id="particles" aria-hidden="true"></canvas>
 
-<div id="hud">
+<div id="hud" role="status" aria-live="polite" aria-atomic="true">
   <div id="score">0.0%</div>
   <div id="details">Draw a circle to begin</div>
   <div id="leaderboard"></div>
@@ -144,14 +157,30 @@
 
 <div id="instructions">HOLD & DRAW</div>
 
-<script>
+<p class="draw-note" id="draw-note">Mouse, pen or touch · Finish where you started · Scores stay on this device</p>
+<script type="module">
+import { scoreCircle, cleanScores } from './scoring.mjs?v=20261008a';
 /** * AUDIO SYSTEM (Synthesizer)
  */
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContext();
+let audioCtx = null;
+let soundEnabled = false;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const copy = {
+ en: { back: '← Games', start: 'Draw a circle to begin', draw: 'HOLD & DRAW', again: 'DRAW AGAIN', small: 'Draw a larger, complete circle.', best: '🏆 BEST: ', empty: 'No high scores yet', soundOn: 'Sound on', soundOff: 'Sound off', note: 'Mouse, pen or touch · Finish where you started · Scores stay on this device', comments: ['Keep practising!', 'Not bad!', 'Excellent!', 'Masterpiece!', 'Almost perfect!'] },
+ bg: { back: '← Игри', start: 'Нарисувайте кръг, за да започнете', draw: 'ЗАДРЪЖТЕ И РИСУВАЙТЕ', again: 'ОПИТАЙТЕ ПАК', small: 'Нарисувайте по-голям, затворен кръг.', best: '🏆 РЕКОРД: ', empty: 'Все още няма рекорди', soundOn: 'Със звук', soundOff: 'Без звук', note: 'Мишка, писалка или докосване · Завършете там, откъдето започнахте · Рекордите се пазят на това устройство', comments: ['Опитайте пак!', 'Добър опит!', 'Отлично!', 'Шедьовър!', 'Почти съвършено!'] }
+};
+let language = new URLSearchParams(location.search).get('lang') === 'bg' ? 'bg' : 'en';
+let lastResult = null;
+const t = key => copy[language][key];
 
 function playSound(type, val) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!soundEnabled) return;
+    try {
+      const AudioConstructor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioConstructor) return;
+      audioCtx ||= new AudioConstructor();
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    } catch { return; }
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     
@@ -192,10 +221,14 @@ const particleCanvas = document.getElementById("particles");
 const pctx = particleCanvas.getContext("2d");
 
 let w, h;
+let drawing = false;
+let pointerId = null;
 function resize() {
+    drawing = false;
+    pointerId = null;
     w = window.innerWidth;
     h = window.innerHeight;
-    const ratio = window.devicePixelRatio || 1;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = particleCanvas.width = w * ratio;
     canvas.height = particleCanvas.height = h * ratio;
     ctx.scale(ratio, ratio);
@@ -208,16 +241,19 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-let drawing = false;
 let points = [];
 let particles = [];
-let bestScore = parseFloat(localStorage.getItem("bestScore") || "0");
+let scores = [];
+try { scores = cleanScores(localStorage.getItem('circleScores')); } catch { /* Storage is optional. */ }
 
 // Update initial leaderboard text
 updateLeaderboardUI();
 
 function start(e) {
-    e.preventDefault(); // Prevent scrolling on touch
+    if (drawing || (e.pointerType === "mouse" && e.button !== 0)) return;
+    e.preventDefault();
+    pointerId = e.pointerId;
+    canvas.setPointerCapture(pointerId);
     drawing = true;
     points = [];
     
@@ -226,7 +262,7 @@ function start(e) {
     
     // Reset UI style
     document.getElementById("score").style.color = "#fff";
-    document.getElementById("instructions").style.opacity = "0";
+    document.getElementById("instructions").hidden = true;
     
     const pos = getPos(e);
     ctx.beginPath();
@@ -235,10 +271,11 @@ function start(e) {
 }
 
 function draw(e) {
-    if (!drawing) return;
+    if (!drawing || e.pointerId !== pointerId || points.length >= 5000) return;
     e.preventDefault();
     
     const pos = getPos(e);
+    if (Math.hypot(pos.x - points.at(-1).x, pos.y - points.at(-1).y) < 1) return;
     points.push(pos);
 
     // Audio feedback based on stroke length
@@ -251,6 +288,8 @@ function draw(e) {
     ctx.shadowBlur = 10;
     ctx.shadowColor = `hsl(${hue}, 80%, 50%)`;
 
+    ctx.beginPath();
+    ctx.moveTo(points.at(-2).x, points.at(-2).y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     
@@ -258,18 +297,20 @@ function draw(e) {
     if (Math.random() > 0.5) spawnParticle(pos.x, pos.y, `hsl(${hue}, 80%, 50%)`);
 }
 
-function end() {
-    if (!drawing) return;
+function end(e) {
+    if (!drawing || (e && e.pointerId !== pointerId)) return;
     drawing = false;
-    document.getElementById("instructions").style.opacity = "1";
-    document.getElementById("instructions").innerText = "DRAW AGAIN";
-    
-    if (points.length < 30) {
-        document.getElementById("details").innerText = "Too small! Try bigger.";
-        return;
+    pointerId = null;
+    document.getElementById("instructions").hidden = false;
+    document.getElementById("instructions").textContent = t('again');
+    const result = scoreCircle(points);
+    if (!result) {
+      document.getElementById('score').textContent = '0.0%';
+      document.getElementById('details').textContent = t('small');
+      lastResult = null;
+      return;
     }
-    
-    calculateScore();
+    displayResult(result.score, result.cx, result.cy, result.radius);
 }
 
 function getPos(e) {
@@ -285,36 +326,8 @@ function getPos(e) {
 /**
  * MATH & SCORING
  */
-function calculateScore() {
-    let avgX = 0, avgY = 0;
-    points.forEach(p => { avgX += p.x; avgY += p.y; });
-    avgX /= points.length;
-    avgY /= points.length;
-
-    // Calculate average radius
-    const radii = points.map(p => Math.hypot(p.x - avgX, p.y - avgY));
-    const avgR = radii.reduce((a, b) => a + b) / radii.length;
-
-    // Calculate Variance (how wobbly it is)
-    const variance = radii.reduce((sum, r) => sum + Math.abs(r - avgR), 0) / radii.length;
-    
-    // Calculate Closure (did endpoints meet?)
-    const startPt = points[0];
-    const endPt = points[points.length - 1];
-    const closureGap = Math.hypot(startPt.x - endPt.x, startPt.y - endPt.y);
-    // Normalize closure penalty based on circle size
-    const closurePenalty = (closureGap / avgR) * 15;
-
-    // Normalize variance penalty
-    const variancePenalty = (variance / avgR) * 100;
-
-    let rawScore = 100 - variancePenalty - closurePenalty;
-    let score = Math.max(0, Math.min(100, rawScore));
-
-    displayResult(score, avgX, avgY, avgR);
-}
-
 function displayResult(score, cx, cy, r) {
+    lastResult = score;
     playSound('score', score);
 
     const scoreEl = document.getElementById("score");
@@ -322,19 +335,19 @@ function displayResult(score, cx, cy, r) {
 
     // Color grading based on score
     let color = "#ff4d4d"; // Red (Bad)
-    let comment = "Square?";
+    let comment = t('comments')[0];
     
-    if (score > 80) { color = "#ff9f43"; comment = "Not bad!"; } // Orange
-    if (score > 90) { color = "#00d2d3"; comment = "Excellent!"; } // Cyan
-    if (score > 95) { color = "#54a0ff"; comment = "Masterpiece!"; } // Blue
-    if (score > 98) { color = "#ffd700"; comment = "GODLIKE"; } // Gold
+    if (score > 80) { color = "#ff9f43"; comment = t('comments')[1]; } // Orange
+    if (score > 90) { color = "#00d2d3"; comment = t('comments')[2]; } // Cyan
+    if (score > 95) { color = "#54a0ff"; comment = t('comments')[3]; } // Blue
+    if (score > 98) { color = "#ffd700"; comment = t('comments')[4]; } // Gold
 
     scoreEl.innerText = score.toFixed(1) + "%";
     scoreEl.style.color = color;
     scoreEl.style.textShadow = `0 0 20px ${color}`;
     
     // Visual Pop Effect
-    scoreEl.style.transform = "scale(1.5)";
+    scoreEl.style.transform = reducedMotion.matches ? "none" : "scale(1.5)";
     setTimeout(() => scoreEl.style.transform = "scale(1)", 200);
 
     detailsEl.innerText = comment;
@@ -363,28 +376,21 @@ function drawIdealCircle(x, y, r, color) {
 }
 
 function saveScore(score) {
-    let scores = JSON.parse(localStorage.getItem("circleScores") || "[]");
-    scores.push(score);
-    scores.sort((a, b) => b - a);
-    scores = scores.slice(0, 5); // Keep top 5
-    localStorage.setItem("circleScores", JSON.stringify(scores));
-    updateLeaderboardUI(scores);
+    scores = [...scores, score].sort((a, b) => b - a).slice(0, 5);
+    try { localStorage.setItem('circleScores', JSON.stringify(scores)); } catch { /* Keep the current session playable. */ }
+    updateLeaderboardUI();
 }
 
-function updateLeaderboardUI(scores) {
-    if (!scores) scores = JSON.parse(localStorage.getItem("circleScores") || "[]");
-    const lb = document.getElementById("leaderboard");
-    if (scores.length === 0) {
-        lb.innerHTML = "No high scores yet";
-        return;
-    }
-    lb.innerHTML = "🏆 BEST: " + scores[0].toFixed(1) + "%";
+function updateLeaderboardUI() {
+    document.getElementById('leaderboard').textContent = scores.length ? t('best') + scores[0].toFixed(1) + '%' : t('empty');
 }
 
 /**
  * PARTICLE SYSTEM
  */
 function spawnParticle(x, y, color) {
+    if (reducedMotion.matches || document.hidden) return;
+    startParticles();
     particles.push({
         x: x, y: y,
         vx: (Math.random() - 0.5) * 2,
@@ -395,6 +401,8 @@ function spawnParticle(x, y, color) {
 }
 
 function explodeParticles(x, y, color) {
+    if (reducedMotion.matches || document.hidden) return;
+    startParticles();
     for(let i=0; i<50; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 5 + 2;
@@ -409,7 +417,10 @@ function explodeParticles(x, y, color) {
     }
 }
 
+let frame = null;
+function startParticles() { if (frame === null) frame = requestAnimationFrame(loop); }
 function loop() {
+    frame = null;
     pctx.clearRect(0, 0, w, h);
     
     for (let i = particles.length - 1; i >= 0; i--) {
@@ -418,7 +429,7 @@ function loop() {
         p.y += p.vy;
         p.life -= (p.decay || 0.05); // Default decay is fast for trail
         
-        pctx.globalAlpha = p.life;
+        pctx.globalAlpha = Math.max(0, p.life);
         pctx.fillStyle = p.color;
         pctx.beginPath();
         pctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
@@ -427,20 +438,45 @@ function loop() {
         if (p.life <= 0) particles.splice(i, 1);
     }
     
-    requestAnimationFrame(loop);
+    if (particles.length && !document.hidden && !reducedMotion.matches) startParticles();
 }
-loop();
 
-// Event Listeners
-canvas.addEventListener("mousedown", start);
-canvas.addEventListener("mousemove", draw);
-window.addEventListener("mouseup", end);
-
-canvas.addEventListener("touchstart", start, {passive: false});
-canvas.addEventListener("touchmove", draw, {passive: false});
-window.addEventListener("touchend", end, {passive: false});
-window.addEventListener("touchcancel", end, {passive: false});
-
+canvas.addEventListener('pointerdown', start);
+canvas.addEventListener('pointermove', draw);
+canvas.addEventListener('pointerup', end);
+canvas.addEventListener('pointercancel', () => { drawing = false; pointerId = null; document.getElementById('instructions').hidden = false; });
+canvas.addEventListener('lostpointercapture', () => { drawing = false; pointerId = null; });
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      drawing = false; pointerId = null; particles = [];
+      cancelAnimationFrame(frame); frame = null;
+      pctx.clearRect(0, 0, w, h);
+    }
+});
+function translate() {
+    document.documentElement.lang = language;
+    document.title = language === 'bg' ? 'Съвършеният кръг' : 'Perfect Circle Challenge';
+    document.getElementById('language').value = language;
+    document.getElementById('back').textContent = t('back');
+    document.getElementById('back').href = '/dev?lang=' + language;
+    document.getElementById('draw-note').textContent = t('note');
+    document.getElementById('instructions').textContent = t(points.length ? 'again' : 'draw');
+    document.getElementById('details').textContent = lastResult === null ? t('start') : t('comments')[lastResult > 98 ? 4 : lastResult > 95 ? 3 : lastResult > 90 ? 2 : lastResult > 80 ? 1 : 0];
+    canvas.setAttribute('aria-label', language === 'bg' ? 'Нарисувайте кръг с мишка, писалка или докосване.' : 'Draw one circle using a mouse, pen or touch.');
+    document.querySelector('.toolbar').setAttribute('aria-label', language === 'bg' ? 'Настройки на играта' : 'Game controls');
+    updateSound(); updateLeaderboardUI();
+}
+function updateSound() {
+    document.getElementById('sound').textContent = t(soundEnabled ? 'soundOn' : 'soundOff');
+    document.getElementById('sound').setAttribute('aria-pressed', String(soundEnabled));
+}
+document.getElementById('language').addEventListener('change', event => {
+    language = event.target.value;
+    const url = new URL(location.href); url.searchParams.set('lang', language); history.replaceState(null, '', url);
+    translate();
+});
+document.getElementById('sound').addEventListener('click', () => { soundEnabled = !soundEnabled; updateSound(); if (soundEnabled) playSound('draw', 0); else audioCtx?.suspend().catch(() => {}); });
+translate();
 </script>
 </body>
 </html>

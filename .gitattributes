@@ -3,3 +3,4 @@
 dev/nest-quest/assets/cloud-*.js whitespace=-blank-at-eol
 # Three.js embeds upstream GLSL strings with intentional shader indentation.
 dev/nest-quest/assets/three.module-*.js whitespace=-blank-at-eol,-space-before-tab
+dev/Russian-roulette/play/assets/index-*.js whitespace=-blank-at-eol,-space-before-tab

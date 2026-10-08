@@ -184,7 +184,8 @@
     .log-allow { color: var(--accent-allow); }
     .log-block { color: var(--accent-block); }
 
-  </style>
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -333,9 +334,11 @@
       div.className = type === 'allow' ? 'log-allow' : 'log-block';
       div.innerText = `> ${msg}`;
       logBox.prepend(div);
+      while (logBox.children.length > 60) logBox.lastElementChild.remove();
     }
 
     function spawnTraffic() {
+      if (document.hidden) return;
       // Randomly decide packet type: 0=User(HTTP), 1=Admin(SSH), 2=Hacker(SSH)
       const rand = Math.random();
       let type = 'web';

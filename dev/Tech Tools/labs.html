@@ -122,8 +122,9 @@
     <div class="breadcrumb"><a href="index.html">Back to Hub</a> / Hands-on Learning</div>
     <h1>Interactive Labs</h1>
     <p class="intro">
-      Real-world scenarios with built-in problems. Download the scripts, execute them on your machine, 
-      and try to solve the challenge. All labs use <code>kind</code> to ensure they are safe and disposable.
+      Practice troubleshooting in a dedicated local <code>kind</code> cluster. Review each downloaded script before running it.
+      These labs create Docker containers and download images; they use your computer’s memory, disk and network, not a cloud account.
+      Each lab keeps a separate kubeconfig beside its script and does not use your current cluster context.
     </p>
 
     <div class="lab-grid">
@@ -134,9 +135,11 @@
         <p>A pod is stuck in Pending because of an unsatisfiable node affinity. Learn how to debug scheduling constraints.</p>
         <div class="code-box">
           <span class="copy-hint">Terminal</span>
-          <pre><code>curl -O labs/k8s_affinity_lab.sh
-chmod +x k8s_affinity_lab.sh
-./k8s_affinity_lab.sh</code></pre>
+          <pre><code>curl -fLO https://www.theprivilegedcompany.com/dev/Tech%20Tools/labs/k8s_affinity_lab.sh
+# Read the downloaded file before continuing
+bash k8s_affinity_lab.sh setup
+# When finished:
+bash k8s_affinity_lab.sh cleanup</code></pre>
         </div>
         <a href="labs/k8s_affinity_lab.sh" download class="download-btn">Download Script</a>
         <div class="os-badges">
@@ -153,9 +156,11 @@ chmod +x k8s_affinity_lab.sh
         <p>A service is live but has no endpoints. Find the selector mismatch that is breaking the traffic flow.</p>
         <div class="code-box">
           <span class="copy-hint">Terminal</span>
-          <pre><code>curl -O labs/k8s_service_lab.sh
-chmod +x k8s_service_lab.sh
-./k8s_service_lab.sh</code></pre>
+          <pre><code>curl -fLO https://www.theprivilegedcompany.com/dev/Tech%20Tools/labs/k8s_service_lab.sh
+# Read the downloaded file before continuing
+bash k8s_service_lab.sh setup
+# When finished:
+bash k8s_service_lab.sh cleanup</code></pre>
         </div>
         <a href="labs/k8s_service_lab.sh" download class="download-btn">Download Script</a>
         <div class="os-badges">
@@ -168,18 +173,21 @@ chmod +x k8s_service_lab.sh
       <!-- ENVIRONMENT AUDIT -->
       <article class="lab-card" style="border-color: var(--warning);">
         <span class="lab-badge" style="background: rgba(255, 200, 111, 0.1); color: var(--warning);">Prerequisite</span>
-        <h3>Environment Audit</h3>
-        <p>Run this first to ensure you have Docker, kubectl, and Kind installed and ready to go.</p>
+        <h3>Check your local tools</h3>
+        <p>Install Docker, kubectl and kind using their official instructions. Start your local Docker engine, then check the versions. These commands do not install software.</p>
         <div class="code-box">
           <span class="copy-hint">Terminal</span>
-          <pre><code>./setup_k8s.sh</code></pre>
+          <pre><code>docker --version
+kubectl version --client
+kind version
+docker info</code></pre>
         </div>
-        <a href="setup_k8s.sh" download class="download-btn" style="background: var(--warning);">Run Auditor</a>
+        <p><a href="https://kind.sigs.k8s.io/docs/user/quick-start/">kind quick start</a> · <a href="https://kubernetes.io/docs/tasks/tools/">kubectl installation</a> · <a href="https://docs.docker.com/engine/install/">Docker installation</a></p>
       </article>
     </div>
 
     <footer>
-      Note: Windows users should run these scripts inside <strong>WSL2</strong> or <strong>Git Bash</strong>. Always remember to run the <code>cleanup</code> command provided by the script when you're finished.
+      Note: Windows users should run these scripts inside <strong>WSL2</strong> with a working local Docker engine. Always remember to run the <code>cleanup</code> command provided by the script when you're finished.
     </footer>
   </div>
 </body>

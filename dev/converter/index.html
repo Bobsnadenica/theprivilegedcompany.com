@@ -26,7 +26,8 @@
 
   <script>
     (() => {
-      const stored = localStorage.getItem('theme');
+      let stored;
+      try { stored = localStorage.getItem('theme'); } catch { /* Theme stays local to this page. */ }
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
     })();
@@ -561,7 +562,7 @@
       </div>
 
       <div class="hero-copy">
-        <p>Live money rates, everyday units, digital file sizes, and a phrase translator that should absolutely not be used as relationship advice.</p>
+        <p>Dated currency references, everyday units, digital file sizes, and a playful decoder for familiar workplace jargon.</p>
         <span class="tiny-note">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
@@ -581,7 +582,7 @@
               <path d="M16 8h-6a2 2 0 0 0 0 4h4a2 2 0 0 1 0 4H8M12 6v12"></path>
             </svg>
           </span>
-          <span class="card-kicker">Live rates</span>
+          <span class="card-kicker">Dated rates</span>
         </div>
         <h2>Currency converter</h2>
         <p>Quick swaps between BGN, EUR, and USD without opening a finance app.</p>
@@ -642,7 +643,7 @@
           <span class="card-kicker">Just for laughs</span>
         </div>
         <h2>The “No BS” translator</h2>
-        <p>A tongue-in-cheek phrase decoder. Not science. Definitely not relationship advice.</p>
+        <p>A playful decoder for workplace jargon. A little satire, zero mind-reading.</p>
         <span class="card-arrow" aria-hidden="true">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -671,7 +672,7 @@
     themeToggle.addEventListener('click', () => {
       const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = nextTheme;
-      localStorage.setItem('theme', nextTheme);
+      try { localStorage.setItem('theme', nextTheme); } catch { /* Theme still works without storage. */ }
       updateThemeControl();
     });
 

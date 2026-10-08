@@ -193,7 +193,11 @@
     .practice-content h4 { margin-bottom: 0.25rem; color: var(--text-primary); }
     .practice-content p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
 
-  </style>
+      .json-block { overflow-wrap: anywhere; }
+    .action-panel { flex-wrap: wrap; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -226,7 +230,7 @@
     <h2 class="section-title">🕹️ Simulator: The Permission Gate</h2>
     <p style="margin-bottom:1rem; color:var(--text-secondary);">
       <strong>Mission:</strong> The User needs to <strong>Read</strong> the data, but MUST NOT be allowed to <strong>Delete</strong> it.
-      Configure the JSON Policy correctly.
+      Configure this simplified object-access policy. The demo does not call AWS.
     </p>
 
     <div class="gate-console">
@@ -253,14 +257,16 @@
               <input type="checkbox" id="permDelete"> "s3:DeleteObject" (Delete)
             </label>
             <label class="perm-option">
-              <input type="checkbox" id="permAdmin" style="accent-color:var(--accent-deny)"> "s3:*" (Full Admin)
+              <input type="checkbox" id="permAdmin" style="accent-color:var(--accent-deny)"> "s3:*" (All S3 actions)
             </label>
           </div>
 
           <div style="margin-left:10px">],</div>
-          <div style="margin-left:10px"><span class="json-key">"Resource"</span>: <span class="json-val">"arn:aws:s3:::top-secret"</span></div>
+          <div style="margin-left:10px"><span class="json-key">"Resource"</span>: <span class="json-val">"arn:aws:s3:::top-secret/*"</span></div>
           <div>}</div>
         </div>
+        <label class="perm-option"><input type="checkbox" id="permDenyDelete"> Explicit deny: s3:DeleteObject (separate policy statement)</label>
+        <p style="font-size:.85rem;color:var(--text-secondary)">An explicit deny overrides an allow, including s3:*. Real requests can also be limited by boundaries and organization policies. <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html">AWS policy evaluation</a>.</p>
       </div>
 
       <div class="gate-stage">
@@ -273,13 +279,14 @@
           <div class="res-label">Top Secret</div>
         </div>
         
-        <div class="status-msg" id="statusMsg" style="color:var(--text-secondary)">Waiting...</div>
+        <div class="status-msg" id="statusMsg" role="status" style="color:var(--text-secondary)">Waiting...</div>
       </div>
 
       <div class="action-panel">
         <button class="btn btn-test" onclick="attemptAction('read')">
           Attempt Read 👁️
         </button>
+        <button class="btn btn-test" onclick="attemptAction('write')">Attempt Write ✍️</button>
         <button class="btn" style="background:#21262d; color:#fff; border:1px solid #30363d;" onclick="attemptAction('delete')">
           Attempt Delete 🗑️
         </button>
@@ -305,14 +312,14 @@
         <div class="practice-icon">📵</div>
         <div class="practice-content">
           <h4>No Root User</h4>
-          <p>Lock away the "Root" account credentials in a safe. Create an IAM User for daily work. Root can do anything and cannot be restricted.</p>
+          <p>Protect root credentials and use root only for tasks that require it. Prefer federated access with temporary credentials for daily work. <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">AWS IAM best practices</a>.</p>
         </div>
       </li>
       <li class="practice-item">
         <div class="practice-icon">📱</div>
         <div class="practice-content">
           <h4>MFA (Multi-Factor Auth)</h4>
-          <p>Require a code from a phone app for console logins. It stops hackers even if they steal your password.</p>
+          <p>Require MFA for sign-in; prefer phishing-resistant passkeys or security keys. MFA adds protection but does not remove every account risk.</p>
         </div>
       </li>
     </ul>
@@ -327,6 +334,9 @@
 
     const pRead = document.getElementById('permRead');
     const pDelete = document.getElementById('permDelete');
+    const pWrite = document.getElementById('permWrite');
+    const pDenyDelete = document.getElementById('permDenyDelete');
+    let actionTimer = null;
     const pAdmin = document.getElementById('permAdmin');
 
     function log(msg, type) {
@@ -334,9 +344,11 @@
       div.className = 'log-entry ' + (type === 'allow' ? 'log-allow' : type === 'deny' ? 'log-deny' : '');
       div.innerText = `> ${msg}`;
       logBox.prepend(div);
+      while (logBox.children.length > 60) logBox.lastElementChild.remove();
     }
 
     function attemptAction(actionType) {
+      clearTimeout(actionTimer);
       // 1. Reset Visuals
       userAvatar.classList.remove('denied', 'allowed');
       laserGate.classList.remove('open');
@@ -347,14 +359,20 @@
       let isAllowed = false;
       let reason = "Implicit Deny";
 
-      // Admin overrides everything
-      if (pAdmin.checked) {
+      // An explicit deny wins even when another statement allows all S3 actions.
+      if (actionType === 'delete' && pDenyDelete.checked) {
+        reason = 'Explicit Deny: s3:DeleteObject';
+      } else if (pAdmin.checked) {
         isAllowed = true;
         reason = "Allowed by s3:*";
       } else {
         if (actionType === 'read') {
           if (pRead.checked) { isAllowed = true; reason = "Allowed by s3:GetObject"; }
           else { reason = "Missing s3:GetObject"; }
+        }
+        if (actionType === 'write') {
+          if (pWrite.checked) { isAllowed = true; reason = 'Allowed by s3:PutObject'; }
+          else { reason = 'Missing s3:PutObject'; }
         }
         if (actionType === 'delete') {
           if (pDelete.checked) { isAllowed = true; reason = "Allowed by s3:DeleteObject"; }
@@ -363,7 +381,7 @@
       }
 
       // 3. Animate Result
-      setTimeout(() => {
+      actionTimer = setTimeout(() => {
         if (isAllowed) {
           userAvatar.classList.add('allowed');
           laserGate.classList.add('open');

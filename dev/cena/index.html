@@ -2,12 +2,12 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Spesti — Smart Grocery Comparison Bulgaria</title>
-  <meta name="description" content="Compare grocery prices across supermarkets in Bulgaria. Save money every week with smart store-by-store shopping plans."/>
+  <meta name="description" content="Explore a grocery planning prototype with saved price samples for Bulgaria. Compare sample baskets and check current prices directly with stores."/>
   <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/cena/index.html">
   <meta name="twitter:title" content="Spesti — Smart Grocery Comparison · Bulgaria">
-  <meta name="twitter:description" content="Find the cheapest grocery store near you. Compare Kaufland, Lidl, Billa, Fantastico &amp; more.">
+  <meta name="twitter:description" content="A grocery planning prototype using saved price samples. Current prices and availability are not verified.">
   <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta property="og:image:type" content="image/png">
@@ -18,7 +18,7 @@
   <meta name="twitter:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
   <meta name="twitter:image:alt" content="ThePrivilegedCompany logo">
   <meta property="og:title" content="Spesti — Smart Grocery Comparison · Bulgaria"/>
-  <meta property="og:description" content="Find the cheapest grocery store near you. Compare Kaufland, Lidl, Billa, Fantastico & more."/>
+  <meta property="og:description" content="A grocery planning prototype using saved price samples. Current prices and availability are not verified."/>
   <meta property="og:type" content="website"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>"/>
   <link rel="manifest" href="manifest.json"/>
@@ -72,8 +72,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
+  <script src="data-safety.js"></script>
+  <noscript>Spesti needs JavaScript. This is a demonstration using saved price samples, not current store offers.</noscript>
   <script type="text/babel">
 const { useState, useEffect, useMemo, useCallback } = React;
+function DataNotice({lang}) {
+  return <aside role="note" style={{margin:"14px auto",padding:"12px 16px",maxWidth:920,border:"1px solid var(--border)",borderRadius:10,color:"var(--text-2)",background:"var(--bg-card)",fontFamily:"Inter,sans-serif",fontSize:12,lineHeight:1.6}}>
+    <strong>{lang === "BG" ? "Прототип · примерни изчисления" : "Prototype · sample calculations"}</strong><br/>
+    {lang === "BG" ? "Запазена ценова извадка без потвърдени дати на наблюдение. Цените и промоциите може да са остарели. Сумите са в EUR; проверете текущите цени и наличности в магазина." : "Saved price sample with unverified observation dates. Prices and promotions may be outdated. Amounts are in EUR; check current prices and availability with the store."}
+    {_dataFailed && <p role="status">{lang === "BG" ? "Ценовият файл не се зареди. Показани са само вградените демонстрационни продукти. Опитайте да презаредите." : "The price file could not load. Only built-in demo products are shown. Try reloading."}</p>}
+  </aside>;
+}
+async function loadJson(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(url, {signal:controller.signal});
+    if (!response.ok) throw new Error("Data unavailable");
+    return await response.json();
+  } finally { clearTimeout(timeout); }
+}
 
 // ─── HAVERSINE DISTANCE ──────────────────────────────────────────────────────
 function distKm(lat1,lon1,lat2,lon2){
@@ -367,6 +385,7 @@ function _remapProduct(raw) {
   const sale = {};
   if (raw.prices) {
     for (const [key, val] of Object.entries(raw.prices)) {
+      if (!SpestiSafety.validPrice(val)) continue;
       const mapped = _STORE_KEY_MAP[key];
       if (mapped === null) continue;      // explicitly excluded
       // v2 pipeline uses clean ASCII slugs, so pass through unknown keys
@@ -381,8 +400,8 @@ function _remapProduct(raw) {
       const m = _STORE_KEY_MAP[key];
       if (m === null) continue;
       const sid = m !== undefined ? m : key;
-      if (val && typeof val === 'number') { if (sale[sid] == null || val < sale[sid]) sale[sid] = val; }
-      else if (val) sale[sid] = true;
+      if (SpestiSafety.validPrice(val)) { if (sale[sid] == null || val < sale[sid]) sale[sid] = val; }
+      else if (val === true) sale[sid] = true;
     }
   }
   // Category and nameEN now come from the v2.1 pipeline
@@ -395,6 +414,7 @@ function _remapProduct(raw) {
   const up = {};
   if (raw.up) {
     for (const [key, val] of Object.entries(raw.up)) {
+      if (!SpestiSafety.validPrice(val)) continue;
       const mapped = _STORE_KEY_MAP[key];
       if (mapped === null) continue;
       const storeId = mapped !== undefined ? mapped : key;
@@ -424,15 +444,16 @@ function _remapProduct(raw) {
 }
 
 let _dataReady = false;
+let _dataFailed = false;
 const _dataReadyCallbacks = [];
 function onDataReady(cb) { if (_dataReady) cb(); else _dataReadyCallbacks.push(cb); }
 
-fetch("products.json?v=20260321j")
-  .then(r => r.json())
+loadJson("products.json?v=20260321j")
   .then(data => {
-    const mapped = data.filter(d => d.type === "grocery" || !d.type).map(_remapProduct);
+    if (!Array.isArray(data)) throw new Error("Invalid product file");
+    const mapped = data.filter(d => d && typeof d.id === "string" && (typeof d.name === "string" || typeof d.nameEN === "string") && (d.type === "grocery" || !d.type)).map(_remapProduct);
     // Merge products with the same ID (pipeline may output duplicates per store)
-    const byId = {};
+    const byId = Object.create(null);
     mapped.forEach(p => {
       if (Object.keys(p.prices).length === 0) return; // skip products with no tracked-chain prices
       if (!byId[p.id]) { byId[p.id] = {...p, prices: {...p.prices}, sale: {...p.sale}, up: p.up ? {...p.up} : null}; return; }
@@ -453,11 +474,12 @@ fetch("products.json?v=20260321j")
         if (!existing.sc && p.sc) existing.sc = p.sc;
       }
     });
+    if (!Object.keys(byId).length) throw new Error("No valid products in snapshot");
     PRODUCTS = Object.values(byId);
     console.log(`[Spesti] Loaded ${PRODUCTS.length} unique products from products.json`);
     // v2.26: Fetch price trends
-    fetch("trends.json").then(r=>r.json()).then(t=>{
-      TRENDS=t;
+    loadJson("trends.json").then(t=>{
+      TRENDS=t && typeof t === "object" && !Array.isArray(t) ? t : {};
       console.log(`[Spesti] Loaded ${Object.keys(t).length} price trends`);
     }).catch(()=>{}).finally(()=>{
       _dataReady = true;
@@ -465,7 +487,8 @@ fetch("products.json?v=20260321j")
     });
   })
   .catch(e => {
-    console.warn("[Spesti] Could not load products.json, using demo data:", e);
+    _dataFailed = true;
+    console.warn("[Spesti] Price snapshot unavailable; using clearly labelled demo data.");
     _dataReady = true;
     _dataReadyCallbacks.forEach(cb => cb());
   });
@@ -597,7 +620,7 @@ function _buildDealsFromProducts() {
 }
 // Load deals.json first, then rebuild from products once data is ready
 let _extraDeals = [];
-fetch("deals.json").then(r=>r.json()).then(d=>{ _extraDeals = d; }).catch(()=>{});
+loadJson("deals.json").then(d=>{ _extraDeals = Array.isArray(d) ? d : []; }).catch(()=>{});
 onDataReady(function() {
   const productDeals = _buildDealsFromProducts();
   const seenIds = new Set(productDeals.map(d => d.id + '|' + d.store));
@@ -1428,7 +1451,7 @@ function WeeklyDeals({activeStores, weeklyList, toggleItem, lang, allStores}){
           </div>}
         </div>
         <div style={{fontSize:9,color:"var(--text-2)",fontFamily:"'Inter',-apple-system,sans-serif"}}>
-          {lang==="BG"?"Актуализира се всеки четвъртък":"Updates every Thursday"}
+          {lang==="BG"?"Запазена ценова извадка":"Saved price sample"}
         </div>
       </div>
       {/* Compact carousel */}
@@ -1744,6 +1767,7 @@ function LoyaltyBarcodeSheet({card, chain, lang, onClose}){
 // ─── SHARE LIST PANEL ────────────────────────────────────────────────────────
 function SharePanel({listItems, storeBreakdown, activeArr, getQty, lang, onClose}){
   const [copied, setCopied] = React.useState(false);
+  const [copyError, setCopyError] = React.useState(false);
 
   function buildShareText(){
     const lines = [];
@@ -1775,20 +1799,23 @@ function SharePanel({listItems, storeBreakdown, activeArr, getQty, lang, onClose
     }
     const total = listItems.reduce((s,p)=>s+(getBestPrice(p,activeArr)||0)*getQty(p.id),0);
     lines.push(lang==="BG"?`💰 Общо оптимално: ${fmt(total)}`:`💰 Optimised total: ${fmt(total)}`);
-    lines.push(lang==="BG"?"Генерирано от spesti.bg":"via spesti.bg");
+    lines.push(lang==="BG"?"Примерна сметка в EUR от Spesti. Проверете актуалните цени и наличности.":"Sample estimate in EUR from Spesti. Verify current prices and availability.");
     return lines.join("\n");
   }
 
   const text = buildShareText();
 
   function copyToClipboard(){
+    setCopyError(false);
     if(navigator.clipboard){
-      navigator.clipboard.writeText(text).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2200);});
+      navigator.clipboard.writeText(text).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2200);}).catch(()=>setCopyError(true));
     } else {
       const ta = document.createElement("textarea");
       ta.value = text; document.body.appendChild(ta); ta.select();
-      document.execCommand("copy"); document.body.removeChild(ta);
-      setCopied(true); setTimeout(()=>setCopied(false),2200);
+      try {
+        if(!document.execCommand("copy")) throw new Error("Clipboard blocked");
+        setCopied(true); setTimeout(()=>setCopied(false),2200);
+      } catch { setCopyError(true); } finally { document.body.removeChild(ta); }
     }
   }
 
@@ -1811,6 +1838,7 @@ function SharePanel({listItems, storeBreakdown, activeArr, getQty, lang, onClose
 
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {/* Native Share (mobile) */}
+          {copyError&&<p role="status">{lang==="BG"?"Копирането е недостъпно. Използвайте Сподели или изберете текста.":"Clipboard unavailable. Use Share or select the text."}</p>}
           {navigator.share&&<button className="share-btn" onClick={()=>navigator.share({title:lang==="BG"?"Списък за Пазаруване":"Shopping List",text:text}).catch(()=>{})} style={{width:"100%",justifyContent:"center",background:"var(--accent)",color:"var(--accent-text)"}}>
             <span style={{fontSize:16}}>📤</span> {lang==="BG"?"Сподели…":"Share…"}
           </button>}
@@ -1894,20 +1922,21 @@ function SpestiScoreCard({savings, worstTotal, listCount, lang}){
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 function Spesti(){
   const [phase,setPhase]         = useState(()=>{
-    try{ const p=localStorage.getItem('spesti_phase'); return p||"welcome"; }catch(e){ return "welcome"; }
+    try{ const p=localStorage.getItem('spesti_phase'); return ['welcome','onboarding','app'].includes(p) ? p : 'welcome'; }catch(e){ return "welcome"; }
   });
   // onboarding: "location" step + pref steps
   const [onboardStage,setOStage] = useState("location"); // "location" | "prefs"
   const [step,setStep]           = useState(0);
   const [prefs,setPrefs]         = useState({});
   const [activeStores,setActive] = useState(()=>{
-    try{ const s=localStorage.getItem('spesti_stores'); if(s) return new Set(JSON.parse(s)); }catch(e){}
+    try{ const s=localStorage.getItem('spesti_stores'); if(s) { const saved=JSON.parse(s); if(Array.isArray(saved)) { const valid=saved.filter(id=>STORE_IDS.includes(id)); if(valid.length) return new Set(valid); } } }catch(e){}
     return new Set(STORE_IDS);
   });
   const [userLoc,setUserLoc]     = useState(null);
   const [lang,setLang]           = useState(()=>{
-    try{ return localStorage.getItem('spesti_lang')||"BG"; }catch(e){ return "BG"; }
+    try{ return localStorage.getItem('spesti_lang') === 'EN' ? 'EN' : 'BG'; }catch(e){ return "BG"; }
   });
+  useEffect(()=>{ document.documentElement.lang = lang === "BG" ? "bg" : "en"; },[lang]);
   const [dataLoaded,setDataLoaded] = useState(_dataReady);
   useEffect(()=>{ onDataReady(()=>setDataLoaded(true)); },[]);
   const [view,setView]           = useState("list");
@@ -1916,8 +1945,8 @@ function Spesti(){
     try {
       const raw = localStorage.getItem('spesti_lists');
       if(raw){
-        const d = JSON.parse(raw);
-        if(d && d.lists && d.lists.length > 0) {
+        const d = SpestiSafety.normalizeLists(JSON.parse(raw));
+        if(d) {
           // Migrate English names → Bulgarian
           const nameMap = {"Weekly Groceries":"Тази Седмица","This Week":"Тази Седмица","My Cart":"Моята Количка","New Cart":"Нова Количка","My List":"Моят Списък"};
           d.lists.forEach(l=>{ if(nameMap[l.name]) l.name = nameMap[l.name]; });
@@ -1929,7 +1958,8 @@ function Spesti(){
       if(oldList){
         const items = JSON.parse(oldList);
         const oldQtys = JSON.parse(localStorage.getItem('spesti_qtys')||'{}');
-        return { activeId:"list_migrated", lists:[{id:"list_migrated",name:"Моят Списък",items:items,quantities:oldQtys,created:new Date().toISOString().slice(0,10)}] };
+        const migrated = SpestiSafety.normalizeLists({ activeId:"list_migrated", lists:[{id:"list_migrated",name:"Моят Списък",items,quantities:oldQtys,created:new Date().toISOString().slice(0,10)}] });
+        if(migrated) return migrated;
       }
     } catch(e){}
     // Default: one list with starter items
@@ -1987,7 +2017,7 @@ function Spesti(){
   const [dealStoreFilter,setDealStoreFilter] = useState(null);
   const [checkedItems,setCheckedItems] = useState(new Set()); // Shopping mode checkmarks
   const [loyaltyCards,setLoyaltyCards] = useState(()=>{
-    try{ return JSON.parse(localStorage.getItem('spesti_loyalty_cards')||'[]'); }catch(e){ return []; }
+    try{ return SpestiSafety.normalizeCards(JSON.parse(localStorage.getItem('spesti_loyalty_cards')||'[]'),STORE_IDS); }catch(e){ return []; }
   });
   const [loyaltyDraft,setLoyaltyDraft] = useState({store:"",label:"",number:""});
   const [showLoyaltyScanner,setShowLoyaltyScanner] = useState(false);
@@ -2772,12 +2802,12 @@ function Spesti(){
 
         <div style={{background:dark?"var(--bg-deep)":"#F0EBE3",border:"1px solid var(--border)",borderRadius:14,padding:20,marginBottom:20,textAlign:"left"}}>
           {lang==="BG"
-            ? [["📍","Открива магазините близо до теб и показва само наличните цени"],["💰","Показва точно колко спестяваш всяка седмица"],["🎯","Персонализирано по марки, мазнини и размери"],["📋","Изгражда седмичния ти списък → план за пазаруване по магазин"],["🔜","Още 4 вериги предстоят · 15+ до края на годината"]].map(([ic,tx])=>(
+            ? [["📍","Открива магазините близо до теб и показва само наличните цени"],["💰","Сравнява примерните разходи за твоя списък"],["🎯","Персонализирано по марки, мазнини и размери"],["📋","Изгражда седмичния ти списък → план за пазаруване по магазин"],["ℹ️","Ценова демонстрация, без гарантирани текущи оферти"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10,fontFamily:"'Inter',-apple-system,sans-serif",fontSize:13,color:"var(--text-2)",lineHeight:1.4}}>
                 <span style={{fontSize:17,flexShrink:0}}>{ic}</span>{tx}
               </div>
             ))
-            : [["📍","Finds stores near you & shows only available prices"],["💰","Shows exactly how much you save every week"],["🎯","Personalised to your brands, fat % and sizes"],["📋","Builds your weekly list → store-by-store shopping plan"],["🔜","4 more chains coming · 15+ by end of year"]].map(([ic,tx])=>(
+            : [["📍","Finds stores near you & shows only available prices"],["💰","Compares sample costs for your shopping list"],["🎯","Personalised to your brands, fat % and sizes"],["📋","Builds your weekly list → store-by-store shopping plan"],["ℹ️","Price demonstration, without verified current offers"]].map(([ic,tx])=>(
               <div key={tx} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10,fontFamily:"'Inter',-apple-system,sans-serif",fontSize:13,color:"var(--text-2)",lineHeight:1.4}}>
                 <span style={{fontSize:17,flexShrink:0}}>{ic}</span>{tx}
               </div>
@@ -2785,6 +2815,7 @@ function Spesti(){
           }
         </div>
 
+        <DataNotice lang={lang}/>
         <button onClick={()=>setPhase("onboarding")} style={{width:"100%",background:"var(--accent)",border:"none",borderRadius:10,padding:"16px 28px",fontFamily:"'Inter',-apple-system,sans-serif",fontWeight:900,fontSize:15,color:"var(--accent-text)",cursor:"pointer",marginBottom:10}}>
           {lang==="BG"?"🛒 Настрой Профила Си →":"🛒 Set Up My Profile →"}
         </button>
@@ -2865,6 +2896,7 @@ function Spesti(){
       {activeLoyaltyCard&&<LoyaltyBarcodeSheet card={activeLoyaltyCard} chain={ALL_CHAINS.find(c=>c.id===activeLoyaltyCard.storeId)} lang={lang} onClose={()=>setActiveLoyaltyCardId(null)}/>}
       {toast&&<div className="toast">{toast}</div>}
 
+      <DataNotice lang={lang}/>
       {/* HEADER — Cart-centric Japandi */}
       <div style={{background:"var(--bg-nav)",position:"sticky",top:0,zIndex:100,boxShadow:"0 1px 12px rgba(0,0,0,0.05)"}}>
         <div style={{maxWidth:920,margin:"0 auto",padding:"0 20px"}}>
@@ -2981,7 +3013,7 @@ function Spesti(){
             </button>
             {listItems.length>0&&<button className="ctrl-btn" onClick={clearActiveCart} style={{fontSize:11,color:"#B65245"}}>{lang==="BG"?"🗑 Изчисти":"🗑 Clear Cart"}</button>}
             <div style={{flex:1}}/>
-            {[["savings","Спести"],["price","Цена"],["unitprice",lang==="BG"?"€/кг":"$/kg"],["az","A\u2013Z"]].map(([m,lbl])=>(
+            {[["savings","Спести"],["price","Цена"],["unitprice",lang==="BG"?"€/кг":"€/kg"],["az","A\u2013Z"]].map(([m,lbl])=>(
               <button key={m} className={"ctrl-btn"+(sortMode===m?" active":"")} onClick={()=>setSortMode(m)} style={{padding:"6px 12px",fontSize:11}}>{lbl}</button>
             ))}
           </div>
@@ -3220,7 +3252,7 @@ function Spesti(){
           </div>}
 
           {searchProds.length>0&&(search||selCat!=="All")&&!heroProduct&&<div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}>
-            {[["savings",lang==="BG"?"Спести":"Savings"],["price",lang==="BG"?"Цена":"Price"],["unitprice",lang==="BG"?"€/кг":"$/kg"],["az","A\u2013Z"]].map(([m,lbl])=>(
+            {[["savings",lang==="BG"?"Спести":"Savings"],["price",lang==="BG"?"Цена":"Price"],["unitprice",lang==="BG"?"€/кг":"€/kg"],["az","A\u2013Z"]].map(([m,lbl])=>(
               <button key={m} className={"ctrl-btn"+(sortMode===m?" active":"")} onClick={()=>setSortMode(m)} style={{fontSize:11,padding:"6px 12px"}}>{lbl}</button>
             ))}
           </div>}

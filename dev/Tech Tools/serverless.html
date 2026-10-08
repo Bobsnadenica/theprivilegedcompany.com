@@ -165,7 +165,8 @@
     }
     .cold-start-banner.visible { opacity: 1; }
 
-  </style>
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -203,13 +204,13 @@
       </div>
 
       <div class="card">
-        <h3>💸 Pay Per Millisecond</h3>
+        <h3>💸 Illustrative compute cost</h3>
         <p>
-          You are billed for exactly how long your code runs (e.g., 200ms). If your code crashes instantly, you pay almost nothing.
+          This simulator adds a fictional cost while sample functions run. It is not a provider quote, and it creates no real cloud resources.
         </p>
         <div class="analogy-box">
           <span class="analogy-icon">🚰</span>
-          Like a water tap. You only pay while the water is actually flowing.
+          Use the counter to compare sample workloads. Actual provider billing and free tiers vary.
         </div>
       </div>
     </div>
@@ -228,7 +229,7 @@
         </div>
         
         <div class="stat-card">
-          <div class="stat-label">Current Bill</div>
+          <div class="stat-label">Simulated Cost</div>
           <div class="stat-value cost" id="costDisplay">$0.0000</div>
         </div>
 
@@ -277,6 +278,8 @@
 
     let activeInstances = 0;
     let totalBill = 0.0000;
+    let burstTimer = null;
+    let coolingTimer = null;
     let isWarm = false; // Tracks if environment is warm
 
     // Function to update cost periodically if instances are running
@@ -300,12 +303,13 @@
     }
 
     function triggerBurst() {
+      if (burstTimer !== null) return;
       // Bursts usually force warm up quickly or hit limits, we'll simulate instant scale
       let spawned = 0;
-      const interval = setInterval(() => {
+      burstTimer = setInterval(() => {
         spawnInstance();
         spawned++;
-        if (spawned >= 50) clearInterval(interval);
+        if (spawned >= 50) { clearInterval(burstTimer); burstTimer = null; }
       }, 30); // Fast spawn
       
       isWarm = true; // Burst warms everything up
@@ -319,6 +323,8 @@
     }
 
     function spawnInstance() {
+      if (activeInstances >= 60) return;
+      clearTimeout(coolingTimer); isWarm = true;
       const node = document.createElement('div');
       node.className = 'lambda-node running';
       space.appendChild(node);
@@ -336,7 +342,7 @@
           
           // If all gone, start cooling down logic (simplified)
           if(activeInstances === 0) {
-            setTimeout(() => { isWarm = false; }, 5000); // Cooldown after 5s of idleness
+            coolingTimer = setTimeout(() => { if (activeInstances === 0) isWarm = false; }, 5000); // Cooldown after 5s of idleness
           }
         }, 200);
       }, duration);

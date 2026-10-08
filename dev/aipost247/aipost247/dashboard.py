@@ -444,7 +444,10 @@ class _Handler(BaseHTTPRequestHandler):
                    "application/json; charset=utf-8")
 
     def _body(self) -> dict:
-        length = int(self.headers.get("Content-Length", 0) or 0)
+        raw_length = self.headers.get("Content-Length", "0") or "0"
+        if not raw_length.isascii() or not raw_length.isdecimal():
+            raise ValueError("Невалидна дължина на заявката.")
+        length = int(raw_length)
         if not length:
             return {}
         if length > MAX_REQUEST_BYTES:

@@ -40,10 +40,12 @@ type MobileSection = 'build' | 'results' | 'evidence' | 'tables';
 
 const ui = {
   en: {
-    mode: 'Formula-Traceable Certified Calculation Mode',
+    mode: 'Formula-traceable tank calculations',
     title: 'Tank Volume And Fill Calculator',
     profile: 'Profile',
     savedLocally: 'Workspace auto-saves in this browser.',
+    saveUnavailable: 'Browser storage unavailable. Export your report before leaving.',
+    calculationBoundary: 'Calculation aid, not a calibration certificate. Verify dimensions and imported table evidence before operational use.',
     exportReport: 'Export report',
     chambers: 'Chambers',
     add: 'Add',
@@ -111,10 +113,12 @@ const ui = {
     illustrativeSchematic: 'Illustrative schematic only; calculation follows the formula or certified table evidence.',
   },
   bg: {
-    mode: 'Проследим режим за сертифицирани изчисления',
+    mode: 'Изчисления с проследими формули',
     title: 'Калкулатор за обем и запълване на резервоари',
     profile: 'Профил',
     savedLocally: 'Работното пространство се запазва автоматично в този браузър.',
+    saveUnavailable: 'Запазването в браузъра е недостъпно. Изтеглете отчета, преди да затворите страницата.',
+    calculationBoundary: 'Помощен калкулатор, а не сертификат за калибриране. Проверете размерите и произхода на таблиците преди практическа употреба.',
     exportReport: 'Експорт на отчет',
     chambers: 'Камери',
     add: 'Добави',
@@ -441,20 +445,21 @@ export function App() {
   const [massUnit, setMassUnit] = useState<MassUnit>(initialWorkspace?.massUnit ?? 'kg');
   const [customDensityKgM3, setCustomDensityKgM3] = useState(900);
   const [tableCsv, setTableCsv] = useState('');
-  const [tableTitle, setTableTitle] = useState('Certified tank table');
-  const [tableReference, setTableReference] = useState('Certificate / drawing reference');
-  const [tableRevision, setTableRevision] = useState('rev-1');
-  const [tableCertifier, setTableCertifier] = useState('Authorized calibration body');
+  const [tableTitle, setTableTitle] = useState('Calibration table');
+  const [tableReference, setTableReference] = useState('');
+  const [tableRevision, setTableRevision] = useState('');
+  const [tableCertifier, setTableCertifier] = useState('');
   const [tableError, setTableError] = useState<string | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState(tankPresets[0].id);
   const [activeMobileSection, setActiveMobileSection] = useState<MobileSection>('build');
+  const [workspaceSaved, setWorkspaceSaved] = useState(true);
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
   useEffect(() => {
-    saveWorkspaceState({
+    setWorkspaceSaved(saveWorkspaceState({
       version: 1,
       profileName,
       chambers,
@@ -463,7 +468,7 @@ export function App() {
       lengthUnit,
       volumeUnit,
       massUnit,
-    });
+    }));
   }, [profileName, chambers, selectedChamberId, language, lengthUnit, volumeUnit, massUnit]);
 
   const selectedChamber = chambers.find((chamber) => chamber.id === selectedChamberId) ?? chambers[0];
@@ -624,7 +629,8 @@ export function App() {
         <div>
           <div className="eyebrow"><ShieldCheck size={16} /> {copy.mode}</div>
           <h1>{copy.title}</h1>
-          <div className="session-note"><Save size={13} /> {copy.savedLocally}</div>
+          <div className="session-note" role="status"><Save size={13} /> {workspaceSaved ? copy.savedLocally : copy.saveUnavailable}</div>
+          <p className="session-note">{copy.calculationBoundary}</p>
         </div>
         <div className="topbar-actions">
           <label className="profile-name">

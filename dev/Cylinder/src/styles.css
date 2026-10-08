@@ -660,9 +660,12 @@ label small {
   }
 
   .mobile-tabs button {
-    min-height: 34px;
-    padding: 0 6px;
-    font-size: 12px;
+    min-height: 44px;
+    min-width: 0;
+    padding: 6px 3px;
+    font-size: clamp(10px, 2.8vw, 12px);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
     font-weight: 760;
   }
 

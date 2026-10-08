@@ -51,8 +51,10 @@
     .footer { color:#8b8bb5; font-size:12px; margin-top:10px; }
     .hr { height:1px; background: #24243a; margin: 10px 0; border-radius:2px; }
   </style>
+<link rel="stylesheet" href="archive.css?v=20261008a">
 </head>
 <body>
+<aside id="archive-notice" aria-label="About this experiment"><a href="index.html">← All design studies / Всички дизайни</a><p>Archived game prototype. Saves stay in this browser.</p></aside>
   <div class="container">
     <div style="margin-bottom:12px">
       <div class="title">CandBox <span style="color:var(--accent)">▮</span></div>
@@ -177,7 +179,7 @@
     function log(msg) {
       const p = el('log');
       const time = new Date().toLocaleTimeString();
-      p.textContent += `[${time}] ${msg}\n`;
+      p.textContent = (p.textContent + `[${time}] ${msg}\n`).split('\n').slice(-100).join('\n');
       p.scrollTop = p.scrollHeight;
     }
 
@@ -194,7 +196,7 @@
       el('hp').textContent = state.hp;
       el('costLollipop').textContent = `${state.lollipopCost} 🍬`;
       // inventory
-      el('inventory').innerHTML = state.inventory.map(i => `<li>• ${i}</li>`).join('');
+      el('inventory').replaceChildren(...state.inventory.map(item => { const li = document.createElement('li'); li.textContent = '• ' + item; return li; }));
       // unlocks
       el('farmWrap').style.display = state.candies >= 100 || state.farm>0 ? 'flex' : 'none';
       // buttons
@@ -209,23 +211,41 @@
       el('btnFlee').disabled = !state.inFight;
     }
 
-    function save() {
-      localStorage.setItem('candbox-save', JSON.stringify(state));
-      log('Game saved.');
+    function save(silent = false) {
+      try {
+        const { foe, foeTimer, inFight, ...saved } = state;
+        localStorage.setItem('candbox-save', JSON.stringify(saved));
+        if (!silent) log('Game saved.');
+      } catch { if (!silent) log('Browser storage is unavailable. You can still play this session.'); }
     }
 
     function load() {
-      const raw = localStorage.getItem('candbox-save');
-      if (!raw) return log('No save found.');
-      const data = JSON.parse(raw);
-      Object.assign(state, data);
-      recalcCps();
-      render();
-      log('Loaded save.');
+      try {
+        const raw = localStorage.getItem('candbox-save');
+        if (!raw) return log('No save found.');
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid save');
+        // Only durable game values are restored; an old fight never revives a dead timer.
+        const next = {};
+        for (const key of ['candies','gold','lollipops','farm','hp','hpMax','power','lollipopCost']) {
+          if (typeof data[key] !== 'number' || !Number.isFinite(data[key]) || data[key] < 0 || data[key] > 1e12) throw new Error('Invalid value');
+          next[key] = data[key];
+        }
+        next.hpMax = Math.max(1, next.hpMax);
+        next.hp = Math.min(next.hp || next.hpMax, next.hpMax);
+        next.lollipopCost = Math.max(10, next.lollipopCost);
+        next.weapon = typeof data.weapon === 'string' ? data.weapon.slice(0, 60) : 'fists';
+        next.inventory = Array.isArray(data.inventory) ? data.inventory.filter(item => typeof item === 'string').slice(0, 50).map(item => item.slice(0, 100)) : [];
+        clearInterval(state.foeTimer);
+        Object.assign(state, next, { inFight:false, foe:null, foeTimer:null });
+        el('adventure').style.display = 'none'; el('foeHp').textContent = '-';
+        recalcCps(); render(); log('Loaded save.');
+      } catch { log('The save could not be loaded. Your current game is unchanged.'); }
     }
 
     function reset() {
-      localStorage.removeItem('candbox-save');
+      if (!confirm('Clear your saved game and start again?')) return;
+      try { localStorage.removeItem('candbox-save'); } catch { /* Reload still starts a fresh session. */ }
       location.reload();
     }
 
@@ -236,7 +256,7 @@
     }, 1000);
 
     // Autosave
-    setInterval(() => save(), 10000);
+    setInterval(() => save(true), 10000);
 
     // Buttons
     el('btnEat').onclick = () => {
@@ -289,7 +309,7 @@
     el('btnStrike').onclick = () => strike();
 
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') { e.preventDefault(); if (state.inFight) strike(); }
+      if (e.code === 'Space' && !e.target.closest('button, a, input, textarea, select')) { e.preventDefault(); if (state.inFight) strike(); }
     });
 
     function startFight() {
@@ -342,7 +362,7 @@
     function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
     // Save controls
-    el('saveBtn').onclick = save;
+    el('saveBtn').onclick = () => save();
     el('loadBtn').onclick = load;
     el('wipeBtn').onclick = reset;
 

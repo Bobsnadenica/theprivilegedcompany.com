@@ -169,7 +169,9 @@
     }
     .btn-reset:hover { background: #30363d; color: #fff; }
 
-  </style>
+      :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -226,7 +228,7 @@
     <h2 class="section-title">🕹️ The "Magic" of Source-to-Image (S2I)</h2>
     <p style="margin-bottom: 1rem; color: var(--text-secondary);">
       In standard K8s, you need a Dockerfile. In OpenShift, you just provide the <strong>Source Code</strong>.
-      <br>Drag the repository on the left into the OpenShift Pipeline to see it happen.
+      <br>Drag the repository into the pipeline, or choose Run sample pipeline. This is a local visual demo.
     </p>
 
     <div class="lab-console">
@@ -241,6 +243,7 @@
           <div style="font-size:0.8rem; color:#8b949e;">https://github.com/me/app</div>
         </div>
 
+        <button class="btn-reset" onclick="startPipeline()">Run sample pipeline</button>
         <button class="btn-reset" onclick="resetSim()">Reset Simulator</button>
       </div>
 
@@ -329,27 +332,35 @@
       }
     }
 
+    let running = false;
+    const pipelineTimers = new Set();
+    function later(callback, delay) {
+      const timer = setTimeout(() => { pipelineTimers.delete(timer); callback(); }, delay);
+      pipelineTimers.add(timer);
+    }
     function startPipeline() {
+      if (running) return;
+      running = true; dragItem.style.display = 'none';
       // Step 1: Detect
       setActive(0, "Detecting Language...");
       
-      setTimeout(() => {
+      later(() => {
         setDone(0);
         conns[0].style.width = "100%";
         
         // Step 2: Build
-        setTimeout(() => {
+        later(() => {
           setActive(1, "S2I Building...");
           
-          setTimeout(() => {
+          later(() => {
             setDone(1);
             conns[1].style.width = "100%";
             
             // Step 3: Deploy
-            setTimeout(() => {
+            later(() => {
               setActive(2, "Scaling Pods...");
               
-              setTimeout(() => {
+              later(() => {
                 setDone(2);
                 routeCard.classList.add('show');
               }, 1000);
@@ -370,6 +381,7 @@
     }
 
     function resetSim() {
+      pipelineTimers.forEach(clearTimeout); pipelineTimers.clear(); running = false;
       dragItem.style.display = "block";
       routeCard.classList.remove('show');
       

@@ -20,7 +20,8 @@
 
   <script>
     (() => {
-      const stored = localStorage.getItem('theme');
+      let stored;
+      try { stored = localStorage.getItem('theme'); } catch { /* Theme stays local to this page. */ }
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
     })();
@@ -239,7 +240,7 @@
       const converted = conversion(value);
       if (!Number.isFinite(converted)) {
         target.value = '';
-        status.textContent = 'Fuel economy needs a value greater than zero.';
+        status.textContent = category.value === 'fuel' ? 'Fuel economy needs a value greater than zero.' : 'That number is too large to convert reliably.';
         return;
       }
 
@@ -278,7 +279,7 @@
     themeToggle.addEventListener('click', () => {
       const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = nextTheme;
-      localStorage.setItem('theme', nextTheme);
+      try { localStorage.setItem('theme', nextTheme); } catch { /* Theme still works without storage. */ }
       updateThemeControl();
     });
 

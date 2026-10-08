@@ -394,6 +394,16 @@ class DashboardSecurityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "прекалено голяма"):
             handler._body()
 
+    def test_invalid_content_length_is_rejected_before_reading(self):
+        for length in ("-1", "+2", "1.5", "invalid", "١"):
+            with self.subTest(length=length):
+                handler = object.__new__(dashboard._Handler)
+                handler.headers = {"Content-Length": length, "Content-Type": "application/json"}
+                handler.rfile = mock.Mock()
+                with self.assertRaises(ValueError):
+                    handler._body()
+                handler.rfile.read.assert_not_called()
+
 
 class DistributionTests(unittest.TestCase):
     def test_gallery_contains_only_documented_images(self):

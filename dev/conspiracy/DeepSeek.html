@@ -237,8 +237,10 @@
             }
         }
     </style>
+<link rel="stylesheet" href="archive.css?v=20261008a">
 </head>
 <body>
+<aside id="archive-notice" aria-label="About this experiment"><a href="index.html">← All design studies / Всички дизайни</a><p>Archived AI design experiment. Sample text contains unverified claims and is not factual reporting or advice.</p></aside>
     <header>
         <h1>Conspiracy Theories Research Hub</h1>
         <p class="tagline">Examining narratives, psychology, and societal impact</p>
@@ -327,20 +329,11 @@
     </section>
     
     <section class="resources" id="resources">
-        <h2 class="center-text">Research Resources</h2>
-        <p class="center-text" style="max-width: 800px; margin: 0 auto;">Academic materials, databases, and tools for studying conspiracy theories.</p>
-        
-        <ul class="resource-list">
-            <li><i class="fas fa-book"></i> <strong>Books:</strong> "Suspicious Minds" by Rob Brotherton, "The United States of Paranoia" by Jesse Walker</li>
-            <li><i class="fas fa-university"></i> <strong>Academic Journals:</strong> Journal of Conspiracy Theories, Conspiracy Theories & Disinformation journal</li>
-            <li><i class="fas fa-database"></i> <strong>Databases:</strong> Conspiracy Theory Research Database (CTRD), Media Manipulation Casebook</li>
-            <li><i class="fas fa-graduation-cap"></i> <strong>Courses:</strong> Coursera's "Understanding Conspiracy Theories", edX "Disinformation" courses</li>
-            <li><i class="fas fa-tools"></i> <strong>Tools:</strong> Hoaxy misinformation tracker, Botometer for detecting bot accounts</li>
-        </ul>
-        
-        <div class="center-text" style="margin-top: 2rem;">
-            <a href="#" class="btn"><i class="fas fa-download"></i> Download Research Guide (PDF)</a>
-        </div>
+        <h2 class="center-text">About this design</h2>
+        <p class="center-text" style="max-width: 800px; margin: 0 auto;">This is a layout study, not a research institution or a verified resource directory.</p>
+
+        <p class="center-text">No research guide, database or course is provided with this visual experiment. Verify any claim independently using original, attributable evidence.</p>
+        <div class="center-text" style="margin-top: 2rem;"><a href="index.html" class="btn">Explore the design archive</a></div>
     </section>
     
     <section class="analysis-section">
@@ -365,55 +358,6 @@
         </div>
     </section>
     
-    <footer>
-        <p>Conspiracy Theories Research Hub &copy; 2023 | For Academic Purposes Only</p>
-        <p style="margin-top: 0.5rem; font-size: 0.8rem;">This site is designed for research, education, and promoting media literacy.</p>
-        <p style="margin-top: 1rem;">
-            <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i> contact@conspiracyresearch.org | 
-            <i class="fas fa-twitter" style="margin: 0 0.5rem;"></i> @ConspiracyResearch
-        </p>
-    </footer>
-    
-    <script>
-        // Simple interactivity for the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click event to theory items for more details
-            const theoryItems = document.querySelectorAll('.theory-item');
-            
-            theoryItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const title = this.querySelector('.theory-title').textContent;
-                    alert(`More detailed analysis of "${title}" would be displayed in a full research platform.`);
-                });
-            });
-            
-            // Smooth scrolling for anchor links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const targetId = this.getAttribute('href');
-                    if(targetId === '#') return;
-                    
-                    const targetElement = document.querySelector(targetId);
-                    if(targetElement) {
-                        window.scrollTo({
-                            top: targetElement.offsetTop - 20,
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-            });
-            
-            // Button interaction for download button
-            const downloadBtn = document.querySelector('.btn[href="#"]');
-            if(downloadBtn) {
-                downloadBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    alert('In a full implementation, this would download the research guide PDF.');
-                });
-            }
-        });
-    </script>
+    <footer><p>Archived AI-generated design study. Sample content is unverified.</p><p><a href="/contact">Contact The Privileged Company</a></p></footer>
 </body>
 </html>

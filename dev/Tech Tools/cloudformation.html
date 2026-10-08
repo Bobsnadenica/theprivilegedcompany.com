@@ -224,7 +224,7 @@
           <button class="res-btn" onclick="addResource('db')"><span>🗄️</span> RDS Database</button>
         </div>
         <div style="margin-top: auto; padding: 1rem; font-size: 0.8rem; color: #666;">
-          Tip: Add resources, then Deploy.
+          Browser-only simulation. No AWS requests or charges.
         </div>
       </div>
 
@@ -245,102 +245,33 @@ Resources:
         <div class="cloud-visual" id="visuals">
           </div>
         <div class="action-bar">
-          <button id="deployBtn" class="btn btn-deploy" onclick="deployStack()">Deploy Stack</button>
+          <button id="deployBtn" class="btn btn-deploy" onclick="deployStack()">Simulate deployment</button>
           <button id="deleteBtn" class="btn btn-delete" onclick="resetStack()" disabled>Delete</button>
         </div>
       </div>
     </div>
 
-    <h2 class="section-title">🧪 Hands-on Lab: Deploy Real Infra</h2>
+    <h2 class="section-title">🧪 Template review lab</h2>
     <p style="color:var(--text-secondary); margin-bottom:2rem;">
-      Ready for the real thing? Follow this guide to deploy a VPC, ALB, and ECS cluster using the provided zip file.
+      Learn to spot infrastructure defects before deploying. This archive contains an incomplete example and a review checklist. No AWS account or credentials are needed to study it.
     </p>
-
-    <div class="prereq-container">
-      <h3 style="color:#fff; margin-bottom:1.5rem; border-bottom:1px solid #30363d; padding-bottom:10px;">
-        Part 1: Prerequisites (The "Foolproof" Setup)
-      </h3>
-
-      <div class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <h4>Install AWS CLI</h4>
-          <p>You need the command line tool to talk to AWS. Open your terminal and type:</p>
-          <div class="cmd-inline">aws --version</div>
-          <p style="margin-top:0.5rem; font-size:0.85rem;">
-            If it says "command not found", download it here: 
-            <a href="https://aws.amazon.com/cli/" target="_blank" style="color:var(--accent-primary); text-decoration:underline;">AWS CLI Installer</a>
-          </p>
-        </div>
-      </div>
-
-      <div class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <h4>Get Access Keys</h4>
-          <p>Go to the <strong>AWS Console > IAM > Users > Security Credentials</strong>.</p>
-          <p>Click <strong>Create Access Key</strong>. You will get two strings:</p>
-          <ul style="color:var(--text-secondary); font-size:0.9rem; margin-left:1.5rem; list-style-type:disc;">
-            <li><strong>Access Key ID:</strong> (e.g., AKIAIOSFODNN7EXAMPLE)</li>
-            <li><strong>Secret Access Key:</strong> (e.g., wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY)</li>
-          </ul>
-          <p style="color:var(--accent-warn); font-size:0.85rem; margin-top:5px;">⚠️ Save these! You won't see the secret again.</p>
-        </div>
-      </div>
-
-      <div class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <h4>Login to Terminal</h4>
-          <p>Run this command and paste your keys when asked:</p>
-          <div class="cmd-inline">aws configure</div>
-          <p style="margin-top:0.5rem; font-size:0.85rem; color:#8b949e;">
-            Region: <strong>us-east-1</strong> (or your preferred region)<br>
-            Output format: <strong>json</strong>
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div class="download-section">
-      <h3 style="color: var(--accent-success); border-bottom:1px solid rgba(46,160,67,0.3); padding-bottom:10px;">
-        Part 2: Run the Lab
-      </h3>
-      
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <p style="color:var(--text-secondary); max-width:600px;">
-          We have prepared a zip file with <strong>clean, production-ready code</strong>. 
-          It contains a <code>deploy.sh</code> script that handles the complex commands for you.
-        </p>
-        <a href="Test/test.zip" download class="btn btn-deploy" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-          Download test.zip
-        </a>
+      <h3>Download, inspect, explain</h3>
+      <p>The original VPC / ALB / ECS example is <strong>not deployment-ready</strong>. The bundled scripts stop with an explanation and never create or delete cloud resources.</p>
+      <p><a href="cloudformation/test.zip" download class="btn btn-deploy">Download review pack</a></p>
+      <div class="terminal-block"><div class="t-comment"># Extract into a new local folder, then read the review checklist</div>
+        <div class="t-cmd">unzip test.zip -d cloudformation-review</div>
+        <div class="t-cmd">cd cloudformation-review</div>
+        <div class="t-cmd">cat README.md</div>
       </div>
-
-      <div class="terminal-block">
-        <div>
-          <span class="t-comment"># 1. Unzip the file and enter the folder</span>
-          <div class="t-cmd">unzip test.zip</div>
-          <div class="t-cmd">cd Test</div>
-        </div>
-
-        <div>
-          <span class="t-comment"># 2. Make the scripts executable (Mac/Linux only)</span>
-          <div class="t-cmd">chmod +x deploy.sh cleanup.sh</div>
-        </div>
-
-        <div>
-          <span class="t-comment"># 3. Deploy the stack! (Takes ~5 minutes)</span>
-          <div class="t-cmd">./deploy.sh</div>
-          <div style="color:#8b949e; font-size:0.85rem; margin-top:5px;">> Waiting for changeset to be created...</div>
-          <div style="color:#2ea043; font-size:0.85rem;">> Stack aws-test-root creation completed successfully!</div>
-        </div>
-
-        <div>
-          <span class="t-comment"># 4. Cleanup (IMPORTANT: Run this when done to save money)</span>
-          <div class="t-cmd">./cleanup.sh</div>
-        </div>
-      </div>
+      <h4>What to investigate</h4>
+      <ul>
+        <li>Nested templates need reachable template URLs or a packaging step.</li>
+        <li>An ordinary regional Application Load Balancer needs subnets in at least two Availability Zones.</li>
+        <li>Route tables, listener wiring, security groups and the task execution role must be reviewed together.</li>
+        <li>Creating an ALB, Fargate tasks or other cloud services can incur charges. This exercise has no automatic deployment.</li>
+      </ul>
+      <p>Check your answers against the <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html">AWS nested-stack guide</a>, <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html">ALB requirements</a> and <a href="https://aws.amazon.com/elasticloadbalancing/pricing/">current ALB pricing</a>.</p>
     </div>
 
   </div>

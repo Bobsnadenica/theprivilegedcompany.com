@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 
 const storedValues = new Map<string, string>();
@@ -79,7 +79,7 @@ describe('App audit console', () => {
 
     fireEvent.click(importButton);
 
-    expect(screen.getAllByText('Certified tank table').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Calibration table').length).toBeGreaterThan(0);
     expect(screen.getByText(/3 points/i)).toBeInTheDocument();
   });
 
@@ -131,5 +131,18 @@ describe('App audit console', () => {
     expect(screen.getByLabelText('Profile')).toHaveValue('North site tanks');
     expect(screen.getByLabelText('Length')).toHaveValue('cm');
     expect(screen.getByText('Chamber 2')).toBeInTheDocument();
+  });
+
+  it('announces failed persistence while keeping the calculator usable', () => {
+    const setItem = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage blocked', 'SecurityError');
+    });
+    try {
+      render(<App />);
+      expect(screen.getByText(/Browser storage unavailable/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Export report/i })).toBeEnabled();
+    } finally {
+      setItem.mockRestore();
+    }
   });
 });

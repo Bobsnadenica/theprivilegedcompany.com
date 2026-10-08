@@ -24,6 +24,12 @@ describe('calibration tables', () => {
     expect(() => parseCalibrationCsv('0,0\n1,10\n1,20')).toThrow(/strictly increasing/);
   });
 
+  it('rejects missing heights and ambiguous extra columns', () => {
+    expect(() => parseCalibrationCsv(',0\n1,10')).toThrow(/Row 1/);
+    expect(() => parseCalibrationCsv('0,0,5\n1,10')).toThrow(/Row 1/);
+    expect(() => interpolateVolume([{ heightM: 0, volumeM3: 0 }, { heightM: 1, volumeM3: NaN }], 0.5)).toThrow(/finite/);
+  });
+
   it('reports source row numbers for invalid rows', () => {
     expect(() => parseCalibrationCsv('height_m,volume_m3\n0,0\nbad,10')).toThrow(/Row 3/);
   });
@@ -64,7 +70,7 @@ describe('calibration tables', () => {
     });
 
     expect(table.title).toBe('Imported calibration table');
-    expect(table.sourceReference).toBe('User-provided certified table');
+    expect(table.sourceReference).toBe('User-provided calibration table; source not specified');
     expect(table.revision).toBe('Unspecified revision');
     expect(table.certifiedBy).toBe('Unspecified certifier');
     expect(checksumText(csv)).toBe(checksumText(csv));

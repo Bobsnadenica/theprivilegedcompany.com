@@ -175,7 +175,10 @@
     @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
-  </style>
+      button.resource-box { font: inherit; color: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -356,7 +359,9 @@ my-project/
       setTimeout(() => {
         log(`${name}: Creation complete after 4s`, 'term-success');
         
-        const box = document.createElement('div');
+        const box = document.createElement('button');
+        box.type = 'button';
+        box.setAttribute('aria-label', `Simulate deleting ${name}`);
         box.className = 'resource-box';
         box.id = `res-${cloud}`;
         box.innerHTML = `<div class="res-icon">${icon}</div><div class="res-name">${name.split('.')[0]}</div>`;

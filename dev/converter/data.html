@@ -20,7 +20,8 @@
 
   <script>
     (() => {
-      const stored = localStorage.getItem('theme');
+      let stored;
+      try { stored = localStorage.getItem('theme'); } catch { /* Theme stays local to this page. */ }
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
     })();
@@ -177,6 +178,11 @@
       }
 
       const value = Number(sourceInput.value);
+      if (!Number.isFinite(value) || value < 0) {
+        targetInput.value = '';
+        status.textContent = 'Enter a finite data size of zero or more.';
+        return;
+      }
       const exponentDifference = Number(sourceUnit.value) - Number(targetUnit.value);
       const converted = value * Math.pow(system.base, exponentDifference);
       if (!Number.isFinite(converted)) {
@@ -230,7 +236,7 @@
     themeToggle.addEventListener('click', () => {
       const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = nextTheme;
-      localStorage.setItem('theme', nextTheme);
+      try { localStorage.setItem('theme', nextTheme); } catch { /* Theme still works without storage. */ }
       updateThemeControl();
     });
 

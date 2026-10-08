@@ -33,7 +33,7 @@ export function parseCalibrationCsv(csvText: string): CalibrationPoint[] {
 
   const points = rows
     .map(({ rowNumber, cells }, index) => {
-      if (cells.length < 2 || !cells[1]) {
+      if (cells.length !== 2 || !cells[0] || !cells[1]) {
         throw new Error(`Row ${rowNumber} must contain both height_m and volume_m3 values.`);
       }
       const heightM = Number(cells[0]);
@@ -56,6 +56,9 @@ export function validateCalibrationPoints(points: CalibrationPoint[]): void {
   }
   for (let i = 0; i < points.length; i += 1) {
     const point = points[i];
+    if (!Number.isFinite(point.heightM) || !Number.isFinite(point.volumeM3)) {
+      throw new Error('Calibration table must contain finite heights and volumes.');
+    }
     if (point.heightM < 0 || point.volumeM3 < 0) {
       throw new Error('Calibration table cannot contain negative heights or volumes.');
     }
@@ -76,7 +79,7 @@ export function makeCalibrationTable(csvText: string, metadata: CalibrationMetad
   return {
     id: `cal-${Date.now()}`,
     title: metadata.title || 'Imported calibration table',
-    sourceReference: metadata.sourceReference || 'User-provided certified table',
+    sourceReference: metadata.sourceReference || 'User-provided calibration table; source not specified',
     revision: metadata.revision || 'Unspecified revision',
     certifiedBy: metadata.certifiedBy || 'Unspecified certifier',
     checksum: checksumText(csvText),

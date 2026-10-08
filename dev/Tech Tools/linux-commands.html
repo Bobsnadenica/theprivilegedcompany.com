@@ -303,7 +303,7 @@
       const symbol = isRoot ? "#" : "$";
       div.innerHTML = `
         <span class="prompt">${user}@prod-01</span>:<span class="path">${currentPath}</span>${symbol} 
-        <input type="text" class="cmd-input" id="cmdInput" autocomplete="off" spellcheck="false" autofocus>
+        <input type="text" class="cmd-input" id="cmdInput" aria-label="Practice terminal command" autocomplete="off" spellcheck="false" autofocus>
       `;
       termOutput.appendChild(div);
       
@@ -316,7 +316,8 @@
     function handleCommand(e) {
       if (e.key === 'Enter') {
         const cmd = this.value.trim();
-        this.disabled = true; 
+        this.disabled = true;
+        this.removeAttribute("id");
         processCommand(cmd);
       }
     }
@@ -325,27 +326,24 @@
       const div = document.createElement('div');
       div.className = 'term-line';
       if (color) div.style.color = color;
-      div.innerHTML = text;
+      div.textContent = text;
+      div.style.whiteSpace = "pre-wrap";
       termOutput.appendChild(div);
     }
 
     function processCommand(rawCmd) {
       if(!rawCmd) { createInputLine(); return; }
 
-      const parts = rawCmd.split(' ');
+      const parts = rawCmd.split(/\s+/);
+      const elevated = parts[0] === 'sudo';
+      if (elevated) parts.shift();
       let cmd = parts[0];
       let arg = parts[1];
 
-      // Handle SUDO
-      if (cmd === "sudo") {
-        if (!parts[1]) {
-          output("usage: sudo command");
-          createInputLine();
-          return;
-        }
-        cmd = parts[1]; // Shift command
-        arg = parts[2];
-        // In this sim, sudo just works without password for flow
+      if (elevated && !cmd) {
+        output("usage: sudo command");
+        createInputLine();
+        return;
       }
 
       if (cmd === "help") {
@@ -389,7 +387,12 @@
       }
       else if (cmd === "systemctl") {
         const action = arg;
-        const service = parts[2] || parts[3]; // handle sudo shift
+        const service = parts[2];
+        if (service !== "nginx") {
+          output("Try systemctl status nginx or sudo systemctl restart nginx.", "#ff7b72");
+          createInputLine();
+          return;
+        }
         
         if (action === "status") {
           output(`● nginx.service - A high performance web server`);
@@ -397,7 +400,7 @@
           output(`   Active: ${serviceFixed ? 'active (running)' : 'failed (Result: exit-code)'}`, serviceFixed ? '#2ea043' : '#ff7b72');
         } 
         else if (action === "restart" || action === "start") {
-          if (!rawCmd.startsWith("sudo")) {
+          if (!elevated) {
             output("Failed to restart nginx: Permission denied. (Try 'sudo')", "#ff7b72");
           } else {
             output("Restarting nginx service...");
@@ -412,7 +415,7 @@
         }
       }
       else if (cmd === "whoami") {
-        output("admin");
+        output(elevated ? "root" : "admin");
       }
       else if (cmd === "clear") {
         termOutput.innerHTML = "";

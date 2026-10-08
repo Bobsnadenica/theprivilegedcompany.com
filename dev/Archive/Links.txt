@@ -22,15 +22,9 @@ Slack | https://slack.com/intl/en-gb/ | Team messaging and workspaces
 
 Games:
 AirConsole | https://www.airconsole.com/ | Couch games in the browser
-ROMsPure | https://romspure.cc/ | Retro game ROM library
 Steam | https://store.steampowered.com/ | PC games and wishlists
 SteamDB | https://steamdb.info/ | Price tracking, bundles, and stats
 HowLongToBeat | https://howlongtobeat.com/ | Estimate game completion time
-
-Crack Games:
-FitGirl Repacks | https://fitgirl-repacks.site/ | Repack releases and mirrors
-Skidrow Reloaded | https://www.skidrowreloaded.com/ | Scene release tracker
-DODI Repacks | https://dodi-repacks.site/ | Repack releases and updates
 GameStatus | https://gamestatus.info/en | Server and online game status
 
 Tools:
@@ -130,9 +124,8 @@ BBC News | https://www.bbc.com/news | International headlines
 Ground News | https://ground.news/ | Compare bias and coverage angles
 
 
+Learning:
+BioDigital Human | https://human.biodigital.com/ | Interactive anatomy explorer
 
-
-
-https://human.biodigital.com/login?returnUrl=/explore
-
+Unsorted:
 https://mirofish.homes

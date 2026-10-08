@@ -226,7 +226,7 @@
       <div class="grid">
         <div class="setup-item">
           <div class="item-title">Homebrew</div>
-          <div class="item-desc">The missing package manager for macOS.</div>
+          <div class="item-desc">Package manager for macOS. This installer downloads and executes code; review the <a href="https://brew.sh/">official instructions</a> first.</div>
           <div class="code-block" onclick="copyToClipboard(this)">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
         </div>
         <div class="setup-item">
@@ -281,9 +281,9 @@
       <h2>04. Productivity Hacks</h2>
       <div class="grid">
         <div class="setup-item">
-          <div class="item-title">Touch ID for Sudo</div>
-          <div class="item-desc">Use your fingerprint for terminal commands.</div>
-          <div class="code-block" onclick="copyToClipboard(this)">sudo sed -i '' '2i\'$'\n''auth sufficient pam_tid.so' /etc/pam.d/sudo</div>
+          <div class="item-title">Review elevated commands</div>
+          <div class="item-desc">Understand what a command changes before granting administrator access. Avoid copying edits to system authentication files from a general setup guide.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">man sudo</div>
         </div>
         <div class="setup-item">
           <div class="item-title">Magic Clipboard (Copy)</div>
@@ -327,9 +327,9 @@
           <div class="code-block" onclick="copyToClipboard(this)">sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder</div>
         </div>
         <div class="setup-item">
-          <div class="item-title">Clear Inactive RAM</div>
-          <div class="item-desc">Force macOS to free up memory.</div>
-          <div class="code-block" onclick="copyToClipboard(this)">sudo purge</div>
+          <div class="item-title">Check Memory Pressure</div>
+          <div class="item-desc">Open Activity Monitor and inspect the Memory tab before troubleshooting. <a href="https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac">Apple’s guide</a></div>
+          <div class="code-block" onclick="copyToClipboard(this)">open -a "Activity Monitor"</div>
         </div>
         <div class="setup-item">
           <div class="item-title">Find Top 10 Large Files</div>
@@ -337,14 +337,14 @@
           <div class="code-block" onclick="copyToClipboard(this)">du -ah . | sort -rh | head -n 10</div>
         </div>
         <div class="setup-item">
-          <div class="item-title">Clean DS_Store Files</div>
-          <div class="item-desc">Recursively delete hidden metadata files.</div>
-          <div class="code-block" onclick="copyToClipboard(this)">find . -name ".DS_Store" -depth -exec rm {} \;</div>
+          <div class="item-title">Find Finder Metadata Files</div>
+          <div class="item-desc">Preview matching files below the current directory. This command does not delete them.</div>
+          <div class="code-block" onclick="copyToClipboard(this)">find . -name ".DS_Store" -type f -print</div>
         </div>
         <div class="setup-item">
           <div class="item-title">Check Public IP</div>
           <div class="item-desc">Get your external IP address.</div>
-          <div class="code-block" onclick="copyToClipboard(this)">curl -s ifconfig.me</div>
+          <div class="code-block" onclick="copyToClipboard(this)">curl -fsS https://ifconfig.me</div>
         </div>
         <div class="setup-item">
           <div class="item-title">Battery Health (CLI)</div>
@@ -447,23 +447,33 @@
   </div>
 
   <script>
-    function copyToClipboard(element) {
-      const text = element.innerText;
-      const el = document.createElement('textarea');
-      el.value = text;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      
-      const originalText = element.getAttribute('data-original-text') || element.innerHTML;
-      element.style.borderColor = "#58a6ff";
-      element.innerText = "Copied!";
-      setTimeout(() => {
-        element.style.borderColor = "rgba(240, 246, 252, 0.1)";
-        element.innerText = text;
-      }, 1000);
+    document.querySelectorAll('.code-block').forEach((element) => {
+      element.dataset.copyText = element.textContent;
+      element.tabIndex = 0;
+      element.setAttribute('role', 'button');
+      element.setAttribute('aria-label', 'Copy command: ' + element.textContent);
+      element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          copyToClipboard(element);
+        }
+      });
+    });
+
+    async function copyToClipboard(element) {
+      const text = element.dataset.copyText;
+      try {
+        await navigator.clipboard.writeText(text);
+        element.textContent = 'Copied!';
+      } catch (_) {
+        element.textContent = text;
+        element.setAttribute('aria-label', 'Copy unavailable. Select this command manually: ' + text);
+        return;
+      }
+      clearTimeout(element.copyTimer);
+      element.copyTimer = setTimeout(() => { element.textContent = text; }, 1000);
     }
+
   </script>
 </body>
 </html>

@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Is it gay?</title>
 <meta property="og:title" content="Is it gay?">
-<meta property="og:description" content="ThePrivilegedCompany project page.">
+<meta property="og:description" content="An absurd swipe game, not a test of anyone’s identity. Play in English or Bulgarian.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.theprivilegedcompany.com/dev/isitgay/index.html">
 <meta name="twitter:title" content="Is it gay?">
-<meta name="twitter:description" content="ThePrivilegedCompany project page.">
+<meta name="twitter:description" content="An absurd swipe game, not a test of anyone’s identity. Play in English or Bulgarian.">
 <meta property="og:image" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:secure_url" content="https://www.theprivilegedcompany.com/assets/logo/sharelogo.png">
 <meta property="og:image:type" content="image/png">
@@ -48,7 +48,7 @@
             radial-gradient(circle at 85% 78%, rgba(121, 14, 86, 0.58), transparent 28%),
             linear-gradient(180deg, #060608 0%, #090914 55%, #050509 100%);
         color: var(--text);
-        overflow: hidden;
+        overflow-x: hidden;
         position: relative;
     }
 
@@ -676,6 +676,15 @@
             scroll-behavior: auto !important;
         }
     }
+    .lang-btn, .answer-btn { min-height: 44px; }
+    button:disabled { opacity: .45; cursor: wait; }
+    :focus-visible { outline: 3px solid #00f3ff !important; outline-offset: 3px; }
+    #question-box { touch-action: pan-y; }
+    @media (max-width: 980px) {
+        .side-column { order: 0; }
+        .card-stack { height: max(470px, 65vh); }
+        .meter-track { min-height: 100px; }
+    }
 </style>
 </head>
 <body>
@@ -684,7 +693,7 @@
     <div class="main-column">
         <header class="topbar">
             <div class="topbar-left">
-                <a class="back-link" href="../index.html" aria-label="Back to home">
+                <a class="back-link" href="/dev" aria-label="Back to home">
                     <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                     </svg>
@@ -692,13 +701,14 @@
                 <div class="title-block">
                     <p class="eyebrow">Swipe Game</p>
                     <h1>Is It Gay?</h1>
-                    <p class="subtitle">Swipe, tap, or use arrow keys. Yes stays straight. No sends the meter up.</p>
+                    <p class="subtitle">Swipe, tap, or use arrow keys. The score is just a joke, never a measure of identity.</p>
                 </div>
             </div>
             <div class="topbar-right">
                 <div id="progress-chip" class="chip">0 answered</div>
                 <button id="lang-en" class="lang-btn active" type="button">EN</button>
                 <button id="lang-bg" class="lang-btn" type="button">BG</button>
+                <button id="restart" class="lang-btn" type="button">Restart</button>
             </div>
         </header>
 
@@ -716,7 +726,7 @@
                     </div>
 
                     <div class="question-frame">
-                        <h2 id="question">Loading...</h2>
+                        <h2 id="question" aria-live="polite">Loading...</h2>
                         <div class="media-shell">
                             <div class="image-empty">?</div>
                             <img id="question-image" src="" alt="">
@@ -740,8 +750,8 @@
                 <p class="controls-subtitle">Desktop works with arrow keys. Mobile can swipe or tap the buttons.</p>
             </div>
             <div class="answer-buttons">
-                <button id="answer-no" class="answer-btn no" type="button">No</button>
-                <button id="answer-yes" class="answer-btn yes" type="button">Yes</button>
+                <button id="answer-no" class="answer-btn no" type="button" disabled>No</button>
+                <button id="answer-yes" class="answer-btn yes" type="button" disabled>Yes</button>
             </div>
         </section>
     </div>
@@ -771,7 +781,7 @@
 
 <div id="popup">
     <div id="popup-content">
-        <div id="popup-text">BASED</div>
+        <div id="popup-text" role="status">BASED</div>
     </div>
 </div>
 
@@ -779,30 +789,21 @@
     let questionsEN = [];
     let questionsBG = [];
     let activeQuestions = [];
-    let currentLanguage = 'en';
+    let currentLanguage = new URLSearchParams(location.search).get('lang') === 'bg' ? 'bg' : 'en';
     let totalPoints = 0;
     let answeredQuestions = 0;
-    let yesNoResponses = { yes: [], no: [] };
     let usedQuestions = new Set();
 
-    const gayFinale = new Audio("azis.mp3");
-    gayFinale.volume = 1.0;
-
-    let audioUnlocked = false;
-    function unlockAudio() {
-        if (!audioUnlocked) {
-            gayFinale.muted = true;
-            gayFinale.play().then(() => {
-                gayFinale.pause();
-                gayFinale.currentTime = 0;
-                gayFinale.muted = false;
-                audioUnlocked = true;
-            }).catch(() => {});
-        }
-    }
-
-    window.addEventListener("touchstart", unlockAudio, { once: true });
-    window.addEventListener("click", unlockAudio, { once: true });
+    // The original music has no recorded licence here. Keep the game silent.
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let loaded = false;
+    let answerTimer = null;
+    let currentIndex = -1;
+    const copy = {
+      en: { title: 'Is It Gay?', finalTitle: 'Maximum sparkle!', subtitle: 'An absurd swipe game. Choices here say nothing about anyone’s identity.', finalSubtitle: 'You reached the finale. Play again for another round.', eyebrow: 'Just a joke', back: 'Back to games', yes: 'Yes', no: 'No', restart: 'Restart', controls: 'Your choice', controlHint: 'Use arrow keys, swipe the card, or tap a button.', meter: 'Sparkle meter', note: '“No” adds sparkle. Reach 100% to finish. This is a joke, not an identity test.', round: 'Round', answered: 'answered', prompts: 'prompts loaded', loading: 'Loading…', failed: 'Questions could not load. Check your connection and reload.', complete: 'Finale reached — play again?', score: 'Sparkle', yesResponses: ['A sensible plot twist ✓', 'Everyday skill unlocked ✓', 'The jury approves ✓'], noResponses: ['Plot twist! ✨', 'Maximum drama incoming 🌈', 'The sparkle intensifies ✨'] },
+      bg: { title: 'Гей ли е?', finalTitle: 'Максимален блясък!', subtitle: 'Абсурдна игра с въпроси. Отговорите не определят ничия идентичност.', finalSubtitle: 'Стигнахте до финала. Започнете нова игра.', eyebrow: 'Само шега', back: 'Назад към игрите', yes: 'Да', no: 'Не', restart: 'Отначало', controls: 'Вашият избор', controlHint: 'Използвайте стрелките, плъзнете картата или натиснете бутон.', meter: 'Блясъкомер', note: '„Не“ добавя блясък. Достигнете 100% за финала. Това е шега, не тест за идентичност.', round: 'Рунд', answered: 'отговора', prompts: 'заредени въпроса', loading: 'Зареждане…', failed: 'Въпросите не се заредиха. Проверете връзката и презаредете.', complete: 'Стигнахте до финала — още една игра?', score: 'Блясък', yesResponses: ['Разумен обрат в сюжета ✓', 'Ново всекидневно умение ✓', 'Журито одобрява ✓'], noResponses: ['Обрат в сюжета! ✨', 'Пристига голямата драма 🌈', 'Блясъкът се засилва ✨'] }
+    };
+    const t = key => copy[currentLanguage][key];
 
     let gayFinaleStarted = false;
     let isDragging = false;
@@ -827,91 +828,112 @@
         bg: document.getElementById("lang-bg")
     };
 
-    function loadQuestions() {
-        fetch('questions.json')
-            .then((r) => r.json())
-            .then((data) => {
-                questionsEN = data.questions_en || [];
-                questionsBG = data.questions_bg || [];
-                activeQuestions = questionsEN;
-                updateLanguageUI();
-                return fetch('yes_no.json');
-            })
-            .then((r) => r.json())
-            .then((responses) => {
-                yesNoResponses = responses;
-                questionCount.textContent = `${activeQuestions.length} prompts loaded`;
-                loadRandomQuestion();
-            })
-            .catch((err) => {
-                console.error("Error loading data:", err);
-                questionEl.textContent = "Could not load questions.";
-            });
+    async function loadQuestions() {
+        updateLanguageUI();
+        try {
+            const response = await fetch('questions.json');
+            if (!response.ok) throw new Error('Question request failed');
+            const data = await response.json();
+            const valid = list => Array.isArray(list) && list.length > 0 && list.every(q => typeof q.text === 'string' && Number.isFinite(q.points_yes) && Number.isFinite(q.points_no));
+            if (!valid(data.questions_en) || !valid(data.questions_bg) || data.questions_en.length !== data.questions_bg.length) throw new Error('Invalid questions');
+            questionsEN = data.questions_en;
+            questionsBG = data.questions_bg;
+            loaded = true;
+            updateLanguageUI();
+            loadRandomQuestion();
+        } catch {
+            loaded = false;
+            questionEl.textContent = t('failed');
+        }
     }
 
     function updateLanguageUI() {
-        langButtons.en.classList.toggle("active", currentLanguage === 'en');
-        langButtons.bg.classList.toggle("active", currentLanguage === 'bg');
+        document.documentElement.lang = currentLanguage;
+        document.title = t('title') + ' — Swipe game';
+        for (const [lang, button] of Object.entries(langButtons)) {
+            button.classList.toggle('active', currentLanguage === lang);
+            button.setAttribute('aria-pressed', String(currentLanguage === lang));
+            button.setAttribute('aria-label', lang === 'en' ? 'English' : 'Български');
+        }
         activeQuestions = currentLanguage === 'bg' ? questionsBG : questionsEN;
-        usedQuestions.clear();
-        questionCount.textContent = `${activeQuestions.length} prompts loaded`;
+        document.querySelector('h1').textContent = t(gayFinaleStarted ? 'finalTitle' : 'title');
+        document.querySelector('.subtitle').textContent = t(gayFinaleStarted ? 'finalSubtitle' : 'subtitle');
+        document.querySelector('.eyebrow').textContent = t('eyebrow');
+        document.querySelector('.back-link').setAttribute('aria-label', t('back'));
+        document.querySelector('.back-link').href = '/dev?lang=' + currentLanguage;
+        document.querySelector('.controls-panel').setAttribute('aria-label', t('controls'));
+        document.querySelector('.controls-title').textContent = t('controls');
+        document.querySelector('.controls-subtitle').textContent = t('controlHint');
+        document.querySelector('.meter-kicker').textContent = t('meter');
+        document.querySelector('.meter-note').textContent = t('note');
+        document.querySelector('.hint-no').textContent = t('no') + ' ←';
+        document.querySelector('.hint-yes').textContent = t('yes') + ' →';
+        document.getElementById('answer-no').textContent = stampNo.textContent = t('no');
+        document.getElementById('answer-yes').textContent = stampYes.textContent = t('yes');
+        document.getElementById('restart').textContent = t('restart');
+        questionCount.textContent = `${activeQuestions.length} ${t('prompts')}`;
+        if (!loaded) questionEl.textContent = t('loading');
+        else if (gayFinaleStarted) questionEl.textContent = t('complete');
+        else if (currentIndex >= 0) showQuestion(activeQuestions[currentIndex]);
+        updateMetaUI(); updateMeter();
     }
 
     function setLanguage(language) {
         currentLanguage = language;
+        hidePopup();
         updateLanguageUI();
-        loadRandomQuestion();
+        const url = new URL(location.href); url.searchParams.set('lang', language); history.replaceState(null, '', url);
+    }
+
+    function setLocked(value) {
+        isLocked = value;
+        document.getElementById('answer-no').disabled = value || !loaded;
+        document.getElementById('answer-yes').disabled = value || !loaded;
+    }
+
+    function showQuestion(q) {
+        questionEl.textContent = q.text;
+        if (q.image && /^[a-z0-9_-]+\.(jpg|png|webp)$/i.test(q.image)) {
+            questionImage.src = 'pictures/' + q.image;
+            questionImage.style.display = 'block';
+            imageEmpty.style.display = 'none';
+        } else {
+            questionImage.style.display = 'none';
+            questionImage.removeAttribute('src');
+            imageEmpty.style.display = 'grid';
+        }
+        card.dataset.pointsYes = String(q.points_yes);
+        card.dataset.pointsNo = String(q.points_no);
     }
 
     function loadRandomQuestion() {
-        isLocked = false;
+        if (!loaded || gayFinaleStarted) return;
         resetCardVisuals();
-
-        const list = activeQuestions;
-        if (list.length === 0) return;
-
-        if (usedQuestions.size === list.length) usedQuestions.clear();
-
-        let q;
-        do {
-            q = list[Math.floor(Math.random() * list.length)];
-        } while (usedQuestions.has(q.text) && usedQuestions.size < list.length);
-
-        usedQuestions.add(q.text);
-
-        questionEl.textContent = q.text;
-
-        if (q.image) {
-            questionImage.src = "pictures/" + q.image;
-            questionImage.style.display = "block";
-            imageEmpty.style.display = "none";
-        } else {
-            questionImage.style.display = "none";
-            questionImage.removeAttribute("src");
-            imageEmpty.style.display = "grid";
-        }
-
-        card.dataset.pointsYes = q.points_yes || 0;
-        card.dataset.pointsNo = q.points_no || 100;
+        if (usedQuestions.size >= activeQuestions.length) usedQuestions.clear();
+        const available = activeQuestions.map((_, index) => index).filter(index => !usedQuestions.has(index));
+        currentIndex = available[Math.floor(Math.random() * available.length)];
+        usedQuestions.add(currentIndex);
+        showQuestion(activeQuestions[currentIndex]);
+        setLocked(false);
         updateMetaUI();
     }
 
     function updateMetaUI() {
         const percent = Math.min(100, Math.floor((totalPoints / 800) * 100));
-        progressChip.textContent = `${answeredQuestions} answered`;
+        progressChip.textContent = `${answeredQuestions} ${t('answered')}`;
         scoreChip.textContent = `${percent}%`;
-        stepChip.textContent = `Round ${answeredQuestions + 1}`;
+        stepChip.textContent = `${t('round')} ${answeredQuestions + 1}`;
     }
 
     function answer(direction) {
-        if (isLocked) return;
-        isLocked = true;
+        if (isLocked || !loaded || gayFinaleStarted || currentIndex < 0) return;
+        setLocked(true);
 
         const points = direction === 'right' ? parseInt(card.dataset.pointsYes, 10) : parseInt(card.dataset.pointsNo, 10);
         totalPoints += points;
         answeredQuestions++;
 
-        const responseList = direction === 'right' ? yesNoResponses.yes : yesNoResponses.no;
+        const responseList = t(direction === 'right' ? 'yesResponses' : 'noResponses');
         const responseText = responseList[Math.floor(Math.random() * responseList.length)];
 
         updateMeter();
@@ -919,41 +941,34 @@
         showPopup(responseText);
 
         const flyX = direction === 'right' ? window.innerWidth : -window.innerWidth;
-        card.style.transition = "transform 0.4s ease-in, opacity 0.4s ease-in";
-        card.style.transform = `translate(${flyX}px, 50px) rotate(${direction === 'right' ? 20 : -20}deg)`;
+        card.style.transition = reducedMotion.matches ? "none" : "transform 0.4s ease-in, opacity 0.4s ease-in";
+        card.style.transform = reducedMotion.matches ? 'none' : `translate(${flyX}px, 50px) rotate(${direction === 'right' ? 20 : -20}deg)`;
         card.style.opacity = 0.2;
 
-        setTimeout(() => {
+        answerTimer = setTimeout(() => {
             hidePopup();
-            setTimeout(loadRandomQuestion, 110);
-        }, 1400);
+            if (gayFinaleStarted) {
+                resetCardVisuals(); questionEl.textContent = t('complete');
+                document.getElementById('restart').focus({ preventScroll: true });
+            } else loadRandomQuestion();
+        }, reducedMotion.matches ? 700 : 1400);
     }
 
     function updateMeter() {
         const percent = Math.min(100, Math.floor((totalPoints / 800) * 100));
         meterFill.style.height = percent + "%";
-        meterLabel.textContent = "Gayness: " + percent + "%";
+        meterLabel.textContent = t('score') + ": " + percent + "%";
 
         if (percent > 80) {
             document.body.style.background =
                 "radial-gradient(circle at 14% 16%, rgba(255, 0, 136, 0.52), transparent 28%), radial-gradient(circle at 82% 78%, rgba(0, 243, 255, 0.34), transparent 30%), linear-gradient(180deg, #18030e 0%, #150314 52%, #07070c 100%)";
-            triggerConfetti(20);
         }
 
         if (percent >= 100 && !gayFinaleStarted) {
             gayFinaleStarted = true;
-            gayFinale.muted = false;
-            gayFinale.currentTime = 0;
-            gayFinale.loop = true;
-            const playPromise = gayFinale.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    console.log("Audio play blocked, user interaction needed");
-                });
-            }
             triggerConfetti(50);
-            document.querySelector('h1').textContent = "Ultimate Gay!";
-            document.querySelector('.subtitle').textContent = "Final form unlocked.";
+            document.querySelector('h1').textContent = t('finalTitle');
+            document.querySelector('.subtitle').textContent = t('finalSubtitle');
         }
     }
 
@@ -967,6 +982,7 @@
     }
 
     function triggerConfetti(count = 30) {
+        if (reducedMotion.matches || document.hidden) return;
         for (let i = 0; i < count; i++) {
             const c = document.createElement("div");
             c.style.position = "fixed";
@@ -1001,7 +1017,7 @@
     }
 
     function handleStart(x, y) {
-        if (isLocked) return;
+        if (isLocked || !loaded || gayFinaleStarted) return;
         isDragging = true;
         startX = x;
         startY = y;
@@ -1051,6 +1067,7 @@
 
     card.addEventListener("touchstart", (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
     card.addEventListener("touchmove", (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    card.addEventListener("touchcancel", () => { isDragging = false; resetCardVisuals(); });
     card.addEventListener("touchend", (e) => handleEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY));
     card.addEventListener("mousedown", (e) => handleStart(e.clientX, e.clientY));
     window.addEventListener("mousemove", (e) => handleMove(e.clientX, e.clientY));
@@ -1062,11 +1079,20 @@
     document.getElementById("lang-bg").addEventListener("click", () => setLanguage('bg'));
 
     window.addEventListener("keydown", (event) => {
-        if (isLocked) return;
-        if (event.key === "ArrowLeft") answer('left');
-        if (event.key === "ArrowRight") answer('right');
+        if (isLocked || event.target.closest('button, a, input, select, textarea') || event.altKey || event.ctrlKey || event.metaKey) return;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            event.preventDefault(); answer(event.key === 'ArrowLeft' ? 'left' : 'right');
+        }
     });
 
+    document.getElementById('restart').addEventListener('click', () => {
+        clearTimeout(answerTimer); hidePopup(); isDragging = false;
+        totalPoints = 0; answeredQuestions = 0; gayFinaleStarted = false; currentIndex = -1;
+        usedQuestions.clear(); document.body.style.background = '';
+        updateLanguageUI(); loadRandomQuestion();
+        if (!loaded) loadQuestions();
+    });
+    questionImage.addEventListener('error', () => { questionImage.style.display = 'none'; imageEmpty.style.display = 'grid'; });
     loadQuestions();
 </script>
 </body>

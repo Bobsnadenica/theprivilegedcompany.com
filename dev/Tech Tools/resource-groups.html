@@ -167,7 +167,11 @@
       grid-column: span 2; text-align: center; margin-top: 1rem; font-family: var(--font-mono); font-size: 0.9rem; color: #8b949e;
     }
 
-  </style>
+      .place-selected { display: block; margin: 12px 0; padding: 10px 12px; min-height: 44px; font: inherit; color: #f0f6fc; background: #21262d; border: 1px solid #8b949e; border-radius: 8px; cursor: pointer; }
+    [aria-pressed="true"] { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -271,7 +275,7 @@
           </div>
           </div>
 
-        <div class="status-msg" id="statusLog">Drag items to organize them.</div>
+        <div class="status-msg" id="statusLog" role="status">Drag items to organize them.</div>
 
       </div>
 
@@ -310,6 +314,34 @@
     const statusLog = document.getElementById('statusLog');
     
     let draggedItem = null;
+    let selectedItem = null;
+    function selectItem(item) {
+      if (item.getAttribute('draggable') === 'false') return;
+      selectedItem = item;
+      draggables.forEach(candidate => candidate.setAttribute('aria-pressed', String(candidate === item)));
+      document.getElementById('selectionStatus').textContent = item.innerText.trim().replace(/\s+/g, ' ') + ' selected. Choose a destination.';
+    }
+    const selectionStatus = document.createElement('p');
+    selectionStatus.id = 'selectionStatus'; selectionStatus.setAttribute('role', 'status');
+    selectionStatus.textContent = 'Drag an item, or select it with a tap or Enter, then choose a destination.';
+    draggables[0].parentElement.prepend(selectionStatus);
+    draggables.forEach(item => {
+      item.setAttribute('role', 'button'); item.tabIndex = 0; item.setAttribute('aria-pressed', 'false');
+      item.addEventListener('click', () => selectItem(item));
+      item.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectItem(item); }
+      });
+    });
+    zones.forEach((zone, index) => {
+      const place = document.createElement('button'); place.type = 'button'; place.className = 'place-selected';
+      place.textContent = 'Place selected item here';
+      place.setAttribute('aria-label', 'Place selected item in ' + (zone.querySelector('.group-name')?.textContent.trim() || zone.getAttribute('data-type') || 'destination ' + (index + 1)));
+      place.addEventListener('click', () => {
+        if (!selectedItem || !selectedItem.isConnected) { selectionStatus.textContent = 'Select an item first.'; return; }
+        validateDrop(selectedItem, zone);
+      });
+      zone.appendChild(place);
+    });
 
     draggables.forEach(item => {
       item.addEventListener('dragstart', () => {

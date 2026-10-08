@@ -90,11 +90,11 @@
     </header>
 
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filter('all')">All</button>
-      <button class="filter-btn" onclick="filter('bash')">Bash / Shell</button>
-      <button class="filter-btn" onclick="filter('python')">Python</button>
-      <button class="filter-btn" onclick="filter('sql')">SQL</button>
-      <button class="filter-btn" onclick="filter('aws')">AWS CLI</button>
+      <button class="filter-btn active" onclick="filter(this, 'all')">All</button>
+      <button class="filter-btn" onclick="filter(this, 'bash')">Bash / Shell</button>
+      <button class="filter-btn" onclick="filter(this, 'python')">Python</button>
+      <button class="filter-btn" onclick="filter(this, 'sql')">SQL</button>
+      <button class="filter-btn" onclick="filter(this, 'aws')">AWS CLI</button>
     </div>
 
     <div class="script-grid">
@@ -117,8 +117,9 @@
         </div>
         <div class="code-area">
           <button class="copy-btn" onclick="copy(this)">Copy</button>
-          <pre># Run in any directory to serve files
-python3 -m http.server 8000</pre>
+          <p>Use a folder without private files. This is a development server. <a href="https://docs.python.org/3/library/http.server.html">Python documentation</a></p>
+          <pre># Local preview only; serves files beneath the current folder
+python3 -m http.server 8000 --bind 127.0.0.1</pre>
         </div>
       </div>
 
@@ -129,6 +130,7 @@ python3 -m http.server 8000</pre>
         </div>
         <div class="code-area">
           <button class="copy-btn" onclick="copy(this)">Copy</button>
+          <p>Read-only listing; S3 requests can incur charges and large buckets take time. Check your selected account/profile first. <a href="https://aws.amazon.com/s3/pricing/">S3 pricing</a></p>
           <pre>aws s3 ls | awk '{print $3}' | xargs -I {} sh -c 'echo {}; aws s3 ls --summarize --human-readable --recursive s3://{} | grep "Total Size"'</pre>
         </div>
       </div>
@@ -163,21 +165,20 @@ tail -f /var/log/syslog | grep --line-buffered --color=auto "ERROR"</pre>
   </div>
 
   <script>
-    function copy(btn) {
-      const code = btn.nextElementSibling.innerText;
-      navigator.clipboard.writeText(code);
-      const original = btn.innerText;
-      btn.innerText = "Copied!";
-      btn.style.background = "#2ea043";
-      setTimeout(() => {
-        btn.innerText = original;
-        btn.style.background = "";
-      }, 2000);
+    async function copy(btn) {
+      const code = btn.parentElement.querySelector("pre").innerText;
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.innerText = "Copied!";
+      } catch (_) {
+        btn.innerText = "Select code to copy";
+      }
+      setTimeout(() => { btn.innerText = "Copy"; }, 2000);
     }
 
-    function filter(cat) {
+    function filter(button, cat) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
+      button.classList.add('active');
       
       const cards = document.querySelectorAll('.script-card');
       cards.forEach(c => {

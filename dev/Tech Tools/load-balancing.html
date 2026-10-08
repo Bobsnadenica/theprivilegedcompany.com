@@ -162,7 +162,9 @@
     .log-line { margin-bottom: 6px; border-bottom: 1px dashed #222; padding-bottom: 4px; }
     .log-line.error { color: var(--accent-secondary); }
 
-  </style>
+      :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -288,7 +290,6 @@
   </div>
 
   <script>
-    const packet = document.getElementById('packet');
     const terminal = document.getElementById('terminal');
     
     // Server State
@@ -299,6 +300,8 @@
     };
 
     let currentTargetIndex = 0;
+    let activePackets = 0;
+    let burstTimer = null;
     const serverKeys = ['s1', 's2', 's3'];
 
     function log(msg, isError = false) {
@@ -306,11 +309,14 @@
       line.className = isError ? 'log-line error' : 'log-line';
       line.textContent = `> ${msg}`;
       terminal.prepend(line);
+      while (terminal.children.length > 60) terminal.lastElementChild.remove();
     }
 
     function toggleServer(id) {
       const s = servers[id];
       s.healthy = !s.healthy;
+      s.el.querySelector('.kill-switch').textContent = s.healthy ? 'KILL' : 'RECOVER';
+      s.el.querySelector('.kill-switch').setAttribute('aria-label', (s.healthy ? 'Stop ' : 'Recover ') + s.el.querySelector('.node-name').textContent);
       
       if (!s.healthy) {
         s.el.classList.add('dead');
@@ -339,6 +345,13 @@
     }
 
     function sendRequest() {
+      if (activePackets >= 24) return;
+      activePackets++;
+      const packet = document.getElementById('packet').cloneNode(false);
+      packet.removeAttribute('id'); packet.setAttribute('aria-hidden', 'true');
+      document.querySelector('.traffic-map').appendChild(packet);
+      let removed = false;
+      const finish = () => { if (!removed) { removed = true; packet.remove(); activePackets--; } };
       const target = getNextHealthyServer();
 
       // Reset Packet
@@ -353,7 +366,7 @@
       if (!target) {
         log("CRITICAL: All servers are down! Returning 503 Service Unavailable.", true);
         packet.style.backgroundColor = '#ff7b72';
-        setTimeout(() => { packet.style.opacity = '0'; packet.style.backgroundColor = '#fff'; }, 1000);
+        setTimeout(finish, 1000);
         return;
       }
 
@@ -374,22 +387,28 @@
         log(`LB: Routing request to ${target.el.querySelector('.node-name').textContent}...`);
 
         setTimeout(() => {
+          if (!target.healthy) {
+            log('Request failed: the selected server stopped before responding.', true);
+            finish(); return;
+          }
           // Hit Animation
           target.el.classList.add('active');
           setTimeout(() => target.el.classList.remove('active'), 200);
           packet.style.opacity = '0';
           log(`SUCCESS: Request handled by ${target.el.querySelector('.node-name').textContent} (200 OK)`);
+          finish();
         }, 400);
 
       }, 400);
     }
 
     function burstMode() {
+      if (burstTimer !== null) return;
       let count = 0;
-      const interval = setInterval(() => {
+      burstTimer = setInterval(() => {
         sendRequest();
         count++;
-        if (count >= 5) clearInterval(interval);
+        if (count >= 5) { clearInterval(burstTimer); burstTimer = null; }
       }, 300);
     }
   </script>

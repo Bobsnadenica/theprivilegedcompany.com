@@ -49,7 +49,7 @@ export default function TrendChart({ indicatorKey, series, retrievedAt }: { indi
     </svg>
     <div className="stat-scrubber">
       <label htmlFor={`year-${indicatorKey}`}>Изберете година <strong>{selected.year}</strong></label>
-      <input id={`year-${indicatorKey}`} type="range" min="0" max={rows.length - 1} value={selectedIndex} disabled={rows.length === 1} onChange={e => setSelectedYear(rows[Number(e.target.value)].year)} aria-valuetext={`${selected.year}: ${formatIndicator(indicatorKey, selected.value)}`} />
+      <input id={`year-${indicatorKey}`} type="range" aria-label={`Изберете година — ${series.title}`} min="0" max={rows.length - 1} value={selectedIndex} disabled={rows.length === 1} onChange={e => setSelectedYear(rows[Number(e.target.value)].year)} aria-valuetext={`${selected.year}: ${formatIndicator(indicatorKey, selected.value)}`} />
     </div>
     <div className="chart-links"><a href={series.source_url} target="_blank" rel="noreferrer">Световна банка ↗</a><a href={`${base}data/${series.csv_path}`} download>CSV ↓</a></div>
     <details className="stat-details">

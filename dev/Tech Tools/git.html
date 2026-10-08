@@ -284,22 +284,22 @@
       <section class="section" id="tricks">
         <div class="section-label">Tricks & Rescue</div>
         <h2>"Oh no, I broke it" (Disaster Recovery)</h2>
-        <p class="section-intro">Git is almost impossible to break permanently. Here is how to undo the most common "mistakes".</p>
+        <p class="section-intro">Git can help recover committed work. It does not guarantee recovery of uncommitted changes or expired history. Review the affected branch before changing history.</p>
         <div style="display: grid; gap: 1rem;">
           <div class="panel">
             <h3>Undo the last commit (keep changes)</h3>
             <code>git reset --soft HEAD~1</code>
-            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Moves changes back to the Staging area. Perfect if you forgot a file or made a typo in the message.</p>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">For your own unpublished last commit: move the branch back one commit while keeping the index and working files. Avoid rewriting a branch other people use.</p>
           </div>
           <div class="panel">
             <h3>Rescue "deleted" work</h3>
             <code>git reflog</code>
-            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Git's secret diary. It records every move you make, even if you delete a branch. Find the hash and <code>git checkout [hash]</code> to bring it back.</p>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Shows recent local reference updates, not a backup of every file edit. If the commit still exists, create a recovery branch with <code>git branch rescue &lt;commit&gt;</code>. <a href="https://git-scm.com/docs/git-reflog">Reflog documentation</a>.</p>
           </div>
           <div class="panel">
             <h3>Interactive Rebase (Clean history)</h3>
             <code>git rebase -i HEAD~3</code>
-            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Squash 5 messy "wip" commits into one clean feature commit before pushing.</p>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">Reorder or combine your last three local commits before sharing them. This rewrites commit identities. <a href="https://git-scm.com/docs/git-rebase">Rebase documentation</a>.</p>
           </div>
         </div>
       </section>
@@ -334,20 +334,21 @@
     </div>
   </main>
 
+  <p style="max-width:1100px;margin:1rem auto;padding:0 1.5rem;">Official command references: <a href="https://git-scm.com/docs/git-add">git add</a> · <a href="https://git-scm.com/docs/git-pull">git pull</a> · <a href="https://git-scm.com/docs/git-reset">git reset</a>.</p>
   <script>
     const commands = [
       { cmd: 'git init', zone: 'Local Repo', desc: 'Transform a folder into a Git repository.', tags: 'start create setup' },
-      { cmd: 'git add .', zone: 'Staging', desc: 'Prepare all changes for the next commit.', tags: 'stage prepare' },
+      { cmd: 'git add .', zone: 'Staging', desc: 'Stage changes beneath the current directory. Review git diff --cached before committing.', tags: 'stage prepare' },
       { cmd: 'git commit -m "msg"', zone: 'Local Repo', desc: 'Save a permanent snapshot of staged changes.', tags: 'save snapshot' },
       { cmd: 'git status', zone: 'Local', desc: 'See which files are modified or staged.', tags: 'check look find' },
       { cmd: 'git push', zone: 'Remote', desc: 'Upload local commits to the server.', tags: 'upload share sync' },
-      { cmd: 'git pull', zone: 'Workdir', desc: 'Download remote changes and merge them.', tags: 'download sync update' },
-      { cmd: 'git fetch', zone: 'Local Repo', desc: 'Download remote changes but dont merge them.', tags: 'download look' },
+      { cmd: 'git pull', zone: 'Workdir', desc: 'Fetch changes, then integrate them by merge or rebase according to your options and configuration.', tags: 'download sync update' },
+      { cmd: 'git fetch', zone: 'Local Repo', desc: 'Download remote changes without changing your working branch.', tags: 'download look' },
       { cmd: 'git checkout -b name', zone: 'Local Repo', desc: 'Create and switch to a new branch.', tags: 'branch move switch' },
       { cmd: 'git merge branch', zone: 'Local Repo', desc: 'Combine work from another branch.', tags: 'combine join' },
       { cmd: 'git rebase main', zone: 'Local Repo', desc: 'Move your work on top of latest main.', tags: 'clean rewrite history' },
       { cmd: 'git stash', zone: 'Local Repo', desc: 'Temporarily hide changes to work on something else.', tags: 'hide save pause' },
-      { cmd: 'git reset --hard', zone: 'Workdir', desc: 'DESTROY all uncommitted changes.', tags: 'undo delete clean danger' },
+      { cmd: 'git reset --hard', zone: 'Workdir', desc: 'Discard tracked working-tree and staged changes. Can remove untracked paths that obstruct tracked files.', tags: 'undo delete clean danger' },
     ];
 
     function renderCommands() {

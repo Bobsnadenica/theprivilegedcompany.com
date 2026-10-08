@@ -174,7 +174,8 @@
       .dns-map { grid-template-columns: 1fr; height: auto; gap: 20px; }
       .packet { display: none; /* Hide animation on mobile, rely on logs */ }
     }
-  </style>
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 
@@ -304,7 +305,7 @@
           </tr>
           <tr>
             <td><span class="type-badge" style="background:#d29922;">CNAME</span></td>
-            <td><strong>Alias.</strong> Forwards one domain to another domain.</td>
+            <td><strong>Alias.</strong> Makes one DNS name an alias of another name. It does not redirect a browser URL.</td>
             <td>www.example.com → example.com</td>
           </tr>
           <tr>
@@ -317,11 +318,12 @@
     </div>
     
     <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
-      <p>💡 <strong>Pro Tip:</strong> This whole process takes milliseconds because servers <strong>Cache (TTL)</strong> the results.<br>The Resolver remembers "google.com = 1.2.3.4" for 5 minutes so it doesn't have to ask the Root every time.</p>
+      <p>💡 <strong>Pro Tip:</strong> Resolvers cache answers according to their <strong>time to live (TTL)</strong>. A cached answer avoids some lookup steps. TTL and network latency vary; this animation uses fictional example records.</p>
     </div>
 
   </div>
 
+  <p style="max-width:1100px;margin:2rem auto;padding:0 20px;color:#9aa5b3">Source: <a href="https://www.rfc-editor.org/rfc/rfc1034">DNS concepts and facilities (RFC 1034)</a>. Local illustration only; this page does not query DNS for you.</p>
   <script>
     const packet = document.getElementById('packet');
     const terminal = document.getElementById('terminal');
@@ -340,14 +342,15 @@
     function log(actor, msg) {
       const line = document.createElement('div');
       line.className = 'log-line';
-      line.innerHTML = `<span>${actor}</span> ${msg}`;
+      const label = document.createElement('span'); label.textContent = actor;
+      line.append(label, document.createTextNode(` ${msg}`));
       terminal.prepend(line); // Add to top
     }
 
     function movePacket(target, callback) {
       packet.style.opacity = '1';
       packet.style.left = target.left;
-      setTimeout(callback, 800); // Wait for transition time
+      setTimeout(callback, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 800); // Wait for transition time
     }
 
     function highlight(id) {

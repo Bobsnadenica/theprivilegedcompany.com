@@ -93,10 +93,10 @@ function renderHeader() {
 
 function renderCategoryPills() {
   const buttons = [
-    `<button class="category-pill${state.activeCategory === "all" ? " is-active" : ""}" type="button" data-category="all">[ all ]</button>`,
+    `<button class="category-pill${state.activeCategory === "all" ? " is-active" : ""}" type="button" aria-pressed="${state.activeCategory === "all"}" data-category="all">[ all ]</button>`,
     ...state.archive.categories.map(
       (category) =>
-        `<button class="category-pill${state.activeCategory === category.id ? " is-active" : ""}" type="button" data-category="${escapeHtml(category.id)}">[ ${escapeHtml(category.name)} ]</button>`,
+        `<button class="category-pill${state.activeCategory === category.id ? " is-active" : ""}" type="button" aria-pressed="${state.activeCategory === category.id}" data-category="${escapeHtml(category.id)}">[ ${escapeHtml(category.name)} ]</button>`,
     ),
   ];
 
@@ -174,6 +174,7 @@ function bindEvents() {
 
     state.activeCategory = trigger.dataset.category || "all";
     renderCategoryPills();
+    Array.from(elements.categoryPills.querySelectorAll("[data-category]")).find(button => button.dataset.category === state.activeCategory)?.focus();
     renderArchive();
   });
 
@@ -199,9 +200,12 @@ function bindEvents() {
 }
 
 async function loadArchive() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch("./Links.txt", {
       cache: "no-store",
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -217,7 +221,7 @@ async function loadArchive() {
     elements.errorMessage.textContent =
       error instanceof Error ? error.message : "Unknown error.";
     elements.resultsSummary.textContent = "The archive could not be loaded.";
-  }
+  } finally { clearTimeout(timeout); }
 }
 
 bindEvents();

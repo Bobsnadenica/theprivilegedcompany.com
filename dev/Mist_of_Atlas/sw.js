@@ -1,9 +1,10 @@
-const CACHE_NAME = 'mist-of-atlas-v9';
+const CACHE_PREFIX = 'mist-of-atlas-';
+const CACHE_NAME = `${CACHE_PREFIX}v10`;
 const CORE_ASSETS = [
   './',
   './index.html',
   './styles.css?v=20260710a',
-  './script.js?v=20260710a',
+  './script.js?v=20261008qa',
   './icon.png',
   './manifest.json?v=20260710b',
   './privacy.html',
@@ -25,7 +26,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .filter((cacheName) => cacheName.startsWith(CACHE_PREFIX) && cacheName !== CACHE_NAME)
           .map((cacheName) => caches.delete(cacheName))
       );
     })
@@ -37,7 +38,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  if (request.method !== 'GET' || url.origin !== self.location.origin) {
+  if (request.method !== 'GET' || url.origin !== self.location.origin || !url.pathname.startsWith(new URL('./', self.location.href).pathname)) {
     return;
   }
 

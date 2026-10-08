@@ -27,7 +27,11 @@ Download **[aipost247.zip](download/aipost247.zip)** (or from the
 - **macOS / Linux:** open a terminal in the folder and run `./run.sh`
 - **Windows:** double-click `run.bat`
 
-The launcher sets everything up and starts the setup wizard.
+The launcher installs the dependencies and opens the local dashboard. Configure
+your provider and Page there; the terminal wizard is available with `./run.sh setup`.
+
+The download is free. AI providers can impose fees, account requirements and usage
+limits. Review your provider's terms before enabling scheduled generation.
 
 ### Easiest — one command (from a Git checkout)
 
@@ -95,15 +99,16 @@ The wizard (`./run.sh setup` or `run.bat setup`) has 4 short steps:
 One-time, at <https://developers.facebook.com/apps>:
 1. Create an app (type **Business**).
 2. Add the **Facebook Login** product.
-3. Redirect URI: in **Development** mode (default) `http://localhost` is allowed
-   automatically — nothing to add. Only in Live mode add `http://localhost:8723/`
-   under **Facebook Login → Settings → Valid OAuth Redirect URIs**.
+3. Check the redirect settings under **Facebook Login → Settings**. If Meta
+   requires an allowed redirect URI, add `http://localhost:8723/` exactly,
+   including the trailing slash.
 4. Copy your **App ID** and **App Secret** (Settings → Basic).
 
 Then in setup pick **"Log in with Facebook"**, enter App ID + Secret once, log in
 in the browser, and select your Page. Permissions used: `pages_show_list`,
 `pages_read_engagement`, `pages_manage_posts`. While your app is in
-**Development** mode you can manage your **own** Pages without App Review.
+**Development** mode, access depends on your app role, Page permissions and the
+access or review requirements shown in your Meta dashboard.
 
 > Prefer to do it manually? Choose the manual option and paste a Page ID + token.
 

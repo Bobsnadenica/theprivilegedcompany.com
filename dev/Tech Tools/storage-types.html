@@ -155,7 +155,11 @@
     .comp-table td { padding: 1rem; border-top: 1px solid #30363d; color: var(--text-secondary); font-size: 0.9rem; }
     .comp-highlight { font-weight: bold; color: #fff; }
 
-  </style>
+      .place-selected { display: block; margin: 12px 0; padding: 10px 12px; min-height: 44px; font: inherit; color: #f0f6fc; background: #21262d; border: 1px solid #8b949e; border-radius: 8px; cursor: pointer; }
+    [aria-pressed="true"] { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    :focus-visible { outline: 3px solid #58a6ff; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -246,7 +250,7 @@
           <div class="bin-desc">HTTP Access / Flat Structure</div>
           </div>
 
-        <div class="status-msg" id="statusLog">Waiting for input...</div>
+        <div class="status-msg" id="statusLog" role="status">Waiting for input...</div>
 
       </div>
 
@@ -300,6 +304,34 @@
     const statusLog = document.getElementById('statusLog');
     
     let draggedItem = null;
+    let selectedItem = null;
+    function selectItem(item) {
+      if (item.getAttribute('draggable') === 'false') return;
+      selectedItem = item;
+      draggables.forEach(candidate => candidate.setAttribute('aria-pressed', String(candidate === item)));
+      document.getElementById('selectionStatus').textContent = item.innerText.trim().replace(/\s+/g, ' ') + ' selected. Choose a destination.';
+    }
+    const selectionStatus = document.createElement('p');
+    selectionStatus.id = 'selectionStatus'; selectionStatus.setAttribute('role', 'status');
+    selectionStatus.textContent = 'Drag an item, or select it with a tap or Enter, then choose a destination.';
+    draggables[0].parentElement.prepend(selectionStatus);
+    draggables.forEach(item => {
+      item.setAttribute('role', 'button'); item.tabIndex = 0; item.setAttribute('aria-pressed', 'false');
+      item.addEventListener('click', () => selectItem(item));
+      item.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectItem(item); }
+      });
+    });
+    bins.forEach((zone, index) => {
+      const place = document.createElement('button'); place.type = 'button'; place.className = 'place-selected';
+      place.textContent = 'Place selected item here';
+      place.setAttribute('aria-label', 'Place selected item in ' + (zone.querySelector('h3')?.textContent.trim() || zone.getAttribute('data-type') || 'destination ' + (index + 1)));
+      place.addEventListener('click', () => {
+        if (!selectedItem || !selectedItem.isConnected) { selectionStatus.textContent = 'Select an item first.'; return; }
+        validateDrop(selectedItem, zone);
+      });
+      zone.appendChild(place);
+    });
 
     draggables.forEach(item => {
       item.addEventListener('dragstart', () => {
@@ -341,6 +373,8 @@
       if (itemType === binType) {
         bin.appendChild(item);
         item.setAttribute('draggable', 'false');
+        item.setAttribute('aria-disabled', 'true'); item.setAttribute('aria-pressed', 'false'); item.tabIndex = -1; selectedItem = null;
+        selectionStatus.textContent = 'Correct placement. Select another item.';
         item.style.cursor = 'default';
         item.style.border = '1px solid #2ea043';
         

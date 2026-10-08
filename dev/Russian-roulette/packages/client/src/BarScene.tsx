@@ -300,30 +300,37 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
       return;
     }
 
-    const runtime = createRuntime(
-      host,
-      {
-        ...DEFAULT_PROPS,
-        ...props,
-        pileCount: props.pileCount ?? 0,
-        localPlayerId: props.localPlayerId,
-        localHand: props.localHand ?? [],
-        selectedCardIds: props.selectedCardIds ?? [],
-        soloPhase: props.soloPhase,
-        botThinkingPlayerId: props.botThinkingPlayerId,
-        tableQuote: props.tableQuote ?? null
-      },
-      {
-        onReady: (ready, failed) => {
-          setSceneReady(ready);
-          setSceneFailed(failed);
+    let runtime: Runtime;
+    try {
+      runtime = createRuntime(
+        host,
+        {
+          ...DEFAULT_PROPS,
+          ...props,
+          pileCount: props.pileCount ?? 0,
+          localPlayerId: props.localPlayerId,
+          localHand: props.localHand ?? [],
+          selectedCardIds: props.selectedCardIds ?? [],
+          soloPhase: props.soloPhase,
+          botThinkingPlayerId: props.botThinkingPlayerId,
+          tableQuote: props.tableQuote ?? null
         },
-        onActiveBeat: setActiveBeat,
-        onQuality: setQuality,
-        onRouletteStageChange: (stage) => rouletteStageCallbackRef.current?.(stage)
-      }
-    );
-
+        {
+          onReady: (ready, failed) => {
+            setSceneReady(ready);
+            setSceneFailed(failed);
+          },
+          onActiveBeat: setActiveBeat,
+          onQuality: setQuality,
+          onRouletteStageChange: (stage) => rouletteStageCallbackRef.current?.(stage)
+        }
+      );
+    } catch {
+      // Unsupported/blocked WebGL must not take down the React page.
+      setSceneFailed(true);
+      setActiveBeat("unavailable");
+      return;
+    }
     runtimeRef.current = runtime;
     void runtime.preloadAssets();
 
@@ -370,7 +377,7 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
     <div
       className="bar-scene"
       ref={hostRef}
-      aria-hidden="true"
+      aria-hidden={!sceneFailed}
       data-testid="bar-scene"
       data-scene-ready={sceneReady}
       data-scene-failed={sceneFailed}
@@ -379,8 +386,8 @@ export const BarScene = forwardRef<BarSceneHandle, BarSceneProps>(function BarSc
     >
       {!sceneReady ? (
         <div className="scene-loading">
-          <span />
-          {t("Loading table…")}
+          {!sceneFailed ? <span /> : null}
+          {sceneFailed ? t("3D graphics are unavailable. Enable WebGL or try another browser.") : t("Loading table…")}
         </div>
       ) : null}
     </div>

@@ -328,5 +328,6 @@
   "Select the code to copy it.": "Маркирайте кода, за да го копирате.",
   "vs": "срещу",
   "s": "с",
-  "you": "Вас"
+  "you": "Вас",
+  "3D graphics are unavailable. Enable WebGL or try another browser.": "3D графиката не е достъпна. Включете WebGL или опитайте с друг браузър."
 }

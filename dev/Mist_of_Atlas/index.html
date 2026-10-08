@@ -113,7 +113,7 @@
         <div class="hero-copy reveal">
           <h1>The world begins in mist. Your footsteps write the atlas.</h1>
           <p class="hero-text">
-            Mist of Atlas turns everyday movement into a quiet exploration map.
+            Mist of Atlas is an exploration app in development, turning everyday movement into a quiet map.
             Clear real territory as you walk, keep a personal record of where you have been,
             and reveal the world alone or with friends.
           </p>
@@ -128,7 +128,7 @@
           <div class="atlas-stage">
             <div class="atlas-panel" data-demo-state="solo">
               <div class="panel-bar">
-                <span class="panel-label">Atlas Campaign</span>
+                <span class="panel-label">Illustrative demo</span>
                 <span class="panel-status" id="demoStatus">Personal Atlas 68%</span>
               </div>
 
@@ -166,7 +166,7 @@
                 </div>
                 <div class="location-console">
                   <button class="location-btn" id="useLocationBtn" type="button">Use My Location</button>
-                  <p class="location-copy" id="locationStatus" role="status" aria-live="polite">Showing a sample city center. Use your location to load a real map around you.</p>
+                  <p class="location-copy" id="locationStatus" role="status" aria-live="polite">Sample routes and statistics. Use your location to load map tiles around you; tile requests reveal the viewed area to OpenStreetMap.</p>
                 </div>
                 <div class="demo-copy">
                   <strong id="demoTitle">Personal Atlas Active</strong>
@@ -218,7 +218,7 @@
             </div>
             <div class="chronicle-note">
               <strong id="chronicleNoteTitle">Sample downtown route loaded.</strong>
-              <span id="chronicleNoteMeta">Hover the map to reveal a live route on top of real streets. Use your location to switch the demo to your own area.</span>
+              <span id="chronicleNoteMeta">Reveal an illustrative route over real map tiles. This is not recorded movement or navigation guidance.</span>
             </div>
           </div>
         </div>
@@ -375,11 +375,13 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script src="script.js?v=20260710a"></script>
+  <script src="script.js?v=20261008qa"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {
+          // Offline support is optional; the online preview remains usable.
+        });
       });
     }
   </script>

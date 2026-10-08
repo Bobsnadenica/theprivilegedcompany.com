@@ -176,7 +176,8 @@
     .log-error { color: var(--accent-block); }
     .log-info { color: #a5d6ff; }
 
-  </style>
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
 </head>
 <body>
 
@@ -327,6 +328,7 @@ app.get('/data', (req, res) => {
       if (type === 'error') div.className = 'log-error';
       if (type === 'info') div.className = 'log-info';
       srvLog.prepend(div);
+      while (srvLog.children.length > 60) srvLog.lastElementChild.remove();
     }
 
     // TRAFFIC SIMULATOR LOOP
@@ -335,6 +337,7 @@ app.get('/data', (req, res) => {
     }, 2500);
 
     function spawnPacket() {
+      if (document.hidden) return;
       // Random Packet Type
       const rand = Math.random();
       let type = 'user'; // Normal user

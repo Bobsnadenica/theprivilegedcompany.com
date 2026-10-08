@@ -91,8 +91,9 @@ function bytes(value) {
   return `${size.toFixed(size >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
 }
 
-function storageWorks(storage) {
+function storageWorks(name) {
   try {
+    const storage = window[name];
     const key = "__whoami_test__";
     storage.setItem(key, "1");
     storage.removeItem(key);
@@ -196,8 +197,8 @@ async function collectStorage() {
   }
   return {
     "Cookies enabled": navigator.cookieEnabled,
-    "Local storage": storageWorks(localStorage),
-    "Session storage": storageWorks(sessionStorage),
+    "Local storage": storageWorks("localStorage"),
+    "Session storage": storageWorks("sessionStorage"),
     "IndexedDB": "indexedDB" in window,
     "Cache API": "caches" in window,
     "Service workers": "serviceWorker" in navigator,
@@ -447,7 +448,7 @@ async function lookupPublicIp() {
     "Approximate city": data.city || "Unavailable",
     "Approximate region": data.region || "Unavailable",
     "Country": data.country_name || "Unavailable",
-    "Approximate coordinates": data.latitude && data.longitude ? `${data.latitude}, ${data.longitude}` : "Unavailable",
+    "Approximate coordinates": Number.isFinite(data.latitude) && Number.isFinite(data.longitude) ? `${data.latitude}, ${data.longitude}` : "Unavailable",
   };
 }
 
@@ -506,8 +507,14 @@ function discoverWebRtcAddresses() {
 async function runNetworkScan(trigger) {
   if (!state.report || state.busy) return;
   state.busy = true;
+  const report = state.report;
   setBusy(trigger, true, "Contacting services…");
   const attempts = await Promise.allSettled([lookupPublicIp(), testWebSocket(), discoverWebRtcAddresses()]);
+  if (state.report !== report) {
+    setBusy(trigger, false);
+    state.busy = false;
+    return;
+  }
   const network = {};
   const labels = ["IP lookup", "WebSocket test", "WebRTC discovery"];
   attempts.forEach((result, index) => {
@@ -529,10 +536,14 @@ async function runNetworkScan(trigger) {
 
 async function refreshPermissionSnapshot() {
   if (!state.report) return;
-  state.report.local.permissions = await collectPermissionSnapshot();
+  const report = state.report;
+  const permissions = await collectPermissionSnapshot();
+  if (state.report === report) report.local.permissions = permissions;
 }
 
 async function requestLocation(trigger) {
+  if (!state.report) return;
+  const report = state.report;
   if (!navigator.geolocation) { showToast("Geolocation is not supported here."); return; }
   setBusy(trigger, true, "Waiting for browser…");
   const result = await new Promise((resolve) => navigator.geolocation.getCurrentPosition(
@@ -548,6 +559,7 @@ async function requestLocation(trigger) {
     (error) => resolve({ status: error.code === 1 ? "denied" : "error", message: error.message || "Location unavailable" }),
     { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
   ));
+  if (state.report !== report) { setBusy(trigger, false); return; }
   state.report.grantedData.location = result;
   await refreshPermissionSnapshot();
   setBusy(trigger, false);
@@ -556,11 +568,14 @@ async function requestLocation(trigger) {
 }
 
 async function requestMedia(kind, trigger) {
+  if (!state.report) return;
+  const report = state.report;
   if (!navigator.mediaDevices?.getUserMedia) { showToast(`${kind} access is not supported here.`); return; }
   setBusy(trigger, true, "Waiting for browser…");
   let result;
+  let stream;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: kind === "camera", audio: kind === "microphone" });
+    stream = await navigator.mediaDevices.getUserMedia({ video: kind === "camera", audio: kind === "microphone" });
     const track = kind === "camera" ? stream.getVideoTracks()[0] : stream.getAudioTracks()[0];
     const settings = track?.getSettings?.() || {};
     result = {
@@ -568,10 +583,12 @@ async function requestMedia(kind, trigger) {
       label: track?.label || "Label hidden",
       settings,
     };
-    stream.getTracks().forEach((item) => item.stop());
   } catch (error) {
     result = { status: error?.name === "NotAllowedError" ? "denied" : "error", message: error?.message || "Access unavailable" };
+  } finally {
+    stream?.getTracks().forEach((item) => item.stop());
   }
+  if (state.report !== report) { setBusy(trigger, false); return; }
   state.report.grantedData[kind] = result;
   await refreshPermissionSnapshot();
   setBusy(trigger, false);
@@ -580,10 +597,13 @@ async function requestMedia(kind, trigger) {
 }
 
 async function requestNotifications(trigger) {
+  if (!state.report) return;
+  const report = state.report;
   if (!("Notification" in window) || !Notification.requestPermission) { showToast("Notifications are not supported here."); return; }
   setBusy(trigger, true, "Waiting for browser…");
   let status = "error";
   try { status = await Notification.requestPermission(); } catch { status = "error"; }
+  if (state.report !== report) { setBusy(trigger, false); return; }
   state.report.grantedData.notifications = { status };
   await refreshPermissionSnapshot();
   setBusy(trigger, false);
@@ -615,6 +635,7 @@ function downloadReport() {
 
 function clearReport() {
   state.report = null;
+  closeDialog(networkDialog);
   state.networkAttempted = false;
   state.networkContacts = 0;
   resultsContent.replaceChildren();
