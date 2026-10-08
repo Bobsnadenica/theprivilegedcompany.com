@@ -42,7 +42,7 @@ export class LightSculpture {
         this.ctx = ctx;
         this.stage = root.querySelector('.sculpture-stage');
         this.motion = matchMedia('(prefers-reduced-motion: reduce)');
-        this.compact = matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
+        this.compact = window.innerWidth < 760 || matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
         this.bands = this.compact ? 16 : 24;
         this.samples = this.compact ? 80 : 128;
         this.geometry = forms.map((_, form) => {
@@ -82,6 +82,8 @@ export class LightSculpture {
         this.energy = 1;
         this.pointer = { x: 0, y: 0 };
         this.viewPointer = { x: 0, y: 0 };
+        this.unravel = 0;
+        this.destination = document.getElementById('home-services-title');
         this.visible = false;
         this.frame = 0;
         this.lastPaint = null;
@@ -100,6 +102,8 @@ export class LightSculpture {
         this.motion.addEventListener('change', () => this.syncMotion());
         document.addEventListener('visibilitychange', () => this.syncMotion());
         document.addEventListener('themechange', () => { this.readTheme(); this.syncMotion(); });
+        // Native scrolling drives the handoff; it never starts another animation loop.
+        window.addEventListener('scroll', () => this.updateJourney(), { passive: true });
         this.resizeObserver = new ResizeObserver(() => this.resize());
         this.resizeObserver.observe(this.stage);
         this.intersectionObserver = new IntersectionObserver(entries => {
@@ -150,6 +154,31 @@ export class LightSculpture {
         return this.visible && !document.hidden && !this.motion.matches;
     }
 
+    updateJourney() {
+        const rect = this.stage.getBoundingClientRect();
+        const end = this.destination?.getBoundingClientRect();
+        const active = !this.motion.matches && !document.hidden && rect.width > 0 && end?.width > 0;
+        // Begin only after the sculpture has entered the viewport, including on phones.
+        const progress = active ? Math.max(0, Math.min(1,
+            (window.innerHeight * .68 - rect.bottom) / (Math.min(window.innerHeight, rect.height) * .82))) : 0;
+        this.unravel = progress * progress * (3 - 2 * progress);
+        this.root.dataset.journey = this.unravel.toFixed(3);
+        this.journeyBounds = active && this.unravel > 0 && end.bottom > 0 ? { rect, endY: end.top + end.height / 2 } : null;
+        this.publishJourney();
+    }
+
+    publishJourney() {
+        const bounds = this.journeyBounds;
+        const points = this.energy > .001 ? this.threadProjected : this.projected;
+        const end = (Math.floor(this.bands / 2) * (this.samples + 1) + this.samples) * 3;
+        document.dispatchEvent(new CustomEvent('sculpturejourney', {
+            detail: bounds ? {
+                x: bounds.rect.left + points[end], y: bounds.rect.top + points[end + 1],
+                endY: bounds.endY, progress: this.unravel
+            } : null
+        }));
+    }
+
     spark() {
         if (!this.canAnimate()) return;
         // Repeated taps never stack bursts or create another animation loop.
@@ -163,6 +192,7 @@ export class LightSculpture {
         cancelAnimationFrame(this.frame);
         this.frame = 0;
         this.lastPaint = null;
+        this.updateJourney();
         this.root.dataset.motion = this.motion.matches ? 'reduced' : 'idle';
         if (this.motion.matches) {
             this.vertices.set(this.geometry[this.form]);
@@ -233,6 +263,16 @@ export class LightSculpture {
             target[i] = this.width / 2 + (rx * cz - ry * sz) * scale * perspective;
             target[i + 1] = this.height / 2 + (ry * cz + rx * sz) * scale * perspective;
             target[i + 2] = depth;
+            if (this.unravel > 0) {
+                const band = Math.floor(i / stride), u = (i % stride) / (this.samples * 3);
+                const breath = Math.sin(u * Math.PI * 3 - this.phase * 2.5) * Math.sin(u * Math.PI) * .018;
+                const ribbonX = this.width * (.7 + Math.sin(u * TAU) * .13 + breath)
+                    + (band - (this.bands - 1) / 2) * this.width * .003 * (1 - u * .4 + Math.sin(u * Math.PI) * .3);
+                const ribbonY = this.height * (.22 + u * .7);
+                target[i] += (ribbonX - target[i]) * this.unravel;
+                target[i + 1] += (ribbonY - target[i + 1]) * this.unravel;
+                target[i + 2] *= 1 - this.unravel;
+            }
         };
         for (const layer of this.order) {
             layer.depth = 0;
@@ -256,7 +296,7 @@ export class LightSculpture {
             ctx.ellipse(this.width / 2, this.height / 2, orbitX, orbitY, orbitTilt,
                 front ? 0 : Math.PI, front ? Math.PI : TAU);
             ctx.lineWidth = front ? .8 : .55;
-            ctx.strokeStyle = `rgba(${this.accent}, ${(front ? .28 : .11) * (1 - this.energy * .6)})`;
+            ctx.strokeStyle = `rgba(${this.accent}, ${(front ? .28 : .11) * (1 - this.energy * .6) * (1 - this.unravel)})`;
             ctx.stroke();
         };
         orbit(false);
@@ -351,6 +391,7 @@ export class LightSculpture {
                 scale * .33, -.45 + this.phase * .1, this.phase, this.phase + TAU * .78);
             ctx.stroke();
         }
+        if (this.journeyBounds) this.publishJourney();
     }
 }
 

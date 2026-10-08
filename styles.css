@@ -1710,6 +1710,16 @@ body[data-route="contact"]::after { transform: translateX(-10%); }
     text-align: left;
 }
 .hero-content { width: 100%; align-items: flex-start; }
+/* Quiet pools of light follow the copy, leaving the open sky vivid. */
+.hero-content, .advert-text, .approach-steps, .home-section-heading { position: relative; isolation: isolate; }
+.hero-content::before, .advert-text::before, .approach-steps::before, .home-section-heading::before {
+    content: ''; position: absolute; inset: -2rem max(-3rem, calc(-.85 * var(--gap))); z-index: -1; pointer-events: none;
+    background: radial-gradient(ellipse at 45% 50%, rgba(var(--c-bg-rgb), .94) 20%, rgba(var(--c-bg-rgb), .72) 58%, transparent 78%);
+}
+.hero-content::before { inset: -3rem -4rem; }
+.approach-steps::before { background: radial-gradient(ellipse, rgba(var(--c-bg-rgb), .94) 32%, rgba(var(--c-bg-rgb), .72) 62%, transparent 82%); }
+.hero-action-primary { border: 1px solid var(--c-accent-strong); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24); }
+.hero-action-primary:hover, .hero-action-primary:focus-visible { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 0 24px rgba(var(--c-accent-rgb), .15); }
 .hero-eyebrow { margin-bottom: 1.65rem; font-size: .65rem; letter-spacing: .2em; }
 .hero-title-mask { overflow: visible; }
 .hero-content .display-huge { max-width: 10.5ch; font-size: clamp(4rem, 8vw, 8rem); line-height: .98; letter-spacing: -.045em; color: var(--c-fg); text-shadow: none; }
@@ -1748,7 +1758,7 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 .orbit-frame { opacity: .5; }
 .orbit-satellite { transform-origin: 260px 260px; animation: orbit-turn 48s linear infinite; }
 @keyframes orbit-turn { to { transform: rotate(360deg); } }
-.monolith-advert { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); text-align: left; padding-block: 6rem; gap: clamp(3rem, 7vw, 7rem); background: rgba(var(--c-bg-rgb), .6); }
+.monolith-advert { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); text-align: left; padding-block: 6rem; gap: clamp(3rem, 7vw, 7rem); background: transparent; border-top-color: var(--border-soft); }
 .monolith-advert h2 { color: var(--c-fg); font-size: clamp(2.5rem, 4.5vw, 4rem); }
 .mission-cta { justify-content: flex-start; margin-top: 2rem; }
 .approach-steps { list-style: none; align-self: center; }
@@ -1757,6 +1767,7 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 .approach-steps h3 { font-family: var(--f-display); font-size: 1.65rem; font-weight: 700; margin-bottom: .65rem; }
 .approach-steps p { font-size: .95rem; }
 .home-services, .selected-work { padding: clamp(3.5rem, 7vw, 6rem) var(--gap); border-top: 1px solid var(--border-soft); background: rgba(var(--c-bg-rgb), .7); }
+.home-services { background: linear-gradient(180deg, transparent, rgba(var(--c-bg-rgb), .85) 16rem); }
 .home-section-heading { max-width: 760px; margin-bottom: 2.5rem; }
 .home-section-heading .label { display: block; margin-bottom: 1rem; }
 .home-section-heading h2 { font: 700 clamp(2.2rem, 4.5vw, 4rem)/1.12 var(--f-display); text-wrap: balance; }
@@ -1852,6 +1863,7 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 }
 @media (max-width: 640px) {
     #main-hud { gap: .25rem; padding: .4rem .6rem; }
+    .hero-content::before, .advert-text::before, .approach-steps::before, .home-section-heading::before { inset: -2rem -1rem; }
     .hud-logo a { min-height: 2.75rem; }
     .hero-eyebrow { font-size: .6rem; letter-spacing: .12em; }
     .hero-content .display-huge { max-width: 9ch; }

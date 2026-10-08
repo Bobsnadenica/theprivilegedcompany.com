@@ -8,7 +8,7 @@ const renderer = source.slice(source.indexOf('class QuantumWeb'), source.indexOf
 function scene({ width = 1440, height = 1000, cores = 8, saveData = false, reduced = false, context = true } = {}) {
     const events = new Map(), frames = new Map();
     let frame = 0, paints = 0;
-    const ctx = Object.fromEntries(['setTransform', 'arc', 'ellipse', 'moveTo', 'lineTo', 'quadraticCurveTo', 'fillRect'].map(method => [method, (...args) => {
+    const ctx = Object.fromEntries(['setTransform', 'arc', 'ellipse', 'moveTo', 'lineTo', 'quadraticCurveTo', 'bezierCurveTo', 'fillRect'].map(method => [method, (...args) => {
         assert.ok(args.every(Number.isFinite), `${method}: all coordinates remain finite`);
     }]));
     Object.assign(ctx, { clearRect() { paints++; }, beginPath() {}, stroke() {}, fill() {} });
@@ -17,6 +17,7 @@ function scene({ width = 1440, height = 1000, cores = 8, saveData = false, reduc
         assert.ok(args.every(Number.isFinite));
         return { addColorStop(offset) { assert.ok(offset >= 0 && offset <= 1); } };
     };
+    ctx.createLinearGradient = ctx.createRadialGradient;
     const canvas = { dataset: {}, style: {}, getContext: () => context ? ctx : null };
     const doc = { hidden: false, documentElement: { dataset: {} }, getElementById: () => canvas,
         createElement: () => ({ getContext: () => ctx }),
@@ -161,4 +162,17 @@ assert.equal(connected.field.ripples.length, 1, 'Hidden pages do not queue extra
 connected.media.matches = true; connected.events.get('motion')();
 connected.events.get('sculpturechange')({ detail: { x: 500, y: 400 } });
 assert.equal(connected.field.ripples.length, 0, 'Reduced motion keeps the background composed and still');
-console.log('PASS: bright star layers, bounded rendering, refresh-independent drift, inward spirals, capture/recycling, bounded click pulse, control exclusion, responsive pointer, reduced motion, phone fallback and hidden-tab lifecycle.');
+
+const flowing = scene();
+flowing.events.get('sculpturejourney')({ detail: { x: 1100, y: 300, endY: 1200, progress: .8 } });
+for (let i = 1; i < 90; i++) flowing.advance(i * 1000 / 60);
+assert.equal(flowing.frames.size, 1, 'The scroll trail shares the existing frame loop');
+assert.equal(flowing.field.particles.length, 1100, 'Flowing threads add no particles');
+for (const detail of [null, {}, { x: 500, y: 300, endY: NaN, progress: .5 }, { x: 500, y: 300, endY: 100, progress: .5 }, { x: 500, y: 0, endY: 1000, progress: 2 }]) {
+    flowing.events.get('sculpturejourney')({ detail });
+    assert.equal(flowing.field.journey, null, 'Absent or malformed paths cannot leave a stale trail');
+}
+flowing.media.matches = true; flowing.events.get('motion')();
+flowing.events.get('sculpturejourney')({ detail: { x: 1100, y: 300, endY: 1200, progress: .8 } });
+assert.equal(flowing.frames.size, 0, 'A trail event cannot bypass reduced motion');
+console.log('PASS: star layers, bounded rendering and lensing, refresh-independent drift, inward spirals, capture/recycling, bounded click pulse, shared scroll trails, control exclusion, reduced motion, phone fallback and hidden-tab lifecycle.');

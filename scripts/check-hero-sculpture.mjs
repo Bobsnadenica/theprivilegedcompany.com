@@ -13,7 +13,7 @@ function element() {
         classList: { values: new Set(), add(name) { this.values.add(name); }, contains(name) { return this.values.has(name); } },
         addEventListener(name, fn) { this.events[name] = fn; },
         setAttribute(name, value) { this.attributes[name] = value; },
-        getBoundingClientRect: () => ({ width: 520, height: 520, left: 0, top: 0 }),
+        getBoundingClientRect: () => ({ width: 520, height: 520, left: 0, top: 0, bottom: 520 }),
     };
 }
 const selectors = ['.sculpture-stage'];
@@ -23,13 +23,16 @@ const context2d = Object.fromEntries(['setTransform', 'moveTo', 'lineTo', 'arc',
 Object.assign(context2d, { clearRect() { paints++; }, beginPath() {}, closePath() {}, stroke() {}, fill() {} });
 const canvas = { getContext: () => context2d };
 const root = Object.assign(element(), { querySelector: selector => selector === 'canvas' ? canvas : nodes[selector] });
-const document = Object.assign(element(), { hidden: false, documentElement: element(), getElementById: () => root });
+const destination = { getBoundingClientRect: () => ({ width: 700, height: 90, top: 1600, bottom: 1690 }) };
+const document = Object.assign(element(), { hidden: false, documentElement: element(), getElementById: id => id === 'home-services-title' ? destination : root });
 const lightWaves = [];
-document.dispatchEvent = event => lightWaves.push(event);
+const journeys = [];
+document.dispatchEvent = event => (event.type === 'sculpturechange' ? lightWaves : journeys).push(event);
 const motion = Object.assign(element(), { matches: false });
 let intersection;
 const browser = {
     document, navigator: { hardwareConcurrency: 8 }, devicePixelRatio: 3,
+    innerWidth: 1440, innerHeight: 720, addEventListener: (name, callback) => { browser[name] = callback; },
     CustomEvent: class { constructor(type, { detail }) { this.type = type; this.detail = detail; } },
     matchMedia: query => query.includes('reduced-motion') ? motion : { matches: false },
     getComputedStyle: () => ({ getPropertyValue: () => '200, 160, 80' }),
@@ -103,10 +106,32 @@ for (const invalid of [-1, 3, 1.5, '1', NaN, null, 2]) sculpture.setForm(invalid
 assert.equal(root.dataset.form, '2', 'Invalid or unchanged choices do not reset the active form');
 assert.equal(frames.size, 1);
 
+// A phone must reveal the object before unwinding it; scrolling remains reversible.
+const originalBounds = nodes['.sculpture-stage'].getBoundingClientRect;
+nodes['.sculpture-stage'].getBoundingClientRect = () => ({ width: 520, height: 520, left: 0, top: -200, bottom: 320 });
+browser.scroll();
+assert.ok(sculpture.unravel > 0 && sculpture.unravel < 1);
+assert.equal(journeys.at(-1).detail.progress, sculpture.unravel);
+advance(180);
+assert.ok(Array.from(sculpture.projected).every(Number.isFinite), 'The unfolding geometry stays finite');
+assert.equal(frames.size, 1, 'Scrolling does not queue a second animation loop');
+nodes['.sculpture-stage'].getBoundingClientRect = originalBounds;
+browser.scroll();
+assert.equal(sculpture.unravel, 0, 'Scrolling back restores the full sculpture');
+assert.equal(journeys.at(-1).detail, null);
+nodes['.sculpture-stage'].getBoundingClientRect = () => ({ width: 360, height: 300, left: 16, top: 700, bottom: 1000 });
+browser.scroll();
+assert.equal(sculpture.unravel, 0, 'An unreached phone sculpture does not unfold offscreen');
+nodes['.sculpture-stage'].getBoundingClientRect = () => ({ width: 0, height: 0, left: 0, top: 0, bottom: 0 });
+browser.scroll();
+assert.equal(journeys.at(-1).detail, null, 'Hiding the homepage clears the trail on other routes');
+nodes['.sculpture-stage'].getBoundingClientRect = originalBounds;
+
 motion.matches = true;
 motion.events.change();
 assert.equal(frames.size, 0);
 assert.equal(root.dataset.motion, 'reduced');
+assert.equal(journeys.at(-1).detail, null, 'Reduced motion clears the connecting trail');
 assert.equal(sculpture.viewPointer.x, 0);
 assert.equal(sculpture.viewPointer.y, 0);
 const waveCount = lightWaves.length;
@@ -122,6 +147,7 @@ assert.equal(frames.size, 1);
 document.hidden = true;
 document.events.visibilitychange();
 assert.equal(frames.size, 0, 'Hidden tabs stop work');
+assert.equal(journeys.at(-1).detail, null);
 document.hidden = false;
 document.events.visibilitychange();
 assert.equal(frames.size, 1);
@@ -177,4 +203,4 @@ for (const form of [1, 2, 0]) {
 assert.equal(frames.size, 1, 'Compact rendering preserves one animation loop');
 intersection([{ isIntersecting: false }]);
 assert.equal(frames.size, 0);
-console.log('PASS: sculpture geometry, bounded ribbon lighting, smooth object interaction, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, DPI cap and fallback');
+console.log('PASS: sculpture geometry, bounded ribbon lighting, reversible scroll unfolding, phone handoff, route cleanup, interpolation, arrival, particle burst, lifecycle, reduced motion, DPI cap and fallback');

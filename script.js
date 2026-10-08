@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261008f';
+import { languageMeta, translations } from './translations.js?v=20261008h';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20261008f';
+const assetVersion = '20261008h';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -172,9 +172,9 @@ const getSelectedServiceName = () => {
 };
 
 const consultationTopics = {
-    learn: { label: 'Learn AI', form: 2, description: 'Bring your curiosity. Learn to ask better questions, check AI answers, and use it in everyday work.' },
-    build: { label: 'Build something', form: 0, description: 'Have an idea? Explore the right tools and plan your first working version together.' },
-    solve: { label: 'Solve a problem', form: 1, description: 'Bring the problem that has you stuck. Work through it together and find a clear next step.' }
+    learn: { label: 'Learn AI', form: 2, description: 'Bring a task you repeat. Explore how AI could help, and learn to check its answers.' },
+    build: { label: 'Build something', form: 0, description: 'Bring an idea for a website, app or tool. Map out a practical first version together.' },
+    solve: { label: 'Solve a problem', form: 1, description: 'Bring a bug, a slow system or a technical decision. Work through the next step together.' }
 };
 const getConsultationTopic = search => {
     const params = new URLSearchParams(search);
@@ -1446,6 +1446,11 @@ class QuantumWeb {
             if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > this.width || y < 0 || y > this.height) return;
             this.addRipple(x, y);
         });
+        document.addEventListener('sculpturejourney', event => {
+            const scene = event.detail;
+            this.journey = scene && ['x', 'y', 'endY', 'progress'].every(key => Number.isFinite(scene[key]))
+                && scene.progress > 0 && scene.progress <= 1 && scene.endY > scene.y ? scene : null;
+        });
         const releasePointer = () => { this.mouse.x = this.mouse.y = null; this.gravityEnergy = 0; };
         window.addEventListener('pointerleave', releasePointer, { passive: true });
         window.addEventListener('blur', releasePointer);
@@ -1579,6 +1584,65 @@ class QuantumWeb {
         ctx.stroke();
     }
 
+    drawJourney() {
+        const scene = this.journey;
+        if (!scene || this.isReducedMotion || scene.endY < 0 || scene.y > this.height) return;
+        const ctx = this.ctx, count = this.isCompact || this.isEconomy ? 3 : 6;
+        const span = scene.endY - scene.y;
+        const sway = Math.sin(this.time * .28) * (this.isCompact ? 5 : 12);
+        ctx.lineCap = 'round';
+        for (let band = 0; band < count; band++) {
+            const strength = scene.progress * (band % 2 ? .58 : .8);
+            const offset = (band - (count - 1) / 2) * (this.isCompact ? 3 : 4);
+            const x0 = scene.x + offset, y0 = scene.y;
+            const x1 = this.width * .99 + offset * 1.6 + sway, y1 = y0 + span * .32;
+            const x2 = this.width * .82 + offset * 2.4 - sway, y2 = scene.endY - span * .28;
+            const x3 = this.width - (this.isCompact ? 12 : 36) + offset, y3 = scene.endY;
+            const fade = ctx.createLinearGradient(0, y0, 0, y3);
+            fade.addColorStop(0, `rgba(${this.accent}, ${strength * .5})`);
+            fade.addColorStop(.2, `rgba(${this.accent}, ${strength})`);
+            fade.addColorStop(.85, `rgba(${this.starlight}, ${strength * .7})`);
+            fade.addColorStop(1, `rgba(${this.accent}, 0)`);
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
+            ctx.strokeStyle = fade;
+            ctx.globalAlpha = .1;
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.lineWidth = band % 2 ? .7 : 1.1;
+            ctx.stroke();
+            // One light per thread; reuse the existing cached star glow.
+            const t = (this.time * .055 + band / count) % 1, s = 1 - t;
+            const x = s ** 3 * x0 + 3 * s * s * t * x1 + 3 * s * t * t * x2 + t ** 3 * x3;
+            const y = s ** 3 * y0 + 3 * s * s * t * y1 + 3 * s * t * t * y2 + t ** 3 * y3;
+            if (y < -20 || y > this.height + 20) continue;
+            // Short tapered highlights give the light direction without growing the particle field.
+            let previousX = x, previousY = y;
+            const tails = this.isCompact || this.isEconomy ? 2 : 4;
+            for (let tail = 1; tail <= tails; tail++) {
+                const u = Math.max(0, t - tail * .009), v = 1 - u;
+                const tx = v ** 3 * x0 + 3 * v * v * u * x1 + 3 * v * u * u * x2 + u ** 3 * x3;
+                const ty = v ** 3 * y0 + 3 * v * v * u * y1 + 3 * v * u * u * y2 + u ** 3 * y3;
+                ctx.beginPath();
+                ctx.moveTo(previousX, previousY);
+                ctx.lineTo(tx, ty);
+                ctx.lineWidth = 1.7 - tail * .2;
+                ctx.strokeStyle = `rgba(${this.starlight}, ${strength * Math.sin(t * Math.PI) * (1 - tail / (tails + 1))})`;
+                ctx.stroke();
+                previousX = tx; previousY = ty;
+            }
+            ctx.globalAlpha = strength * Math.sin(t * Math.PI);
+            if (this.starGlow) ctx.drawImage(this.starGlow, x - 16, y - 16, 32, 32);
+            ctx.fillStyle = `rgb(${this.starlight})`;
+            ctx.beginPath();
+            ctx.arc(x, y, 1.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
     animate(timestamp = 0) {
         if (!this.isVisible) return;
         const elapsed = this.lastFrame === null ? 0 : timestamp - this.lastFrame;
@@ -1592,6 +1656,7 @@ class QuantumWeb {
         this.gravityEnergy *= Math.pow(.95, step);
         if (this.gravityEnergy < .001) this.gravityEnergy = 0;
         this.ctx.clearRect(0, 0, this.width, this.height);
+        this.drawJourney();
 
         const interactive = !this.isCompact && !this.isReducedMotion && this.mouse.x !== null;
         const gravityState = interactive ? 'active' : 'idle';
@@ -1671,6 +1736,25 @@ class QuantumWeb {
             for (const ripple of this.ripples) {
                 const distance = Math.hypot(x - ripple.x, y - ripple.y);
                 light += Math.max(0, 1 - Math.abs(distance - ripple.radius) / 75) * ripple.alpha;
+            }
+            if (interactive) {
+                // Apparent lensing changes only projection, never the underlying orbit.
+                const dx = x - this.mouse.x, dy = y - this.mouse.y, distance = Math.hypot(dx, dy);
+                if (distance > 18 && distance < 190) {
+                    const lens = (1 - distance / 190) ** 2 * (1 - star.depth * .45);
+                    const radius = distance + lens * 38;
+                    x = this.mouse.x + dx / distance * radius;
+                    y = this.mouse.y + dy / distance * radius;
+                    if (!this.isEconomy && lens > .08) {
+                        const angle = Math.atan2(dy, dx);
+                        this.ctx.beginPath();
+                        this.ctx.arc(this.mouse.x, this.mouse.y, radius, angle - lens * .13, angle + lens * .13);
+                        this.ctx.strokeStyle = `rgba(${this.starlight}, ${lens * star.life * .7})`;
+                        this.ctx.lineWidth = .8;
+                        this.ctx.stroke();
+                    }
+                    light += lens * .25;
+                }
             }
             const alpha = Math.min(1, (.62 + star.depth * .35) * shimmer + light) * star.life;
             const color = star.layer === 0 ? this.accent : this.starlight;
@@ -1767,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new QuantumWeb('bg-canvas');
     const connectSculpture = initHomeIntent();
     // Decorative enhancement is isolated from navigation and the enquiry form.
-    import('./hero-sculpture.js?v=20261008f')
+    import('./hero-sculpture.js?v=20261008h')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();
