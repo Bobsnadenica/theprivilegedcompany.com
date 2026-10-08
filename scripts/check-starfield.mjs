@@ -12,12 +12,14 @@ function scene({ width = 1440, height = 1000, cores = 8, saveData = false, reduc
         assert.ok(args.every(Number.isFinite), `${method}: all coordinates remain finite`);
     }]));
     Object.assign(ctx, { clearRect() { paints++; }, beginPath() {}, stroke() {}, fill() {} });
+    ctx.drawImage = (_, ...coordinates) => assert.ok(coordinates.every(Number.isFinite));
     ctx.createRadialGradient = (...args) => {
         assert.ok(args.every(Number.isFinite));
         return { addColorStop(offset) { assert.ok(offset >= 0 && offset <= 1); } };
     };
     const canvas = { dataset: {}, style: {}, getContext: () => context ? ctx : null };
     const doc = { hidden: false, documentElement: { dataset: {} }, getElementById: () => canvas,
+        createElement: () => ({ getContext: () => ctx }),
         addEventListener: (name, fn) => events.set(name, fn) };
     const media = { matches: reduced, addEventListener: (_, fn) => events.set('motion', fn) };
     const sandbox = {
@@ -43,6 +45,9 @@ assert.equal(desktop.field.particles.length, 1100);
 assert.equal(desktop.canvas.width, 2160);
 assert.equal(new Set(desktop.field.particles.map(star => star.layer)).size, 3);
 assert.equal(desktop.frames.size, 1);
+const cachedGlow = desktop.field.starGlow;
+assert.equal(cachedGlow.width, 64);
+assert.equal(cachedGlow.height, 64);
 for (const options of [{ width: 390, height: 844 }, { cores: 4 }, { saveData: true }]) {
     const sample = scene(options);
     assert.ok(sample.field.particles.length <= (options.width ? 240 : 480));
@@ -64,6 +69,7 @@ for (const hz of [30, 120]) assert.ok(travel(hz).every((value, axis) => Math.abs
 
 desktop.events.get('pointermove')({ pointerType: 'mouse', clientX: 1300, clientY: 900 });
 for (let i = 1; i <= 90; i++) desktop.advance(i * 1000 / 60);
+assert.equal(desktop.field.starGlow, cachedGlow, 'Star glow is reused between frames');
 assert.ok(desktop.field.offset.x > 0 && desktop.field.offset.x < 22);
 assert.ok(desktop.field.offset.y > 0 && desktop.field.offset.y < 17);
 for (let i = 0; i < 20; i++) desktop.events.get('pointerdown')({ clientX: 720, clientY: 500 });
@@ -141,4 +147,18 @@ assert.equal(pulse.field.gravityEnergy, 0, 'The gravity pulse returns to the cal
 assert.equal(pulse.field.ripples.length, 0);
 assert.equal(pulse.field.particles.length, 1);
 assert.equal(pulse.frames.size, 1);
+const connected = scene();
+connected.events.get('sculpturechange')({ detail: { x: 1000, y: 400 } });
+assert.equal(connected.field.ripples.length, 1, 'A new sculpture form sends one light wave through the background');
+assert.equal(connected.field.gravityEnergy, 0, 'Shape changes do not move or activate the cursor');
+for (const detail of [{ x: NaN, y: 400 }, { x: 100, y: -1 }, { x: 1500, y: 400 }, {}]) {
+    connected.events.get('sculpturechange')({ detail });
+}
+assert.equal(connected.field.ripples.length, 1, 'Invalid or offscreen origins are ignored');
+connected.doc.hidden = true; connected.events.get('visibilitychange')();
+connected.events.get('sculpturechange')({ detail: { x: 500, y: 400 } });
+assert.equal(connected.field.ripples.length, 1, 'Hidden pages do not queue extra waves');
+connected.media.matches = true; connected.events.get('motion')();
+connected.events.get('sculpturechange')({ detail: { x: 500, y: 400 } });
+assert.equal(connected.field.ripples.length, 0, 'Reduced motion keeps the background composed and still');
 console.log('PASS: bright star layers, bounded rendering, refresh-independent drift, inward spirals, capture/recycling, bounded click pulse, control exclusion, responsive pointer, reduced motion, phone fallback and hidden-tab lifecycle.');

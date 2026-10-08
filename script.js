@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261008e';
+import { languageMeta, translations } from './translations.js?v=20261008f';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20261008e';
+const assetVersion = '20261008f';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -1438,12 +1438,22 @@ class QuantumWeb {
             this.mouse.x = event.clientX;
             this.mouse.y = event.clientY;
             this.gravityEnergy = 1;
-            this.ripples.push({ x: event.clientX, y: event.clientY, radius: 0, alpha: .65 });
-            if (this.ripples.length > 3) this.ripples.shift();
+            this.addRipple(event.clientX, event.clientY);
         }, { passive: true });
+        document.addEventListener('sculpturechange', event => {
+            if (this.isReducedMotion || !this.isVisible) return;
+            const { x, y } = event.detail || {};
+            if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > this.width || y < 0 || y > this.height) return;
+            this.addRipple(x, y);
+        });
         const releasePointer = () => { this.mouse.x = this.mouse.y = null; this.gravityEnergy = 0; };
         window.addEventListener('pointerleave', releasePointer, { passive: true });
         window.addEventListener('blur', releasePointer);
+    }
+
+    addRipple(x, y) {
+        this.ripples.push({ x, y, radius: 0, alpha: .65 });
+        if (this.ripples.length > 3) this.ripples.shift();
     }
 
     readTheme() {
@@ -1451,6 +1461,18 @@ class QuantumWeb {
         this.accent = style.getPropertyValue('--c-accent-rgb').trim() || '216, 174, 105';
         this.starlight = style.getPropertyValue('--c-starlight-rgb').trim() || '246, 230, 201';
         this.isLight = document.documentElement.dataset.theme === 'light';
+        // Reuse a tiny soft glow instead of painting hard-edged circles behind every star.
+        this.starGlow = document.createElement('canvas');
+        this.starGlow.width = this.starGlow.height = 64;
+        const glowContext = this.starGlow.getContext('2d');
+        if (!glowContext) { this.starGlow = null; return; }
+        const glow = glowContext.createRadialGradient(32, 32, 0, 32, 32, 32);
+        glow.addColorStop(0, `rgba(${this.starlight}, .45)`);
+        glow.addColorStop(.14, `rgba(${this.starlight}, .22)`);
+        glow.addColorStop(.42, `rgba(${this.accent}, .07)`);
+        glow.addColorStop(1, `rgba(${this.accent}, 0)`);
+        glowContext.fillStyle = glow;
+        glowContext.fillRect(0, 0, 64, 64);
     }
 
     init() {
@@ -1652,15 +1674,11 @@ class QuantumWeb {
             }
             const alpha = Math.min(1, (.62 + star.depth * .35) * shimmer + light) * star.life;
             const color = star.layer === 0 ? this.accent : this.starlight;
-            if (star.layer === 2) {
-                this.ctx.fillStyle = `rgba(${color}, ${alpha * (this.isLight ? .06 : .09)})`;
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, star.size * 6, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.fillStyle = `rgba(${color}, ${alpha * .12})`;
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, star.size * 2.4, 0, Math.PI * 2);
-                this.ctx.fill();
+            if (star.layer === 2 && this.starGlow) {
+                const radius = star.size * 8;
+                this.ctx.globalAlpha = alpha;
+                this.ctx.drawImage(this.starGlow, x - radius, y - radius, radius * 2, radius * 2);
+                this.ctx.globalAlpha = 1;
             }
             this.ctx.fillStyle = `rgba(${color}, ${alpha})`;
             this.ctx.beginPath();
@@ -1749,7 +1767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new QuantumWeb('bg-canvas');
     const connectSculpture = initHomeIntent();
     // Decorative enhancement is isolated from navigation and the enquiry form.
-    import('./hero-sculpture.js?v=20261008e')
+    import('./hero-sculpture.js?v=20261008f')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();

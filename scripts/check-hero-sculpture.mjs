@@ -20,14 +20,17 @@ const selectors = ['.sculpture-stage'];
 const nodes = Object.fromEntries(selectors.map(selector => [selector, element()]));
 const context2d = Object.fromEntries(['setTransform', 'moveTo', 'lineTo', 'arc', 'ellipse'].map(name =>
     [name, (...values) => assert.ok(values.every(Number.isFinite), `${name} receives finite coordinates`)]));
-Object.assign(context2d, { clearRect() { paints++; }, beginPath() {}, stroke() {}, fill() {} });
+Object.assign(context2d, { clearRect() { paints++; }, beginPath() {}, closePath() {}, stroke() {}, fill() {} });
 const canvas = { getContext: () => context2d };
 const root = Object.assign(element(), { querySelector: selector => selector === 'canvas' ? canvas : nodes[selector] });
 const document = Object.assign(element(), { hidden: false, documentElement: element(), getElementById: () => root });
+const lightWaves = [];
+document.dispatchEvent = event => lightWaves.push(event);
 const motion = Object.assign(element(), { matches: false });
 let intersection;
 const browser = {
     document, navigator: { hardwareConcurrency: 8 }, devicePixelRatio: 3,
+    CustomEvent: class { constructor(type, { detail }) { this.type = type; this.detail = detail; } },
     matchMedia: query => query.includes('reduced-motion') ? motion : { matches: false },
     getComputedStyle: () => ({ getPropertyValue: () => '200, 160, 80' }),
     requestAnimationFrame: callback => { frames.set(++frameId, callback); return frameId; },
@@ -65,19 +68,30 @@ const advance = timestamp => {
 };
 assert.equal(frames.size, 0, 'An unobserved sculpture does no animation work');
 assert.equal(canvas.width, 780, 'High-DPI rendering is capped at 1.5x');
+assert.equal(sculpture.facets.length, 768, 'The ribbon surface has a fixed rendering budget');
+assert.ok(sculpture.facets.every(face => ['a', 'b', 'c', 'd'].every(key => face[key] >= 0 && face[key] + 2 < sculpture.vertices.length)));
 assert.equal(initHeroSculpture(), undefined, 'Repeated initialization does not duplicate listeners or loops');
 intersection([{ isIntersecting: true }]);
 assert.equal(frames.size, 1);
 for (let i = 0; i < 5; i++) sculpture.syncMotion();
 assert.equal(frames.size, 1, 'Lifecycle changes keep exactly one frame queued');
+nodes['.sculpture-stage'].events.pointermove({ pointerType: 'mouse', clientX: 900, clientY: -10 });
+assert.equal(sculpture.pointer.x, 1);
+assert.equal(sculpture.pointer.y, -1);
 advance(0);
 const before = paints;
 advance(16);
 assert.equal(paints, before, 'Slow rotation avoids unnecessary 60Hz paints');
 advance(34);
 assert.equal(paints, before + 1);
+assert.ok(sculpture.viewPointer.x > 0 && sculpture.viewPointer.x < 1, 'The object eases toward the pointer without jumping');
+nodes['.sculpture-stage'].events.pointerleave();
 
 sculpture.setForm(1);
+assert.equal(lightWaves.length, 1);
+assert.equal(lightWaves[0].type, 'sculpturechange');
+assert.equal(lightWaves[0].detail.x, 260);
+assert.equal(lightWaves[0].detail.y, 260);
 advance(50);
 advance(114);
 assert.ok(sculpture.morph > 0 && sculpture.morph < 1, 'Reshape interpolates instead of jumping');
@@ -93,9 +107,14 @@ motion.matches = true;
 motion.events.change();
 assert.equal(frames.size, 0);
 assert.equal(root.dataset.motion, 'reduced');
+assert.equal(sculpture.viewPointer.x, 0);
+assert.equal(sculpture.viewPointer.y, 0);
+const waveCount = lightWaves.length;
 sculpture.setForm(1);
+assert.equal(lightWaves.length, waveCount, 'Reduced motion does not send an animated background wave');
 assert.equal(frames.size, 0, 'Reduced-motion users can still choose every form without animation');
 assert.deepEqual(Array.from(sculpture.vertices), Array.from(sculpture.geometry[1]));
+assert.ok(sculpture.facets.every(face => Number.isFinite(face.depth) && face.light >= 0 && face.light <= 1), 'Surface lighting stays finite on the selected form');
 motion.matches = false;
 motion.events.change();
 assert.equal(frames.size, 1);
@@ -127,6 +146,8 @@ assert.equal(sculpture.sparkAge, pulseAge, 'Repeated taps do not restart or stac
 assert.equal(frames.size, 1);
 for (let time = 4664; time <= 6900; time += 64) advance(time);
 assert.ok(sculpture.energy < .001, 'The burst reforms automatically');
+assert.equal(sculpture.facets.length, 768);
+assert.ok(sculpture.facets.every(face => Number.isFinite(face.depth) && Number.isFinite(face.light)));
 nodes['.sculpture-stage'].events.click();
 motion.matches = true;
 motion.events.change();
@@ -138,4 +159,22 @@ assert.equal(sculpture.energy, 0, 'No animated burst bypasses reduced motion');
 root.classList.values.clear();
 canvas.getContext = () => null;
 assert.equal(initHeroSculpture(), undefined, 'Unavailable Canvas leaves the static fallback intact');
-console.log('PASS: sculpture geometry, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, DPI cap and fallback');
+canvas.getContext = () => context2d;
+browser.navigator.hardwareConcurrency = 4;
+motion.matches = false;
+const compact = initHeroSculpture();
+assert.equal(compact.facets.length, 160, 'Modest hardware uses a smaller ribbon surface');
+assert.equal(canvas.width, 650, 'Compact rendering stays at 1.25x resolution');
+intersection([{ isIntersecting: true }]);
+for (const form of [1, 2, 0]) {
+    compact.setForm(form);
+    motion.matches = true;
+    motion.events.change();
+    assert.ok(compact.facets.every(face => Number.isFinite(face.depth) && face.light >= 0 && face.light <= 1));
+    motion.matches = false;
+    motion.events.change();
+}
+assert.equal(frames.size, 1, 'Compact rendering preserves one animation loop');
+intersection([{ isIntersecting: false }]);
+assert.equal(frames.size, 0);
+console.log('PASS: sculpture geometry, bounded ribbon lighting, smooth object interaction, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, DPI cap and fallback');

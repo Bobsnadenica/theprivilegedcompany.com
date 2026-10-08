@@ -64,6 +64,16 @@ export class LightSculpture {
             this.cloud.set(scatterPoint(i, this.cloud.length / 3), i * 3);
         }
         this.order = Array.from({ length: this.bands }, (_, band) => ({ band, depth: 0 }));
+        // Alternating silk-thin ribbons share the existing geometry and leave open space between them.
+        this.facets = [];
+        const stride = (this.samples + 1) * 3;
+        const detail = this.compact ? 4 : 2;
+        for (let band = 0; band < this.bands - 1; band += 2) {
+            for (let step = 0; step < this.samples; step += detail) {
+                const a = band * stride + step * 3, d = a + stride;
+                this.facets.push({ a, b: a + detail * 3, c: d + detail * 3, d, depth: 0, light: 0 });
+            }
+        }
         this.form = 0;
         this.morph = 1;
         this.phase = .4;
@@ -71,6 +81,7 @@ export class LightSculpture {
         this.sparkAge = sparkDuration;
         this.energy = 1;
         this.pointer = { x: 0, y: 0 };
+        this.viewPointer = { x: 0, y: 0 };
         this.visible = false;
         this.frame = 0;
         this.lastPaint = null;
@@ -82,8 +93,8 @@ export class LightSculpture {
         this.stage.addEventListener('pointermove', event => {
             if (event.pointerType === 'touch' || this.motion.matches) return;
             const rect = this.stage.getBoundingClientRect();
-            this.pointer.x = (event.clientX - rect.left) / rect.width * 2 - 1;
-            this.pointer.y = (event.clientY - rect.top) / rect.height * 2 - 1;
+            this.pointer.x = Math.max(-1, Math.min(1, (event.clientX - rect.left) / rect.width * 2 - 1));
+            this.pointer.y = Math.max(-1, Math.min(1, (event.clientY - rect.top) / rect.height * 2 - 1));
         }, { passive: true });
         this.stage.addEventListener('pointerleave', () => { this.pointer.x = this.pointer.y = 0; });
         this.motion.addEventListener('change', () => this.syncMotion());
@@ -103,6 +114,7 @@ export class LightSculpture {
         const style = getComputedStyle(document.documentElement);
         this.accent = style.getPropertyValue('--c-accent-rgb').trim();
         this.highlight = style.getPropertyValue('--c-accent-strong-rgb').trim();
+        this.starlight = style.getPropertyValue('--c-starlight-rgb').trim();
         this.light = document.documentElement.dataset.theme === 'light';
     }
 
@@ -126,6 +138,12 @@ export class LightSculpture {
         this.morph = 0;
         this.root.dataset.form = String(this.form);
         this.syncMotion();
+        if (this.canAnimate()) {
+            const rect = this.stage.getBoundingClientRect();
+            document.dispatchEvent(new CustomEvent('sculpturechange', {
+                detail: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+            }));
+        }
     }
 
     canAnimate() {
@@ -153,6 +171,7 @@ export class LightSculpture {
             this.sparkAge = sparkDuration;
             this.root.dataset.effect = 'rest';
             this.pointer.x = this.pointer.y = 0;
+            this.viewPointer.x = this.viewPointer.y = 0;
         }
         if (!this.visible || document.hidden || !this.width) return;
         this.render();
@@ -170,6 +189,9 @@ export class LightSculpture {
         if (this.lastPaint === null || elapsed >= 32) {
             const delta = Math.min(elapsed, 64);
             this.lastPaint = timestamp;
+            const follow = 1 - Math.exp(-delta / 160);
+            this.viewPointer.x += (this.pointer.x - this.viewPointer.x) * follow;
+            this.viewPointer.y += (this.pointer.y - this.viewPointer.y) * follow;
             this.phase += delta * .00012;
             this.arrival = Math.max(0, this.arrival - delta / 2200);
             this.sparkAge = Math.min(sparkDuration, this.sparkAge + delta);
@@ -194,8 +216,8 @@ export class LightSculpture {
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.width, this.height);
         const scale = Math.min(this.width, this.height) * .43;
-        const ax = -.36 + this.pointer.y * .22;
-        const ay = this.phase + this.pointer.x * .28;
+        const ax = -.36 + this.viewPointer.y * .22;
+        const ay = this.phase + this.viewPointer.x * .28;
         const az = -.18;
         const sx = Math.sin(ax), cx = Math.cos(ax), sy = Math.sin(ay), cy = Math.cos(ay);
         const sz = Math.sin(az), cz = Math.cos(az);
@@ -227,6 +249,46 @@ export class LightSculpture {
         this.order.sort((a, b) => b.depth - a.depth);
         ctx.lineJoin = 'round';
         const threadOpacity = Math.pow(1 - this.energy, 8);
+        const orbitTilt = -.42 + Math.sin(this.phase * .4) * .12;
+        const orbitX = scale * 1.12, orbitY = scale * .42;
+        const orbit = front => {
+            ctx.beginPath();
+            ctx.ellipse(this.width / 2, this.height / 2, orbitX, orbitY, orbitTilt,
+                front ? 0 : Math.PI, front ? Math.PI : TAU);
+            ctx.lineWidth = front ? .8 : .55;
+            ctx.strokeStyle = `rgba(${this.accent}, ${(front ? .28 : .11) * (1 - this.energy * .6)})`;
+            ctx.stroke();
+        };
+        orbit(false);
+        if (threadOpacity > .01) {
+            // Light follows the surface normal, so the material changes naturally as it turns.
+            for (const face of this.facets) {
+                const { a, b, c, d } = face, v = this.vertices;
+                const ux = v[b] - v[a], uy = v[b + 1] - v[a + 1], uz = v[b + 2] - v[a + 2];
+                const vx = v[d] - v[a], vy = v[d + 1] - v[a + 1], vz = v[d + 2] - v[a + 2];
+                const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+                const length = Math.hypot(nx, ny, nz) || 1;
+                const rx = nx * cy + nz * sy, rz = nz * cy - nx * sy;
+                const ry = ny * cx - rz * sx, depth = ny * sx + rz * cx;
+                const facing = Math.abs(depth / length);
+                const lit = Math.abs((-.38 * (rx * cz - ry * sz) - .62 * (ry * cz + rx * sz) - .68 * depth) / length);
+                face.light = Math.min(1, .12 + Math.pow(lit, 5) * .7 + Math.pow(1 - facing, 2) * .18);
+                face.depth = (threads[a + 2] + threads[b + 2] + threads[c + 2] + threads[d + 2]) / 4;
+            }
+            this.facets.sort((a, b) => b.depth - a.depth);
+            for (const face of this.facets) {
+                const { a, b, c, d } = face;
+                const near = Math.max(.25, Math.min(1, .6 - face.depth * .4));
+                ctx.beginPath();
+                ctx.moveTo(threads[a], threads[a + 1]);
+                ctx.lineTo(threads[b], threads[b + 1]);
+                ctx.lineTo(threads[c], threads[c + 1]);
+                ctx.lineTo(threads[d], threads[d + 1]);
+                ctx.closePath();
+                ctx.fillStyle = `rgba(${this.light ? this.accent : this.starlight}, ${(this.light ? .05 + face.light * .24 : .025 + face.light * .38) * near * threadOpacity})`;
+                ctx.fill();
+            }
+        }
         for (const layer of this.order) {
             const start = layer.band * stride;
             const near = Math.max(.1, Math.min(1, .55 - layer.depth * .65));
@@ -241,8 +303,8 @@ export class LightSculpture {
                 ctx.strokeStyle = `rgba(${this.accent}, ${near * .06 * threadOpacity})`;
                 ctx.stroke();
             }
-            ctx.lineWidth = .55 + near * .65;
-            ctx.strokeStyle = `rgba(${layer.band % 4 === 0 ? this.highlight : this.accent}, ${(.16 + near * .64) * threadOpacity})`;
+            ctx.lineWidth = .5 + near * .7;
+            ctx.strokeStyle = `rgba(${layer.band % 4 === 0 ? this.starlight : this.accent}, ${(.18 + near * .68) * threadOpacity})`;
             ctx.stroke();
             const spacing = this.energy > .05 ? 4 : 15;
             for (let step = layer.band % spacing; step < this.samples; step += spacing) {
@@ -260,8 +322,18 @@ export class LightSculpture {
                 const i = start + step * 3, next = i + 3;
                 const x = threads[i] + (threads[next] - threads[i]) * fraction;
                 const y = threads[i + 1] + (threads[next + 1] - threads[i + 1]) * fraction;
+                for (let tail = 1; tail <= 6; tail++) {
+                    const a = start + ((step - tail + this.samples) % this.samples) * 3;
+                    const b = a + 3;
+                    ctx.beginPath();
+                    ctx.moveTo(threads[a], threads[a + 1]);
+                    ctx.lineTo(threads[b], threads[b + 1]);
+                    ctx.strokeStyle = `rgba(${this.starlight}, ${(1 - tail / 7) * threadOpacity * .65})`;
+                    ctx.lineWidth = 1.45;
+                    ctx.stroke();
+                }
                 ctx.beginPath();
-                ctx.fillStyle = `rgba(${this.highlight}, ${threadOpacity * .95})`;
+                ctx.fillStyle = `rgba(${this.starlight}, ${threadOpacity * .95})`;
                 ctx.arc(x, y, 2, 0, TAU);
                 ctx.fill();
                 ctx.beginPath();
@@ -270,6 +342,7 @@ export class LightSculpture {
                 ctx.fill();
             }
         }
+        orbit(true);
         if (this.energy > .02) {
             ctx.strokeStyle = `rgba(${this.highlight}, ${this.energy * .28})`;
             ctx.lineWidth = .8;
