@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261008d';
+import { languageMeta, translations } from './translations.js?v=20261008e';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20261008d';
+const assetVersion = '20261008e';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -1433,11 +1433,15 @@ class QuantumWeb {
             this.mouse.y = event.clientY;
         }, { passive: true });
         window.addEventListener('pointerdown', event => {
-            if (this.isReducedMotion || this.isCompact) return;
+            if (this.isReducedMotion || this.isCompact || event.pointerType === 'touch' || event.button > 0) return;
+            if (event.target?.closest?.('a, button, input, select, textarea, label, summary, [contenteditable]')) return;
+            this.mouse.x = event.clientX;
+            this.mouse.y = event.clientY;
+            this.gravityEnergy = 1;
             this.ripples.push({ x: event.clientX, y: event.clientY, radius: 0, alpha: .65 });
             if (this.ripples.length > 3) this.ripples.shift();
         }, { passive: true });
-        const releasePointer = () => { this.mouse.x = this.mouse.y = null; };
+        const releasePointer = () => { this.mouse.x = this.mouse.y = null; this.gravityEnergy = 0; };
         window.addEventListener('pointerleave', releasePointer, { passive: true });
         window.addEventListener('blur', releasePointer);
     }
@@ -1470,6 +1474,7 @@ class QuantumWeb {
         this.ripples = [];
         this.mouse.x = this.mouse.y = null;
         this.captured = 0;
+        this.gravityEnergy = 0;
         this.gravityRadius = Math.min(430, this.width * .42);
         const limit = this.isReducedMotion ? 220 : this.isCompact ? 240 : this.isEconomy ? 480 : 1100;
         const density = this.isCompact ? 1300 : 1250;
@@ -1498,26 +1503,40 @@ class QuantumWeb {
     drawGravityWell() {
         const { x, y } = this.mouse;
         const ctx = this.ctx;
+        const swell = 1 + this.gravityEnergy * .16;
         const glow = ctx.createRadialGradient(x, y, 12, x, y, 145);
-        glow.addColorStop(0, `rgba(${this.starlight}, .3)`);
+        glow.addColorStop(0, `rgba(${this.starlight}, ${.3 + this.gravityEnergy * .15})`);
         glow.addColorStop(.28, `rgba(${this.accent}, .16)`);
         glow.addColorStop(1, `rgba(${this.accent}, 0)`);
         ctx.fillStyle = glow;
         ctx.fillRect(x - 145, y - 145, 290, 290);
         // A tilted accretion disk and a dark centre; always behind page content.
         for (let ring = 0; ring < 5; ring++) {
+            const rx = (36 + ring * 9) * swell, ry = (11 + ring * 3.2) * swell;
             ctx.beginPath();
-            ctx.ellipse(x, y, 36 + ring * 9, 11 + ring * 3.2, -.35, 0, Math.PI * 2);
+            ctx.ellipse(x, y, rx, ry, -.35, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(${this.accent}, ${.38 - ring * .045})`;
             ctx.lineWidth = ring === 0 ? 2 : .8;
             ctx.stroke();
             ctx.beginPath();
             const start = this.time * (1.1 + ring * .12) + ring * .9;
-            ctx.ellipse(x, y, 36 + ring * 9, 11 + ring * 3.2, -.35, start, start + 1.15);
+            ctx.ellipse(x, y, rx, ry, -.35, start, start + 1.15);
             ctx.strokeStyle = `rgba(${this.starlight}, ${.9 - ring * .1})`;
             ctx.lineWidth = 1.3;
             ctx.stroke();
+            // One moving highlight per ring gives the disk depth without more particles.
+            const px = Math.cos(start + 1.15) * rx, py = Math.sin(start + 1.15) * ry;
+            ctx.beginPath();
+            ctx.arc(x + px * Math.cos(-.35) - py * Math.sin(-.35), y + px * Math.sin(-.35) + py * Math.cos(-.35), 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.starlight}, ${.9 - ring * .1})`;
+            ctx.fill();
         }
+        const rim = ctx.createRadialGradient(x, y, 15, x, y, 28);
+        rim.addColorStop(0, `rgba(${this.starlight}, .65)`);
+        rim.addColorStop(.35, `rgba(${this.accent}, .2)`);
+        rim.addColorStop(1, `rgba(${this.accent}, 0)`);
+        ctx.fillStyle = rim;
+        ctx.fillRect(x - 28, y - 28, 56, 56);
         ctx.beginPath();
         ctx.arc(x, y, 16, 0, Math.PI * 2);
         ctx.fillStyle = '#030403';
@@ -1529,6 +1548,12 @@ class QuantumWeb {
         ctx.arc(x, y, 19.5, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(${this.accent}, .32)`;
         ctx.lineWidth = 2;
+        ctx.stroke();
+        // The front edge crosses the dark core like a thin ribbon of light.
+        ctx.beginPath();
+        ctx.ellipse(x, y, 38 * swell, 11 * swell, -.35, .12, Math.PI - .12);
+        ctx.strokeStyle = `rgba(${this.starlight}, .6)`;
+        ctx.lineWidth = 1;
         ctx.stroke();
     }
 
@@ -1542,6 +1567,8 @@ class QuantumWeb {
         const step = this.isReducedMotion ? 0 : Math.min(Math.max(elapsed, 0), 50) / (1000 / 60);
         this.lastFrame = timestamp;
         this.time += step / 60;
+        this.gravityEnergy *= Math.pow(.95, step);
+        if (this.gravityEnergy < .001) this.gravityEnergy = 0;
         this.ctx.clearRect(0, 0, this.width, this.height);
 
         const interactive = !this.isCompact && !this.isReducedMotion && this.mouse.x !== null;
@@ -1557,7 +1584,15 @@ class QuantumWeb {
             const ripple = this.ripples[i];
             ripple.radius += 5 * step;
             ripple.alpha *= Math.pow(.967, step);
-            if (ripple.alpha < .02) this.ripples.splice(i, 1);
+            if (ripple.alpha < .02) {
+                this.ripples.splice(i, 1);
+            } else {
+                this.ctx.beginPath();
+                this.ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = `rgba(${this.accent}, ${ripple.alpha * .4})`;
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+            }
         }
         const spanX = this.width + 100, spanY = this.height + 100;
         for (const star of this.particles) {
@@ -1575,8 +1610,8 @@ class QuantumWeb {
                 const distance = Math.hypot(dx, dy);
                 const influence = Math.pow(Math.max(0, 1 - distance / this.gravityRadius), .7);
                 if (influence > 0) {
-                    const pull = influence * (.8 + influence * 3.6) * (.75 + star.depth * .5);
-                    const spin = influence * (.009 + 2 / Math.max(40, distance));
+                    const pull = influence * (.8 + influence * 3.6) * (.75 + star.depth * .5) * (1 + this.gravityEnergy * .9);
+                    const spin = influence * (.009 + 2 / Math.max(40, distance)) * (1 + this.gravityEnergy * .35);
                     const angle = Math.atan2(dy, dx) + spin * step;
                     const radius = distance - pull * step;
                     if (radius < 18) {
@@ -1714,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     new QuantumWeb('bg-canvas');
     const connectSculpture = initHomeIntent();
     // Decorative enhancement is isolated from navigation and the enquiry form.
-    import('./hero-sculpture.js?v=20261008d')
+    import('./hero-sculpture.js?v=20261008e')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();

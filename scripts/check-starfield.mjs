@@ -68,6 +68,7 @@ assert.ok(desktop.field.offset.x > 0 && desktop.field.offset.x < 22);
 assert.ok(desktop.field.offset.y > 0 && desktop.field.offset.y < 17);
 for (let i = 0; i < 20; i++) desktop.events.get('pointerdown')({ clientX: 720, clientY: 500 });
 assert.equal(desktop.field.ripples.length, 3, 'Repeated clicks cannot accumulate effects');
+assert.equal(desktop.field.gravityEnergy, 1, 'Repeated clicks cap gravity energy');
 desktop.events.get('blur')();
 assert.equal(desktop.field.mouse.x, null);
 for (let i = 91; i <= 390; i++) desktop.advance(i * 1000 / 60);
@@ -116,4 +117,28 @@ const phone = scene({ width: 390, height: 844 });
 phone.events.get('pointermove')({ pointerType: 'touch', clientX: 150, clientY: 350 });
 phone.advance(40);
 assert.equal(phone.canvas.dataset.gravity, 'idle', 'Phone scrolling does not activate a persistent gravity well');
-console.log('PASS: bright star layers, bounded rendering, refresh-independent drift, inward spirals, capture/recycling, responsive pointer, reduced motion, phone fallback and hidden-tab lifecycle.');
+
+const calm = scene(), pulse = scene();
+for (const sample of [calm, pulse]) {
+    const star = sample.field.particles[0];
+    Object.assign(star, { x: 920, y: 500, depth: .8 });
+    sample.field.particles = [star];
+    sample.events.get('pointermove')({ pointerType: 'mouse', clientX: 720, clientY: 500 });
+}
+const click = { pointerType: 'mouse', button: 0, clientX: 720, clientY: 500 };
+for (const ignored of [{ ...click, target: { closest: () => ({}) } }, { ...click, button: 2 }, { ...click, pointerType: 'touch' }]) {
+    pulse.events.get('pointerdown')(ignored);
+    assert.equal(pulse.field.gravityEnergy, 0, 'Controls, secondary clicks and touch scrolling do not trigger a pulse');
+    assert.equal(pulse.field.ripples.length, 0);
+}
+pulse.events.get('pointerdown')(click);
+for (let i = 1; i <= 30; i++) { calm.advance(i * 1000 / 60); pulse.advance(i * 1000 / 60); }
+const distance = sample => Math.hypot(sample.field.particles[0].x - 720, sample.field.particles[0].y - 500);
+assert.ok(distance(pulse) < distance(calm) - 8, 'Click briefly strengthens the inward pull');
+assert.ok(pulse.field.gravityEnergy > 0 && pulse.field.gravityEnergy < .25);
+for (let i = 31; i <= 200; i++) pulse.advance(i * 1000 / 60);
+assert.equal(pulse.field.gravityEnergy, 0, 'The gravity pulse returns to the calm baseline');
+assert.equal(pulse.field.ripples.length, 0);
+assert.equal(pulse.field.particles.length, 1);
+assert.equal(pulse.frames.size, 1);
+console.log('PASS: bright star layers, bounded rendering, refresh-independent drift, inward spirals, capture/recycling, bounded click pulse, control exclusion, responsive pointer, reduced motion, phone fallback and hidden-tab lifecycle.');
