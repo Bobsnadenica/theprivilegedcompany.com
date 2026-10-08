@@ -36,16 +36,11 @@ export function sculpturePoint(form, u, v) {
 }
 
 export class LightSculpture {
-    constructor(root, canvas, ctx, translate) {
+    constructor(root, canvas, ctx) {
         this.root = root;
         this.canvas = canvas;
         this.ctx = ctx;
-        this.translate = translate;
         this.stage = root.querySelector('.sculpture-stage');
-        this.name = root.querySelector('#sculpture-form');
-        this.pauseButton = root.querySelector('#sculpture-pause');
-        this.pauseLabel = root.querySelector('#sculpture-pause-label');
-        this.sparkButton = root.querySelector('#sculpture-spark');
         this.motion = matchMedia('(prefers-reduced-motion: reduce)');
         this.compact = matchMedia('(pointer: coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
         this.bands = this.compact ? 16 : 24;
@@ -77,25 +72,15 @@ export class LightSculpture {
         this.energy = 1;
         this.pointer = { x: 0, y: 0 };
         this.visible = false;
-        this.paused = false;
         this.frame = 0;
         this.lastPaint = null;
         this.onFrame = timestamp => this.tick(timestamp);
         this.readTheme();
         this.resize();
 
-        root.querySelector('#sculpture-reshape').addEventListener('click', () => this.reshape());
-        this.sparkButton.addEventListener('click', () => this.spark());
         this.stage.addEventListener('click', () => this.spark());
-        this.pauseButton.addEventListener('click', () => {
-            this.paused = !this.paused;
-            this.pauseButton.setAttribute('aria-pressed', String(this.paused));
-            this.pauseLabel.dataset.i18nSource = this.paused ? 'Resume sculpture animation' : 'Pause sculpture animation';
-            this.pauseLabel.textContent = this.translate(this.pauseLabel.dataset.i18nSource);
-            this.syncMotion();
-        });
         this.stage.addEventListener('pointermove', event => {
-            if (event.pointerType === 'touch' || this.paused || this.motion.matches) return;
+            if (event.pointerType === 'touch' || this.motion.matches) return;
             const rect = this.stage.getBoundingClientRect();
             this.pointer.x = (event.clientX - rect.left) / rect.width * 2 - 1;
             this.pointer.y = (event.clientY - rect.top) / rect.height * 2 - 1;
@@ -111,7 +96,6 @@ export class LightSculpture {
             this.syncMotion();
         }, { threshold: 0 });
         this.intersectionObserver.observe(root);
-        root.querySelector('.sculpture-controls').hidden = false;
         root.classList.add('sculpture-ready');
     }
 
@@ -134,19 +118,18 @@ export class LightSculpture {
         this.syncMotion();
     }
 
-    reshape() {
+    setForm(form) {
+        if (!Number.isInteger(form) || form < 0 || form >= forms.length || form === this.form) return;
         // Snapshot the current interpolation so repeated clicks never jump backwards.
         this.from.set(this.vertices);
-        this.form = (this.form + 1) % forms.length;
+        this.form = form;
         this.morph = 0;
-        this.name.dataset.i18nSource = forms[this.form];
-        this.name.textContent = this.translate(forms[this.form]);
         this.root.dataset.form = String(this.form);
         this.syncMotion();
     }
 
     canAnimate() {
-        return this.visible && !document.hidden && !this.motion.matches && !this.paused;
+        return this.visible && !document.hidden && !this.motion.matches;
     }
 
     spark() {
@@ -162,11 +145,8 @@ export class LightSculpture {
         cancelAnimationFrame(this.frame);
         this.frame = 0;
         this.lastPaint = null;
-        this.pauseButton.hidden = this.motion.matches;
-        this.sparkButton.hidden = this.motion.matches;
-        this.sparkButton.disabled = this.paused;
-        this.root.dataset.motion = this.motion.matches ? 'reduced' : this.paused ? 'paused' : 'idle';
-        if (this.motion.matches || this.paused) {
+        this.root.dataset.motion = this.motion.matches ? 'reduced' : 'idle';
+        if (this.motion.matches) {
             this.vertices.set(this.geometry[this.form]);
             this.morph = 1;
             this.arrival = this.energy = 0;
@@ -301,13 +281,13 @@ export class LightSculpture {
     }
 }
 
-export function initHeroSculpture(translate = value => value) {
+export function initHeroSculpture() {
     const root = document.getElementById('hero-sculpture');
     if (!root || root.classList.contains('sculpture-ready')) return;
     const canvas = root.querySelector('canvas');
     const ctx = canvas?.getContext('2d');
     if (!ctx || !window.ResizeObserver || !window.IntersectionObserver) return;
-    return new LightSculpture(root, canvas, ctx, translate);
+    return new LightSculpture(root, canvas, ctx);
 }
 
 export function initServiceLight() {

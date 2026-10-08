@@ -112,7 +112,7 @@ let frames = 0;
 Object.assign(web, {
     isVisible: true, isReducedMotion: false, isCompact: false, lastFrame: 0,
     canvas: { style: {}, dataset: {} },
-    ctx: { fillRect: () => frames++, setTransform() {} }, mouse: { x: null, vx: 0, vy: 0 },
+    ctx: { clearRect: () => frames++, setTransform() {} }, mouse: { x: null, vx: 0, vy: 0 },
     ripples: [], particles: []
 });
 web.init();
@@ -180,7 +180,9 @@ const formSource = source.slice(source.indexOf('const initContactForm ='), sourc
 const translationSource = await readFile(new URL('../translations.js', import.meta.url), 'utf8');
 const bgText = vm.runInNewContext(translationSource.replace(/export const /g, 'const ') + '; translations.bg.text;');
 const serviceRequestTypes = vm.runInNewContext(source.slice(source.indexOf('const serviceRequestTypes ='), source.indexOf('const knownServiceNames =')) + '; serviceRequestTypes;');
-const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false, selectedService = '') => {
+const intentSource = source.slice(source.indexOf('const consultationTopics ='), source.indexOf('const getCurrentRoute ='));
+const { consultationTopics, getConsultationTopic } = vm.runInNewContext(intentSource + '; ({ consultationTopics, getConsultationTopic });', { URLSearchParams });
+const formHarness = (campaignAttribution = null, language = 'en', clipboardBlocked = false, selectedService = '', topicSearch = '') => {
     let copyHandler, addressHandler, focused, copied, selected = false;
     const handlers = {};
     const button = { disabled: true };
@@ -189,6 +191,8 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
     elements.requestType = { get value() { return data.get('requestType'); }, set value(value) { data.set('requestType', value); } };
     const serviceContext = { hidden: true };
     const serviceValue = { dataset: {}, textContent: '' };
+    const topicContext = { hidden: true };
+    const topicValue = { dataset: {}, textContent: '' };
     const serviceInput = { get value() { return data.get('serviceName') || ''; }, set value(value) { data.set('serviceName', value); } };
     const form = {
         elements, checkValidity: () => true, reportValidity() {},
@@ -203,10 +207,10 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
     const addressButton = { disabled: true, addEventListener: (_, callback) => { addressHandler = callback; } };
     const addressValue = { value: 'contactus@theprivilegedcompany.com', hidden: true, focus() { focused = 'email-address'; }, select() {}, setSelectionRange(start, end) { this.selection = [start, end]; } };
     const addressStatus = { textContent: '' };
-    const location = { pathname: '/contact', search: '?fbclid=private-click-id&email=private@example.test', href: '' };
+    const location = { pathname: '/contact', search: topicSearch || '?fbclid=private-click-id&email=private@example.test', href: '' };
     vm.runInNewContext(formSource + '; initContactForm();', {
-        document: { getElementById: id => ({ 'contact-form': form, 'contact-service-context': serviceContext, 'contact-service-value': serviceValue, 'contact-service-name': serviceInput, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton, 'contact-copy-address': addressButton, 'contact-address-value': addressValue, 'contact-address-status': addressStatus }[id] || null) },
-        getSelectedServiceName: () => selectedService, serviceRequestTypes, FormData: class { get(key) { return data.get(key); } },
+        document: { getElementById: id => ({ 'contact-form': form, 'contact-service-context': serviceContext, 'contact-service-value': serviceValue, 'contact-service-name': serviceInput, 'contact-topic-context': topicContext, 'contact-topic-value': topicValue, 'contact-form-status': status, 'contact-draft-tools': draftTools, 'contact-draft-text': draftText, 'contact-email-draft': draftLink, 'contact-copy': copyButton, 'contact-copy-address': addressButton, 'contact-address-value': addressValue, 'contact-address-status': addressStatus }[id] || null) },
+        getSelectedServiceName: () => selectedService, getConsultationTopic, serviceRequestTypes, FormData: class { get(key) { return data.get(key); } },
         t: text => language === 'bg' ? (bgText[text] || text) : text,
         campaignAttribution, window: { location },
         navigator: { clipboard: { async writeText(value) { if (clipboardBlocked) throw new Error('blocked'); copied = value; } } },
@@ -214,7 +218,7 @@ const formHarness = (campaignAttribution = null, language = 'en', clipboardBlock
     });
     assert.equal(button.disabled, false);
     assert.equal(addressButton.disabled, false);
-    return { data, status, button, location, draftTools, draftText, draftLink, addressValue, addressStatus, serviceContext,
+    return { data, status, button, location, draftTools, draftText, draftLink, addressValue, addressStatus, serviceContext, topicContext, topicValue,
         changeRequest(value) { data.set('requestType', value); handlers.change({ target: { name: 'requestType', value } }); },
         submit: () => handlers.submit({ preventDefault() {} }), edit: () => handlers.input(), copy: () => copyHandler(), copyAddress: () => addressHandler(),
         get focused() { return focused; }, get copied() { return copied; }, get selected() { return selected; } };
@@ -274,6 +278,54 @@ for (const language of ['en', 'bg']) {
     assert.equal(consultation.data.get('details'), 'Test brief');
 }
 console.log('Email draft checks passed: EN/BG consultation selection, changed-service reset, explicit native link, validation, preserved input, stale-draft invalidation, long draft and copy fallbacks, no upload or false delivery claim.');
+
+// Each visual choice must survive the handoff to an enquiry, without accepting arbitrary query data.
+for (const language of ['en', 'bg']) {
+    let selected = 'build';
+    let change;
+    const choices = { hidden: true, querySelector: () => ({ value: selected }), addEventListener: (_, fn) => { change = fn; } };
+    const description = { dataset: {}, textContent: '' };
+    const link = { href: '' };
+    const translate = text => language === 'bg' ? (bgText[text] || text) : text;
+    const connect = vm.runInNewContext(intentSource + '; initHomeIntent();', {
+        URLSearchParams, t: translate,
+        document: { getElementById: id => ({ 'hero-intents': choices, 'hero-intent-description': description, 'hero-intent-link': link }[id]) }
+    });
+    assert.equal(choices.hidden, false);
+    assert.match(link.href, /topic=build$/, 'Enquiry works before Canvas loads');
+    connect(undefined);
+    let form;
+    connect({ setForm: value => { form = value; } });
+    for (const key of ['learn', 'build', 'solve']) {
+        selected = key; change();
+        const topic = consultationTopics[key];
+        assert.equal(form, topic.form);
+        assert.equal(description.textContent, translate(topic.description));
+        assert.equal(description.dataset.i18nSource, topic.description, 'Language changes retain the chosen English source');
+        const enquiry = new URL(link.href, 'https://example.test');
+        const targeted = formHarness(null, language, false, enquiry.searchParams.get('service'), enquiry.search);
+        assert.equal(targeted.data.get('requestType'), '1:1 consultation');
+        assert.equal(targeted.topicValue.textContent, translate(topic.label));
+        assert.equal(targeted.topicContext.hidden, false);
+        targeted.submit();
+        assert.ok(targeted.draftText.value.includes(`${translate('Focus:')} ${translate(topic.label)}`));
+        targeted.changeRequest('Website or app build');
+        assert.equal(targeted.topicContext.hidden, true);
+        targeted.submit();
+        assert.ok(!targeted.draftText.value.includes(translate('Focus:')), 'Changing service removes stale consultation context');
+        assert.equal(targeted.data.get('details'), 'Test brief');
+    }
+    const before = link.href;
+    selected = '__proto__'; change();
+    assert.equal(link.href, before);
+}
+for (const search of ['', '?topic=toString', '?topic=__proto__', '?topic=private@example.test', '?topic=build&topic=solve']) {
+    assert.equal(getConsultationTopic(search), null, 'Only one known public topic is accepted');
+}
+const wrongService = formHarness(null, 'en', false, 'Website Building', '?topic=learn');
+wrongService.submit();
+assert.doesNotMatch(wrongService.draftText.value, /Focus:/);
+console.log('Homepage intent checks passed: three choices, EN/BG copy, Canvas-independent enquiry links, draft context, changed-service reset and query allowlist.');
 
 // Only known public campaign labels may enter a draft; arbitrary query data is discarded.
 const campaignFor = vm.runInNewContext(
@@ -346,7 +398,7 @@ let painted = 0;
 LifecycleWeb.prototype.readTheme = () => {};
 const realInit = LifecycleWeb.prototype.init;
 LifecycleWeb.prototype.init = function () { realInit.call(this); this.particles = []; };
-lifecycleDocument.getElementById = () => ({ style: {}, dataset: {}, getContext: () => ({ setTransform() {}, fillRect() { painted++; } }) });
+lifecycleDocument.getElementById = () => ({ style: {}, dataset: {}, getContext: () => ({ setTransform() {}, clearRect() { painted++; } }) });
 new LifecycleWeb('canvas');
 assert.equal(scheduledFrames.size, 1);
 lifecycleDocument.hidden = true; lifecycleEvents.get('visibilitychange')(); assert.equal(scheduledFrames.size, 0);

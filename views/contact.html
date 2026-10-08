@@ -12,6 +12,7 @@
             <div class="contact-service-context" id="contact-service-context" hidden>
                 <span>Selected service</span>
                 <strong id="contact-service-value"></strong>
+                <p class="contact-topic-context" id="contact-topic-context" hidden><span>Focus:</span> <b id="contact-topic-value"></b></p>
                 <input type="hidden" name="serviceName" id="contact-service-name">
             </div>
 
@@ -153,6 +154,9 @@
     .contact-service-context { border-bottom: 1px solid var(--border-soft); padding-bottom: .85rem; }
     .contact-service-context span { display: block; color: var(--c-accent); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.35rem; }
     .contact-service-context strong { color: var(--c-fg); font-family: var(--f-display); font-size: 1.15rem; line-height: 1.4; }
+    .contact-topic-context { margin-top: .5rem; color: var(--c-muted); font-size: .9rem; }
+    .contact-topic-context span { display: inline; margin: 0; color: inherit; font: inherit; letter-spacing: normal; text-transform: none; }
+    .contact-topic-context b { color: var(--c-fg); font-weight: 500; }
     .contact-form label { display: grid; gap: 0.6rem; }
     .contact-form label span { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; color: var(--c-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
     .contact-form label small { flex-shrink: 0; color: var(--c-muted); font-size: 0.65rem; font-weight: 600; letter-spacing: 0.08em; }

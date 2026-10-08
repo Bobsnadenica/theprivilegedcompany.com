@@ -16,8 +16,7 @@ function element() {
         getBoundingClientRect: () => ({ width: 520, height: 520, left: 0, top: 0 }),
     };
 }
-const selectors = ['.sculpture-stage', '#sculpture-form', '#sculpture-pause',
-    '#sculpture-pause-label', '#sculpture-reshape', '#sculpture-spark', '.sculpture-controls'];
+const selectors = ['.sculpture-stage'];
 const nodes = Object.fromEntries(selectors.map(selector => [selector, element()]));
 const context2d = Object.fromEntries(['setTransform', 'moveTo', 'lineTo', 'arc', 'ellipse'].map(name =>
     [name, (...values) => assert.ok(values.every(Number.isFinite), `${name} receives finite coordinates`)]));
@@ -58,7 +57,7 @@ for (let form = 0; form < 3; form++) {
     }
 }
 
-const sculpture = initHeroSculpture(value => `translated: ${value}`);
+const sculpture = initHeroSculpture();
 const advance = timestamp => {
     const queued = [...frames.values()];
     frames.clear();
@@ -78,33 +77,23 @@ assert.equal(paints, before, 'Slow rotation avoids unnecessary 60Hz paints');
 advance(34);
 assert.equal(paints, before + 1);
 
-nodes['#sculpture-reshape'].events.click();
+sculpture.setForm(1);
 advance(50);
 advance(114);
 assert.ok(sculpture.morph > 0 && sculpture.morph < 1, 'Reshape interpolates instead of jumping');
 const intermediate = Array.from(sculpture.vertices);
-nodes['#sculpture-reshape'].events.click();
+sculpture.setForm(2);
 assert.deepEqual(Array.from(sculpture.from), intermediate, 'Rapid reshapes start at the currently displayed geometry');
 assert.equal(root.dataset.form, '2');
-assert.equal(nodes['#sculpture-form'].textContent, 'translated: Bloom');
-
-nodes['#sculpture-pause'].events.click();
-assert.equal(frames.size, 0);
-assert.equal(root.dataset.motion, 'paused');
-assert.equal(nodes['#sculpture-pause'].attributes['aria-pressed'], 'true');
-assert.equal(nodes['#sculpture-pause-label'].textContent, 'translated: Resume sculpture animation');
-nodes['#sculpture-reshape'].events.click();
-assert.equal(frames.size, 0, 'Reshaping a paused sculpture remains static');
-assert.deepEqual(Array.from(sculpture.vertices), Array.from(sculpture.geometry[0]));
-nodes['#sculpture-pause'].events.click();
+for (const invalid of [-1, 3, 1.5, '1', NaN, null, 2]) sculpture.setForm(invalid);
+assert.equal(root.dataset.form, '2', 'Invalid or unchanged choices do not reset the active form');
 assert.equal(frames.size, 1);
 
 motion.matches = true;
 motion.events.change();
 assert.equal(frames.size, 0);
 assert.equal(root.dataset.motion, 'reduced');
-assert.equal(nodes['#sculpture-pause'].hidden, true);
-nodes['#sculpture-reshape'].events.click();
+sculpture.setForm(1);
 assert.equal(frames.size, 0, 'Reduced-motion users can still choose every form without animation');
 assert.deepEqual(Array.from(sculpture.vertices), Array.from(sculpture.geometry[1]));
 motion.matches = false;
@@ -128,26 +117,25 @@ assert.equal(frames.size, 1, 'Returning to the sculpture resumes one loop');
 advance(200);
 for (let time = 264; time <= 3000; time += 64) advance(time);
 assert.ok(sculpture.energy < .001, 'Arrival settles into a calm, fully connected sculpture');
-nodes['#sculpture-spark'].events.click();
+nodes['.sculpture-stage'].events.click();
 assert.equal(root.dataset.effect, 'spark');
 for (let time = 3064; time <= 4600; time += 64) advance(time);
 assert.ok(sculpture.energy > .9, 'Spark opens the geometry into a particle cloud');
 const pulseAge = sculpture.sparkAge;
-nodes['#sculpture-spark'].events.click();
+nodes['.sculpture-stage'].events.click();
 assert.equal(sculpture.sparkAge, pulseAge, 'Repeated taps do not restart or stack a running burst');
 assert.equal(frames.size, 1);
 for (let time = 4664; time <= 6900; time += 64) advance(time);
 assert.ok(sculpture.energy < .001, 'The burst reforms automatically');
-nodes['#sculpture-spark'].events.click();
+nodes['.sculpture-stage'].events.click();
 motion.matches = true;
 motion.events.change();
 assert.equal(frames.size, 0);
 assert.equal(sculpture.energy, 0, 'Changing the motion preference cancels a burst immediately');
-assert.equal(nodes['#sculpture-spark'].hidden, true);
-nodes['#sculpture-spark'].events.click();
+nodes['.sculpture-stage'].events.click();
 assert.equal(sculpture.energy, 0, 'No animated burst bypasses reduced motion');
 
 root.classList.values.clear();
 canvas.getContext = () => null;
 assert.equal(initHeroSculpture(), undefined, 'Unavailable Canvas leaves the static fallback intact');
-console.log('PASS: sculpture geometry, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, pause, DPI cap and fallback');
+console.log('PASS: sculpture geometry, interpolation, arrival, bounded particle burst, rapid interaction, lifecycle, reduced motion, DPI cap and fallback');

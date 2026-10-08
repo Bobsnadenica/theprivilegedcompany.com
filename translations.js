@@ -12,14 +12,15 @@ export const languageMeta = {
 export const translations = {
     "bg": {
         "text": {
-            "One idea. Many possibilities.": "Една идея. Много възможности.",
-            "Weave": "Плетеница",
-            "Orbit": "Орбита",
-            "Bloom": "Разцвет",
-            "Reshape": "Нова форма",
-            "Spark": "Искра",
-            "Pause sculpture animation": "Спрете движението на скулптурата",
-            "Resume sculpture animation": "Продължете движението на скулптурата",
+            "One-to-one with a certified senior cloud architect. A starting point shaped around you.": "Индивидуално със сертифициран старши архитект на облачни решения. Започваме от вашата цел.",
+            "Your next step": "Вашата следваща стъпка",
+            "Learn AI": "Работа с AI",
+            "Build something": "Да създам нещо",
+            "Solve a problem": "Да реша проблем",
+            "Bring your curiosity. Learn to ask better questions, check AI answers, and use it in everyday work.": "Научете се да задавате по-добри въпроси, да проверявате отговорите на AI и да го използвате в ежедневната работа.",
+            "Have an idea? Explore the right tools and plan your first working version together.": "Имате идея? Заедно ще изберем подходящите инструменти и ще планираме първата работеща версия.",
+            "Bring the problem that has you stuck. Work through it together and find a clear next step.": "Споделете проблема, който ви затруднява. Ще го разгледаме заедно и ще намерим ясна следваща стъпка.",
+            "Focus:": "Тема:",
             "An interactive sculpture of light": "Интерактивна скулптура от светлина",
             "Build with clarity.": "Създавайте с яснота.",
             "Get practical help with AI, a technical problem, or your next idea. Work one-to-one with a certified senior cloud architect.": "Получете практическа помощ за AI, технически проблем или следващата си идея. Работете индивидуално със сертифициран старши архитект на облачни решения.",

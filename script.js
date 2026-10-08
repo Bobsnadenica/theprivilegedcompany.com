@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261007c';
+import { languageMeta, translations } from './translations.js?v=20261008d';
 
 const routes = {
     '': {
@@ -76,7 +76,7 @@ const transitionMask = document.getElementById('transition-mask');
 const cursor = document.getElementById('cursor');
 const follower = document.getElementById('cursor-follower');
 const siteOrigin = 'https://www.theprivilegedcompany.com';
-const assetVersion = '20261007c';
+const assetVersion = '20261008d';
 
 const getCampaignAttribution = search => {
     const params = new URLSearchParams(search);
@@ -169,6 +169,40 @@ const getSelectedServiceName = () => {
     const params = new URLSearchParams(window.location.search);
     const service = normalizeI18nKey(params.get('service'));
     return knownServiceNames.includes(service) ? service : '';
+};
+
+const consultationTopics = {
+    learn: { label: 'Learn AI', form: 2, description: 'Bring your curiosity. Learn to ask better questions, check AI answers, and use it in everyday work.' },
+    build: { label: 'Build something', form: 0, description: 'Have an idea? Explore the right tools and plan your first working version together.' },
+    solve: { label: 'Solve a problem', form: 1, description: 'Bring the problem that has you stuck. Work through it together and find a clear next step.' }
+};
+const getConsultationTopic = search => {
+    const params = new URLSearchParams(search);
+    const key = params.get('topic');
+    // Only these public labels enter the email draft; never arbitrary URL text.
+    return params.getAll('topic').length === 1 && Object.hasOwn(consultationTopics, key) ? consultationTopics[key] : null;
+};
+
+const initHomeIntent = () => {
+    const choices = document.getElementById('hero-intents');
+    const description = document.getElementById('hero-intent-description');
+    const link = document.getElementById('hero-intent-link');
+    if (!choices || !description || !link) return;
+    let sculpture;
+    const update = () => {
+        const key = choices.querySelector('input:checked')?.value;
+        if (!Object.hasOwn(consultationTopics, key)) return;
+        const topic = consultationTopics[key];
+        description.dataset.i18nSource = topic.description;
+        description.textContent = t(topic.description);
+        link.href = `/contact?service=1%3A1%20Tech%20Consultations&topic=${key}`;
+        sculpture?.setForm(topic.form);
+    };
+    choices.addEventListener('change', update);
+    choices.hidden = false;
+    update();
+    // Enquiries work even if the optional Canvas module never loads.
+    return instance => { sculpture = instance; update(); };
 };
 
 const getCurrentRoute = () => {
@@ -470,6 +504,8 @@ const initContactForm = () => {
     const serviceContext = document.getElementById('contact-service-context');
     const serviceValue = document.getElementById('contact-service-value');
     const serviceInput = document.getElementById('contact-service-name');
+    const topicContext = document.getElementById('contact-topic-context');
+    const topicValue = document.getElementById('contact-topic-value');
     const draftTools = document.getElementById('contact-draft-tools');
     const draftText = document.getElementById('contact-draft-text');
     const draftLink = document.getElementById('contact-email-draft');
@@ -481,6 +517,7 @@ const initContactForm = () => {
 
     const submitButton = form.querySelector('button[type="submit"]');
     const selectedService = getSelectedServiceName();
+    let selectedTopic = selectedService === '1:1 Tech Consultations' ? getConsultationTopic(window.location.search) : null;
     if (selectedService && serviceContext && serviceValue && serviceInput) {
         serviceContext.hidden = false;
         serviceInput.value = selectedService;
@@ -490,12 +527,19 @@ const initContactForm = () => {
         const requestType = serviceRequestTypes[selectedService];
         if (requestType && form.elements.requestType) form.elements.requestType.value = requestType;
     }
+    if (selectedTopic && topicContext && topicValue) {
+        topicContext.hidden = false;
+        topicValue.dataset.i18nSource = selectedTopic.label;
+        topicValue.textContent = t(selectedTopic.label);
+    }
 
     form.addEventListener('change', event => {
         if (event.target.name !== 'requestType' || !serviceInput) return;
         if (serviceRequestTypes[serviceInput.value] === event.target.value) return;
         // A visitor can change their mind after following a service-specific link.
         serviceInput.value = '';
+        selectedTopic = null;
+        if (topicContext) topicContext.hidden = true;
         serviceContext.hidden = true;
         draftTools.hidden = true;
         status.textContent = '';
@@ -543,6 +587,7 @@ const initContactForm = () => {
             `${t('Phone:')} ${phone || t('Not specified')}`,
             `${t('Service:')} ${t(serviceName || 'Not specified')}`,
             `${t('Looking for:')} ${t(requestType || 'Not specified')}`,
+            ...(selectedTopic ? [`${t('Focus:')} ${t(selectedTopic.label)}`] : []),
             `${t('Timeline:')} ${t(timeline || 'Not specified')}`,
             `${t('Budget:')} ${t(budget || 'Not specified')}`,
             ...(campaignAttribution ? [`Campaign: ${[campaignAttribution.source, campaignAttribution.medium, campaignAttribution.campaign, campaignAttribution.content].filter(Boolean).join(' / ')}`] : []),
@@ -1344,20 +1389,18 @@ const initMagnetic = () => {
 };
 
 /**
- * Quantum Web Canvas
+ * A layered starfield, shared by every route.
  */
 class QuantumWeb {
     constructor(id) {
         this.canvas = document.getElementById(id);
-        if (!this.canvas) return;
-        this.ctx = this.canvas.getContext('2d');
-        this.canvas.__quantumWeb = this;
-        this.particles = [];
-        this.mouse = { x: null, y: null, vx: 0, vy: 0, down: false };
-        this.lastMouse = { x: 0, y: 0 };
-        this.lastFrame = 0;
-        this.resizeTimer = null;
+        this.ctx = this.canvas?.getContext('2d');
+        if (!this.ctx) return;
+        this.mouse = { x: null, y: null };
+        this.offset = { x: 0, y: 0 };
         this.ripples = [];
+        this.time = 0;
+        this.resizeTimer = null;
         this.isVisible = !document.hidden;
         this.readTheme();
         this.init();
@@ -1365,6 +1408,7 @@ class QuantumWeb {
         document.addEventListener('visibilitychange', () => {
             this.isVisible = !document.hidden;
             cancelAnimationFrame(this.animationFrame);
+            this.lastFrame = null;
             if (this.isVisible) this.animate(performance.now());
         });
         document.addEventListener('themechange', () => {
@@ -1383,238 +1427,227 @@ class QuantumWeb {
                 if (this.isReducedMotion) this.animate(performance.now());
             }, 150);
         });
-        window.addEventListener('pointermove', e => {
-            this.mouse.vx = e.clientX - this.lastMouse.x;
-            this.mouse.vy = e.clientY - this.lastMouse.y;
-            this.mouse.x = e.clientX;
-            this.mouse.y = e.clientY;
-            this.lastMouse.x = e.clientX;
-            this.lastMouse.y = e.clientY;
+        window.addEventListener('pointermove', event => {
+            if (event.pointerType === 'touch' || this.isReducedMotion || this.isCompact) return;
+            this.mouse.x = event.clientX;
+            this.mouse.y = event.clientY;
         }, { passive: true });
-        window.addEventListener('pointerdown', e => {
-            this.mouse.down = true;
-            if (!this.isCompact && !this.isReducedMotion) {
-                this.ripples.push({ x: e.clientX, y: e.clientY, radius: 0, alpha: 0.9 });
-                if (this.ripples.length > 4) this.ripples.shift();
-            }
+        window.addEventListener('pointerdown', event => {
+            if (this.isReducedMotion || this.isCompact) return;
+            this.ripples.push({ x: event.clientX, y: event.clientY, radius: 0, alpha: .65 });
+            if (this.ripples.length > 3) this.ripples.shift();
         }, { passive: true });
-        window.addEventListener('pointerup', () => {
-            this.mouse.down = false;
-        }, { passive: true });
-        window.addEventListener('pointerleave', () => {
-            this.mouse.x = null;
-            this.mouse.y = null;
-            this.mouse.down = false;
-        }, { passive: true });
+        const releasePointer = () => { this.mouse.x = this.mouse.y = null; };
+        window.addEventListener('pointerleave', releasePointer, { passive: true });
+        window.addEventListener('blur', releasePointer);
     }
 
     readTheme() {
-        const cs = getComputedStyle(document.documentElement);
-        this.accent = cs.getPropertyValue('--c-accent-rgb').trim() || '255, 157, 0';
-        this.accentStrong = cs.getPropertyValue('--c-accent-strong-rgb').trim() || '255, 177, 59';
-        this.bgColor = cs.getPropertyValue('--c-bg').trim() || '#030201';
+        const style = getComputedStyle(document.documentElement);
+        this.accent = style.getPropertyValue('--c-accent-rgb').trim() || '216, 174, 105';
+        this.starlight = style.getPropertyValue('--c-starlight-rgb').trim() || '246, 230, 201';
+        this.isLight = document.documentElement.dataset.theme === 'light';
     }
 
     init() {
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        this.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.isCompact = this.width < 760 || window.matchMedia('(pointer: coarse)').matches;
+        this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const cores = navigator.hardwareConcurrency || 8;
+        const memory = navigator.deviceMemory || 8;
+        this.isEconomy = Boolean(navigator.connection?.saveData) || cores <= 4 || memory <= 4;
+        this.dpr = Math.min(window.devicePixelRatio || 1, this.isCompact || this.isEconomy ? 1.25 : 1.5);
         this.canvas.width = Math.floor(this.width * this.dpr);
         this.canvas.height = Math.floor(this.height * this.dpr);
         this.canvas.style.width = `${this.width}px`;
         this.canvas.style.height = `${this.height}px`;
         this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-        this.particles = [];
-        this.isCompact = window.innerWidth < 760 || window.matchMedia('(pointer: coarse)').matches;
-        this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const cores = navigator.hardwareConcurrency || 8;
-        const memory = navigator.deviceMemory || 8;
-        const saveData = Boolean(navigator.connection?.saveData);
-        this.isEconomy = saveData || cores <= 4 || memory <= 4;
         this.frameInterval = this.isReducedMotion ? 1000 : (this.isCompact || this.isEconomy ? 33 : 1000 / 60 - 1);
-        this.connectionDistance = this.isCompact ? 82 : (this.isEconomy ? 98 : 112);
-
-        const density = this.isCompact ? 7600 : (this.isEconomy ? 5600 : 4600);
-        const maxParticles = this.isReducedMotion ? 48 : (this.isCompact ? 95 : (this.isEconomy ? 170 : 260));
-        const count = Math.floor((this.width * this.height) / density);
-
-        for (let i = 0; i < Math.min(count, maxParticles); i++) {
-            const depth = Math.random() * 0.75 + 0.25;
-            this.particles.push({
-                x: Math.random() * this.width,
-                y: Math.random() * this.height,
-                ox: 0,
-                oy: 0,
-                vx: (Math.random() - 0.5) * (0.12 + depth * 0.22),
-                vy: (Math.random() - 0.5) * (0.12 + depth * 0.22),
-                size: Math.random() * 1.6 + 0.35,
-                depth,
-                heat: 0,
-                phase: Math.random() * Math.PI * 2
-            });
-        }
-
-        this.canvas.dataset.particleCount = String(this.particles.length);
+        this.lastFrame = null;
+        this.time = this.time || 0;
+        this.offset = { x: 0, y: 0 };
+        this.ripples = [];
+        this.mouse.x = this.mouse.y = null;
+        this.captured = 0;
+        this.gravityRadius = Math.min(430, this.width * .42);
+        const limit = this.isReducedMotion ? 220 : this.isCompact ? 240 : this.isEconomy ? 480 : 1100;
+        const density = this.isCompact ? 1300 : 1250;
+        const count = Math.min(limit, Math.max(70, Math.floor(this.width * this.height / density)));
+        this.particles = Array.from({ length: count }, (_, index) => {
+            // Distant pinpoints, a middle layer, and a few softly lit foreground stars.
+            const layer = index % 20 === 0 ? 2 : index % 4 === 0 ? 1 : 0;
+            const depth = [.16, .48, .86][layer] + Math.random() * .12;
+            return {
+                x: Math.random() * (this.width + 100) - 50,
+                y: Math.random() * (this.height + 100) - 50,
+                layer, depth, size: [.65, 1.05, 1.65][layer] + Math.random() * .6,
+                life: 1,
+                phase: Math.random() * Math.PI * 2,
+                speed: .25 + Math.random() * .4,
+                glint: layer === 2 && index % 60 === 0
+            };
+        });
+        this.canvas.dataset.effect = 'gravity-starfield';
+        this.canvas.dataset.particleCount = String(count);
         this.canvas.dataset.frameInterval = String(this.frameInterval);
-        this.canvas.dataset.performanceMode = this.isCompact ? 'compact' : (this.isEconomy ? 'economy' : 'rich');
+        this.canvas.dataset.performanceMode = this.isCompact ? 'compact' : this.isEconomy ? 'economy' : 'rich';
+        this.canvas.dataset.motion = this.isReducedMotion ? 'reduced' : 'running';
+    }
+
+    drawGravityWell() {
+        const { x, y } = this.mouse;
+        const ctx = this.ctx;
+        const glow = ctx.createRadialGradient(x, y, 12, x, y, 145);
+        glow.addColorStop(0, `rgba(${this.starlight}, .3)`);
+        glow.addColorStop(.28, `rgba(${this.accent}, .16)`);
+        glow.addColorStop(1, `rgba(${this.accent}, 0)`);
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - 145, y - 145, 290, 290);
+        // A tilted accretion disk and a dark centre; always behind page content.
+        for (let ring = 0; ring < 5; ring++) {
+            ctx.beginPath();
+            ctx.ellipse(x, y, 36 + ring * 9, 11 + ring * 3.2, -.35, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${this.accent}, ${.38 - ring * .045})`;
+            ctx.lineWidth = ring === 0 ? 2 : .8;
+            ctx.stroke();
+            ctx.beginPath();
+            const start = this.time * (1.1 + ring * .12) + ring * .9;
+            ctx.ellipse(x, y, 36 + ring * 9, 11 + ring * 3.2, -.35, start, start + 1.15);
+            ctx.strokeStyle = `rgba(${this.starlight}, ${.9 - ring * .1})`;
+            ctx.lineWidth = 1.3;
+            ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = '#030403';
+        ctx.fill();
+        ctx.strokeStyle = `rgba(${this.starlight}, .95)`;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x, y, 19.5, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${this.accent}, .32)`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
 
     animate(timestamp = 0) {
         if (!this.isVisible) return;
-        if (!this.isReducedMotion && timestamp - this.lastFrame < this.frameInterval) {
-            this.animationFrame = requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
+        const elapsed = this.lastFrame === null ? 0 : timestamp - this.lastFrame;
+        if (!this.isReducedMotion && this.lastFrame !== null && elapsed < this.frameInterval) {
+            this.animationFrame = requestAnimationFrame(next => this.animate(next));
             return;
         }
-
+        const step = this.isReducedMotion ? 0 : Math.min(Math.max(elapsed, 0), 50) / (1000 / 60);
         this.lastFrame = timestamp;
-        this.ctx.fillStyle = this.bgColor;
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        this.time += step / 60;
+        this.ctx.clearRect(0, 0, this.width, this.height);
 
-        if (!this.isCompact && this.mouse.x !== null) {
-            const auraRadius = this.mouse.down ? 360 : 280;
-            const aura = this.ctx.createRadialGradient(this.mouse.x, this.mouse.y, 0, this.mouse.x, this.mouse.y, auraRadius);
-            aura.addColorStop(0, this.mouse.down ? `rgba(${this.accentStrong}, 0.18)` : `rgba(${this.accent}, 0.1)`);
-            aura.addColorStop(0.45, `rgba(${this.accent}, 0.035)`);
-            aura.addColorStop(1, `rgba(${this.accent}, 0)`);
-            this.ctx.fillStyle = aura;
-            this.ctx.fillRect(0, 0, this.width, this.height);
+        const interactive = !this.isCompact && !this.isReducedMotion && this.mouse.x !== null;
+        const gravityState = interactive ? 'active' : 'idle';
+        if (this.canvas.dataset.gravity !== gravityState) this.canvas.dataset.gravity = gravityState;
+        const targetX = interactive ? (this.mouse.x / this.width - .5) * 42 : 0;
+        const targetY = interactive ? (this.mouse.y / this.height - .5) * 32 : 0;
+        const easing = 1 - Math.pow(.93, step);
+        this.offset.x += (targetX - this.offset.x) * easing;
+        this.offset.y += (targetY - this.offset.y) * easing;
+
+        for (let i = this.ripples.length - 1; i >= 0; i--) {
+            const ripple = this.ripples[i];
+            ripple.radius += 5 * step;
+            ripple.alpha *= Math.pow(.967, step);
+            if (ripple.alpha < .02) this.ripples.splice(i, 1);
         }
-
-        this.ripples = this.ripples
-            .map(ripple => ({ ...ripple, radius: ripple.radius + 9, alpha: ripple.alpha * 0.955 }))
-            .filter(ripple => ripple.alpha > 0.04 && ripple.radius < Math.max(this.width, this.height));
-
-        this.ripples.forEach(ripple => {
-            this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${ripple.alpha * 0.36})`;
-            this.ctx.lineWidth = 1;
-            this.ctx.beginPath();
-            this.ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
-            this.ctx.stroke();
-        });
-
-        this.particles.forEach((p, index) => {
-            p.index = index;
-            p.heat *= 0.88;
-
-            if (!this.isCompact && this.mouse.x !== null) {
-                const dx = p.x - this.mouse.x;
-                const dy = p.y - this.mouse.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                const wakeRadius = this.mouse.down ? 275 : 220;
-                if (dist < wakeRadius) {
-                    const force = (wakeRadius - dist) / wakeRadius;
-                    const speed = Math.min(18, Math.sqrt(this.mouse.vx * this.mouse.vx + this.mouse.vy * this.mouse.vy));
-                    p.ox += (dx / dist) * force * (0.35 + speed * 0.025);
-                    p.oy += (dy / dist) * force * (0.35 + speed * 0.025);
-                    p.ox += this.mouse.vx * force * 0.045;
-                    p.oy += this.mouse.vy * force * 0.045;
-                    p.heat = Math.max(p.heat, force);
-                }
-            }
-
-            this.ripples.forEach(ripple => {
-                const dx = p.x - ripple.x;
-                const dy = p.y - ripple.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                const wave = Math.max(0, 1 - Math.abs(dist - ripple.radius) / 58) * ripple.alpha;
-                if (wave > 0) {
-                    p.ox += (dx / dist) * wave * 2.2;
-                    p.oy += (dy / dist) * wave * 2.2;
-                    p.heat = Math.max(p.heat, wave);
-                }
-            });
-
-            p.ox *= 0.9;
-            p.oy *= 0.9;
-
-            p.x += p.vx + p.ox;
-            p.y += p.vy + p.oy;
-
-            if (p.x < 0) p.x = this.width;
-            if (p.x > this.width) p.x = 0;
-            if (p.y < 0) p.y = this.height;
-            if (p.y > this.height) p.y = 0;
-
-            const twinkle = (Math.sin(timestamp * 0.0012 + p.phase) + 1) * 0.07;
-            const alpha = Math.min(0.95, 0.38 + p.depth * 0.34 + p.heat * 0.35 + twinkle);
-            const size = p.size + p.heat * 1.45;
-            if (p.heat > 0.15) {
-                this.ctx.fillStyle = `rgba(${this.accentStrong}, ${p.heat * 0.16})`;
-                this.ctx.beginPath();
-                this.ctx.arc(p.x, p.y, size * 3.2, 0, Math.PI * 2);
-                this.ctx.fill();
-            }
-            this.ctx.fillStyle = `rgba(${this.accent}, ${alpha})`;
-            this.ctx.beginPath();
-            this.ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-            this.ctx.fill();
-        });
-
-        this.ctx.lineWidth = 0.65;
-        if (!this.isReducedMotion && this.particles.length > 1) {
-            const grid = new Map();
-            const cellSize = this.connectionDistance;
-            const connectionStride = this.isEconomy ? 2 : 1;
-            this.particles.forEach(p => {
-                const cellX = Math.floor(p.x / cellSize);
-                const cellY = Math.floor(p.y / cellSize);
-                const key = `${cellX}:${cellY}`;
-                const bucket = grid.get(key) || [];
-                bucket.push(p);
-                grid.set(key, bucket);
-            });
-
-            this.particles.forEach((particle, particleIndex) => {
-                if (particleIndex % connectionStride !== 0) return;
-                const cellX = Math.floor(particle.x / cellSize);
-                const cellY = Math.floor(particle.y / cellSize);
-                for (let x = cellX - 1; x <= cellX + 1; x++) {
-                    for (let y = cellY - 1; y <= cellY + 1; y++) {
-                        const bucket = grid.get(`${x}:${y}`);
-                        if (!bucket) continue;
-                        bucket.forEach(neighbor => {
-                            if (neighbor.index <= particle.index) return;
-                            const dx = particle.x - neighbor.x;
-                            const dy = particle.y - neighbor.y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < this.connectionDistance) {
-                                const heat = Math.max(particle.heat, neighbor.heat);
-                                const alpha = (1 - dist / this.connectionDistance) * (0.18 + heat * 0.26);
-                                this.ctx.strokeStyle = `rgba(${this.accent}, ${alpha})`;
-                                this.ctx.beginPath();
-                                this.ctx.moveTo(particle.x, particle.y);
-                                this.ctx.lineTo(neighbor.x, neighbor.y);
-                                this.ctx.stroke();
-                            }
-                        });
+        const spanX = this.width + 100, spanY = this.height + 100;
+        for (const star of this.particles) {
+            star.x += (.04 + star.depth * .24) * step;
+            star.y -= (.025 + star.depth * .1) * step;
+            star.x = ((star.x + 50) % spanX + spanX) % spanX - 50;
+            star.y = ((star.y + 50) % spanY + spanY) % spanY - 50;
+            let x = star.x + this.offset.x * star.depth;
+            let y = star.y + this.offset.y * star.depth;
+            const shimmer = .88 + Math.sin(this.time * star.speed + star.phase) * .12;
+            let light = 0;
+            star.life = Math.min(1, star.life + step * .035);
+            if (interactive && step > 0) {
+                const dx = x - this.mouse.x, dy = y - this.mouse.y;
+                const distance = Math.hypot(dx, dy);
+                const influence = Math.pow(Math.max(0, 1 - distance / this.gravityRadius), .7);
+                if (influence > 0) {
+                    const pull = influence * (.8 + influence * 3.6) * (.75 + star.depth * .5);
+                    const spin = influence * (.009 + 2 / Math.max(40, distance));
+                    const angle = Math.atan2(dy, dx) + spin * step;
+                    const radius = distance - pull * step;
+                    if (radius < 18) {
+                        // Recycle swallowed stars at the edge of the field. Population stays bounded.
+                        const birthAngle = Math.random() * Math.PI * 2;
+                        const birthRadius = this.gravityRadius * (.85 + Math.random() * .4);
+                        star.x = this.mouse.x + Math.cos(birthAngle) * birthRadius - this.offset.x * star.depth;
+                        star.y = this.mouse.y + Math.sin(birthAngle) * birthRadius - this.offset.y * star.depth;
+                        star.life = 0;
+                        this.captured++;
+                        continue;
                     }
-                }
-            });
-
-            if (!this.isCompact && this.mouse.x !== null) {
-                this.particles.forEach(p => {
-                    const dx = p.x - this.mouse.x;
-                    const dy = p.y - this.mouse.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 180) {
-                        const alpha = (1 - dist / 180) * (this.mouse.down ? 0.28 : 0.16);
-                        this.ctx.strokeStyle = `rgba(${this.accentStrong}, ${alpha})`;
+                    x = this.mouse.x + Math.cos(angle) * radius;
+                    y = this.mouse.y + Math.sin(angle) * radius;
+                    star.x = x - this.offset.x * star.depth;
+                    star.y = y - this.offset.y * star.depth;
+                    light = influence * .55;
+                    if (influence > .05) {
+                        const trail = 7;
+                        const midAngle = angle - spin * trail / 2;
+                        const tailAngle = angle - spin * trail;
                         this.ctx.beginPath();
-                        this.ctx.moveTo(this.mouse.x, this.mouse.y);
-                        this.ctx.lineTo(p.x, p.y);
+                        this.ctx.moveTo(x, y);
+                        this.ctx.quadraticCurveTo(
+                            this.mouse.x + Math.cos(midAngle) * (radius + pull * trail / 2),
+                            this.mouse.y + Math.sin(midAngle) * (radius + pull * trail / 2),
+                            this.mouse.x + Math.cos(tailAngle) * (radius + pull * trail),
+                            this.mouse.y + Math.sin(tailAngle) * (radius + pull * trail));
+                        this.ctx.lineWidth = .55 + star.depth * .7;
+                        this.ctx.strokeStyle = `rgba(${this.starlight}, ${influence * .65 * star.life})`;
                         this.ctx.stroke();
                     }
-                });
+                }
+            }
+            for (const ripple of this.ripples) {
+                const distance = Math.hypot(x - ripple.x, y - ripple.y);
+                light += Math.max(0, 1 - Math.abs(distance - ripple.radius) / 75) * ripple.alpha;
+            }
+            const alpha = Math.min(1, (.62 + star.depth * .35) * shimmer + light) * star.life;
+            const color = star.layer === 0 ? this.accent : this.starlight;
+            if (star.layer === 2) {
+                this.ctx.fillStyle = `rgba(${color}, ${alpha * (this.isLight ? .06 : .09)})`;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, star.size * 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.fillStyle = `rgba(${color}, ${alpha * .12})`;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, star.size * 2.4, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            this.ctx.fillStyle = `rgba(${color}, ${alpha})`;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, star.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            if (star.glint) {
+                const length = star.size * (3 + shimmer);
+                this.ctx.strokeStyle = `rgba(${color}, ${alpha * .3})`;
+                this.ctx.lineWidth = .5;
+                this.ctx.beginPath();
+                this.ctx.moveTo(x - length, y);
+                this.ctx.lineTo(x + length, y);
+                this.ctx.moveTo(x, y - length);
+                this.ctx.lineTo(x, y + length);
+                this.ctx.stroke();
             }
         }
-
-        this.mouse.vx *= 0.85;
-        this.mouse.vy *= 0.85;
-        if (!this.isReducedMotion) {
-            this.animationFrame = requestAnimationFrame(nextTimestamp => this.animate(nextTimestamp));
-        }
+        if (interactive) this.drawGravityWell();
+        if (!this.isReducedMotion) this.animationFrame = requestAnimationFrame(next => this.animate(next));
     }
 }
+
 
 /**
  * Telemetry Log Engine
@@ -1679,9 +1712,10 @@ document.addEventListener('DOMContentLoaded', () => {
         main.scrollIntoView();
     });
     new QuantumWeb('bg-canvas');
+    const connectSculpture = initHomeIntent();
     // Decorative enhancement is isolated from navigation and the enquiry form.
-    import('./hero-sculpture.js?v=20261007c')
-        .then(({ initHeroSculpture, initServiceLight }) => { initHeroSculpture(t); initServiceLight(); })
+    import('./hero-sculpture.js?v=20261008d')
+        .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
     initCursor();
     initThemeSwitcher();
