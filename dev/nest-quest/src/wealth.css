@@ -34,6 +34,18 @@
 .game .wealth-holdings-panel { margin-top: 20px; }
 .game .wealth-add-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .game .wealth-add-actions > .button { min-height: 44px; font-size: 12px; }
+.game .wealth-prices-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 18px; align-items: center; margin-top: 20px; padding: 15px 17px; border: 1px solid #d4dfc4; border-radius: 13px; background: #edf4e2; }
+.game .wealth-prices-copy { min-width: 0; }
+.game .wealth-price-provider { color: #4f693f; font-size: 12px; font-weight: 600; line-height: 1.6; }
+.game .wealth-prices-copy p { margin-top: 3px; color: #5e714f; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.game .wealth-update-prices { min-height: 46px; font-size: 12px; white-space: normal; }
+.game .wealth-update-prices[aria-busy="true"] > .icon { animation: wealth-prices-pulse 1s ease-in-out infinite alternate; }
+.game .wealth-prices-status { grid-column: 1 / -1; color: #50693f; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.game .wealth-prices-status[hidden] { display: none; }
+.game .wealth-price-provider a,
+.game .wealth-valued-at a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.game .wealth-price-provider a:focus-visible,
+.game .wealth-valued-at a:focus-visible { outline: 2px solid #aa8141; outline-offset: 3px; border-radius: 2px; }
 .game .wealth-holdings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 23px; }
 .game .wealth-holding { min-width: 0; padding: 20px; border: 1px solid #dce3d0; border-radius: 16px; background: #f7f8ef; box-shadow: inset 0 1px 0 #fff; }
 .game .wealth-holding-heading { display: flex; gap: 11px; align-items: flex-start; }
@@ -50,6 +62,7 @@
 .game .wealth-holding-value { display: block; margin-top: 20px; color: #365432; font-size: 28px; font-weight: 600; letter-spacing: -.035em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .game .wealth-position-math { margin-top: 7px; color: #657357; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 .game .wealth-valued-at { margin-top: 5px; color: #717c64; font-size: 12px; line-height: 1.5; }
+.game .wealth-price-error { margin-top: 9px; padding: 8px 10px; border: 1px solid #e3ccb8; border-radius: 8px; color: #855637; background: #faf0e5; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .game .wealth-trade-actions { display: flex; gap: 9px; margin-top: 17px; }
 .game .wealth-trade-actions > .button { flex: 1; min-height: 44px; font-size: 12px; }
 .game .wealth-panel-note { margin-top: 17px; color: #657557; font-size: 12px; line-height: 1.6; }
@@ -89,7 +102,15 @@
 .game .wealth-form-description { font-size: 13px; }
 .game .wealth-form .field { margin-bottom: 16px; min-width: 0; }
 .game .wealth-form .field label { font-size: 12px; line-height: 1.5; }
-.game .wealth-form .field input { min-width: 0; min-height: 48px; font-size: 16px; }
+.game .wealth-form .field input,
+.game .wealth-form .field select { width: 100%; min-width: 0; min-height: 48px; font-size: 16px; }
+.game .wealth-market-picker { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; align-items: end; padding: 14px; border: 1px solid #d8e2c9; border-radius: 13px; margin-bottom: 17px; background: #f0f5e7; }
+.game .wealth-market-picker[hidden] { display: none; }
+.game .wealth-market-picker > .field { margin-bottom: 0; }
+.game .wealth-market-picker > .button { min-height: 48px; min-width: 0; font-size: 12px; }
+.game .wealth-market-picker > .wealth-form-note { grid-column: 1 / -1; margin: 0; overflow-wrap: anywhere; }
+.game .wealth-market-picker > .wealth-form-note:empty { display: none; }
+.game .wealth-form-note[hidden] { display: none; }
 .game .wealth-kind-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0; border: 0; margin-bottom: 18px; }
 .game .wealth-kind-picker legend { margin-bottom: 9px; color: #627555; font-size: 12px; }
 .game .wealth-kind-picker label { position: relative; min-width: 0; cursor: pointer; }
@@ -137,6 +158,8 @@
   .game .wealth-section-heading { align-items: flex-start; flex-direction: column; gap: 15px; }
   .game .wealth-add-actions { width: 100%; gap: 8px; }
   .game .wealth-add-actions > .button { flex: 1; padding-inline: 10px; }
+  .game .wealth-prices-toolbar { grid-template-columns: minmax(0, 1fr); gap: 11px; padding: 14px; margin-top: 17px; }
+  .game .wealth-update-prices { width: 100%; min-height: 48px; }
   .game .wealth-holdings-grid { grid-template-columns: minmax(0, 1fr); margin-top: 18px; gap: 11px; }
   .game .wealth-holding { padding: 17px 14px; }
   .game .wealth-holding h3 { font-size: 21px; }
@@ -157,6 +180,8 @@
   .game .wealth-transfer-row > .wealth-card-actions { grid-column: 2; justify-content: flex-end; }
   .game .wealth-transfer-copy { grid-row: span 2; }
   .game .wealth-form-fields.paired { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .game .wealth-market-picker { grid-template-columns: minmax(0, 1fr); }
+  .game .wealth-market-picker > .button { width: 100%; }
 }
 @media (max-width: 380px) {
   .game .wealth-stat > strong { font-size: 16px; }
@@ -164,9 +189,11 @@
   .game .wealth-holding-heading > .wealth-card-actions { width: 100%; justify-content: flex-end; margin-top: 1px; }
   .game .wealth-holding-value { margin-top: 12px; font-size: 20px; }
   .game .wealth-debt-row > .wealth-card-actions { width: 100%; justify-content: flex-end; }
-  .game .wealth-kind-picker label > span { padding-inline: 4px; }
+  .game .wealth-kind-picker label > span { flex-direction: column; gap: 5px; padding: 9px 4px; min-height: 68px; font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .game .wealth-stat-edit,
   .game .wealth-chevron { transition: none; }
+  .game .wealth-update-prices[aria-busy="true"] > .icon { animation: none; }
 }
+@keyframes wealth-prices-pulse { from { opacity: .5; } to { opacity: 1; } }

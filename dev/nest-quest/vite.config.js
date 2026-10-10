@@ -11,7 +11,7 @@ export default defineConfig({
     name: 'existing-public-account-config',
     configureServer(server) {
       server.middlewares.use(async (request, response, next) => {
-        if (request.url?.split('?')[0] !== '/portal/config.js') return next();
+        if (!['/portal/config.js', '/dev/nest-quest/portal/config.js'].includes(request.url?.split('?')[0])) return next();
         try {
           const config = await readFile(new URL('../../portal/config.js', import.meta.url));
           response.setHeader('Content-Type', 'text/javascript'); response.setHeader('Cache-Control', 'no-store'); response.end(config);

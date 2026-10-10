@@ -16,13 +16,16 @@ import { CATEGORY_ICONS, categoryOptions, categoryById, normalizeCategoryName } 
 import { goalDraft, readGoalDraft, goalEditorHTML, newGoal } from './goal-editor.js';
 import { spendingHTML } from './spending.js';
 import { mountVillage } from './village.js';
-import { wealthSummary, createHolding, updateHolding, removeHolding, recordTrade, updateTrade, removeTrade, createLiability, updateLiability, removeLiability } from './wealth-model.js';
+import { wealthSummary, createHolding, updateHolding, removeHolding, recordTrade, updateTrade, removeTrade, createLiability, updateLiability, removeLiability, applyHoldingQuotes, holdingQuoteSignature, normalizeDecimal } from './wealth-model.js';
 import { wealthHTML, wealthOverviewHTML, holdingFormHTML, liabilityFormHTML, holdingPreviewHTML } from './wealth.js';
+import { fetchHoldingPrices } from './market-prices.js';
+import { CRYPTO_ASSETS } from './market-assets.js';
 
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const isDemo = new URLSearchParams(location.search).get('demo') === '1';
-const localKey = isDemo ? 'nestquest:demo:v1' : 'nestquest:local:v1';
+const isPriceDemo = isDemo && new URLSearchParams(location.search).get('prices') === 'sample';
+const localKey = isPriceDemo ? 'nestquest:price-demo:v1' : isDemo ? 'nestquest:demo:v1' : 'nestquest:local:v1';
 let localStore;
 try { localStore = isDemo ? sessionStorage : localStorage; } catch { /* Report inaccessible storage below. */ }
 let damagedSave = null, storageWarning = false, staleTab = false;
@@ -35,6 +38,7 @@ let pendingAccount = null, cloudModule = null, modalCleanup = null, toastTimer, 
 const modal = $('#modal'), entrySheet = $('#entry-sheet');
 let quickCategory = 'groceries', entryDraft = null, entryOwnerEpoch = 0, villageCleanup = null, villageOwnerEpoch = 0;
 let recoverAccount = null;
+let pricesBusy = false, pricesResult = null, priceFailures = {}, priceController = null, priceSequence = 0, lastPriceRequest = 0;
 let activeView = ['#wealth', '#village-view'].includes(location.hash) ? 'wealth' : 'budget';
 try { if (!location.hash && sessionStorage.getItem('nestquest:view') === 'wealth') activeView = 'wealth'; } catch { /* Navigation works without storage. */ }
 if (!isDemo) {
@@ -58,7 +62,16 @@ function readLocal() {
       catch { damagedSave = raw; }
     }
   } catch { storageWarning = true; }
-  return isDemo ? demoState() : createState();
+  return isDemo ? priceDemoState() : createState();
+}
+function priceDemoState() {
+  const sample = demoState();
+  if (!isPriceDemo) return sample;
+  createHolding(sample, { kind: 'stock', name: 'Example shares', symbol: 'DEMO', openingQuantity: '12.5', price: '100',
+    market: { provider: 'licensed', id: 'DEMO', symbol: 'DEMO', currency: 'USD' } });
+  createHolding(sample, { kind: 'crypto', name: 'Bitcoin', symbol: 'BTC', openingQuantity: '0.025', price: '70000',
+    market: { provider: 'coinlore', id: '90', symbol: 'BTC', currency: 'USD' } });
+  return validateState(sample);
 }
 function accountDeviceKey() { return `nestquest:account:${account?.userId || recoverAccount?.id}`; }
 function storeDevice() {
@@ -121,7 +134,7 @@ async function flushCloudSave() {
 }
 function errorText(error) {
   const key = error?.message;
-  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError', 'goalsRequired', 'goalLimit', 'categoryError', 'categoryDuplicate', 'categoryUsed', 'categoryLimit', 'wealthNameError', 'wealthSymbolError', 'futureDate', 'holdingMissing', 'holdingUsed', 'tradeMissing', 'tradeOversell', 'liabilityMissing'];
+  const known = ['invalidSave', 'cloudConflict', 'sessionEnded', 'missingVersion', 'questNotReady', 'notEnoughGold', 'passwordMismatch', 'multiTab', 'limitReached', 'cloudUnavailable', 'waitSync', 'goalError', 'goalsRequired', 'goalLimit', 'categoryError', 'categoryDuplicate', 'categoryUsed', 'categoryLimit', 'wealthNameError', 'wealthSymbolError', 'futureDate', 'holdingMissing', 'holdingUsed', 'tradeMissing', 'tradeOversell', 'liabilityMissing', 'pricesFormChanged'];
   return t(key === 'amount' ? 'amountError' : known.includes(key) ? key : 'cloudError');
 }
 function toast(message) {
@@ -161,6 +174,7 @@ function render() {
   $('#page-title').textContent = t('dashboardTitle');
   $('#month').value = month; $('#month').max = localDate().slice(0, 7);
   $('#demo-banner').hidden = !isDemo; $('#account-button').hidden = isDemo;
+  if (isPriceDemo) $('#demo-banner [data-i18n]').textContent = t('pricesDemoNotice');
   const total = summarize(state, month);
   $('#summary').innerHTML = [['income', total.income], ['spent', total.expense], ['monthNet', total.income - total.expense]].map(([label, value]) =>
     `<article class="monthly-stat"><span>${esc(t(label))}</span><strong class="${value < 0 ? 'negative' : ''}">${esc(cash(value))}</strong></article>`).join('');
@@ -179,7 +193,9 @@ function render() {
   $('#activity-count').textContent = String(total.entries.length);
   $('#spending-view').innerHTML = spendingHTML(state, total);
   $('#wealth-summary-view').innerHTML = wealthOverviewHTML(state);
-  $('#networth-view').innerHTML = wealthHTML(state, { overview: false, tradeLimit });
+  $('#networth-view').innerHTML = wealthHTML(state, { overview: false, tradeLimit, pricesBusy, pricesSample: isPriceDemo,
+    pricesMessage: pricesResult ? t(pricesResult.key, pricesResult.values) : '',
+    priceFailures: Object.fromEntries(Object.entries(priceFailures).map(([id, key]) => [id, t(key)])) });
   if ($('.wealth-debts')) $('.wealth-debts').open = debtsOpen;
   if ($('.wealth-transfers')) $('.wealth-transfers').open = tradesOpen;
   renderLedger(total); renderSaveStatus();
@@ -254,6 +270,7 @@ function closeEntry({ discard = false } = {}) {
   entrySheet.close();
 }
 function resetEntryDraft() {
+  cancelPriceRefresh();
   entryOwnerEpoch++; tradeLimit = 12;
   if (entrySheet.open) entrySheet.close();
   entryDraft = null; quickCategory = 'groceries'; entrySheet.replaceChildren();
@@ -319,9 +336,76 @@ function goalModal({ required = false, draft = null } = {}) {
   openModal(goalEditorHTML(state, value, isDemo), { closeable: !required });
   $('#goal-form').goalDraft = value;
 }
-function holdingModal(options = {}) { openModal(holdingFormHTML(state, options)); }
+function holdingModal(options = {}) {
+  cancelPriceRefresh();
+  render();
+  openModal(holdingFormHTML(state, options), { onClose: () => { $('#holding-form')?.priceController?.abort(); } });
+  const form = $('#holding-form'), holding = state.holdings.find(item => item.id === form.dataset.id);
+  form.ownerEpoch = entryOwnerEpoch;
+  form.holdingSignature = holding ? holdingQuoteSignature(holding) : null;
+}
 function liabilityModal(id = '') { openModal(liabilityFormHTML(state, { id })); }
 function wealthSaved(key) { closeModal(); toast(t(key)); }
+function cancelPriceRefresh() {
+  priceSequence++; priceController?.abort(); priceController = null; pricesBusy = false; pricesResult = null; priceFailures = {};
+}
+async function refreshPrices() {
+  if (pricesBusy) return;
+  if (Date.now() - lastPriceRequest < 15000) { toast(t('pricesWait')); return; }
+  const holdings = wealthSummary(state).holdings.filter(holding => holding.market);
+  if (!holdings.length) { toast(t('pricesChoose')); return; }
+  const epoch = entryOwnerEpoch, currency = state.profile.currency, owner = account, recovering = recoverAccount, sequence = ++priceSequence;
+  const controller = new AbortController(); priceController = controller;
+  pricesBusy = true; pricesResult = null; priceFailures = {}; lastPriceRequest = Date.now(); render();
+  try {
+    const result = await fetchHoldingPrices(holdings, currency, { signal: controller.signal, sample: isPriceDemo });
+    if (sequence !== priceSequence || epoch !== entryOwnerEpoch || currency !== state.profile.currency || owner !== account || recovering !== recoverAccount) return;
+    priceFailures = result.failures;
+    const applicable = result.updates.filter(update => state.holdings.some(holding => holding.id === update.id && holdingQuoteSignature(holding) === update.expected));
+    let applied = [];
+    if (applicable.length) mutate(next => { applied = applyHoldingQuotes(next, applicable).applied; });
+    const failed = Object.keys(result.failures).length + result.updates.length - applied.length;
+    pricesResult = { key: applied.length ? failed ? 'pricesPartial' : 'pricesReady' : 'pricesNoChange', values: { n: applied.length, failed } };
+    if (applied.length) revealReaction();
+  } catch (error) {
+    if (sequence === priceSequence && epoch === entryOwnerEpoch) pricesResult = { key: error.message === 'multiTab' ? 'multiTab' : 'priceNetwork' };
+  } finally {
+    if (sequence === priceSequence) { pricesBusy = false; priceController = null; render(); }
+  }
+}
+function formMarket(form) {
+  const data = new FormData(form), asset = CRYPTO_ASSETS.find(asset => asset.id === data.get('market'));
+  const existing = state.holdings.find(item => item.id === form.dataset.id);
+  const symbol = String(data.get('symbol')).trim().toUpperCase();
+  if (data.get('kind') === 'crypto') {
+    if (asset && asset.symbol === symbol) return { provider: 'coinlore', id: asset.id, symbol: asset.symbol, currency: 'USD' };
+    if (existing?.market?.provider === 'coinlore' && existing.market.id === data.get('market') && existing.symbol === symbol) return existing.market;
+  }
+  return existing?.kind === data.get('kind') && existing?.market?.provider === 'licensed' && existing.symbol === symbol ? existing.market : null;
+}
+async function fetchFormPrice() {
+  const form = $('#holding-form'); if (!form) return;
+  const market = formMarket(form), output = $('#holding-price-status');
+  if (!market) { output.textContent = t('pricesChoose'); return; }
+  const controller = new AbortController(); form.priceController?.abort(); form.priceController = controller;
+  const ownerEpoch = entryOwnerEpoch, currency = state.profile.currency, owner = account, recovering = recoverAccount, priceInput = $('#holding-price');
+  const inputPrice = priceInput.value, inputSymbol = $('#holding-symbol').value, selectedMarket = $('#holding-market').value;
+  const button = form.querySelector('[data-action="holding-price"]'); button.disabled = true; output.textContent = t('wealthUpdatingPrices');
+  try {
+    const values = Object.fromEntries(new FormData(form));
+    const holding = { id: form.dataset.id || uuid(), kind: 'crypto', name: values.name || market.symbol, symbol: market.symbol,
+      openingQuantity: normalizeDecimal(values.quantity || '0'), price: normalizeDecimal(values.price || '0'), valuedAt: localDate(), market };
+    const result = await fetchHoldingPrices([holding], currency, { signal: controller.signal, sample: isPriceDemo });
+    if (!form.isConnected || form.priceController !== controller || ownerEpoch !== entryOwnerEpoch || currency !== state.profile.currency || owner !== account || recovering !== recoverAccount) return;
+    if (priceInput.value !== inputPrice || $('#holding-symbol').value !== inputSymbol || $('#holding-market').value !== selectedMarket) return;
+    const quote = result.updates[0]?.quote;
+    if (!quote) { output.textContent = t(result.failures[holding.id] || 'priceNetwork'); return; }
+    priceInput.value = quote.price; $('#holding-date').value = localDate(new Date(quote.fetchedAt)); form.priceQuote = quote;
+    $('#holding-value-preview').innerHTML = holdingPreviewHTML(state, { quantity: new FormData(form).get('quantity'), price: quote.price, id: form.dataset.id, mode: form.dataset.mode });
+    output.textContent = t('wealthPriceCheckedAt', { date: new Intl.DateTimeFormat(locale(), { hour: '2-digit', minute: '2-digit' }).format(new Date(quote.fetchedAt)) });
+  } catch { if (form.isConnected && form.priceController === controller) output.textContent = t('priceNetwork'); }
+  finally { if (form.isConnected && form.priceController === controller) { button.disabled = !$('#holding-market').value; form.priceController = null; } }
+}
 function choosePreset(kind) {
   const form = $('#goal-form'); if (!form) return;
   const draft = readGoalDraft(form);
@@ -480,11 +564,12 @@ async function restoreAccount() {
 }
 async function disconnect({ signOut = true } = {}) {
   if (syncBusy) throw new Error('waitSync');
+  resetEntryDraft();
   const id = account?.userId || recoverAccount?.id;
   account?.close(); account = null; recoverAccount = null; syncEnabled = false; syncPaused = false; cloudErrorKey = null;
   if (id) { try { sessionStorage.removeItem(`nestquest:account:${id}`); sessionStorage.removeItem('nestquest:active'); } catch { /* No durable account copy was made. */ } }
   if (signOut) (await getCloudModule()).signOut();
-  resetEntryDraft(); state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; clearReaction(); closeModal(); render();
+  state = readLocal(); lastDeviceRevision = state.revision; lastSyncedRevision = null; clearReaction(); closeModal(); render();
   ensureGoal();
 }
 
@@ -503,6 +588,11 @@ entrySheet.addEventListener('click', event => { if (event.target === entrySheet)
 document.addEventListener('input', event => {
   if (event.target.id === 'quick-amount') updateEntryImpact();
   const form = event.target.closest('#holding-form');
+  if (form && ['holding-price', 'holding-symbol', 'holding-date'].includes(event.target.id)) {
+    form.priceQuote = null; form.priceController?.abort(); form.priceController = null;
+    if (event.target.id === 'holding-symbol' && formMarket(form) === null) $('#holding-market').value = '';
+    const priceButton = form.querySelector('[data-action="holding-price"]'); if (priceButton) priceButton.disabled = !$('#holding-market').value;
+  }
   if (form && $('#holding-value-preview')) { const values = Object.fromEntries(new FormData(form)); $('#holding-value-preview').innerHTML = holdingPreviewHTML(state, { quantity: values.quantity, price: values.price, id: form.dataset.id, mode: form.dataset.mode }); }
 });
 $('.game-tabs').addEventListener('keydown', event => {
@@ -516,6 +606,18 @@ modal.addEventListener('cancel', event => { if (modal.dataset.closeable === 'fal
 modal.addEventListener('close', () => { const cleanup = modalCleanup; modalCleanup = null; if (cleanup) cleanup(); });
 modal.addEventListener('click', event => { if (event.target === modal && modal.dataset.closeable !== 'false') closeModal(); });
 document.addEventListener('change', event => {
+  const holdingForm = event.target.closest('#holding-form');
+  if (holdingForm && (event.target.name === 'kind' || event.target.id === 'holding-market')) {
+    holdingForm.priceQuote = null; holdingForm.priceController?.abort(); holdingForm.priceController = null;
+    const kind = new FormData(holdingForm).get('kind');
+    for (const row of holdingForm.querySelectorAll('[data-markets-for]')) row.hidden = row.dataset.marketsFor !== kind;
+    if (event.target.name === 'kind') $('#holding-market').value = '';
+    const asset = CRYPTO_ASSETS.find(asset => asset.id === $('#holding-market').value);
+    if (kind === 'crypto' && asset) { $('#holding-name').value = asset.name; $('#holding-symbol').value = asset.symbol; $('#holding-price').value = ''; }
+    $('#holding-quantity-label').textContent = t(holdingForm.dataset.mode === 'edit' ? kind === 'crypto' ? 'wealthOpeningCoins' : 'wealthOpeningShares' : kind === 'crypto' ? 'wealthCoins' : 'wealthShares');
+    holdingForm.querySelector('[data-action="holding-price"]').disabled = !formMarket(holdingForm) || kind !== 'crypto';
+    $('#holding-price-status').textContent = '';
+  }
   if (event.target.id === 'entry-filter') { ledgerFilter = event.target.value; ledgerLimit = 12; renderLedger(summarize(state, month)); }
   if (event.target.id === 'currency') {
     const draft = readGoalDraft($('#goal-form'));
@@ -567,6 +669,8 @@ document.addEventListener('click', async event => {
     }
     if (action === 'goal' || action === 'wealth-cash') { goalModal({ required: !state.goals.length }); if (action === 'wealth-cash') $('#goal-opening').focus(); }
     if (action === 'holding-owned') holdingModal({ mode: 'owned' });
+    if (action === 'prices-update') await refreshPrices();
+    if (action === 'holding-price') await fetchFormPrice();
     if (action === 'holding-purchase') holdingModal({ mode: 'purchase' });
     if (['holding-edit', 'holding-buy', 'holding-sell'].includes(action)) holdingModal({ id, mode: action.slice(8) });
     if (action === 'trade-edit') holdingModal({ tradeId: id });
@@ -596,7 +700,7 @@ document.addEventListener('click', async event => {
     }, true);
     if (action === 'reset') confirmAction('resetAsk', t('resetBody'), 'reset', () => {
       if (account || recoverAccount) throw new Error('cloudConflict');
-      resetEntryDraft(); localStore.removeItem(localKey); damagedSave = null; staleTab = false; state = isDemo ? demoState() : createState(); lastDeviceRevision = state.revision;
+      resetEntryDraft(); localStore.removeItem(localKey); damagedSave = null; staleTab = false; state = isDemo ? priceDemoState() : createState(); lastDeviceRevision = state.revision;
       clearReaction(); storeDevice(); closeModal(); render(); if (!isDemo) ensureGoal();
     }, true);
     if (action === 'sign-out') {
@@ -645,7 +749,10 @@ document.addEventListener('submit', async event => {
       if (!reaction?.delta) toast(t('entrySaved'));
     }
     if (form.id === 'holding-form') {
+      if (form.ownerEpoch !== entryOwnerEpoch) throw new Error('pricesFormChanged');
       const mode = form.dataset.mode, id = form.dataset.id, tradeId = form.dataset.tradeId;
+      const existingHolding = state.holdings.find(holding => holding.id === id);
+      if (form.holdingSignature && (!existingHolding || holdingQuoteSignature(existingHolding) !== form.holdingSignature)) throw new Error('pricesFormChanged');
       const date = data.get('date');
       if (!validDate(date) || date > localDate()) throw new Error('futureDate');
       const quantity = String(data.get('quantity'));
@@ -658,11 +765,13 @@ document.addEventListener('submit', async event => {
         if (!name || name.length > 64) throw new Error('wealthNameError');
         if (!/^[A-Za-z0-9._:/-]{0,20}$/.test(symbol)) throw new Error('wealthSymbolError');
         const input = { kind: data.get('kind'), name, symbol,
-          openingQuantity: mode === 'purchase' ? '0' : quantity, price: String(data.get('price')), valuedAt: date };
+          openingQuantity: mode === 'purchase' ? '0' : quantity, price: String(data.get('price')), valuedAt: date,
+          market: formMarket(form), quote: form.priceQuote || existingHolding?.quote || null };
         const amount = mode === 'purchase' ? parseMoney(data.get('amount')) : null;
         // One cloned state commits both legs; invalid trades never leave a position behind.
         mutate(next => {
           const holding = mode === 'edit' ? updateHolding(next, id, input) : createHolding(next, input);
+          if (form.priceQuote) applyHoldingQuotes(next, [{ id: holding.id, expected: holdingQuoteSignature(holding), quote: form.priceQuote }]);
           if (mode === 'purchase') recordTrade(next, { holdingId: holding.id, side: 'buy', quantity, amount, date });
         });
         wealthSaved(mode === 'purchase' ? 'wealthTradeSaved' : 'wealthHoldingSaved');

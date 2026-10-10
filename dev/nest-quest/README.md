@@ -4,7 +4,35 @@ A standalone English/Bulgarian budgeting RPG in the company’s Games & Fun hub.
 The landing page is `/dev/nest-quest/`; the game is `play.html`; a separate sample
 adventure is `play.html?demo=1`. `privacy.html` explains saves and removal.
 
-## The game
+## Local price-refresh preview — not released
+
+The October 3 source changes add a crypto chooser, explicit share/coin quantity
+labels, per-position price retrieval, and a batch Update prices action. The
+client updates marks and net worth without changing cash, monthly records, goal
+allocations, or trades. It preserves previous prices on failure and discards
+responses after an owner, currency, form, or holding change. Optional quote
+provenance fits the existing version 4 saves and conditional cloud repository.
+
+Live sources remain disabled in `src/price-access.js`; there is no licensed stock
+gateway or public deployment of these changes. The [provider handoff](docs/price-provider-readiness.md)
+contains primary-source permission findings, the gateway contract, remaining
+integration work, and two unsent no-cost access inquiries. No subscription,
+infrastructure, or outreach was created.
+
+To review the local interaction with fictional prices, run `npm run dev` and open
+`http://localhost:5173/dev/nest-quest/play.html?demo=1&prices=sample&lang=en#wealth`.
+This uses its own `nestquest:price-demo:v1` session key. It makes no market-data
+requests and labels every sample price as fictional. Ordinary demos and real
+adventures retain their separate storage. Keep deployable root files unchanged
+until provider permission and the remaining live integration are verified.
+
+Local verification: 115 automated tests, a Vite build into ignored `dist/`, 27
+interactive price-flow checks, and 18 EN/BG layout scans at 320/390/1440 pixels
+passed. The narrow-screen type-picker correction was independently rechecked;
+controls meet 44-pixel touch sizes. These results do not certify real quotes or
+an authenticated production price refresh.
+
+## The released game
 
 The game has two views on one route. Monthly budget opens first, with income,
 spending, and category graphs for the selected month. Savings & net worth combines

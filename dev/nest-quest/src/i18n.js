@@ -343,6 +343,41 @@ Object.assign(copy, {
   tradeMissing: ['This transfer is no longer available. Close and reopen the form.', 'Прехвърлянето вече не е налично. Затвори и отвори формата отново.'],
   liabilityMissing: ['This debt is no longer available. Close and reopen the form.', 'Задължението вече не е налично. Затвори и отвори формата отново.'],
 });
+Object.assign(copy, {
+  wealthUpdatePrices: ['Update prices', 'Обнови цените'],
+  wealthUpdatingPrices: ['Updating…', 'Обновяване…'],
+  wealthPriceSource: ['Price source', 'Източник на цената'],
+  wealthManualPrice: ['Enter price manually', 'Въведи цена ръчно'],
+  wealthRecordedValues: ['Recorded prices · {currency}', 'Записани цени · {currency}'],
+  wealthMarketPriceHint: ['Refresh linked investments in {currency}. Cash stays as recorded.', 'Обнови свързаните инвестиции в {currency}. Наличните пари остават както са записани.'],
+  wealthGetPrice: ['Get price', 'Вземи цена'],
+  wealthPriceCheckedAt: ['Checked {date}', 'Проверено на {date}'],
+  wealthPriceLinked: ['Linked for price updates', 'Свързано за обновяване на цената'],
+  wealthStockPriceNote: ['Automatic stock prices need an approved market-data feed.', 'Автоматичните цени на акции изискват одобрен източник на пазарни данни.'],
+  wealthShares: ['Shares you own', 'Притежавани акции'], wealthCoins: ['Coins you own', 'Притежавани монети'],
+  wealthOpeningShares: ['Opening shares', 'Начален брой акции'], wealthOpeningCoins: ['Opening coins', 'Начален брой монети'],
+  pricesDemoNotice: ['Price-update preview. All prices and amounts are fictional; no live quotes are fetched.', 'Преглед на обновяването. Всички цени и суми са примерни; не се изтеглят реални котировки.'],
+  pricesSample: ['Update sample prices', 'Обнови примерните цени'],
+  pricesSampleSource: ['Fictional demo prices', 'Примерни цени за демонстрация'],
+  pricesReady: ['Prices updated for {n} investments.', 'Цените на {n} инвестиции са обновени.'],
+  pricesPartial: ['Updated {n}. Kept previous prices for {failed}.', 'Обновени: {n}. Предишните цени са запазени за {failed}.'],
+  pricesNoChange: ['No prices changed. Your previous values are kept.', 'Няма променени цени. Предишните стойности са запазени.'],
+  pricesWait: ['Wait a moment before updating again.', 'Изчакай малко преди следващо обновяване.'],
+  pricesChoose: ['Choose an asset first.', 'Първо избери актив.'],
+  pricesFormChanged: ['This investment changed. Close and reopen it before saving.', 'Тази инвестиция е променена. Затвори и отвори формата отново преди запис.'],
+  providerRequired: ['A price feed needs approval before it can be used here.', 'Източникът на цени трябва да бъде одобрен преди използване тук.'],
+  priceIdentity: ['Asset did not match. Previous price kept.', 'Активът не съвпада. Предишната цена е запазена.'],
+  priceInvalid: ['Price unavailable or outside supported limits. Previous price kept.', 'Цената липсва или е извън допустимите граници. Предишната цена е запазена.'],
+  priceCurrency: ['Quote currency did not match. Previous price kept.', 'Валутата на котировката не съвпада. Предишната цена е запазена.'],
+  priceFX: ['Currency conversion unavailable. Previous price kept.', 'Валутният курс липсва. Предишната цена е запазена.'],
+  priceStale: ['Source data is too old. Previous price kept.', 'Данните са твърде стари. Предишната цена е запазена.'],
+  priceTimeout: ['Price request timed out. Try again later.', 'Времето за заявката изтече. Опитай по-късно.'],
+  priceAborted: ['Price update cancelled. Previous price kept.', 'Обновяването е отменено. Предишната цена е запазена.'],
+  priceRateLimit: ['Price source is busy. Try again later.', 'Източникът е натоварен. Опитай по-късно.'],
+  priceNetwork: ['Cannot reach the price source. Previous price kept.', 'Няма връзка с източника на цени. Предишната цена е запазена.'],
+  priceResponse: ['Price source returned an unexpected reply. Previous price kept.', 'Източникът върна неочакван отговор. Предишната цена е запазена.'],
+});
+
 let lang = 'en';
 try { lang = localStorage.getItem('nestquest:language') === 'bg' ? 'bg' : 'en'; } catch { /* Storage is optional for language. */ }
 const requested = new URLSearchParams(location.search).get('lang');

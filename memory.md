@@ -1,6 +1,36 @@
 # Project memory
 
-Last updated: **2026-10-01**. Initial review baseline: `77228f02`; earlier public-site release review baseline: `8afca85c`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+Last updated: **2026-10-03**. Initial review baseline: `77228f02`; earlier public-site release review baseline: `8afca85c`. This is a repository-backed handoff, not a guarantee of current production state. Read [README.md](README.md) for setup and the project map.
+
+## Nest & Quest price-refresh draft (2026-10-03, local only)
+
+- Unreleased source adds explicit share/coin quantities, a crypto asset chooser,
+  per-form Get price, and batch Update prices. `src/market-prices.js` validates
+  identities, decimal prices, timestamps, currency conversions, response bounds,
+  and cancellation. `src/wealth-model.js` applies exact snapshot-matched marks;
+  price refresh never changes cash, budget records, goal funds, or trades.
+- Optional `market` and `quote` metadata remain within schema 4. Manual overrides
+  clear stale quote provenance; unknown imported CoinLore IDs remain selectable.
+  Sign-out cancels updates before changing the save owner. Account/currency/form
+  guards discard late responses; provider requests omit private portfolio values.
+- `src/price-access.js` defaults to crypto off and no stock gateway. Source access
+  and public deployment remain unresolved. CoinLore's API docs invite free
+  business use but its general terms restrict distribution; checked stock feeds
+  require suitable display/valuation rights. See
+  [the provider readiness handoff](dev/nest-quest/docs/price-provider-readiness.md)
+  for dated primary evidence, the client/gateway contract, and two unsent inquiries.
+  No paid service, provider account, infrastructure, or outreach was created.
+- Local review URL: `http://localhost:5173/dev/nest-quest/play.html?demo=1&prices=sample&lang=en#wealth`.
+  All quotes and FX are explicitly fictional, with zero market requests. Its
+  `nestquest:price-demo:v1` session key is separate from ordinary demos and guests.
+- Verification passed: 115 automated tests; Vite build into ignored `dist/` only;
+  27 interactive checks including delayed requests, manual overrides, unknown
+  imported identities, partial failures and unchanged cash; 18 EN/BG layouts at
+  320/390/1440px plus the narrow-picker rechecks. Evidence is under ignored
+  `output/playwright/nq7-*`. No current provider, authenticated price refresh,
+  generated public-file synchronization, commit, push, or Pages release occurred.
+
+The October 1 section below describes the existing manual-price release.
 
 ## Nest & Quest budgeting RPG (2026-10-01)
 
