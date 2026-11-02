@@ -70,6 +70,15 @@ an isolated `.nestquest/` application document, hidden from the portal Files lis
 Source, generated output, asset provenance, development commands, privacy, and
 verification details are documented in [the game README](dev/nest-quest/README.md).
 
+## Family audio library
+
+[`dev/kids/`](dev/kids/) lists recordings by their uploaded filenames. Audio
+metadata is loaded from the private S3 manifest at `prikazki/manifest.json`; the
+browser requests an expiring playback URL only after a visitor selects a file.
+Uploads and deletes in that S3 prefix rebuild the manifest through the
+Terraform-managed Lambda. See [backend/README.md](backend/README.md) for its
+permissions, deployment steps and cost boundaries.
+
 ## Soroya and company contact (2026-09-27)
 
 Soroya is the owner-appointed Head of HR & Operations persona, company face, and
@@ -286,7 +295,7 @@ The basic Python server serves existing route directories but does not reproduce
 | `scripts/sync-route-pages.mjs` | Generates ten static route shells from `index.html` with route-specific head metadata |
 | `manifest/`, `contact/`, other route folders | Generated `index.html` files for direct static-host requests |
 | `portal/` | Separate Vite app and committed browser build for Cognito login, budget tracking, private TimeTo countdowns, personal files and the admin inbox |
-| `backend/` | Terraform for the portal and public contact inbox: Cognito, IAM and S3 |
+| `backend/` | Terraform for the portal, public contact inbox and private S3-backed kids audio library |
 | `backend/shorturl/` | Independent Terraform stack and Lambda for short links |
 | `dev/` | Tool hub and independent projects with their own runtimes/build conventions |
 | `share/` | Static sharing entry pages |

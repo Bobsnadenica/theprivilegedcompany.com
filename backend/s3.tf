@@ -88,4 +88,19 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
       days = 90
     }
   }
+
+  # Keep the live audio catalogue in the current version, but discard old
+  # manifest versions after a day as uploads refresh it.
+  rule {
+    id     = "expire-old-kids-manifests"
+    status = "Enabled"
+
+    filter {
+      prefix = "prikazki/manifest.json"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 1
+    }
+  }
 }

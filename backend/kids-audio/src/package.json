@@ -1,0 +1,13 @@
+{
+  "name": "tpc-kids-audio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Private S3 audio manifest and click-to-play endpoint",
+  "main": "index.js",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test test" },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.900.0",
+    "@aws-sdk/s3-request-presigner": "^3.900.0"
+  }
+}
