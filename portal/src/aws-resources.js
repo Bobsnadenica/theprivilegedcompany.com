@@ -3,7 +3,7 @@ import { SignatureV4 } from '@smithy/signature-v4';
 import { getPortalCredentials } from './storage.js';
 
 const config = window.__PORTAL_CONFIG__ || {};
-const $ = (id) => document.getElementById(id);
+const $ = (selector) => document.querySelector(selector);
 const SERVICE_NAMES = {
   apigateway: 'API Gateway',
   cloudformation: 'CloudFormation',
