@@ -4,7 +4,7 @@
       back: '← Всички проекти', eyebrow: 'МЯСТО ЗА СЕМЕЙНИ ИСТОРИИ',
       title: 'Истории за слушане.', intro: 'Разгледай аудиозаписите и пусни избрания файл.',
       collection: 'БИБЛИОТЕКА', browse: 'Аудиофайлове', ready: 'ПЛЕЙЪР', playerTitle: 'Избери запис',
-      search: 'Търси файл…', searchLabel: 'Търси файл', downloadAll: '↓ Изтегли всички', loading: 'Зареждане на аудиофайловете…',
+      search: 'Търси файл…', searchLabel: 'Търси файл', downloadAll: '↓ Изтегли всички', downloadCurrent: '↓ Изтегли', downloadFile: name => `Изтегли ${name}`, loading: 'Зареждане на аудиофайловете…',
       empty: 'Все още няма аудиозаписи.', noMatches: 'Няма съвпадения. Опитай друга дума.',
       count: n => `${n} аудиофайла`, results: (n, total) => `Показани са ${n} от ${total} файла.`,
       idle: 'Аудиофайлът се зарежда само след избор.', error: 'Библиотеката не може да бъде заредена в момента.',
@@ -15,7 +15,7 @@
       back: '← All projects', eyebrow: 'A SPACE FOR FAMILY STORIES',
       title: 'Stories to listen to.', intro: 'Browse the recordings and play a file when you choose it.',
       collection: 'LIBRARY', browse: 'Audio files', ready: 'PLAYER', playerTitle: 'Choose a recording',
-      search: 'Search files…', searchLabel: 'Search files', downloadAll: '↓ Download all', loading: 'Loading audio files…',
+      search: 'Search files…', searchLabel: 'Search files', downloadAll: '↓ Download all', downloadCurrent: '↓ Download', downloadFile: name => `Download ${name}`, loading: 'Loading audio files…',
       empty: 'No recordings yet.', noMatches: 'No matches. Try another search.',
       count: n => `${n} audio files`, results: (n, total) => `Showing ${n} of ${total} files.`,
       idle: 'Audio loads only after you select a recording.', error: 'The library could not be loaded right now.',
@@ -28,6 +28,8 @@
   const search = $('#search');
   const languageToggle = $('#language-toggle');
   const downloadAll = $('#download-all');
+  const downloadCurrent = $('#download-current');
+  const playerPanel = $('#audio-player-panel');
   const empty = $('#empty-state');
   const audio = $('#audio');
   const endpoint = window.__KIDS_AUDIO__?.endpoint?.replace(/\/$/, '');
@@ -45,8 +47,15 @@
     return typeof value === 'function' ? value(...args) : value;
   }
 
+  function downloadUrl(key) {
+    return `${endpoint}/download?key=${encodeURIComponent(key)}`;
+  }
+
   function updatePlayer() {
     $('#player-title').textContent = currentFile?.name || say('playerTitle');
+    playerPanel.hidden = !currentFile;
+    document.body.classList.toggle('has-active-player', Boolean(currentFile));
+    downloadCurrent.href = currentFile && endpoint ? downloadUrl(currentFile.key) : '#';
     const message = playerState === 'loading' ? say('load', currentFile.name)
       : playerState === 'playing' ? say('playing', currentFile.name)
         : playerState === 'selected' ? say('selected', currentFile.name)
@@ -110,7 +119,12 @@
       symbol.setAttribute('aria-hidden', 'true');
 
       button.append(number, title, symbol);
-      row.append(button);
+      const download = document.createElement('a');
+      download.className = 'track-download';
+      download.href = endpoint ? downloadUrl(file.key) : '#';
+      download.setAttribute('aria-label', say('downloadFile', file.name));
+      download.textContent = '↓';
+      row.append(button, download);
       fragment.append(row);
     }
     list.replaceChildren(fragment);
@@ -146,7 +160,6 @@
 
     currentFile = file;
     playerState = 'loading';
-    audio.hidden = false;
     audio.src = `${endpoint}/play?key=${encodeURIComponent(file.key)}`;
     audio.load();
     render();

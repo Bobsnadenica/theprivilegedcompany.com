@@ -29,13 +29,15 @@
       <p id="empty-state" class="empty" hidden data-copy="empty">Все още няма аудиозаписи.</p>
       <ul id="tracks" class="track-list" aria-label="Аудиофайлове" data-copy-aria="browse"></ul>
     </section>
-    <aside class="audio-player-panel" aria-live="polite">
+    <aside id="audio-player-panel" class="audio-player-panel" aria-label="Audio player" hidden>
+      <div class="player-art" aria-hidden="true"><span>♪</span></div>
       <div class="player-copy">
         <p class="eyebrow" data-copy="ready">ПЛЕЙЪР</p>
         <h2 id="player-title" data-copy="playerTitle">Избери запис</h2>
         <p id="player-status" class="player-status" data-copy="idle">Аудиофайлът се зарежда само след избор.</p>
       </div>
-      <audio id="audio" controls preload="none" aria-label="Аудиоплейър" data-copy-aria="ready" hidden></audio>
+      <audio id="audio" controls preload="none" aria-label="Аудиоплейър" data-copy-aria="ready"></audio>
+      <a id="download-current" class="player-download" data-copy="downloadCurrent">↓ Изтегли</a>
     </aside>
   </main>
 </body>

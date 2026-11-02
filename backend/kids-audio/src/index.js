@@ -100,6 +100,11 @@ function requestPath(event) {
   return event.rawPath || event.requestContext?.http?.path || '/';
 }
 
+function encodedFilename(name) {
+  return encodeURIComponent(name).replace(/[!'()*]/g, character =>
+    `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+}
+
 function createHandler({ client = s3, signUrl = getSignedUrl } = {}) {
   return async function handler(event) {
     if (event.Event === 's3:TestEvent') return { accepted: true };
@@ -147,6 +152,29 @@ function createHandler({ client = s3, signUrl = getSignedUrl } = {}) {
       };
     }
 
+    if (path.endsWith('/download')) {
+      const key = event.queryStringParameters?.key;
+      if (!key || !key.startsWith(prefix)) return jsonResponse(400, { error: 'invalid_audio_key' });
+
+      const manifest = await readManifest(client);
+      const file = manifest.files.find(entry => entry.key === key);
+      if (!file) return jsonResponse(404, { error: 'audio_not_found' });
+
+      const filename = file.name.split('/').pop() || 'audio';
+      const url = await signUrl(client, new GetObjectCommand({
+        Bucket: bucket,
+        Key: file.key,
+        ResponseContentType: file.contentType,
+        ResponseContentDisposition: `attachment; filename="download"; filename*=UTF-8''${encodedFilename(filename)}`,
+      }), { expiresIn: presignedSeconds });
+
+      return {
+        statusCode: 302,
+        headers: { Location: url, 'cache-control': 'no-store' },
+        body: '',
+      };
+    }
+
     if (path.endsWith('/download-all')) {
       const manifest = await readManifest(client);
       if (!manifest.archive?.key || manifest.archive.key.toLowerCase() !== archiveKey.toLowerCase()) {
@@ -175,3 +203,4 @@ exports.handler = createHandler();
 exports.createHandler = createHandler;
 exports.buildManifest = buildManifest;
 exports.audioTypeFor = audioTypeFor;
+exports.encodedFilename = encodedFilename;
