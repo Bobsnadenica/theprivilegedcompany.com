@@ -11,6 +11,7 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const bucket = process.env.BUCKET_NAME;
 const prefix = process.env.PREFIX || 'prikazki/';
 const manifestKey = process.env.MANIFEST_KEY || `${prefix}manifest.json`;
+const archiveKey = `${prefix}Archive.zip`;
 const presignedSeconds = Number(process.env.PRESIGNED_SECONDS || 43200);
 const s3 = new S3Client({});
 
@@ -28,6 +29,7 @@ function audioTypeFor(key) {
 
 async function buildManifest(client = s3, now = new Date()) {
   const files = [];
+  let archive = null;
   let continuationToken;
 
   do {
@@ -39,6 +41,10 @@ async function buildManifest(client = s3, now = new Date()) {
 
     for (const object of page.Contents || []) {
       const key = object.Key;
+      if (key && key.toLowerCase() === archiveKey.toLowerCase() && object.Size > 0) {
+        archive = { key, name: key.slice(prefix.length), size: object.Size };
+        continue;
+      }
       if (!key || key === manifestKey || !audioTypeFor(key) || !object.Size) continue;
       files.push({
         key,
@@ -57,7 +63,7 @@ async function buildManifest(client = s3, now = new Date()) {
     sensitivity: 'base',
   }));
 
-  const manifest = { version: 1, generatedAt: now.toISOString(), files };
+  const manifest = { version: 1, generatedAt: now.toISOString(), files, archive };
   await client.send(new PutObjectCommand({
     Bucket: bucket,
     Key: manifestKey,
@@ -102,10 +108,12 @@ function createHandler({ client = s3, signUrl = getSignedUrl } = {}) {
       const changedKeys = event.Records
         .filter(record => record.eventSource === 'aws:s3')
         .map(record => decodeURIComponent(record.s3.object.key.replace(/\+/g, ' ')));
-      if (changedKeys.some(key => key.startsWith(prefix) && audioTypeFor(key))) {
+      const shouldRebuild = changedKeys.some(key => key.startsWith(prefix)
+        && (audioTypeFor(key) || key.toLowerCase() === archiveKey.toLowerCase()));
+      if (shouldRebuild) {
         await buildManifest(client);
       }
-      return { rebuilt: changedKeys.some(key => key.startsWith(prefix) && audioTypeFor(key)) };
+      return { rebuilt: shouldRebuild };
     }
 
     const method = event.requestContext?.http?.method || 'GET';
@@ -130,6 +138,26 @@ function createHandler({ client = s3, signUrl = getSignedUrl } = {}) {
         Key: file.key,
         ResponseContentType: file.contentType,
         ResponseContentDisposition: 'inline',
+      }), { expiresIn: presignedSeconds });
+
+      return {
+        statusCode: 302,
+        headers: { Location: url, 'cache-control': 'no-store' },
+        body: '',
+      };
+    }
+
+    if (path.endsWith('/download-all')) {
+      const manifest = await readManifest(client);
+      if (!manifest.archive?.key || manifest.archive.key.toLowerCase() !== archiveKey.toLowerCase()) {
+        return jsonResponse(404, { error: 'archive_not_found' });
+      }
+
+      const url = await signUrl(client, new GetObjectCommand({
+        Bucket: bucket,
+        Key: manifest.archive.key,
+        ResponseContentType: 'application/zip',
+        ResponseContentDisposition: 'attachment; filename="Archive.zip"',
       }), { expiresIn: presignedSeconds });
 
       return {

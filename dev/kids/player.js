@@ -1,10 +1,10 @@
 (() => {
   const copy = {
     bg: {
-      back: '← Всички проекти', languageLabel: 'Език', eyebrow: 'МЯСТО ЗА СЕМЕЙНИ ИСТОРИИ',
+      back: '← Всички проекти', eyebrow: 'МЯСТО ЗА СЕМЕЙНИ ИСТОРИИ',
       title: 'Истории за слушане.', intro: 'Разгледай аудиозаписите и пусни избрания файл.',
       collection: 'БИБЛИОТЕКА', browse: 'Аудиофайлове', ready: 'ПЛЕЙЪР', playerTitle: 'Избери запис',
-      search: 'Търси файл…', searchLabel: 'Търси файл', loading: 'Зареждане на аудиофайловете…',
+      search: 'Търси файл…', searchLabel: 'Търси файл', downloadAll: '↓ Изтегли всички', loading: 'Зареждане на аудиофайловете…',
       empty: 'Все още няма аудиозаписи.', noMatches: 'Няма съвпадения. Опитай друга дума.',
       count: n => `${n} аудиофайла`, results: (n, total) => `Показани са ${n} от ${total} файла.`,
       idle: 'Аудиофайлът се зарежда само след избор.', error: 'Библиотеката не може да бъде заредена в момента.',
@@ -12,10 +12,10 @@
       playing: name => `Слушаш: ${name}`, failed: 'Записът не може да бъде възпроизведен.'
     },
     en: {
-      back: '← All projects', languageLabel: 'Language', eyebrow: 'A SPACE FOR FAMILY STORIES',
+      back: '← All projects', eyebrow: 'A SPACE FOR FAMILY STORIES',
       title: 'Stories to listen to.', intro: 'Browse the recordings and play a file when you choose it.',
       collection: 'LIBRARY', browse: 'Audio files', ready: 'PLAYER', playerTitle: 'Choose a recording',
-      search: 'Search files…', searchLabel: 'Search files', loading: 'Loading audio files…',
+      search: 'Search files…', searchLabel: 'Search files', downloadAll: '↓ Download all', loading: 'Loading audio files…',
       empty: 'No recordings yet.', noMatches: 'No matches. Try another search.',
       count: n => `${n} audio files`, results: (n, total) => `Showing ${n} of ${total} files.`,
       idle: 'Audio loads only after you select a recording.', error: 'The library could not be loaded right now.',
@@ -26,7 +26,8 @@
   const $ = selector => document.querySelector(selector);
   const list = $('#tracks');
   const search = $('#search');
-  const language = $('#language');
+  const languageToggle = $('#language-toggle');
+  const downloadAll = $('#download-all');
   const empty = $('#empty-state');
   const audio = $('#audio');
   const endpoint = window.__KIDS_AUDIO__?.endpoint?.replace(/\/$/, '');
@@ -37,6 +38,7 @@
   let loadFinished = false;
   let currentFile = null;
   let playerState = 'idle';
+  let manifestArchive = false;
 
   function say(key, ...args) {
     const value = copy[languageCode][key];
@@ -68,7 +70,8 @@
 
   function render() {
     document.documentElement.lang = languageCode;
-    language.value = languageCode;
+    languageToggle.innerHTML = languageCode === 'bg' ? '🇬🇧 <span>EN</span>' : '🇧🇬 <span>BG</span>';
+    languageToggle.setAttribute('aria-label', languageCode === 'bg' ? 'Switch language to English' : 'Смени езика на български');
     document.querySelectorAll('[data-copy]').forEach(node => {
       node.textContent = say(node.dataset.copy);
     });
@@ -78,6 +81,8 @@
     search.placeholder = say('search');
     $('#slot-count').textContent = loadFinished ? say('count', files.length) : say('loading');
     $('#placeholder-note').textContent = loadError ? say('error') : say('idle');
+    downloadAll.hidden = !manifestArchive;
+    downloadAll.href = endpoint ? `${endpoint}/download-all` : '#';
 
     const fragment = document.createDocumentFragment();
     for (const [index, file] of files.entries()) {
@@ -123,6 +128,7 @@
         ? manifest.files.filter(file => file && typeof file.name === 'string'
           && typeof file.key === 'string' && file.key.startsWith('prikazki/'))
         : [];
+      manifestArchive = manifest.archive?.key?.toLowerCase() === 'prikazki/archive.zip';
     } catch {
       loadError = true;
     }
@@ -162,8 +168,8 @@
     if (playerState === 'playing' && currentFile) { playerState = 'selected'; render(); }
   });
   audio.addEventListener('error', () => { playerState = 'error'; updatePlayer(); });
-  language.addEventListener('change', () => {
-    languageCode = language.value;
+  languageToggle.addEventListener('click', () => {
+    languageCode = languageCode === 'bg' ? 'en' : 'bg';
     const url = new URL(location.href);
     url.searchParams.set('lang', languageCode);
     history.replaceState(null, '', url);

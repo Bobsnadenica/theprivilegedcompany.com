@@ -15,8 +15,7 @@
   <main class="shell">
     <header class="topbar">
       <a href="../index.html" class="back" data-copy="back">← Всички проекти</a>
-      <label class="language-label" for="language" data-copy="languageLabel">Език</label>
-      <select id="language" aria-label="Език / Language"><option value="bg">Български</option><option value="en">English</option></select>
+      <button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language to English">🇬🇧 <span>EN</span></button>
     </header>
     <section class="hero" aria-labelledby="page-title">
       <p class="eyebrow" data-copy="eyebrow">МЯСТО ЗА СЕМЕЙНИ ИСТОРИИ</p>
@@ -25,7 +24,7 @@
       <div class="library-meta"><span class="meta-dot"></span><span id="slot-count">Зареждане на аудиофайловете…</span><span class="meta-separator">·</span><span id="placeholder-note">Имената се зареждат от файловете в библиотеката.</span></div>
     </section>
     <section class="library" aria-labelledby="library-title">
-      <div class="library-heading"><div><p class="eyebrow" data-copy="collection">БИБЛИОТЕКА</p><h2 id="library-title" data-copy="browse">Аудиофайлове</h2></div><label class="search-wrap"><span aria-hidden="true">⌕</span><span class="sr-only" data-copy="searchLabel">Търси файл</span><input id="search" type="search" autocomplete="off" placeholder="Търси файл…"></label></div>
+      <div class="library-heading"><div><p class="eyebrow" data-copy="collection">БИБЛИОТЕКА</p><h2 id="library-title" data-copy="browse">Аудиофайлове</h2></div><div class="library-actions"><a id="download-all" class="download-all" data-copy="downloadAll" hidden>↓ Изтегли всички</a><label class="search-wrap"><span aria-hidden="true">⌕</span><span class="sr-only" data-copy="searchLabel">Търси файл</span><input id="search" type="search" autocomplete="off" placeholder="Търси файл…"></label></div></div>
       <p id="filter-status" class="filter-status" role="status" aria-live="polite"></p>
       <p id="empty-state" class="empty" hidden data-copy="empty">Все още няма аудиозаписи.</p>
       <ul id="tracks" class="track-list" aria-label="Аудиофайлове" data-copy-aria="browse"></ul>

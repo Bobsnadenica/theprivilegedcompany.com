@@ -75,9 +75,11 @@ verification details are documented in [the game README](dev/nest-quest/README.m
 [`dev/kids/`](dev/kids/) lists recordings by their uploaded filenames. Audio
 metadata is loaded from the private S3 manifest at `prikazki/manifest.json`; the
 browser requests an expiring playback URL only after a visitor selects a file.
-Uploads and deletes in that S3 prefix rebuild the manifest through the
-Terraform-managed Lambda. See [backend/README.md](backend/README.md) for its
-permissions, deployment steps and cost boundaries.
+The page has English/Bulgarian language switching and offers a `Download all`
+button when `prikazki/Archive.zip` is present. Uploads and deletes in that S3
+prefix rebuild the manifest through the Terraform-managed Lambda. See
+[backend/README.md](backend/README.md) for its permissions, deployment steps and
+cost boundaries.
 
 ## Soroya and company contact (2026-09-27)
 

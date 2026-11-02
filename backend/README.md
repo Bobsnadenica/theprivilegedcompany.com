@@ -28,9 +28,9 @@ manually** (no self sign-up). Single `admin` group for now.
 | `aws_cognito_identity_pool_provider_principal_tag` | Maps the `email` claim → a session principal tag |
 | `aws_iam_role.authenticated` | Role assumed by logged-in users, scoped to `users/<email>/*` |
 | `aws_s3_bucket.uploads` | Private, encrypted, versioned upload bucket (`theprivilegedcompany-bucket`) |
-| `aws_lambda_function.kids_audio` | Rebuilds the kids audio manifest and signs on-demand playback requests, limited to `prikazki/*` |
+| `aws_lambda_function.kids_audio` | Rebuilds the kids audio manifest and signs on-demand playback and archive-download requests, limited to `prikazki/*` |
 | `aws_s3_bucket_notification.kids_audio` | Invokes the manifest Lambda when objects are created or removed under `prikazki/` |
-| `aws_lambda_function_url.kids_audio` | Public, read-only manifest endpoint and click-to-play redirect; the bucket stays private |
+| `aws_lambda_function_url.kids_audio` | Public manifest endpoint and on-demand playback/download redirects; the bucket stays private |
 | `local_file.portal_config` | Writes `../portal/config.js` for the static page |
 
 ## Prerequisites
@@ -56,8 +56,9 @@ private bucket. Upload supported audio files (`mp3`, `m4a`, `wav`, `ogg`, `aac`,
 `flac`, `aif`, `aiff`, `opus`, or `weba`) there. S3 create/delete notifications
 rebuild `prikazki/manifest.json`; the public page fetches that small JSON document
 through the Lambda Function URL. Selecting a recording requests a temporary
-redirect to that one S3 object, so opening the page does not fetch audio. The
-bucket itself stays private and the Lambda role can list/read/write only the
+redirect to that one S3 object, so opening the page does not fetch audio. The page
+shows `Download all` when `prikazki/Archive.zip` exists; the archive downloads
+only after a visitor selects that action. The bucket itself stays private and the Lambda role can list/read/write only the
 `prikazki/` prefix. Anyone can access recordings placed in that prefix through
 the public site; keep only recordings intended for public playback there.
 
