@@ -31,6 +31,9 @@ manually** (no self sign-up). Single `admin` group for now.
 | `aws_lambda_function.kids_audio` | Rebuilds the kids audio manifest and signs on-demand playback and download requests, limited to `prikazki/*` |
 | `aws_s3_bucket_notification.kids_audio` | Invokes the manifest Lambda when objects are created or removed under `prikazki/` |
 | `aws_lambda_function_url.kids_audio` | Public manifest endpoint and on-demand playback/download redirects; the bucket stays private |
+| `aws_lambda_function.aws_inventory` | Read-only account inventory, S3 object totals and Lambda usage estimates for the admin portal |
+| `aws_lambda_function_url.aws_inventory` | IAM-authenticated inventory endpoint; the admin identity alone can invoke it |
+| `aws_iam_role_policy.authenticated_aws_inventory` | Limits invocation to the Cognito identity whose email matches `admin_email` |
 | `local_file.portal_config` | Writes `../portal/config.js` for the static page |
 
 ## Prerequisites
@@ -46,10 +49,19 @@ manually** (no self sign-up). Single `admin` group for now.
 cd backend
 npm ci --prefix kids-audio/src
 npm test --prefix kids-audio/src
+npm ci --prefix aws-inventory/src
+bash scripts/ensure-resource-explorer-indexes.sh
 terraform init
 terraform plan      # review additions and deletions before apply
 terraform apply     # creates or updates the reviewed resources
 ```
+
+The AWS inventory uses Resource Explorer local indexes across active regions and
+does not create an aggregator. The indexes have no additional Resource Explorer
+charge. An on-demand refresh measures current S3 objects and reads Lambda runtime
+metrics; its estimates exclude versions, storage classes beyond the Standard
+baseline, free-tier adjustments, discounts and tax. It never calls Cost Explorer.
+The endpoint's IAM policy is read-only and scoped to the admin's Cognito email.
 
 The `prikazki/` prefix is separate from portal user files and remains inside the
 private bucket. Upload supported audio files (`mp3`, `m4a`, `wav`, `ogg`, `aac`,

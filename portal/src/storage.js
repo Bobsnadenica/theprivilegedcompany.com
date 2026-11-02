@@ -22,6 +22,7 @@ const cfg = window.__PORTAL_CONFIG__;
 
 let s3 = null;
 let userEmail = null;
+let awsCredentialsProvider = null;
 
 // Exchange the ID token for an identity id + temporary AWS credentials.
 // We call the Cognito Identity API directly (instead of the umbrella
@@ -60,6 +61,7 @@ export async function initStorage(idTokenJwt) {
     };
   };
 
+  awsCredentialsProvider = credentials;
   s3 = new S3Client({ region: cfg.region, credentials });
 
   return userEmail;
@@ -164,7 +166,11 @@ export async function archiveInbox(key) {
 
 // --- Budget ledger: same IAM-protected user space, hidden from file browsing.
 const BUDGET_PATH = '.budget/ledger-v1.json';
-export function resetStorage() { s3 = null; userEmail = null; }
+export function resetStorage() { s3 = null; userEmail = null; awsCredentialsProvider = null; }
+export async function getPortalCredentials() {
+  if (!awsCredentialsProvider) throw new Error('Please sign in again to access AWS resources.');
+  return awsCredentialsProvider();
+}
 function budgetScope() {
   if (!s3 || !userEmail) throw new Error('Please sign in again to access your budget.');
   return { client: s3, key: `${prefix()}${BUDGET_PATH}` };

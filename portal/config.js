@@ -6,4 +6,5 @@ window.__PORTAL_CONFIG__ = {
   userPoolClientId: "6qtlgdqofegqfa736pfoalsin4",
   identityPoolId: "eu-west-1:4d3e6ee9-98f5-49ba-85c4-8eb2d0b05c21",
   bucket: "theprivilegedcompany-bucket",
+  awsInventoryUrl: "https://pja2puoleia4nlpdjtb7mpzt6q0fpucl.lambda-url.eu-west-1.on.aws/",
 };

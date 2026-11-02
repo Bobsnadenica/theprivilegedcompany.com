@@ -357,3 +357,21 @@ category chips, swipeable discovery cards, a browse button on the map and an acc
 native detail sheet. The existing photo-before-check-in save flow and account-scoped
 storage are unchanged. The local Figma reference contains public catalogue data only;
 its final layout refinement was blocked by the Starter-plan MCP call limit.
+
+
+### AWS account inventory (admin only)
+
+The AWS icon appears only after the signed-in account successfully reads the private
+contact inbox. It opens a read-only inventory with search, service and region filters,
+AWS Console links, current visible-object counts/sizes for S3 buckets, and an
+approximate month-to-date Lambda runtime estimate. Other service costs are not
+estimated, and the board does not use Cost Explorer.
+
+The inventory API is a separate IAM-authenticated Lambda Function URL. Its identity
+policy grants invocation only to the authenticated Cognito role whose `email` principal
+tag matches `admin_email`; the Lambda can list resource metadata, bucket locations and
+current objects, and Lambda usage metrics, but has no resource mutation permissions.
+The built portal bundle contains only the public endpoint URL, never account resource
+data or AWS credentials. Refreshing lists S3 objects to total current visible bytes;
+very large buckets can take longer, and older object versions are excluded from this
+size estimate.

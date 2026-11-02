@@ -4,6 +4,7 @@ import { createBulgariaUI } from './bulgaria.js';
 import { createTimeToUI } from './timeto.js';
 import { createBudgetUI } from './budget.js';
 import { createBudgetRepository } from './budget-repository.js';
+import { createAwsResourcesUI } from './aws-resources.js';
 import {
   signIn,
   completeNewPassword,
@@ -45,11 +46,12 @@ const budget = createBudgetUI(() => createBudgetRepository(createBudgetStorage()
 const timeto = createTimeToUI(createTimeToStorage);
 const bulgaria = createBulgariaUI(createBulgariaStorage,createVisitPhotoStorage);
 const life = createLifeUI(createLifeStorage);
-const trackers = { 'budget-panel': budget, 'timeto-panel': timeto, 'bulgaria-panel': bulgaria, 'life-panel': life };
+const awsResources = createAwsResourcesUI();
+const trackers = { 'budget-panel': budget, 'timeto-panel': timeto, 'bulgaria-panel': bulgaria, 'life-panel': life, 'aws-panel': awsResources };
 const startedTrackers = new Set();
 
 function selectPanel(id) {
-  for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel', 'bulgaria-panel', 'life-panel']) $(panel).hidden = panel !== id;
+  for (const panel of ['budget-panel', 'files-view', 'inbox-view', 'timeto-panel', 'bulgaria-panel', 'life-panel', 'aws-panel']) $(panel).hidden = panel !== id;
   document.querySelectorAll('[data-panel]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.panel === id)));
 }
 document.querySelectorAll('[data-panel]').forEach(button => button.addEventListener('click', () => {
@@ -208,12 +210,14 @@ async function refreshInbox() {
   } catch {
     if (!authenticated || generation !== sessionEpoch) return;
     $('inbox-tab').hidden = true;
+    $('aws-tab').hidden = true;
     section.hidden = true;
     return;
   }
 
   if (!authenticated || generation !== sessionEpoch) return;
   $('inbox-tab').hidden = false;
+  $('aws-tab').hidden = false;
   list.innerHTML = '';
   $('notification-badge').hidden = items.length === 0;
   $('inbox-tab').setAttribute('aria-label', items.length ? `Notifications, ${items.length} unread` : 'Notifications');
@@ -427,10 +431,12 @@ $('logout-btn').addEventListener('click', () => {
   timeto.stop();
   bulgaria.stop();
   life.stop();
+  awsResources.stop();
   startedTrackers.clear();
   resetStorage();
   signOut();
   $('inbox-tab').hidden = true;
+  $('aws-tab').hidden = true;
   $('inbox-list').replaceChildren();
   $('file-list').replaceChildren();
   $('user-email').textContent = '';

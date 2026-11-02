@@ -13,6 +13,7 @@ resource "local_file" "portal_config" {
       userPoolClientId: ${jsonencode(aws_cognito_user_pool_client.portal.id)},
       identityPoolId: ${jsonencode(aws_cognito_identity_pool.portal.id)},
       bucket: ${jsonencode(aws_s3_bucket.uploads.bucket)},
+      awsInventoryUrl: ${jsonencode(aws_lambda_function_url.aws_inventory.function_url)},
     };
   EOT
 }

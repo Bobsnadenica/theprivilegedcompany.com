@@ -11,9 +11,11 @@
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
     "@aws-sdk/client-cognito-identity": "^3.658.0",
     "@aws-sdk/client-s3": "^3.658.0",
     "@aws-sdk/s3-request-presigner": "^3.658.0",
+    "@smithy/signature-v4": "^5.7.5",
     "amazon-cognito-identity-js": "^6.3.12",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3"

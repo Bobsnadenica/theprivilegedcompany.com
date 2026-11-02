@@ -384,6 +384,34 @@ input:focus {
   }
 }
 
+/* Admin-only AWS account inventory */
+.aws-panel { min-width: 0; }
+.aws-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 22px 0 12px; }
+.aws-summary-card { min-width: 0; padding: 20px; border: 1px solid #383228; border-radius: 14px; background: radial-gradient(ellipse at 100% 0%, #c8b28512, transparent 70%), linear-gradient(145deg, #1b1a18, #101012); }
+.aws-summary-card span, .aws-summary-card small { display: block; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.aws-summary-card strong { display: block; margin: 9px 0 5px; font-size: clamp(1.2rem, 2.6vw, 1.8rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.aws-cost-note { margin: 10px 0 22px; padding: 12px 14px; border-left: 2px solid var(--accent); background: #c8b2850a; color: var(--muted); font-size: .75rem; line-height: 1.6; }
+.aws-toolbar { display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(2, minmax(140px, .7fr)); align-items: end; gap: 12px; margin-bottom: 18px; }
+.aws-toolbar label { display: grid; gap: 6px; margin: 0; }
+.aws-toolbar input, .aws-toolbar select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; }
+.aws-toolbar input:focus-visible, .aws-toolbar select:focus-visible, .aws-console-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.aws-result-count { margin: -10px 0 12px; }
+.aws-service-group { margin: 22px 0 28px; }
+.aws-service-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.aws-service-heading h3 { margin: 0; }
+.aws-service-heading span { color: var(--muted); font-size: .76rem; }
+.aws-resource-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.aws-resource-card { min-width: 0; padding: 17px; border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(145deg, #151518, #101012); }
+.aws-resource-top { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.aws-resource-top h4 { min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: .9rem; font-weight: 600; }
+.aws-type-tag { flex: 0 0 auto; max-width: 46%; padding: 4px 7px; border: 1px solid #c8b2852b; border-radius: 999px; color: var(--accent); font-size: .65rem; overflow-wrap: anywhere; }
+.aws-resource-location, .aws-resource-detail, .aws-resource-reported { margin: 9px 0 0; color: var(--muted); font-size: .74rem; overflow-wrap: anywhere; }
+.aws-resource-cost { margin: 9px 0 0; color: #d9c69c; font-size: .76rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.aws-console-link { display: inline-flex; margin-top: 14px; color: var(--accent); font-size: .75rem; font-weight: 600; text-decoration: none; }
+.aws-console-link:hover { color: #f0d9a7; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 720px) { .aws-toolbar { grid-template-columns: 1fr 1fr; } .aws-toolbar label:first-child { grid-column: 1 / -1; } }
+@media (max-width: 520px) { .aws-summary { grid-template-columns: 1fr; } .aws-summary-card { padding: 16px; } .aws-resource-grid { grid-template-columns: 1fr; } .aws-toolbar { grid-template-columns: 1fr; } .aws-toolbar label:first-child { grid-column: auto; } }
+
 /* Personal workspace: comfortable on a phone, spacious on a desktop. */
 :root { color-scheme: dark; --income: #80cfb2; --expense: #efaa78; --muted: #a3a3ae; }
 [hidden] { display: none !important; }
