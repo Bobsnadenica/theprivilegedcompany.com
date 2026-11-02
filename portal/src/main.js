@@ -59,7 +59,9 @@ document.querySelectorAll('[data-panel]').forEach(button => button.addEventListe
   if(button.dataset.panel==='bulgaria-panel'&&matchMedia('(max-width:680px)').matches)requestAnimationFrame(()=>$('bulgaria-panel').scrollIntoView({block:'start',behavior:'instant'}));
   const tracker = trackers[button.dataset.panel];
   if (!authenticated || !tracker) return;
-  if (startedTrackers.has(tracker)) tracker.refresh();
+  if (startedTrackers.has(tracker)) {
+    if (button.dataset.panel !== 'aws-panel') tracker.refresh();
+  }
   else { startedTrackers.add(tracker); tracker.start(); }
 }));
 

@@ -108,6 +108,44 @@ export function createAwsResourcesUI() {
   let lambdaCosts = {};
   let generation = 0;
 
+  function cacheKey() {
+    const email = $('#user-email')?.textContent?.trim().toLowerCase();
+    return email ? `tpc.aws-inventory.v1:${email}` : null;
+  }
+
+  function readCache() {
+    const key = cacheKey();
+    if (!key) return null;
+    try {
+      const data = JSON.parse(localStorage.getItem(key));
+      return Array.isArray(data?.resources) && data.generatedAt ? data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeCache(data) {
+    const key = cacheKey();
+    if (!key) return;
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* local storage is optional */ }
+  }
+
+  function renderInventory(data, fromCache = false) {
+    resources = Array.isArray(data.resources) ? data.resources : [];
+    bucketSizes = data.bucketSizes || {};
+    lambdaCosts = data.lambdaCosts || {};
+    renderSummary(data);
+    setFilters(data);
+    renderResources();
+    $('#aws-status').textContent = fromCache
+      ? `Showing saved inventory from ${new Date(data.generatedAt).toLocaleString()}. Use Refresh inventory to discover changes.`
+      : data.indexedRegions?.length
+        ? `Inventory searched ${data.indexedRegions.length} Resource Explorer regions. Bucket metrics are daily and may lag.`
+        : 'Inventory refreshed. No indexed regions were returned.';
+    $('#aws-warnings').textContent = Array.isArray(data.warnings) ? data.warnings.join(' ') : '';
+    $('#aws-warnings').hidden = !data.warnings?.length;
+  }
+
   function renderSummary(data) {
     const buckets = Object.values(bucketSizes);
     const storageBytes = buckets.reduce((sum, bucket) => sum + (bucket.sizeBytes || 0), 0);
@@ -255,7 +293,14 @@ export function createAwsResourcesUI() {
     for (const item of services) service.add(new Option(serviceName(item), item));
   }
 
-  async function refresh() {
+  async function refresh(force = false) {
+    if (!force) {
+      const cached = readCache();
+      if (cached) {
+        renderInventory(cached, true);
+        return;
+      }
+    }
     const id = ++generation;
     const button = $('#aws-refresh');
     button.disabled = true;
@@ -264,17 +309,8 @@ export function createAwsResourcesUI() {
     try {
       const data = await loadInventory();
       if (id !== generation) return;
-      resources = Array.isArray(data.resources) ? data.resources : [];
-      bucketSizes = data.bucketSizes || {};
-      lambdaCosts = data.lambdaCosts || {};
-      renderSummary(data);
-      setFilters(data);
-      renderResources();
-      $('#aws-status').textContent = data.indexedRegions?.length
-        ? `Inventory searched ${data.indexedRegions.length} Resource Explorer regions. Bucket metrics are daily and may lag.`
-        : 'Inventory refreshed. No indexed regions were returned.';
-      $('#aws-warnings').textContent = Array.isArray(data.warnings) ? data.warnings.join(' ') : '';
-      $('#aws-warnings').hidden = !data.warnings?.length;
+      writeCache(data);
+      renderInventory(data);
     } catch (error) {
       if (id !== generation) return;
       $('#aws-error').textContent = error.message || 'AWS inventory could not be loaded.';
@@ -285,14 +321,14 @@ export function createAwsResourcesUI() {
     }
   }
 
-  $('#aws-refresh').addEventListener('click', refresh);
+  $('#aws-refresh').addEventListener('click', () => refresh(true));
   $('#aws-search').addEventListener('input', renderResources);
   $('#aws-region-filter').addEventListener('change', renderResources);
   $('#aws-service-filter').addEventListener('change', renderResources);
 
   return {
-    start: refresh,
-    refresh,
+    start: () => refresh(false),
+    refresh: () => refresh(false),
     stop() {
       generation += 1;
       resources = [];

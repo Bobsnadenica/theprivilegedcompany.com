@@ -234,25 +234,11 @@ export async function inventory() {
 }
 
 export async function handler(event) {
-  if (event?.requestContext?.http?.method === 'OPTIONS') {
-    return { statusCode: 204, headers: corsHeaders(event), body: '' };
-  }
   try {
     const data = await inventory();
-    return { statusCode: 200, headers: { ...corsHeaders(event), 'content-type': 'application/json', 'cache-control': 'no-store' }, body: JSON.stringify(data) };
+    return { statusCode: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' }, body: JSON.stringify(data) };
   } catch (error) {
     console.error('AWS inventory failed', error);
-    return { statusCode: 502, headers: { ...corsHeaders(event), 'content-type': 'application/json', 'cache-control': 'no-store' }, body: JSON.stringify({ error: 'AWS inventory could not be loaded. Check the function logs.' }) };
+    return { statusCode: 502, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' }, body: JSON.stringify({ error: 'AWS inventory could not be loaded. Check the function logs.' }) };
   }
-}
-
-function corsHeaders(event) {
-  const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean);
-  const origin = event?.headers?.origin;
-  return {
-    ...(origin && allowed.includes(origin) ? { 'access-control-allow-origin': origin, vary: 'origin' } : {}),
-    'access-control-allow-methods': 'GET,OPTIONS',
-    'access-control-allow-headers': 'authorization,x-amz-date,x-amz-security-token,x-amz-content-sha256',
-    'access-control-max-age': '3600',
-  };
 }
