@@ -4,6 +4,10 @@ Public browser games, practical tools, and independent demos by The Privileged C
 
 The hub is `index.html`; technical guides live in `Tech Tools/`. The recipe-book demo lives in `recipes/`. Each larger project documents its own setup.
 
+`MaistorPlus/` contains a noindex migration preview of the client's Bulgarian
+PokrivPlus website, including its home page and blog. Its README records the
+copied contact flow and the checks required before a domain cutover.
+
 `nest-quest/` is the English/Bulgarian budgeting RPG: a public landing page, local
 play, a fictional demo, and optional existing company-account saves. Monthly budget
 shows income, expenses, and category graphs; Savings & net worth contains cash,
