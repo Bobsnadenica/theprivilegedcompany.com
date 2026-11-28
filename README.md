@@ -450,3 +450,14 @@ photo cards in Places, quick category filters and a With photos view. Mobile sea
 and view switching remain available while scrolling. Photo credits and missing-image
 fallbacks are explicit; all 250 catalogue places remain available. Private visit
 photos and account storage retain the existing save/retry behaviour.
+
+### Homepage optical study
+
+Original generated studio photographs in `assets/studio/` illustrate the opening
+and the three-part consultation sequence. The lens, prism and iris move in CSS
+perspective with native scroll. Reduced motion displays a static arrangement.
+The procedural light sculpture accompanies the topic selector.
+
+Scroll choreography reference: [Royal Pop](https://github.com/hamzafarooq/claude-code-starter/tree/main/demos/royal-pop-website).
+Run `node scripts/check-scroll-studio.mjs` and regenerate shared shells with
+`node scripts/sync-route-pages.mjs` after changing the homepage markup.

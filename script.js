@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261008h';
+import { languageMeta, translations } from './translations.js?v=20261128b';
 
 const routes = {
     '': {
@@ -1854,6 +1854,9 @@ document.addEventListener('DOMContentLoaded', () => {
     import('./hero-sculpture.js?v=20261008h')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
+    import('./scroll-studio.js?v=20261128b')
+        .then(({ initScrollStudio }) => initScrollStudio())
+        .catch(() => { /* The static rings and all content remain available. */ });
     initCursor();
     initThemeSwitcher();
     initLanguageSwitcher();

@@ -1898,3 +1898,76 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
 .route-error { padding: clamp(8rem, 18vh, 12rem) var(--gap) 5rem; text-align: center; }
 .route-error h1 { font: 700 clamp(2rem, 7vw, 4.5rem)/1.1 var(--f-display); overflow-wrap: anywhere; }
 .route-error p { max-width: 38rem; margin: 1.5rem auto 2rem; color: var(--c-muted); }
+
+/* Optical studio homepage */
+.instrument-hero {
+    position: relative; isolation: isolate; overflow: clip; display: grid; align-items: center;
+    min-height: clamp(690px, 94svh, 1080px); padding: 9rem var(--gap) 5rem;
+    background: #070706; color: #f6f0e7;
+}
+.instrument-portrait { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 63% center; }
+.instrument-hero::before { content: ''; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg,#080807f5 1%,#090907d9 25%,#09090740 50%,transparent 65%); }
+.instrument-intro { max-width: 47%; }
+.hero-byline { color: #e6cc9c; font: 650 .74rem/1.5 var(--f-logic); letter-spacing: .14em; text-transform: uppercase; }
+.instrument-intro h1 { margin: 1.7rem 0; font: 520 clamp(5rem,8.8vw,10.5rem)/.88 var(--f-display); letter-spacing: -.065em; }
+.instrument-intro h1 span, .instrument-intro h1 em { display: block; }
+.instrument-intro h1 em { color: #ead0a0; font-weight: 430; }
+.instrument-lead { max-width: 36ch; color: #e4dfd7; font-size: clamp(1rem,1.3vw,1.21rem); line-height: 1.62; }
+.instrument-actions { display: flex; gap: 1.6rem; align-items: center; flex-wrap: wrap; margin-top: 1.7rem; }
+.instrument-actions a { color: inherit; font-size: .9rem; font-weight: 700; text-underline-offset: 5px; }
+.instrument-actions .instrument-cta { background: #f1dfbd; color: #241a10; text-decoration: none; padding: .9rem 1.25rem; border-radius: 2px; }
+.instrument-cta::after, .home-service-grid .btn-hud::after { content: '↗'; margin-left: .85em; }
+.instrument-actions a:hover { text-decoration: underline; }
+@supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+        .instrument-hero { view-timeline-name: --bench; }
+        .instrument-portrait { animation: bench-depart linear both; animation-timeline: --bench; animation-range: exit 0% exit 100%; }
+        @keyframes bench-depart { to { transform: translateY(12%) scale(1.08); } }
+    }
+}
+.scroll-studio { padding: clamp(3.5rem,7vw,8rem) var(--gap) 1rem; background: var(--c-bg); }
+.studio-intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: 7vw; align-items: end; border-bottom: 1px solid var(--border-soft); padding-bottom: 2.5rem; }
+.studio-intro h2,.session-heading,.home-section-heading h2 { font: 520 clamp(2.6rem,5.5vw,6rem)/1.02 var(--f-display); letter-spacing: -.048em; text-wrap: balance; }
+.studio-intro p,.studio-chapter p { color: var(--c-muted); line-height: 1.75; max-width: 44ch; }
+.studio-journey { display: grid; grid-template-columns: 1.16fr 1fr; gap: 7vw; align-items: start; }
+.studio-visual { position: sticky; top: 105px; display: grid; align-items: center; height: calc(100svh - 120px); max-height: 740px; }
+.optic-field { position: relative; isolation: isolate; overflow: clip; aspect-ratio: 1.23; width: 100%; background: radial-gradient(ellipse at 50% 65%,#262016 0%,#100f0c 44%,#080909 78%); }
+.optic-field::before { content: ''; position: absolute; inset: 7%; border: 1px solid #dfc4911e; border-radius: 50%; transform: rotate(-23deg) scaleY(.68); }
+.optic-axis { position: absolute; top: 50%; width: 138%; left: -19%; height: 1px; background: linear-gradient(90deg,transparent,#73532d,#ffe3ac,#977448,transparent); transform: rotate(-23deg); box-shadow: 0 0 11px #d9a145; }
+.optic-assembly { position: absolute; inset: 0; perspective: 700px; }
+.optic-piece { position: absolute; width: 38%; height: auto; left: 31%; top: 50%; }
+.optic-lens { transform: translate(calc(-44% - var(--opening,.6)*30%),calc(-35% + var(--opening,.6)*16%)) rotateY(calc(var(--turn,0)*-37deg)) rotate(-14deg); }
+.optic-prism { transform: translateY(-56%) rotateY(calc(var(--turn,0)*35deg)) scale(.81); }
+.optic-iris { transform: translate(calc(41% + var(--opening,.6)*31%),calc(-76% - var(--opening,.6)*15%)) rotateY(calc(var(--turn,0)*44deg)) scale(.72); }
+.studio-chapter { min-height: 63svh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.3rem; }
+.studio-chapter h3 { font: 520 clamp(2.2rem,4.1vw,4.9rem)/1.06 var(--f-display); letter-spacing: -.04em; text-wrap: balance; }
+.studio-chapter .mission-cta { margin: .5rem 0; flex-wrap: wrap; }
+.session-planner { display: grid; grid-template-columns: 1.05fr .95fr; gap: 6vw; align-items: center; padding: clamp(3.5rem,7vw,7rem) var(--gap); }
+.home-service-grid { display: block; }
+.home-service-grid article { display: grid; grid-template-columns: 1fr 1.15fr auto; gap: 4vw; align-items: center; border: 0; border-top: 1px solid var(--border-soft); border-radius: 0; padding: 2rem 0; background: transparent; }
+.home-service-grid article:hover { transform: none; }
+.home-service-grid h3 { margin: 0; font-weight: 500; font-size: clamp(1.65rem,2.7vw,3rem); letter-spacing: -.035em; }
+.home-service-grid p,.home-service-grid .btn-hud { margin: 0; }
+.home-service-grid .btn-hud { border: 0; background: transparent; box-shadow: none; text-transform: none; letter-spacing: normal; color: var(--c-accent-strong); }
+@media(max-width:760px) {
+    .instrument-hero { display: block; min-height: 0; padding: clamp(19rem,64vw,26rem) var(--gap) 2.7rem; }
+    .instrument-portrait { height: min(85vw,440px); top: 4.8rem; object-position: 77% 35%; }
+    .instrument-hero::before { background: linear-gradient(0deg,#080807 27%,#080807ea 45%,#08080738 66%,transparent 81%); }
+    .instrument-intro { position: relative; max-width: 100%; }
+    .instrument-intro h1 { font-size: clamp(3.8rem,12.4vw,6rem); margin: .75rem 0 1rem; line-height: 1; }
+    .instrument-intro h1 span,.instrument-intro h1 em { display: inline; }
+    .hero-byline { font-size: .65rem; }
+    .studio-intro,.session-planner { grid-template-columns: 1fr; gap: 1.4rem; }
+    .studio-journey { display: block; }
+    .studio-visual { top: 120px; height: auto; z-index: 1; pointer-events: none; }
+    .optic-field { aspect-ratio: 2/1; max-height: 28svh; }
+    .optic-piece { width: 36%; left: 32%; }
+    .studio-chapter { min-height: 45svh; padding: 2rem 0; justify-content: center; }
+    .session-planner .hero-sculpture { max-width: 270px; margin: 0 auto; }
+    .home-service-grid article { grid-template-columns: 1fr; gap: .75rem; }
+    .home-service-grid .btn-hud { justify-self: start; padding-left: 0; }
+}
+@media (prefers-reduced-motion:reduce),(max-height:530px) {
+    .studio-visual { position: relative; top: auto; height: auto; padding-block: 2rem; }
+    .studio-chapter { padding-block: 2rem; min-height: auto; }
+}

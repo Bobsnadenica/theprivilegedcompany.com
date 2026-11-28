@@ -63,7 +63,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20261008h">
+    <link rel="stylesheet" href="styles.css?v=20261128b">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -220,15 +220,57 @@
 
         <main id="app-root" tabindex="-1">
             <div id="hub-view" class="view-container">
-                <section class="monolith-hero">
+                <section class="instrument-hero" aria-labelledby="instrument-title">
+                    <img class="instrument-portrait" src="/assets/studio/optical-bench.webp" width="1680" height="945" fetchpriority="high" alt="">
+                    <div class="instrument-intro">
+                        <p class="hero-byline">Independent software studio</p>
+                        <h1 id="instrument-title"><span>Software,</span> <em>in focus.</em></h1>
+                        <p class="instrument-lead">Websites, apps and automation. Work through your next technical decision one-to-one with a certified senior cloud architect.</p>
+                        <div class="instrument-actions">
+                            <a href="/contact?service=1%3A1%20Tech%20Consultations" data-link class="instrument-cta">Request a 1:1</a>
+                            <a href="/manifest" data-link>View services</a>
+                        </div>
+                    </div>
+                </section>
+                <section class="scroll-studio" id="scroll-studio" aria-labelledby="studio-title">
+                    <header class="studio-intro">
+                        <h2 id="studio-title">How a consultation works.</h2>
+                        <p>Learn to use AI, untangle a technical problem, or plan a project. A focused session built around what you want to do, at your level.</p>
+                    </header>
+                    <div class="studio-journey">
+                        <div class="studio-visual" aria-hidden="true">
+                            <div class="optic-field">
+                                <div class="optic-axis"></div>
+                                <div class="optic-assembly">
+                                    <img class="optic-piece optic-lens" src="/assets/studio/lens.webp" width="580" height="580" loading="lazy" alt="">
+                                    <img class="optic-piece optic-prism" src="/assets/studio/prism.webp" width="580" height="580" loading="lazy" alt="">
+                                    <img class="optic-piece optic-iris" src="/assets/studio/iris.webp" width="580" height="580" loading="lazy" alt="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="studio-chapters">
+                            <article class="studio-chapter">
+                                <h3>Start with your question.</h3>
+                                <p>Tell us what you want to learn, solve or build. You do not need a finished brief.</p>
+                            </article>
+                            <article class="studio-chapter">
+                                <h3>Agree the session.</h3>
+                                <p>We reply by email to agree the scope, price and a suitable time. Nothing is booked automatically.</p>
+                            </article>
+                            <article class="studio-chapter">
+                                <h3>Work through it together.</h3>
+                                <p>Explore your question with a certified senior cloud architect and identify practical next steps.</p>
+                                <div class="mission-cta">
+                                    <a href="/contact?service=1%3A1%20Tech%20Consultations" data-link class="btn-hud btn-hud-primary">Request a 1:1</a>
+                                    <a href="/faq" data-link class="home-text-link">Questions before you book?</a>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+                <section class="session-planner">
                     <div class="hero-content">
-                        <span class="label hero-eyebrow">Independent software studio</span>
-                        <div class="reveal-mask hero-title-mask">
-                            <h1 class="display-huge">Build with clarity.</h1>
-                        </div>
-                        <div class="reveal-mask">
-                            <p class="hero-lead">One-to-one with a certified senior cloud architect. A starting point shaped around you.</p>
-                        </div>
+                        <h2 class="session-heading">What would you bring to a 1:1?</h2>
                         <fieldset class="hero-intents" id="hero-intents" hidden>
                             <legend>Your next step</legend>
                             <div class="hero-intent-options">
@@ -241,7 +283,6 @@
                         <div class="hero-footer reveal-mask">
                             <div class="hero-actions">
                                 <a href="/contact?service=1%3A1%20Tech%20Consultations&amp;topic=build" id="hero-intent-link" data-link class="hero-action hero-action-primary">Request a 1:1</a>
-                                <a href="/manifest" data-link class="hero-action hero-action-secondary">View services</a>
                             </div>
                         </div>
                         <p class="hero-reassurance">For individuals and businesses. Scope and price agreed before you book.</p>
@@ -267,51 +308,28 @@
                         </div>
                     </figure>
                 </section>
-                
-                <section class="monolith-advert">
-                    <div class="advert-text reveal-mask">
-                        <span class="label">Your 1:1, your starting point</span>
-                        <h2 data-scramble>One conversation. More clarity.</h2>
-                        <p>Learn to use AI, untangle a technical problem, or plan a project. A focused session built around what you want to do, at your level.</p>
-                        <div class="mission-cta">
-                            <a href="/contact?service=1%3A1%20Tech%20Consultations" data-link class="btn-hud btn-hud-primary">Request a 1:1</a>
-                            <a href="/faq" data-link class="home-text-link">Questions before you book?</a>
-                        </div>
-                    </div>
-                    <ol class="approach-steps">
-                        <li><span class="step-number" aria-hidden="true">01</span><div><h3>Start with your question.</h3><p>Tell us what you want to learn, solve or build. You do not need a finished brief.</p></div></li>
-                        <li><span class="step-number" aria-hidden="true">02</span><div><h3>Agree the session.</h3><p>We reply by email to agree the scope, price and a suitable time. Nothing is booked automatically.</p></div></li>
-                        <li><span class="step-number" aria-hidden="true">03</span><div><h3>Work through it together.</h3><p>Explore your question with a certified senior cloud architect and identify practical next steps.</p></div></li>
-                    </ol>
-                </section>
-
                 <section class="home-services" aria-labelledby="home-services-title">
                     <header class="home-section-heading">
-                        <span class="label">A practical starting point</span>
-                        <h2 id="home-services-title">What would you like to do?</h2>
+                        <h2 id="home-services-title">Studio services</h2>
                     </header>
                     <div class="home-service-grid">
                         <article>
-                            <span class="label">01 / Websites</span>
-                            <h3>A better place to meet your customers.</h3>
+                            <h3>Websites</h3>
                             <p>For a business launching online or replacing a dated site. A responsive website with clear content, useful enquiries, and straightforward upkeep.</p>
                             <a class="btn-hud" href="/contact?service=Website%20Building%20%26%20Management" data-link>Discuss a website</a>
                         </article>
                         <article>
-                            <span class="label">02 / Apps</span>
-                            <h3>Make your idea usable.</h3>
+                            <h3>Applications</h3>
                             <p>For founders and teams with a service to build. Turn booking, customer access, or an internal process into a focused web or mobile application.</p>
                             <a class="btn-hud" href="/contact?service=Mobile%20%26%20Web%20Applications" data-link>Discuss an app</a>
                         </article>
                         <article>
-                            <span class="label">03 / Automation</span>
-                            <h3>Give repetitive work less of your day.</h3>
+                            <h3>Automation</h3>
                             <p>For teams copying data or repeating the same steps. Connect the workflow with a script, dashboard, integration, or tool built around the task.</p>
                             <a class="btn-hud" href="/contact?service=Custom%20Daily%20Tools" data-link>Discuss automation</a>
                         </article>
                         <article>
-                            <span class="label">04 / 1:1 Consultations</span>
-                            <h3>A clearer next step.</h3>
+                            <h3>Individual consultations</h3>
                             <p>A personal project, a technical decision, or a question about AI. Talk it through one-to-one with a certified senior cloud architect.</p>
                             <a class="btn-hud" href="/contact?service=1%3A1%20Tech%20Consultations" data-link>Ask about a consultation</a>
                         </article>
@@ -1179,6 +1197,6 @@ else
 fi
 
 printf "\nScope: HTTP, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled links, metadata, headers, CORS, cookies, passive browser-style DOM checks, client secret/debug exposure, query reflection, SQL error smoke, sensitive-file/route smoke, open-redirect smoke, and optional nmap web-port check.\n"</script>
-    <script type="module" src="script.js?v=20261008h"></script>
+    <script type="module" src="script.js?v=20261128b"></script>
 </body>
 </html>

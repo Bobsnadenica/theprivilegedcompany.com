@@ -12,6 +12,17 @@ export const languageMeta = {
 export const translations = {
     "bg": {
         "text": {
+            "Software,": "Софтуер",
+            "in focus.": "на фокус.",
+            "Websites, apps and automation. Work through your next technical decision one-to-one with a certified senior cloud architect.": "Уебсайтове, приложения и автоматизация. Обсъдете следващото си техническо решение лично със сертифициран старши архитект на облачни решения.",
+            "What would you bring to a 1:1?": "Какво искате да обсъдим?",
+            "How a consultation works.": "Как протича консултацията.",
+            "Studio services": "Услуги на студиото",
+            "Websites": "Уебсайтове",
+            "Applications": "Приложения",
+            "Individual consultations": "Индивидуални консултации",
+
+            "Scroll to unfold the process": "Скролирайте, за да разгърнете процеса",
             "One-to-one with a certified senior cloud architect. A starting point shaped around you.": "Индивидуално със сертифициран старши архитект на облачни решения. Започваме от вашата цел.",
             "Your next step": "Вашата следваща стъпка",
             "Learn AI": "Работа с AI",
