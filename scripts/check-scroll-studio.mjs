@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { sampledFrames } from '../scroll-studio.js';
+import { sampledFrames, exitBlend } from '../scroll-studio.js';
 const frames = new Set();
 for (let i=0; i<=1500; i++) {
     const {left,right,blend}=sampledFrames(3*i/1500);
@@ -17,3 +17,9 @@ for (const layout of ['wide','tall']) {
     }
 }
 console.log('PASS: 144 consecutive camera frames, interpolation and all 24 WebP sheets.');
+
+for (const height of [650,900]) {
+    assert.equal(exitBlend(-1,height),0);
+    assert.equal(exitBlend(height*.72,height),1);
+    assert.ok(Math.abs(exitBlend(height*.36,height)-.5)<1e-6);
+}

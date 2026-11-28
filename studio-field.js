@@ -4,6 +4,7 @@ precision highp float;
 attribute vec2 uv;
 uniform vec4 scene; // chapter position, clock, aspect ratio, pixel ratio
 uniform vec2 pointer;
+uniform float departure;
 uniform mediump float surface;
 varying mediump vec3 tint;
 varying mediump float power;
@@ -45,6 +46,14 @@ void main(){
     globe.z+=6.2;
     if(exhibit)point=mix(point,mix(mix(panes,flow,second),globe,third),first);
     else if(surface<.5 && seed<.14)point.y+=seed*42.;
+    // Release each strand of the conversation globe along a shallow outward spiral.
+    // Seeded offsets make every particle retrace its path when scroll reverses.
+    if(exhibit && departure>0.){
+        float release=smoothstep(seed*.24,.78+seed*.22,departure);
+        float angle=a+release*(.52+seed*.68);
+        point.xy+=vec2(cos(angle),sin(angle))*(1.4+seed*2.3)*release;
+        point.z-=release*(.8+seed*1.7);
+    }
     point.x+=.27*sin(travel*.16)+pointer.x*.22;
     point.y+=pointer.y*.11;
     float lens=1.8;
@@ -56,6 +65,7 @@ void main(){
     float mist=exp(-point.z*.065);
     vec3 lime=vec3(.71,.90,.23), jade=vec3(.21,.92,.66), blue=vec3(.34,.71,.98);
     tint=mix(mix(lime,jade,second),blue,third);
+    tint=mix(tint,vec3(.99,.78,.44),smoothstep(0.,.7,departure));
     if(surface>.5){
       power=(.013+.36*ridge*ridge)*mist*smoothstep(1.,2.,z)*(1.-smoothstep(32.,35.,z));
       tint=mix(tint,vec3(.34,.51,.20),.28);
@@ -103,7 +113,9 @@ export function createField(canvas, compact=false) {
     const coord=gl.getAttribLocation(program,'uv');
     gl.enableVertexAttribArray(coord);gl.vertexAttribPointer(coord,2,gl.FLOAT,false,0,0);
     const scene=gl.getUniformLocation(program,'scene'),pointer=gl.getUniformLocation(program,'pointer'),surface=gl.getUniformLocation(program,'surface');
-    return (progress,time,x=0,y=0,dpr=1)=>{
+    const departure=gl.getUniformLocation(program,'departure');
+    return (progress,time,x=0,y=0,dpr=1,blend=0)=>{
+        gl.uniform1f(departure,blend);
         gl.viewport(0,0,canvas.width,canvas.height);
         gl.clearColor(.022,.030,.038,1);gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniform4f(scene,progress,time,canvas.width/canvas.height,dpr);gl.uniform2f(pointer,x,y);

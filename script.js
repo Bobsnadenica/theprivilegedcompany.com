@@ -1861,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', () => {
     import('./hero-sculpture.js?v=20261008h')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
-    import('./scroll-studio.js?v=mesh1')
+    import('./scroll-studio.js?v=mesh2')
         .then(({ initScrollStudio }) => initScrollStudio())
         .catch(() => { /* The static rings and all content remain available. */ });
     initCursor();

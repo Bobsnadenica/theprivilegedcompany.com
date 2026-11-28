@@ -1,6 +1,12 @@
-import {createField} from './studio-field.js?v=mesh1';
+import {createField} from './studio-field.js?v=mesh2';
 const clamp = (x,min,max) => Math.max(min,Math.min(max,x));
 const sheetFrames=12, lastFrame=143;
+
+// The final chapter gets its own stopping point before the pinned stage releases.
+export function exitBlend(distance, height) {
+    const fraction = clamp(distance / Math.max(1, height * .72), 0, 1);
+    return fraction * fraction * (3 - 2 * fraction);
+}
 
 // Pairs straddling a sheet boundary use the same interpolation as adjacent frames on one sheet.
 export function sampledFrames(progress) {
@@ -49,6 +55,13 @@ export function initScrollStudio() {
     const motion=matchMedia('(prefers-reduced-motion: reduce)');
     let canvas,draw,live=false,visible=false,pending=0,previous=0,elapsed=0,progress=0,target=0,dirty=true,hasDrawn=false;
     let x=0,y=0,px=0,py=0,webgl=false,top=0,travel=1,active=-1;
+    let height=1, blend=0, appliedBlend=-1, starfieldPaused;
+    function syncStarfield() {
+        const pause = live && visible && blend === 0;
+        if (pause === starfieldPaused) return;
+        starfieldPaused = pause;
+        document.dispatchEvent(new CustomEvent('tourvisibility', {detail:pause}));
+    }
     const audioButton=controls.querySelector('.mesh-audio');
     let audio;
     function silence(){if(audio){audio.close().catch(()=>{});audio=null;}audioButton.setAttribute('aria-pressed','false');}
@@ -74,15 +87,22 @@ export function initScrollStudio() {
         else canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();makeRenderer(false);resize();},{once:true});
         tour.dataset.renderer=webgl?'live':'sequence';
     }
-    function scroll(){target=clamp((scrollY-top)/travel,0,1)*3;schedule();}
+    function scroll(){
+        const distance=scrollY-top;
+        target=clamp(distance/travel,0,1)*3;
+        blend=exitBlend(distance-travel,height);
+        syncStarfield();
+        schedule();
+    }
     function resize(){
         if(!live)return;
-        const width=stage.clientWidth,height=stage.clientHeight;
+        const width=stage.clientWidth;
+        height=stage.clientHeight;
         if(!width || !height)return;
         const ratio=Math.min(devicePixelRatio||1,webgl?1.5:1);
         canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
         top=tour.getBoundingClientRect().top+scrollY;
-        travel=Math.max(1,tour.offsetHeight-height);scroll();refresh();
+        travel=Math.max(1,tour.offsetHeight-height*1.72);scroll();refresh();
     }
     function tick(now){
         pending=0;if(!live || !visible || document.hidden)return;
@@ -92,7 +112,13 @@ export function initScrollStudio() {
         progress+= (target-progress)*(1-Math.exp(-dt*15));
         if(Math.abs(target-progress)<.0005)progress=target;
         px+=(x-px)*(1-Math.exp(-dt*7));py+=(y-py)*(1-Math.exp(-dt*7));
-        if(webgl || dirty || before!==progress)draw?.(progress,elapsed,px,py,canvas.width/stage.clientWidth);
+        const blendChanged=blend!==appliedBlend;
+        if(blendChanged){
+            stage.style.setProperty('--field-opacity', String(1-blend));
+            stage.classList.toggle('field-cleared', blend>.57);
+            appliedBlend=blend;
+        }
+        if(blend<1 && (webgl || dirty || blendChanged || before!==progress))draw?.(progress,elapsed,px,py,canvas.width/stage.clientWidth,blend);
         dirty=false;
         if(before!==progress || !hasDrawn) {
             const chapter=Math.round(progress);
@@ -105,7 +131,7 @@ export function initScrollStudio() {
             });
             active=chapter;hasDrawn=true;
         }
-        if(webgl || progress!==target)schedule();
+        if((webgl && blend<1) || progress!==target)schedule();
     }
     function configure(){
         live=!motion.matches && innerHeight>=440;
@@ -117,17 +143,17 @@ export function initScrollStudio() {
             silence();cancelAnimationFrame(pending);pending=0;previous=0;
             scenes.forEach(s=>{s.inert=false;s.style.removeProperty('opacity');s.style.removeProperty('transform');});
         }
-        document.dispatchEvent(new CustomEvent('tourvisibility',{detail:live && visible}));
+        syncStarfield();
     }
     buttons.forEach((button,i)=>button.addEventListener('click',()=>window.scrollTo({top:top+travel*i/3,behavior:'smooth'})));
-    controls.querySelector('.mesh-skip').onclick=()=>{silence();const planner=document.getElementById('session-planner');planner.focus({preventScroll:true});planner.scrollIntoView();};
+    controls.querySelector('.mesh-skip').onclick=()=>{silence();const planner=document.getElementById('session-planner');planner.focus({preventScroll:true});planner.scrollIntoView({behavior:motion.matches?'instant':'smooth'});};
     stage.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){x=e.clientX/innerWidth-.5;y=e.clientY/innerHeight-.5;}},{passive:true});
     stage.addEventListener('pointerleave',()=>{x=y=0;});
     new IntersectionObserver(([entry])=>{
         visible=entry.isIntersecting;previous=0;
         if(visible){resize();progress=target;hasDrawn=false;schedule();}
         else{silence();cancelAnimationFrame(pending);pending=0;}
-        document.dispatchEvent(new CustomEvent('tourvisibility',{detail:live && visible}));
+        syncStarfield();
     }).observe(stage);
     new ResizeObserver(resize).observe(stage);
     window.addEventListener('scroll',scroll,{passive:true});
