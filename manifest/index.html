@@ -63,7 +63,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Manrope:wght@300;400;500;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css?v=20261128b">
+    <link rel="stylesheet" href="styles.css?v=cipher1">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -221,7 +221,7 @@
         <main id="app-root" tabindex="-1">
             <div id="hub-view" class="view-container">
                 <section class="instrument-hero" aria-labelledby="instrument-title">
-                    <img class="instrument-portrait" src="/assets/studio/optical-bench.webp" width="1680" height="945" fetchpriority="high" alt="">
+                    <img class="instrument-portrait" src="/assets/cipher/shot-01.webp" width="832" height="466" fetchpriority="high" alt="">
                     <div class="instrument-intro">
                         <p class="hero-byline">Independent software studio</p>
                         <h1 id="instrument-title"><span>Software,</span> <em>in focus.</em></h1>
@@ -232,45 +232,9 @@
                         </div>
                     </div>
                 </section>
-                <section class="scroll-studio" id="scroll-studio" aria-labelledby="studio-title">
-                    <header class="studio-intro">
-                        <h2 id="studio-title">How a consultation works.</h2>
-                        <p>Learn to use AI, untangle a technical problem, or plan a project. A focused session built around what you want to do, at your level.</p>
-                    </header>
-                    <div class="studio-journey">
-                        <div class="studio-visual" aria-hidden="true">
-                            <div class="optic-field">
-                                <div class="optic-axis"></div>
-                                <div class="optic-assembly">
-                                    <img class="optic-piece optic-lens" src="/assets/studio/lens.webp" width="580" height="580" loading="lazy" alt="">
-                                    <img class="optic-piece optic-prism" src="/assets/studio/prism.webp" width="580" height="580" loading="lazy" alt="">
-                                    <img class="optic-piece optic-iris" src="/assets/studio/iris.webp" width="580" height="580" loading="lazy" alt="">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="studio-chapters">
-                            <article class="studio-chapter">
-                                <h3>Start with your question.</h3>
-                                <p>Tell us what you want to learn, solve or build. You do not need a finished brief.</p>
-                            </article>
-                            <article class="studio-chapter">
-                                <h3>Agree the session.</h3>
-                                <p>We reply by email to agree the scope, price and a suitable time. Nothing is booked automatically.</p>
-                            </article>
-                            <article class="studio-chapter">
-                                <h3>Work through it together.</h3>
-                                <p>Explore your question with a certified senior cloud architect and identify practical next steps.</p>
-                                <div class="mission-cta">
-                                    <a href="/contact?service=1%3A1%20Tech%20Consultations" data-link class="btn-hud btn-hud-primary">Request a 1:1</a>
-                                    <a href="/faq" data-link class="home-text-link">Questions before you book?</a>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
-                </section>
                 <section class="session-planner">
                     <div class="hero-content">
-                        <h2 class="session-heading">What would you bring to a 1:1?</h2>
+                        <h2 class="session-heading">Choose a signal.</h2>
                         <fieldset class="hero-intents" id="hero-intents" hidden>
                             <legend>Your next step</legend>
                             <div class="hero-intent-options">
@@ -282,6 +246,7 @@
                         <p class="hero-intent-description" id="hero-intent-description" data-i18n-source="Bring an idea for a website, app or tool. Map out a practical first version together." aria-live="polite" aria-atomic="true">Bring an idea for a website, app or tool. Map out a practical first version together.</p>
                         <div class="hero-footer reveal-mask">
                             <div class="hero-actions">
+                                <a href="#scroll-studio" class="hero-action hero-action-secondary">Follow my signal ↓</a>
                                 <a href="/contact?service=1%3A1%20Tech%20Consultations&amp;topic=build" id="hero-intent-link" data-link class="hero-action hero-action-primary">Request a 1:1</a>
                             </div>
                         </div>
@@ -307,6 +272,66 @@
                         </svg>
                         </div>
                     </figure>
+                </section>
+                <section id="scroll-studio" class="cipher-story" tabindex="-1" data-topic="build" aria-label="From question to enquiry">
+                    <div class="cipher-stage" aria-hidden="true">
+                        <canvas id="cipher-film"></canvas>
+                        <div class="cipher-routing">
+                            <svg viewBox="0 0 200 52" fill="none" aria-hidden="true">
+                                <g class="signal-wires">
+                                    <path d="M2 26h11l3-5 4 10 4-13 5 14 5-6h55l18-17h90"/>
+                                    <path d="M2 26h11l3-5 4 10 4-13 5 14 5-6h163"/>
+                                    <path d="M2 26h11l3-5 4 10 4-13 5 14 5-6h55l18 17h90"/>
+                                </g>
+                                <g class="signal-current">
+                                    <path data-path="learn" pathLength="1" d="M2 26h11l3-5 4 10 4-13 5 14 5-6h55l18-17h90"/>
+                                    <path data-path="build" pathLength="1" d="M2 26h11l3-5 4 10 4-13 5 14 5-6h163"/>
+                                    <path data-path="solve" pathLength="1" d="M2 26h11l3-5 4 10 4-13 5 14 5-6h55l18 17h90"/>
+                                </g>
+                            </svg>
+                            <span data-path="learn">Learn AI</span><span data-path="build">Build something</span><span data-path="solve">Solve a problem</span>
+                        </div>
+                        <div class="cipher-meter"></div>
+                    </div>
+                    <div class="cipher-chapters">
+                        <article class="cipher-chapter">
+                            <div class="cipher-copy">
+                                <span class="cipher-act">Reception</span>
+                                <h2>One question enters.</h2>
+                                <p data-path="learn">You want to learn AI. Start with one task you already do by hand.</p>
+                                <p data-path="build">You want to build something. Start with one thing a person should be able to do.</p>
+                                <p data-path="solve">Something is going wrong. Start with what you expected and what happened instead.</p>
+                            </div>
+                        </article>
+                        <article class="cipher-chapter">
+                            <div class="cipher-copy">
+                                <span class="cipher-act">Decoding</span>
+                                <h2>Give it a precise shape.</h2>
+                                <p data-path="learn">For example, turn meeting notes into a list of decisions. What would a correct result look like?</p>
+                                <p data-path="build">For example, let a customer request a quote. What does the team need to know to reply?</p>
+                                <p data-path="solve">For example, a form appears to submit but no email arrives. Where was the last confirmed step?</p>
+                            </div>
+                        </article>
+                        <article class="cipher-chapter">
+                            <div class="cipher-copy">
+                                <span class="cipher-act">Routing</span>
+                                <h2>Choose the next test.</h2>
+                                <p data-path="learn">Bring a short, anonymised example. In a session we can try a prompt and compare its answer with yours.</p>
+                                <p data-path="build">Sketch the smallest flow together: the request, the fields and the reply. That gives you a first version to test.</p>
+                                <p data-path="solve">Trace one example from the form to the inbox. The first missing handoff tells us where to investigate.</p>
+                            </div>
+                        </article>
+                        <article class="cipher-chapter">
+                            <div class="cipher-copy">
+                                <span class="cipher-act">Output</span>
+                                <h2>Your topic travels with you.</h2>
+                                <p data-path="learn">Your enquiry will open with “Learn AI” selected. Add the task you want to practise.</p>
+                                <p data-path="build">Your enquiry will open with “Build something” selected. Add a sentence about your idea.</p>
+                                <p data-path="solve">Your enquiry will open with “Solve a problem” selected. Describe the symptom you want to investigate.</p>
+                                <a id="story-enquiry" class="instrument-cta" data-link href="/contact?service=1%3A1%20Tech%20Consultations&amp;topic=build">Continue with this topic</a>
+                            </div>
+                        </article>
+                    </div>
                 </section>
                 <section class="home-services" aria-labelledby="home-services-title">
                     <header class="home-section-heading">
@@ -1197,6 +1222,6 @@ else
 fi
 
 printf "\nScope: HTTP, DNS, WHOIS/RDAP domain identity, TLS, robots, sitemap, sampled links, metadata, headers, CORS, cookies, passive browser-style DOM checks, client secret/debug exposure, query reflection, SQL error smoke, sensitive-file/route smoke, open-redirect smoke, and optional nmap web-port check.\n"</script>
-    <script type="module" src="script.js?v=20261128b"></script>
+    <script type="module" src="script.js?v=cipher1"></script>
 </body>
 </html>

@@ -1925,23 +1925,7 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
         @keyframes bench-depart { to { transform: translateY(12%) scale(1.08); } }
     }
 }
-.scroll-studio { padding: clamp(3.5rem,7vw,8rem) var(--gap) 1rem; background: var(--c-bg); }
-.studio-intro { display: grid; grid-template-columns: 1.2fr 1fr; gap: 7vw; align-items: end; border-bottom: 1px solid var(--border-soft); padding-bottom: 2.5rem; }
-.studio-intro h2,.session-heading,.home-section-heading h2 { font: 520 clamp(2.6rem,5.5vw,6rem)/1.02 var(--f-display); letter-spacing: -.048em; text-wrap: balance; }
-.studio-intro p,.studio-chapter p { color: var(--c-muted); line-height: 1.75; max-width: 44ch; }
-.studio-journey { display: grid; grid-template-columns: 1.16fr 1fr; gap: 7vw; align-items: start; }
-.studio-visual { position: sticky; top: 105px; display: grid; align-items: center; height: calc(100svh - 120px); max-height: 740px; }
-.optic-field { position: relative; isolation: isolate; overflow: clip; aspect-ratio: 1.23; width: 100%; background: radial-gradient(ellipse at 50% 65%,#262016 0%,#100f0c 44%,#080909 78%); }
-.optic-field::before { content: ''; position: absolute; inset: 7%; border: 1px solid #dfc4911e; border-radius: 50%; transform: rotate(-23deg) scaleY(.68); }
-.optic-axis { position: absolute; top: 50%; width: 138%; left: -19%; height: 1px; background: linear-gradient(90deg,transparent,#73532d,#ffe3ac,#977448,transparent); transform: rotate(-23deg); box-shadow: 0 0 11px #d9a145; }
-.optic-assembly { position: absolute; inset: 0; perspective: 700px; }
-.optic-piece { position: absolute; width: 38%; height: auto; left: 31%; top: 50%; }
-.optic-lens { transform: translate(calc(-44% - var(--opening,.6)*30%),calc(-35% + var(--opening,.6)*16%)) rotateY(calc(var(--turn,0)*-37deg)) rotate(-14deg); }
-.optic-prism { transform: translateY(-56%) rotateY(calc(var(--turn,0)*35deg)) scale(.81); }
-.optic-iris { transform: translate(calc(41% + var(--opening,.6)*31%),calc(-76% - var(--opening,.6)*15%)) rotateY(calc(var(--turn,0)*44deg)) scale(.72); }
-.studio-chapter { min-height: 63svh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.3rem; }
-.studio-chapter h3 { font: 520 clamp(2.2rem,4.1vw,4.9rem)/1.06 var(--f-display); letter-spacing: -.04em; text-wrap: balance; }
-.studio-chapter .mission-cta { margin: .5rem 0; flex-wrap: wrap; }
+.session-heading,.home-section-heading h2 { font: 520 clamp(2.6rem,5.5vw,6rem)/1.02 var(--f-display); letter-spacing: -.048em; text-wrap: balance; }
 .session-planner { display: grid; grid-template-columns: 1.05fr .95fr; gap: 6vw; align-items: center; padding: clamp(3.5rem,7vw,7rem) var(--gap); }
 .home-service-grid { display: block; }
 .home-service-grid article { display: grid; grid-template-columns: 1fr 1.15fr auto; gap: 4vw; align-items: center; border: 0; border-top: 1px solid var(--border-soft); border-radius: 0; padding: 2rem 0; background: transparent; }
@@ -1957,17 +1941,52 @@ body:is([data-route="home"], [data-route="contact"]) .diagnostic-dock { display:
     .instrument-intro h1 { font-size: clamp(3.8rem,12.4vw,6rem); margin: .75rem 0 1rem; line-height: 1; }
     .instrument-intro h1 span,.instrument-intro h1 em { display: inline; }
     .hero-byline { font-size: .65rem; }
-    .studio-intro,.session-planner { grid-template-columns: 1fr; gap: 1.4rem; }
-    .studio-journey { display: block; }
-    .studio-visual { top: 120px; height: auto; z-index: 1; pointer-events: none; }
-    .optic-field { aspect-ratio: 2/1; max-height: 28svh; }
-    .optic-piece { width: 36%; left: 32%; }
-    .studio-chapter { min-height: 45svh; padding: 2rem 0; justify-content: center; }
+    .session-planner { grid-template-columns: 1fr; gap: 1.4rem; }
     .session-planner .hero-sculpture { max-width: 270px; margin: 0 auto; }
     .home-service-grid article { grid-template-columns: 1fr; gap: .75rem; }
     .home-service-grid .btn-hud { justify-self: start; padding-left: 0; }
 }
-@media (prefers-reduced-motion:reduce),(max-height:530px) {
-    .studio-visual { position: relative; top: auto; height: auto; padding-block: 2rem; }
-    .studio-chapter { padding-block: 2rem; min-height: auto; }
+.instrument-hero::after { content: ''; position: absolute; inset: auto 0 0; height: 8%; background: linear-gradient(transparent,var(--c-bg)); pointer-events: none; }
+.cipher-story { display: grid; grid-template-columns: minmax(0,1fr); position: relative; isolation: isolate; color: #f7efe4; background: #080d0d; scroll-margin-top: 0; }
+.cipher-stage,.cipher-chapters { grid-area: 1 / 1; }
+.cipher-stage { align-self: start; position: sticky; top: 0; width: 100%; height: 100svh; overflow: hidden; background: #080d0d url('/assets/cipher/shot-01.webp') center/cover; }
+.cipher-stage canvas { width: 100%; height: 100%; display: block; }
+.cipher-stage::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,rgba(4,10,10,.97) 0%,rgba(4,10,10,.84) 24%,rgba(4,10,10,.38) 51%,transparent 75%),linear-gradient(0deg,#060909b0,transparent 18%,transparent 85%,#06090980); }
+.cipher-meter { position: absolute; z-index: 2; bottom: 2px; height: 2px; inset-inline: 0; transform-origin: left; transform: scaleX(var(--film-progress,0)); background: #d1a567; }
+.cipher-chapters { z-index: 1; pointer-events: none; }
+.cipher-chapter { min-height: 92svh; display: flex; align-items: center; padding: 7rem var(--gap) 3rem; }
+.cipher-copy { width: min(39%, 36rem); }
+.cipher-act { display: block; color: #ecd0a4; font: 650 .72rem/1.5 var(--f-logic); text-transform: uppercase; letter-spacing: .16em; }
+.cipher-copy h2 { margin: .8rem 0 1.4rem; font: 520 clamp(2.9rem,5.4vw,6.7rem)/1.01 var(--f-display); letter-spacing: -.052em; text-wrap: balance; }
+.cipher-copy p { font: 450 clamp(1rem,1.3vw,1.22rem)/1.65 var(--f-logic); max-width: 36ch; }
+.cipher-story [data-path] {display:none}
+.cipher-story[data-topic="learn"] [data-path="learn"],.cipher-story[data-topic="build"] [data-path="build"],.cipher-story[data-topic="solve"] [data-path="solve"] {display:block}
+.cipher-copy .instrument-cta { display: inline-block; pointer-events: auto; font-weight: 700; padding: .85rem 1.25rem; margin-top: 1.6rem; background: #efdfbd; color: #251b11; text-decoration: none; border-radius: 2px; }
+@media(max-width:760px) {
+    .cipher-stage { top: 118px; height: min(34svh,65vw); z-index: 2; pointer-events: none; }
+    .cipher-stage::after { background: linear-gradient(0deg,#080d0d,transparent 10%); }
+    .cipher-chapters { padding-top: min(34svh,65vw); }
+    .cipher-chapter { min-height: 66svh; padding: 1.7rem var(--gap) 2.8rem; }
+    .cipher-copy { width: 100%; }
+    .cipher-copy h2 { font-size: clamp(2.5rem,9vw,4rem); }
 }
+@media (prefers-reduced-motion:reduce),(max-height:500px) {
+    .cipher-story,.cipher-chapters { display: block; }
+    .cipher-stage { display: none; }
+    .cipher-chapters { padding: 0; }
+    .cipher-chapter { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 4vw; min-height: auto; padding: 2.5rem var(--gap); }
+    .cipher-copy { width: auto; }
+    .cipher-chapter::before { content:''; width:100%; aspect-ratio:16/9; background:center/cover var(--still); }
+    .cipher-chapter:nth-child(1) { --still:url('/assets/cipher/shot-03.webp'); }
+    .cipher-chapter:nth-child(2) { --still:url('/assets/cipher/shot-07.webp'); }
+    .cipher-chapter:nth-child(3) { --still:url('/assets/cipher/shot-10.webp'); }
+    .cipher-chapter:nth-child(4) { --still:url('/assets/cipher/shot-12.webp'); }
+}
+@media (max-width:760px) and (prefers-reduced-motion:reduce) { .cipher-chapter { grid-template-columns:1fr; } }
+
+.cipher-routing { position:absolute; right:var(--gap); bottom:6%; z-index:2; width:clamp(150px,18vw,250px); color:#ffe1a4; text-shadow:0 1px 5px #000; }
+.cipher-routing svg { width:100%; display:block; filter:drop-shadow(0 1px 3px #000); }
+.signal-wires { stroke:#b8ab8e; opacity:.55; }
+.signal-current { stroke:#ffda87; stroke-width:2; stroke-dasharray:1; stroke-dashoffset:calc(1 - var(--film-progress,0)); }
+.cipher-routing span { font:600 .75rem/1.4 var(--f-logic); text-align:right; }
+@media(max-width:760px) { .cipher-routing { right:12px; bottom:7%; width:115px; } }

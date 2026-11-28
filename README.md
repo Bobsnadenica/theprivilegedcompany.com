@@ -451,13 +451,12 @@ and view switching remain available while scrolling. Photo credits and missing-i
 fallbacks are explicit; all 250 catalogue places remain available. Private visit
 photos and account storage retain the existing save/retry behaviour.
 
-### Homepage optical study
+### Homepage cipher sequence
 
-Original generated studio photographs in `assets/studio/` illustrate the opening
-and the three-part consultation sequence. The lens, prism and iris move in CSS
-perspective with native scroll. Reduced motion displays a static arrangement.
-The procedural light sculpture accompanies the topic selector.
+Twelve original generated stills in `assets/cipher/` follow a signal through a receiver,
+decoder, routing circuit and output lamp. Native scroll drives the camera and dissolves.
+The topic selector changes each chapter's example, its circuit branch and the topic
+passed to the contact page. Reduced motion shows one still per chapter.
 
-Scroll choreography reference: [Royal Pop](https://github.com/hamzafarooq/claude-code-starter/tree/main/demos/royal-pop-website).
 Run `node scripts/check-scroll-studio.mjs` and regenerate shared shells with
-`node scripts/sync-route-pages.mjs` after changing the homepage markup.
+`node scripts/sync-route-pages.mjs` after changing homepage markup.

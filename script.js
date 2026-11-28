@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=20261128b';
+import { languageMeta, translations } from './translations.js?v=cipher1';
 
 const routes = {
     '': {
@@ -196,6 +196,10 @@ const initHomeIntent = () => {
         description.dataset.i18nSource = topic.description;
         description.textContent = t(topic.description);
         link.href = `/contact?service=1%3A1%20Tech%20Consultations&topic=${key}`;
+        const story = document.getElementById('scroll-studio');
+        const enquiry = document.getElementById('story-enquiry');
+        if (story) story.dataset.topic = key;
+        if (enquiry) enquiry.href = link.href;
         sculpture?.setForm(topic.form);
     };
     choices.addEventListener('change', update);
@@ -1854,7 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
     import('./hero-sculpture.js?v=20261008h')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
-    import('./scroll-studio.js?v=20261128b')
+    import('./scroll-studio.js?v=cipher1')
         .then(({ initScrollStudio }) => initScrollStudio())
         .catch(() => { /* The static rings and all content remain available. */ });
     initCursor();
