@@ -1,10 +1,19 @@
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
-const source = await readFile(new URL('../scroll-studio.js',import.meta.url),'utf8');
-const { filmPosition } = await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
-const positions = Array.from({length:401},(_,i)=>filmPosition(i/100));
-assert.deepEqual(new Set(positions.map(p=>p.first)), new Set(Array.from({length:12},(_,i)=>i)));
-assert.ok(positions.every((p,i)=>p.blend>=0 && p.blend<=1 && (!i || p.frame>=positions[i-1].frame)));
-for (let i=400;i>=0;i--) assert.deepEqual(filmPosition(i/100),positions[i]);
-for(let i=1;i<=12;i++) await access(new URL('../assets/cipher/shot-'+String(i).padStart(2,'0')+'.webp',import.meta.url));
-console.log('PASS: twelve shots, reversible chapter timing and bounded dissolves.');
+import { readFile } from 'node:fs/promises';
+import { sampledFrames } from '../scroll-studio.js';
+const frames = new Set();
+for (let i=0; i<=1500; i++) {
+    const {left,right,blend}=sampledFrames(3*i/1500);
+    assert.ok(right-left<=1 && right>=left && blend>=0 && blend<=1);
+    frames.add(left);
+}
+assert.equal(frames.size,144);
+assert.equal(sampledFrames(-.1).left,0);
+assert.equal(sampledFrames(3.1).right,143);
+for (const layout of ['wide','tall']) {
+    for(let sheet=0;sheet<12;sheet++){
+        const file=await readFile(new URL('../assets/field/'+layout+'-'+sheet+'.webp',import.meta.url));
+        assert.equal(file.toString('ascii',8,12),'WEBP');
+    }
+}
+console.log('PASS: 144 consecutive camera frames, interpolation and all 24 WebP sheets.');

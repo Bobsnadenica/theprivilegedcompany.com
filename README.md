@@ -451,12 +451,14 @@ and view switching remain available while scrolling. Photo credits and missing-i
 fallbacks are explicit; all 250 catalogue places remain available. Private visit
 photos and account storage retain the existing save/retry behaviour.
 
-### Homepage cipher sequence
+### Homepage particle tour
 
-Twelve original generated stills in `assets/cipher/` follow a signal through a receiver,
-decoder, routing circuit and output lamp. Native scroll drives the camera and dissolves.
-The topic selector changes each chapter's example, its circuit branch and the topic
-passed to the contact page. Reduced motion shows one still per chapter.
+Native scroll moves the camera through a particle landscape, interface outlines,
+automation lanes and a conversation globe. The WebGL renderer in `studio-field.js`
+also supplies the 144-frame landscape and portrait versions in `assets/field/`.
+Browsers without WebGL load nearby sheets as visitors scroll. Reduced motion
+presents the service chapters as normal document sections. Optional ambient sound
+starts on request and stops when the tour leaves the viewport.
 
 Run `node scripts/check-scroll-studio.mjs` and regenerate shared shells with
 `node scripts/sync-route-pages.mjs` after changing homepage markup.

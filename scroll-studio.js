@@ -1,81 +1,137 @@
-// Shot intervals follow the four chapters. Frame progress is reversible and independent of scroll speed.
-const chapterCuts = [0, 3.65, 7.65, 9.8, 11];
-const clamp = value => Math.max(0, Math.min(1, value));
-export function filmPosition(chapterProgress) {
-    const clamped = Math.max(0, Math.min(4, chapterProgress));
-    const act = Math.min(3, Math.floor(clamped));
-    const frame = chapterCuts[act] + (chapterCuts[act + 1] - chapterCuts[act]) * (clamped - act);
-    const first = Math.floor(frame);
-    const mix = clamp((frame - first - .34) / .66);
-    return { first, next: Math.min(11, first + 1), blend: mix * mix * (3 - 2 * mix), frame };
+import {createField} from './studio-field.js?v=mesh1';
+const clamp = (x,min,max) => Math.max(min,Math.min(max,x));
+const sheetFrames=12, lastFrame=143;
+
+// Pairs straddling a sheet boundary use the same interpolation as adjacent frames on one sheet.
+export function sampledFrames(progress) {
+    const position=clamp(progress/3,0,1)*lastFrame;
+    const left=Math.floor(position);
+    return {left,right:Math.min(lastFrame,left+1),blend:position-left};
+}
+function framePlayer(canvas,refresh) {
+    const ctx=canvas.getContext('2d');
+    if(!ctx) return null;
+    const cache=new Map();
+    function sheet(format,index) {
+        const url='/assets/field/'+format+'-'+index+'.webp';
+        if(!cache.has(url)) {
+            const image=new Image();
+            image.onload=refresh;image.src=url;cache.set(url,image);
+            if(cache.size>4)cache.delete(cache.keys().next().value);
+        }
+        return cache.get(url);
+    }
+    return progress=>{
+        const format=canvas.width<canvas.height?'tall':'wide';
+        const {left,right,blend}=sampledFrames(progress);
+        function draw(frame,alpha){
+            const img=sheet(format,Math.floor(frame/sheetFrames));
+            if(!img.complete || !img.naturalWidth)return false;
+            const w=img.naturalWidth/4,h=img.naturalHeight/3,slot=frame%sheetFrames;
+            const scale=Math.max(canvas.width/w,canvas.height/h);
+            ctx.globalAlpha=alpha;
+            ctx.drawImage(img,slot%4*w,Math.floor(slot/4)*h,w,h,(canvas.width-w*scale)/2,(canvas.height-h*scale)/2,w*scale,h*scale);
+            return true;
+        }
+        const ready=draw(left,1);
+        if(blend)draw(right,ready?blend:1);
+        if(left%12>=8 && left<132)sheet(format,Math.floor(left/12)+1);
+        ctx.globalAlpha=1;
+    };
 }
 
 export function initScrollStudio() {
-    const story = document.getElementById('scroll-studio');
-    if (!story) return;
-    const canvas = story.querySelector('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const chapters = [...story.querySelectorAll('.cipher-chapter')];
-    const stage = canvas.parentElement;
-    const motion = matchMedia('(prefers-reduced-motion: reduce)');
-    const images = new Map();
-    let nearby = false;
-    let raf = 0;
-    function schedule() {
-        if (nearby && !document.hidden && !motion.matches && !raf) raf = requestAnimationFrame(paint);
+    const tour=document.getElementById('mesh-tour');
+    if(!tour)return;
+    const stage=tour.querySelector('.mesh-stage'), surface=tour.querySelector('.mesh-surface');
+    const scenes=[...tour.querySelectorAll('.mesh-scene')],controls=tour.querySelector('.mesh-controls');
+    const buttons=[...controls.querySelectorAll('.mesh-index button')];
+    const motion=matchMedia('(prefers-reduced-motion: reduce)');
+    let canvas,draw,live=false,visible=false,pending=0,previous=0,elapsed=0,progress=0,target=0,dirty=true,hasDrawn=false;
+    let x=0,y=0,px=0,py=0,webgl=false,top=0,travel=1,active=-1;
+    const audioButton=controls.querySelector('.mesh-audio');
+    let audio;
+    function silence(){if(audio){audio.close().catch(()=>{});audio=null;}audioButton.setAttribute('aria-pressed','false');}
+    audioButton.onclick=async()=>{
+        if(audio)return silence();
+        const Audio=window.AudioContext || window.webkitAudioContext;
+        if(!Audio)return;
+        const context=new Audio();audio=context;
+        try {
+            const volume=context.createGain();volume.gain.value=.024;volume.connect(context.destination);
+            for(const hz of [98,146.83,196.3]){const osc=context.createOscillator();osc.frequency.value=hz;osc.connect(volume);osc.start();}
+            await context.resume(); if(audio===context)audioButton.setAttribute('aria-pressed','true');
+        } catch {silence();}
+    };
+    function schedule(){if(live && visible && !document.hidden && !pending)pending=requestAnimationFrame(tick);}
+    function refresh(){dirty=true;schedule();}
+    function makeRenderer(useGL) {
+        canvas=document.createElement('canvas');
+        surface.replaceChildren(canvas);draw=null;
+        if(useGL){try{draw=createField(canvas,innerWidth<760);}catch{/* Use the prerendered scene. */}}
+        webgl=Boolean(draw);
+        if(!draw){canvas=document.createElement('canvas');surface.replaceChildren(canvas);draw=framePlayer(canvas,refresh);}
+        else canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();makeRenderer(false);resize();},{once:true});
+        tour.dataset.renderer=webgl?'live':'sequence';
     }
-    function imageAt(index) {
-        if (!images.has(index)) {
-            const image = new Image();
-            image.decoding = 'async';
-            image.onload = schedule;
-            image.src = '/assets/cipher/shot-' + String(index + 1).padStart(2, '0') + '.webp';
-            images.set(index, image);
+    function scroll(){target=clamp((scrollY-top)/travel,0,1)*3;schedule();}
+    function resize(){
+        if(!live)return;
+        const width=stage.clientWidth,height=stage.clientHeight;
+        if(!width || !height)return;
+        const ratio=Math.min(devicePixelRatio||1,webgl?1.5:1);
+        canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
+        top=tour.getBoundingClientRect().top+scrollY;
+        travel=Math.max(1,tour.offsetHeight-height);scroll();refresh();
+    }
+    function tick(now){
+        pending=0;if(!live || !visible || document.hidden)return;
+        const dt=previous?clamp((now-previous)/1000,0,.08):1/60;
+        previous=now;elapsed+=dt;
+        const before=progress;
+        progress+= (target-progress)*(1-Math.exp(-dt*15));
+        if(Math.abs(target-progress)<.0005)progress=target;
+        px+=(x-px)*(1-Math.exp(-dt*7));py+=(y-py)*(1-Math.exp(-dt*7));
+        if(webgl || dirty || before!==progress)draw?.(progress,elapsed,px,py,canvas.width/stage.clientWidth);
+        dirty=false;
+        if(before!==progress || !hasDrawn) {
+            const chapter=Math.round(progress);
+            scenes.forEach((scene,i)=>{
+                const distance=i-progress;
+                const fade=clamp((.63-Math.abs(distance))/.4,0,1);
+                scene.style.opacity=fade*fade*(3-2*fade);
+                scene.style.transform='translate3d(0,'+(distance*8)+'vh,0) scale('+(1-distance*.13)+')';
+                if(chapter!==active || !hasDrawn){scene.inert=i!==chapter;buttons[i].setAttribute('aria-current',String(i===chapter));}
+            });
+            active=chapter;hasDrawn=true;
         }
-        return images.get(index);
+        if(webgl || progress!==target)schedule();
     }
-    function compose(image, age, alpha) {
-        const zoom = 1.04 + clamp(age) * .085;
-        const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight) * zoom;
-        const w = image.naturalWidth * scale, h = image.naturalHeight * scale;
-        ctx.globalAlpha = alpha;
-        ctx.drawImage(image, (canvas.width - w) * (.48 + clamp(age) * .08), (canvas.height - h) * .48, w, h);
-    }
-    function paint() {
-        raf = 0;
-        if (!nearby || document.hidden || motion.matches) return;
-        const dpr = Math.min(1.5, devicePixelRatio || 1);
-        const width = Math.max(1, Math.round(stage.clientWidth * dpr));
-        const height = Math.max(1, Math.round(stage.clientHeight * dpr));
-        if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
-        const line = stage.getBoundingClientRect().top + (innerWidth <= 760 ? stage.clientHeight + (innerHeight - stage.clientHeight) * .4 : stage.clientHeight * .48);
-        const rects = chapters.map(chapter => chapter.getBoundingClientRect());
-        const index = Math.max(0, rects.findLastIndex(rect => rect.top <= line));
-        const fraction = clamp((line - rects[index].top) / rects[index].height);
-        const position = filmPosition(index + fraction);
-        const a = imageAt(position.first), b = imageAt(position.next);
-        imageAt(Math.min(11, position.next + 1));
-        if (a.complete && a.naturalWidth) {
-            compose(a, position.frame - position.first + .2, 1);
-            if (position.blend && b.complete && b.naturalWidth) compose(b, position.frame - position.next + .2, position.blend);
-            ctx.globalAlpha = 1;
+    function configure(){
+        live=!motion.matches && innerHeight>=440;
+        tour.classList.toggle('is-live',live);controls.hidden=!live;
+        if(live){
+            if(!canvas)makeRenderer(true);
+            hasDrawn=false;resize();progress=target;schedule();
+        }else{
+            silence();cancelAnimationFrame(pending);pending=0;previous=0;
+            scenes.forEach(s=>{s.inert=false;s.style.removeProperty('opacity');s.style.removeProperty('transform');});
         }
-        stage.style.setProperty('--film-progress', (index + fraction) / 4);
+        document.dispatchEvent(new CustomEvent('tourvisibility',{detail:live && visible}));
     }
-    new IntersectionObserver(([entry]) => {
-        nearby = entry.isIntersecting;
-        if (!nearby && raf) { cancelAnimationFrame(raf); raf = 0; }
-        schedule();
-    }, {rootMargin:'150px'}).observe(story);
-    new ResizeObserver(schedule).observe(stage);
-    addEventListener('scroll', schedule, {passive:true});
-    document.addEventListener('visibilitychange', schedule);
-    motion.addEventListener('change', schedule);
-    document.querySelector('a[href="#scroll-studio"]')?.addEventListener('click', event => {
-        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
-        event.preventDefault();
-        story.focus({preventScroll:true});
-        story.scrollIntoView();
-    });
+    buttons.forEach((button,i)=>button.addEventListener('click',()=>window.scrollTo({top:top+travel*i/3,behavior:'smooth'})));
+    controls.querySelector('.mesh-skip').onclick=()=>{silence();const planner=document.getElementById('session-planner');planner.focus({preventScroll:true});planner.scrollIntoView();};
+    stage.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){x=e.clientX/innerWidth-.5;y=e.clientY/innerHeight-.5;}},{passive:true});
+    stage.addEventListener('pointerleave',()=>{x=y=0;});
+    new IntersectionObserver(([entry])=>{
+        visible=entry.isIntersecting;previous=0;
+        if(visible){resize();progress=target;hasDrawn=false;schedule();}
+        else{silence();cancelAnimationFrame(pending);pending=0;}
+        document.dispatchEvent(new CustomEvent('tourvisibility',{detail:live && visible}));
+    }).observe(stage);
+    new ResizeObserver(resize).observe(stage);
+    window.addEventListener('scroll',scroll,{passive:true});
+    matchMedia('(min-height:440px)').addEventListener('change',configure);
+    document.addEventListener('visibilitychange',()=>{previous=0;if(document.hidden)silence();else refresh();});
+    motion.addEventListener('change',configure);configure();
 }

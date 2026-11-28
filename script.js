@@ -2,7 +2,7 @@
  * ThePrivilegedCompany Monolith Engine [Final Boss Tier]
  * Senior Engineering Standard.
  */
-import { languageMeta, translations } from './translations.js?v=cipher1';
+import { languageMeta, translations } from './translations.js?v=mesh1';
 
 const routes = {
     '': {
@@ -196,10 +196,6 @@ const initHomeIntent = () => {
         description.dataset.i18nSource = topic.description;
         description.textContent = t(topic.description);
         link.href = `/contact?service=1%3A1%20Tech%20Consultations&topic=${key}`;
-        const story = document.getElementById('scroll-studio');
-        const enquiry = document.getElementById('story-enquiry');
-        if (story) story.dataset.topic = key;
-        if (enquiry) enquiry.href = link.href;
         sculpture?.setForm(topic.form);
     };
     choices.addEventListener('change', update);
@@ -1409,6 +1405,12 @@ class QuantumWeb {
         this.readTheme();
         this.init();
         this.animate(0);
+        document.addEventListener('tourvisibility', event => {
+            this.tourVisible = event.detail;
+            cancelAnimationFrame(this.animationFrame);
+            this.lastFrame = null;
+            if (!this.tourVisible && !document.hidden) this.animate(performance.now());
+        });
         document.addEventListener('visibilitychange', () => {
             this.isVisible = !document.hidden;
             cancelAnimationFrame(this.animationFrame);
@@ -1648,6 +1650,7 @@ class QuantumWeb {
     }
 
     animate(timestamp = 0) {
+        if (this.tourVisible) return;
         if (!this.isVisible) return;
         const elapsed = this.lastFrame === null ? 0 : timestamp - this.lastFrame;
         if (!this.isReducedMotion && this.lastFrame !== null && elapsed < this.frameInterval) {
@@ -1858,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', () => {
     import('./hero-sculpture.js?v=20261008h')
         .then(({ initHeroSculpture, initServiceLight }) => { connectSculpture?.(initHeroSculpture()); initServiceLight(); })
         .catch(() => { /* Keep the static sculpture if enhancement is unavailable. */ });
-    import('./scroll-studio.js?v=cipher1')
+    import('./scroll-studio.js?v=mesh1')
         .then(({ initScrollStudio }) => initScrollStudio())
         .catch(() => { /* The static rings and all content remain available. */ });
     initCursor();

@@ -12,6 +12,21 @@ export const languageMeta = {
 export const translations = {
     "bg": {
         "text": {
+            "Sound": "Звук",
+            "Introduction": "Въведение",
+            "Explore the studio": "Разгледайте студиото",
+            "Ideas into": "От идея",
+            "software.": "до софтуер.",
+            "Websites, applications and automation.": "Уебсайтове, приложения и автоматизация.",
+            "Built around the people who use them.": "Създадени за хората, които ги използват.",
+            "Interfaces": "Интерфейси",
+            "From a first visit to a working application. Design the screen around what someone came to do.": "От първото посещение до работещото приложение. Проектираме екрана според задачата, която човек иска да свърши.",
+            "Connect the steps between your tools. Follow one input through to a useful result.": "Свързваме стъпките между вашите инструменти. Проследете как от една заявка се стига до готов резултат.",
+            "One to one": "Индивидуално",
+            "Bring your idea or technical question to a certified senior cloud architect.": "Обсъдете идеята или техническия си въпрос със сертифициран старши архитект на облачни решения.",
+            "Scroll to explore": "Разгледайте с превъртане",
+            "Skip to consultations": "Към консултациите",
+
             "Reception": "Приемане",
             "One question enters.": "Всичко започва с въпрос.",
             "You want to learn AI. Start with one task you already do by hand.": "Искате да се научите да работите с AI. Започнете с една задача, която сега вършите на ръка.",
